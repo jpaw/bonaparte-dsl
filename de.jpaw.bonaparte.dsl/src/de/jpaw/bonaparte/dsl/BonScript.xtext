@@ -1,0 +1,127 @@
+ /*
+  * Copyright 2012 Michael Bischoff
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *   http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+  
+grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
+
+generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
+
+Model:
+    imports  += ImportDefinition*
+    packages += PackageDefinition*
+    //(extensions = ModelExtensionDefinition)      // Extensions only
+;
+    
+QualifiedId: 
+    ID ('.' ID)*
+;
+
+ImportDefinition:
+    'import' importURI=STRING
+;
+
+// packages loosely correspond to Java packages, in OSGi environments, they will be mapped to application modules
+PackageDefinition:
+    //(annotations=PackageAnnotations)  // for extensions
+    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId '{'   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        ('default'
+            (defaultSigned   ?= 'signed'   | defaultUnsigned ?= 'unsigned')? &  // numeric integers: if not provided, default is signed
+            (defaultRequired ?= 'required' | defaultOptional ?= 'optional')? &  // default is required for lower case types
+            (defaultTrim     ?= 'trim'     | defaultNoTrim   ?= 'notrim')?      // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
+            (defaultCtrls    ?= 'allowControlChars' | defaultNoCtrls  ?= 'noControlChars')?      // Unicode fields: allow control characters: default: no
+            (usePrimitives   ?= 'usePrimitives')?                               // allow primitive types in objects, these can never be null
+         // (defaultRawFormat = ('hex' | 'base64'))?      // Raw data: how to serialize
+          ';'
+        )?
+        types   += TypeDefinition*
+        classes += ClassDefinition*
+    '}'
+;
+
+// a class correspondes to a Java class
+ClassDefinition:
+    // (annotations=ClassAnnotations)  // for extensions
+    // (isDeprecated?='@Deprecated')?
+    (abstract?='abstract' | final?='final')? 'class' name=QualifiedId
+    ('revision' revision = STRING)?
+    ('extends' extendsClass=[ClassDefinition|QualifiedId])?
+    '{'
+        fields += FieldDefinition*   
+    '}'
+;
+
+// type definitions can be used in the same or different packages. It is important to know that
+// any package defaults will apply at the location where the type is defined. This means that
+// the type expansion will have the same features in different packages, even if they use different defaults. 
+TypeDefinition:
+    'type' name = ID 'is' datatype = DataType ';'
+;
+
+FieldDefinition:
+    (isRequired ?= 'required' | isOptional ?= 'optional')? &
+    datatype = DataType (isArray=ArrayModifier)? name = ID ';'
+;
+
+DataType:
+    // TODO: add empty extension, to be provided by derived grammars (for example using annotations, like JSR 303 validation API)
+    (elementaryDataType=ElementaryDataType
+        | ('(' objectDataType=[ClassDefinition|QualifiedId] (orSuperClass?='...')? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
+        | dataTypeReference=[TypeDefinition|QualifiedId]
+    )  
+;
+
+ArrayModifier:
+    '[' {ArrayModifier} (maxcount=INT)? ']'
+;
+ 
+ElementaryDataType:
+    (   name = ("boolean" | "Boolean" | "float" | "Float" | "double"  | "Double")   // some primitive types or their boxed equivalents
+      | name = ("day"     | "Day")                      // 8 digit number, YYYYMMDD
+   //   | (name= ("enum"      | "Enum") '{' (listOfValues += STRING)+ '}') // ascii(1) or int? How to set / get both variants?
+   // enums: allow MappingDefinition for numeric and ASCII fields (Semantics to be defined  
+      | (name= ("timestamp" | "Timestamp") ("(" length=INT ")")? )
+      | ( 
+         name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase")         "(" length=INT ")"
+           (trim    ?= 'trim'     | notrim   ?= 'notrim')?
+           ('regexp' regexp=STRING)?
+      )          // 0x20 - 0x7e
+      | (name=("unicode"|"Unicode")       "(" length=INT ")"
+           (trim    ?= 'trim'     | notrim   ?= 'notrim')?          
+            (allowCtrls ?= 'allowControlChars' | noCtrls  ?= 'noControlChars')?      // Unicode fields: allow control characters
+        )     // any displayable Unicode character
+      | (
+           (signed ?="signed" | unsigned ?= "unsigned")?
+           (  (name=("decimal"|"Decimal")      "(" length=INT ("," decimals=INT)? ")")
+             | (name=("number"|"Number")       "(" length=INT ")")  // int, long, BigInteger (currently only int)
+             | name=("integer"|"Integer"|"int"|"Int"|"long"|"Long")  // primitives without modifiers
+           )
+         )
+      | (name=("raw"|"Raw")           "(" length=INT ")")  // byte array
+    )   
+;
+
+// stubs for extensions (derived grammars)
+ClassAnnotations:
+    {ClassAnnotations}
+;
+
+PackageAnnotations:
+    {PackageAnnotations}
+;
+
+ModelExtensionDefinition:
+    {ModelExtensionDefinition}
+;
+
