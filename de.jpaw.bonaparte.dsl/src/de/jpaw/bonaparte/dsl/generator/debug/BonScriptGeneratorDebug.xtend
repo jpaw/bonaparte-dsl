@@ -1,0 +1,52 @@
+ /*
+  * Copyright 2012 Michael Bischoff
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *   http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+  
+package de.jpaw.bonaparte.dsl.generator.debug
+
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess
+
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+
+class BonScriptGeneratorDebug implements IGenerator {
+    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+        for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition)))
+            fsa.generateFile("debug/" + d.name + ".dump", d.dumpPackage);
+    }
+    
+    def writeDefaults(FieldDefinition i) {
+        var ref = DataTypeExtension::get(i.datatype)
+        return "defaults: (v=" +
+            (if (ref.visibility != null) ref.visibility else "null") + ", req=" +
+            (if (ref.defaultRequired != null) ref.defaultRequired else "null") + ")"
+    }
+    
+    def dumpPackage(PackageDefinition p) '''
+       «FOR c:p.classes»
+           CLASS «c.name»: «IF c.extendsClass != null»EXTENDS «c.extendsClass.name»«ENDIF» abstract=«c.isAbstract» final=«c.isFinal»
+               //
+               «FOR i:c.fields»
+                   FIELD «i.name»: «IF i.required != null»local required = «i.required.x», «ENDIF»«IF i.visibility != null»local visibility = «i.visibility.x», «ENDIF»«writeDefaults(i)»
+               «ENDFOR»
+           
+       «ENDFOR»
+    '''
+}

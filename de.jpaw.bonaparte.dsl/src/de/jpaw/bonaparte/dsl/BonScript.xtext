@@ -32,25 +32,55 @@ ImportDefinition:
     'import' importURI=STRING
 ;
 
-// packages loosely correspond to Java packages, in OSGi environments, they will be mapped to application modules
+// enums for field attributes. Defaults can be set at package or class level
+enum XVisibility:
+    PUBLIC='public' | PRIVATE='private' | PROTECTED='protected' | DEFAULT='default';  // default means standard Java visibility
+enum XSignedness:
+    SIGNED='signed' | UNSIGNED='unsigned';
+enum XRequired:
+    REQUIRED='required' | OPTIONAL='optional';
+enum XTrimming:
+    TRIM='trim' | NOTRIM='notrim';
+enum XSpecialCharsSetting:
+    ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
+enum XUsePrimitives:
+    USE_PRIMITIVES = 'usePrimitives' | USE_BOXED = 'useBoxed';
+
+// We need a special "undefined" setting for enums. According to the XText documentation (2.3, section 6.2.7),
+// ECore does not support this currently. Therefore extra artificial types are required to represent null values.
+// therefore all this weird workaround is required
+Visibility:          x = XVisibility;
+Signedness:          x = XSignedness;
+Required:            x = XRequired;
+Trimming:            x = XTrimming;
+SpecialCharsSetting: x = XSpecialCharsSetting;
+UsePrimitives:       x = XUsePrimitives;
+
+FieldDefaultsDefinition:
+    'default' {FieldDefaultsDefinition}
+        (visibility    = Visibility)?             // default for classes, member fields
+        ((signed       = Signedness)? &           // numeric integers: if not provided, default is signed
+        (required      = Required)? &             // default is required for lower case types
+        (trim          = Trimming)? &             // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
+        (allowCtrls    = SpecialCharsSetting)? &  // Unicode fields: allow control characters: default: no
+        (usePrimitives = UsePrimitives)?          // allow primitive types in objects, these can never be null
+         // (rawFormat = ('hex' | 'base64'))?     // Raw data: how to serialize
+         )
+    ';'
+;
+
+// packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     //(annotations=PackageAnnotations)  // for extensions
-    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId '{'   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
-        ('default'
-            (defaultSigned   ?= 'signed'   | defaultUnsigned ?= 'unsigned')? &  // numeric integers: if not provided, default is signed
-            (defaultRequired ?= 'required' | defaultOptional ?= 'optional')? &  // default is required for lower case types
-            (defaultTrim     ?= 'trim'     | defaultNoTrim   ?= 'notrim')?      // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
-            (defaultCtrls    ?= 'allowControlChars' | defaultNoCtrls  ?= 'noControlChars')?      // Unicode fields: allow control characters: default: no
-            (usePrimitives   ?= 'usePrimitives')?                               // allow primitive types in objects, these can never be null
-         // (defaultRawFormat = ('hex' | 'base64'))?      // Raw data: how to serialize
-          ';'
-        )?
+    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId '{'  // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        (defaults  = FieldDefaultsDefinition)?
         types   += TypeDefinition*
+        enums   += EnumDefinition*
         classes += ClassDefinition*
     '}'
 ;
 
-// a class correspondes to a Java class
+// a class corresponds to a Java class
 ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
     // (isDeprecated?='@Deprecated')?
@@ -58,8 +88,13 @@ ClassDefinition:
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     '{'
+        (defaults  = FieldDefaultsDefinition)?
         fields += FieldDefinition*   
     '}'
+;
+
+EnumDefinition:
+    'enum' name = ID '{' values += ID (',' values += ID)+ '}'   
 ;
 
 // type definitions can be used in the same or different packages. It is important to know that
@@ -69,16 +104,20 @@ TypeDefinition:
     'type' name = ID 'is' datatype = DataType ';'
 ;
 
+// Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
 FieldDefinition:
-    (isRequired ?= 'required' | isOptional ?= 'optional')? &
-    datatype = DataType (isArray=ArrayModifier)? name = ID ';'
+    // (annotations=FieldAnnotations)  // for extensions, for example additional JSR303 like validations. Mixed feelings about this, because it actually violates the "single responsibility" principle.
+    (visibility = Visibility)?
+    (required   = Required)?
+    datatype    = DataType
+    (isArray    = ArrayModifier)?
+    name        = ID ';'
 ;
 
 DataType:
-    // TODO: add empty extension, to be provided by derived grammars (for example using annotations, like JSR 303 validation API)
     (elementaryDataType=ElementaryDataType
         | ('(' objectDataType=[ClassDefinition|QualifiedId] (orSuperClass?='...')? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
-        | dataTypeReference=[TypeDefinition|QualifiedId]
+        | referenceDataType=[TypeDefinition|QualifiedId]
     )  
 ;
 
@@ -87,41 +126,42 @@ ArrayModifier:
 ;
  
 ElementaryDataType:
-    (   name = ("boolean" | "Boolean" | "float" | "Float" | "double"  | "Double")   // some primitive types or their boxed equivalents
-      | name = ("day"     | "Day")                      // 8 digit number, YYYYMMDD
-   //   | (name= ("enum"      | "Enum") '{' (listOfValues += STRING)+ '}') // ascii(1) or int? How to set / get both variants?
-   // enums: allow MappingDefinition for numeric and ASCII fields (Semantics to be defined  
+    (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
+              | "char"    | "Char"     | "character" | "Character")  // day is 8 digit number, YYYYMMDD
+      | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name= ("timestamp" | "Timestamp") ("(" length=INT ")")? )
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase")         "(" length=INT ")"
            (trim    ?= 'trim'     | notrim   ?= 'notrim')?
-           ('regexp' regexp=STRING)?
-      )          // 0x20 - 0x7e
-      | (name=("unicode"|"Unicode")       "(" length=INT ")"
-           (trim    ?= 'trim'     | notrim   ?= 'notrim')?          
-            (allowCtrls ?= 'allowControlChars' | noCtrls  ?= 'noControlChars')?      // Unicode fields: allow control characters
-        )     // any displayable Unicode character
+           ('regexp' regexp=STRING)?                )          // ASCII 7 bit chars (0x20 - 0x7e)
+      | (name=("unicode"|"Unicode")       "(" length=INT ")"   // any displayable Unicode character
+           (trimming   = Trimming)?          
+           (allowCtrls = SpecialCharsSetting)?      // Unicode fields: allow control characters
+        )
       | (
-           (signed ?="signed" | unsigned ?= "unsigned")?
+           (signed = Signedness)?
            (  (name=("decimal"|"Decimal")      "(" length=INT ("," decimals=INT)? ")")
-             | (name=("number"|"Number")       "(" length=INT ")")  // int, long, BigInteger (currently only int)
-             | name=("integer"|"Integer"|"int"|"Int"|"long"|"Long")  // primitives without modifiers
+             | (name=("number"|"Number")       "(" length=INT ")")  // maps to int, long, BigInteger (currently only int)
+             | name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long"|"float"|"Float"|"double"|"Double")  // numeric primitives with sign only
            )
          )
       | (name=("raw"|"Raw")           "(" length=INT ")")  // byte array
     )   
 ;
 
-// stubs for extensions (derived grammars)
-ClassAnnotations:
-    {ClassAnnotations}
+// stubs for extensions (derived grammars) to overwrite without destroying anything in here
+ModelExtensionDefinition:
+    {ModelExtensionDefinition}
 ;
 
 PackageAnnotations:
     {PackageAnnotations}
 ;
 
-ModelExtensionDefinition:
-    {ModelExtensionDefinition}
+ClassAnnotations:
+    {ClassAnnotations}
 ;
 
+FieldAnnotations:
+    {FieldAnnotations}
+;

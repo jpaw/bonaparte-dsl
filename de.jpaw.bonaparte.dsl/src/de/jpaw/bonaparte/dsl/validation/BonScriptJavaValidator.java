@@ -22,6 +22,8 @@ import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 
 public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 	static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -81,6 +83,22 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 				error("Class names should start with an upper case letter",
 						BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
 		}
+		if (cd.getExtendsClass() != null) {
+			// the extended class may not be final
+			if (cd.getExtendsClass().isFinal())
+				error("Classes max not extend a final class",
+						BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+		}
+	}
+	
+	// helper function for checkFieldDefinition
+	private int countSameName(ClassDefinition cl,  String name) {
+		int count = 0;
+		for (FieldDefinition field: cl.getFields()) {
+			if (name.equals(field.getName()))
+				++count;
+		}
+		return count;
 	}
 	
 	@Check
@@ -91,20 +109,33 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 				error("field names should start with a lower case letter",
 						BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
 		}
-		if (fd.isIsOptional() || fd.isIsRequired()) {
+		
+		// check for unique name within this class and possible subclasses
+		ClassDefinition cl = (ClassDefinition)fd.eContainer();  // Grammar dependency! FieldDefinition is only called from ClassDefinition right now 
+		if (countSameName(cl, s) != 1)
+			error("field name is not unique within this class",
+					BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
+		// check parent classes as well
+		for (ClassDefinition parentClass = cl.getExtendsClass(); parentClass != null; parentClass = parentClass.getExtendsClass())
+			if (countSameName(parentClass, s) != 0)
+				error("field occurs in extended class "
+						+ ((PackageDefinition)parentClass.eContainer()).getName() + "."
+						+ parentClass.getName() + " already (shadowing not allowed in bonaparte)",
+						BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
+		
+		if (fd.getRequired() != null) {
+			// System.out.println("Checking " + s + ": getRequired() = <" + fd.getRequired().toString() + ">");
 			// not allowed for typedefs right now
-			if (fd.getDatatype() != null && fd.getDatatype().getDataTypeReference() != null) {
-				error("required / optional attributes not allowed for type definitions",
-						fd.isIsOptional() ? BonScriptPackage.Literals.FIELD_DEFINITION__IS_OPTIONAL
-								: BonScriptPackage.Literals.FIELD_DEFINITION__IS_REQUIRED);
+			if (fd.getDatatype() != null && fd.getDatatype().getReferenceDataType() != null) {
+				error("required / optional attributes not allowed for type definitions: found <" + fd.getRequired().getX().toString() + "> for " + s,
+						BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
 			}
-		}
-		// optional for primitives (lower case types) is not allowed
-		if (fd.isIsOptional() && fd.getDatatype() != null) {
-			ElementaryDataType dt = fd.getDatatype().getElementaryDataType();
-			if (dt != null && dt.getName() != null && Character.isLowerCase(dt.getName().charAt(0)))
-				error("optional attribute conflicts implicit 'required' meaning of lower case data type",
-					BonScriptPackage.Literals.FIELD_DEFINITION__IS_OPTIONAL);
+			if (fd.getRequired().getX() == XRequired.OPTIONAL && fd.getDatatype() != null) {
+				ElementaryDataType dt = fd.getDatatype().getElementaryDataType();
+				if (dt != null && dt.getName() != null && Character.isLowerCase(dt.getName().charAt(0)))
+					error("optional attribute conflicts implicit 'required' meaning of lower case data type",
+						BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
+			}
 		}
 	}
 }

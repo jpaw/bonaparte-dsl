@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/de.jpaw.bonaparte.dsl.sdk_1.0.0.201207312104.jar" id="de.jpaw.bonaparte.dsl.sdk" version="1.0.0.201207312104">
+      <category name="Bonaparte"/>
+   </feature>
+   <category-def name="Bonaparte" label="Software development tools related to object serialization">
+      <description>
+         A DSL to simplify the creation of seralizable objects.
+      </description>
+   </category-def>
+</site>

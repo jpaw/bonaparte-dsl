@@ -1,0 +1,9 @@
+// open issues: (TODOs)
+// 1. verify / most likely fix revision string handling for parent classes
+// 2. integrate working mechanism for non-compatible changes (leveraging revisions)
+// 3. add "masking" feature for serialization / masked getters for POJOs
+// 4. JodaTime instead of Java Date / Timestamp (or as an add-on? Or wait til JSR 310 is done?)
+// 5. complete metadata (fields)
+// 6. more unit tests (especially base64 with big data sizes)
+// 7. class / package mappers (bonaparte-core)
+// 8. sample derived grammars

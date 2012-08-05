@@ -55,5 +55,4 @@ public class Util {
 		List<FieldDefinition> r = allGroupElements(dg);
 		return r.isEmpty() ? null : r;
 	}
-
 }
