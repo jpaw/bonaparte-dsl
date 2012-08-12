@@ -23,8 +23,8 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import de.jpaw.bonaparte.dsl.generator.debug.BonScriptGeneratorDebug
-import de.jpaw.bonaparte.dsl.generator.java.BonScriptGeneratorJava
+import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
+import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
 
 class BonScriptGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
@@ -36,10 +36,10 @@ class BonScriptGenerator implements IGenerator {
         
         // code output: one xtend file per language, such that it can be easily extended to additional languages
         logger.info("start code output: Debug dump");
-        new BonScriptGeneratorDebug().doGenerate(resource, fsa)
+        new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
         
         logger.info("start code output: Java");
-        new BonScriptGeneratorJava().doGenerate(resource, fsa)
+        new JavaBonScriptGeneratorMain().doGenerate(resource, fsa)
         
         logger.info("start cleanup");
         DataTypeExtension::clear()

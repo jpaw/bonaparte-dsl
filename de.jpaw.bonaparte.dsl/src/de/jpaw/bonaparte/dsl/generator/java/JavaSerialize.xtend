@@ -21,20 +21,22 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaSerialize {
    
     def private static makeWrite(String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         val String grammarName = e.name.toLowerCase;
-        if (grammarName.equals("unicode") && ref.effectiveAllowCtrls)  // special treatment if escaped characters must be checked for
-            '''w.addEscapedString(«indexedName», «e.length»);'''
-        else if (ref.javaType.equals("String") || grammarName.equals("raw") || grammarName.equals("timestamp"))
+        if (grammarName.equals("unicode"))  // special treatment if Unicode and / or escaped characters must be checked for
+            '''w.addUnicodeString(«indexedName», «e.length», «ref.effectiveAllowCtrls»);'''
+        else if (ref.javaType.equals("String") || grammarName.equals("raw") || grammarName.equals("binary")
+            || grammarName.equals("timestamp") || grammarName.equals("calendar"))
             '''w.addField(«indexedName», «e.length»);'''
         else if (grammarName.equals("decimal"))
             '''w.addField(«indexedName», «e.length», «e.decimals», «ref.effectiveSigned»);'''
         else if (grammarName.equals("number"))
             '''w.addField(«indexedName», «e.length», «ref.effectiveSigned»);'''
-        else if (grammarName.equals("day"))
+        else if (grammarName.equals("day") && !Util::useJoda())
             '''w.addField(«indexedName», -1);'''
         else if (grammarName.equals("enum"))       // enums to be written as their ordinals
             '''w.addField(«indexedName».ordinal());'''
@@ -81,7 +83,7 @@ class JavaSerialize {
             @Override
             public void serialise(MessageComposer w) {
                 // start a new object
-                w.startObject(MEDIUM_CLASS_NAME, REVISION);
+                w.startObject(PARTIALLY_QUALIFIED_CLASS_NAME, REVISION);
                 // do all fields
                 serialiseSub(w);
                 // terminate the object

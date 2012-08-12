@@ -23,6 +23,16 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaCompare {
     
+    def private static writeCompareSub(FieldDefinition i, String index) {
+        switch (getJavaDataType(i.datatype).toLowerCase) {
+        case "byte []":             '''Arrays.equals(«index», that.«index»)'''
+        case "bytearray":           '''«index».contentEquals(that.«index»)'''
+        case "gregoriancalendar":   '''«index».compareTo(that.«index») == 0'''
+        default:                    '''«index».equals(that.«index»)'''
+        }
+    } 
+    
+    
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
     def private static writeCompareStuff(FieldDefinition i, String index, String end) ''' 
         «IF resolveObj(i.datatype) != null»
@@ -31,7 +41,7 @@ class JavaCompare {
             «IF DataTypeExtension::get(i.datatype).isPrimitive»
                 «index» == that.«index»«end»
             «ELSE»
-                ((«index» == null && that.«index» == null) || «IF getJavaDataType(i.datatype).equals("byte []")»Arrays.equals(«index», that.«index»)«ELSE»«index».equals(that.«index»)«ENDIF»)«end»
+                ((«index» == null && that.«index» == null) || «writeCompareSub(i, index)»)«end»
             «ENDIF»
         «ENDIF»
     '''

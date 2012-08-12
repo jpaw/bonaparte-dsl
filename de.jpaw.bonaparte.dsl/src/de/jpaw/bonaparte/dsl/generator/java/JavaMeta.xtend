@@ -16,11 +16,13 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaMeta {
     
@@ -35,26 +37,33 @@ class JavaMeta {
     
     def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
+        var myPackage = d.eContainer as PackageDefinition
         return '''
             // my name and revision
-            private static final String MEDIUM_CLASS_NAME = "«getMediumClassName(d)»";
+            private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
+            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.extendsClass)»"«ELSE»null«ENDIF»; 
+            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»; 
+
             // extended meta data (for the enhanced interface)
             private static final ClassDefinition my$MetaData = new ClassDefinition();
             static {
                 my$MetaData.setIsAbstract(«d.isAbstract»); 
                 my$MetaData.setIsFinal(«d.isFinal»);
-                my$MetaData.setName(MEDIUM_CLASS_NAME); 
+                my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME); 
                 my$MetaData.setRevision(REVISION); 
-                my$MetaData.setParent(«IF (d.extendsClass != null)»"«getMediumClassName(d.extendsClass)»"«ELSE»null«ENDIF»);
+                my$MetaData.setParent(PARENT);
+                my$MetaData.setBundle(BUNDLE);
                 my$MetaData.setNumberOfFields(«d.fields.size»);
                 FieldDefinition [] field$array = new FieldDefinition[«d.fields.size»];
                 «FOR i:d.fields»
                     field$array[«(cnt2 = cnt2 + 1)»] = «makeMeta(d, i)»;
                 «ENDFOR»
                 my$MetaData.setFields(field$array);
+                my$MetaData.setWhenLoaded(«IF Util::useJoda()»new LocalDateTime()«ELSE»DayTime.getCurrentTimestamp()«ENDIF»);
             };
 
+            // get all the meta data in one go
             static public ClassDefinition class$MetaData() {
                 return my$MetaData;
             }
@@ -68,14 +77,22 @@ class JavaMeta {
                 return my$MetaData;
             }
             
+            // convenience functions for faster access if the metadata structure is not used
             @Override
             public String get$PQON() {
-                return MEDIUM_CLASS_NAME;
+                return PARTIALLY_QUALIFIED_CLASS_NAME;
             }
-            
             @Override
             public String get$Revision() {
                 return REVISION;
+            }
+            @Override
+            public String get$Parent() {
+                return PARENT;
+            }
+            @Override
+            public String get$Bundle() {
+                return BUNDLE;
             }
     '''
     }

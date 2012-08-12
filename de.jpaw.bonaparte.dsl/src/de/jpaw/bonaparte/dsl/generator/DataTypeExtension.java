@@ -34,6 +34,7 @@ import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
+import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
 import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
@@ -66,16 +67,19 @@ public class DataTypeExtension {
 		dataTypeJava.put("byte",      "Byte");
 		dataTypeJava.put("short",     "Short");
 		dataTypeJava.put("char",      "Character");
+		dataTypeJava.put("character", "Character");
 		
-		dataTypeJava.put("raw",       "byte []");
-		dataTypeJava.put("timestamp", "GregorianCalendar");  // temporary solution until JSR 310 has been implemented
-		dataTypeJava.put("day",       "GregorianCalendar");  // temporary solution until JSR 310 has been implemented
+		dataTypeJava.put("raw",       "byte []");    // not recommended because mutable. Also weird for 2nd level of array index
+		dataTypeJava.put("binary",    "ByteArray");
+		dataTypeJava.put("uuid",      "UUID");
+		dataTypeJava.put("calendar",  "GregorianCalendar");  // not recommended because mutable
+		dataTypeJava.put("timestamp", "LocalDateTime");  // temporary solution until JSR 310 has been implemented
+		dataTypeJava.put("day",       "LocalDate");      // temporary solution until JSR 310 has been implemented
 		
 		dataTypeJava.put("uppercase", "String");
 		dataTypeJava.put("lowercase", "String");
 		dataTypeJava.put("ascii",     "String");
 		dataTypeJava.put("unicode",   "String");
-		dataTypeJava.put("string",    "String");
 		dataTypeJava.put("enum",      "@");  // artificial entry for enum
 	}
 	
@@ -85,11 +89,12 @@ public class DataTypeExtension {
 	public ElementaryDataType elementaryDataType;
 	public ClassDefinition objectDataType;
 	public TypeDefinition typedef;
-	public String javaType;  // resulting type after preprocessing, can be a java type or enum
+	public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type)
 	public boolean isUpperCaseOrLowerCaseSpecialType = false;  // true for uppercase or lowercase (has extra built-in validation function)
 	// parameters which cascade down from global defaults to package defaults to class defaults (grammar: FieldDefaultsDefinition)
 	public boolean effectiveSigned = true;
 	public boolean effectiveTrim = false;
+	public boolean effectiveTruncate = false;
 	public boolean effectiveAllowCtrls = false;
 	public boolean isPrimitive = false;
 	public boolean wasUpperCase = false;
@@ -150,14 +155,23 @@ public class DataTypeExtension {
 						            : XSignedness.SIGNED;
 		r.effectiveSigned = s == XSignedness.SIGNED;
 		
-		XTrimming t = e.getTrimming() != null
+		XTrimming trim = e.getTrimming() != null
 		        ? e.getTrimming().getX()
 		        : classdefs != null && classdefs.getTrim() != null
 				        ? classdefs.getTrim().getX()
 				        : p.getDefaults() != null && p.getDefaults().getTrim() != null
 				            ? p.getDefaults().getTrim().getX()
 				            : XTrimming.NOTRIM;
-        r.effectiveTrim = t == XTrimming.TRIM;
+        r.effectiveTrim = trim == XTrimming.TRIM;
+
+		XTruncating trunc = e.getTruncating() != null
+		        ? e.getTruncating().getX()
+		        : classdefs != null && classdefs.getTruncate() != null
+				        ? classdefs.getTruncate().getX()
+				        : p.getDefaults() != null && p.getDefaults().getTruncate() != null
+				            ? p.getDefaults().getTruncate().getX()
+				            : XTruncating.NOTRUNCATE;
+        r.effectiveTruncate = trunc == XTruncating.TRUNCATE;
 
         XSpecialCharsSetting spc = e.getAllowCtrls() != null
 		        ? e.getAllowCtrls().getX()
@@ -170,7 +184,7 @@ public class DataTypeExtension {
         
         r.defaultRequired = classdefs != null && classdefs.getRequired() != null
         		             ? classdefs.getRequired().getX()
-        		             : p.getDefaults() != null
+        		             : p.getDefaults() != null && p.getDefaults().getRequired() != null
         		                 ? p.getDefaults().getRequired().getX()
         		                 : null;
     }
@@ -207,15 +221,20 @@ public class DataTypeExtension {
 	            	e.setName("char");        // fix java naming inconsistency
 	        }
 	        r.javaType = dataTypeJava.get(e.getName().toLowerCase());
-	        
 			// merge the defaults specifications
 			mergeFieldSpecsWithDefaults(r, key);
 			
 			// special handling for enums
-	        if (r.javaType.equals("@"))  // special case for enum types: replace java type by referenced class
-	        	r.javaType = e.getEnumType().getName();
-	        else if (r.javaType == null)
+	        if (r.javaType == null)
 	        	throw new Exception("unmapped Java data type for " + e.getName());
+			else if (r.javaType.equals("@"))  // special case for enum types: replace java type by referenced class
+	        	r.javaType = e.getEnumType().getName();
+	        
+	        // compatibility...
+	        if (!Util.useJoda()) {
+	        	if (r.javaType.equals("LocalDate") || r.javaType.equals("LocalDate"))
+	        		r.javaType = "GregorianCalendar";
+	        }
 	        
 	        // special treatment for uppercase / lowercase shorthands
 	        if (r.javaType.equals("String"))
@@ -237,6 +256,7 @@ public class DataTypeExtension {
 			r.isPrimitive = resolvedReference.isPrimitive;
         	r.effectiveSigned = resolvedReference.effectiveSigned;
         	r.effectiveTrim = resolvedReference.effectiveTrim;
+        	r.effectiveTruncate = resolvedReference.effectiveTruncate;
         	r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;
         	r.javaType = resolvedReference.javaType;
         	r.visibility = resolvedReference.visibility;

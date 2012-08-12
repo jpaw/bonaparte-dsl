@@ -36,7 +36,7 @@ class XUtil {
         DataTypeExtension::get(d).objectDataType
     }
     // Utility methods
-    def public static getMediumClassName(ClassDefinition d) {
+    def public static getPartiallyQualifiedClassName(ClassDefinition d) {
         (d.eContainer as PackageDefinition).name + "." + d.name  
     }
     
@@ -71,4 +71,17 @@ class XUtil {
             return false
     }
 
+    def public static condText(boolean flag, String text) {
+        if (flag) text else "" 
+    }
+    
+    def public static vlr(String text1, String l, String r, String otherwise) {
+        if (text1 != null) l + text1 + r else otherwise
+    }
+    def public static nvl(String text1, String otherwise) {
+        if (text1 != null) text1 else otherwise
+    }
+    def public static nnvl(String text1, String text2, String otherwise) {
+        if (text1 != null) text1 else if (text2 != null) text2 else otherwise
+    }
 }

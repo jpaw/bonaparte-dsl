@@ -27,9 +27,12 @@ Model:
 QualifiedId: 
     ID ('.' ID)*
 ;
+QualifiedIdWithWildcard: 
+    QualifiedId ('.*')?
+;
 
 ImportDefinition:
-    'import' importURI=STRING
+    'import' importedNamespace=QualifiedIdWithWildcard
 ;
 
 // enums for field attributes. Defaults can be set at package or class level
@@ -41,6 +44,8 @@ enum XRequired:
     REQUIRED='required' | OPTIONAL='optional';
 enum XTrimming:
     TRIM='trim' | NOTRIM='notrim';
+enum XTruncating:
+    TRUNCATE='truncate' | NOTRUNCATE='failonoversize';
 enum XSpecialCharsSetting:
     ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
 enum XUsePrimitives:
@@ -53,6 +58,7 @@ Visibility:          x = XVisibility;
 Signedness:          x = XSignedness;
 Required:            x = XRequired;
 Trimming:            x = XTrimming;
+Truncating:          x = XTruncating;
 SpecialCharsSetting: x = XSpecialCharsSetting;
 UsePrimitives:       x = XUsePrimitives;
 
@@ -62,6 +68,7 @@ FieldDefaultsDefinition:
         ((signed       = Signedness)? &           // numeric integers: if not provided, default is signed
         (required      = Required)? &             // default is required for lower case types
         (trim          = Trimming)? &             // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
+        (truncate      = Truncating)? &           // Unicode & Ascii: default is fail on oversized input. This allows to just skip extra data
         (allowCtrls    = SpecialCharsSetting)? &  // Unicode fields: allow control characters: default: no
         (usePrimitives = UsePrimitives)?          // allow primitive types in objects, these can never be null
          // (rawFormat = ('hex' | 'base64'))?     // Raw data: how to serialize
@@ -72,8 +79,10 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     //(annotations=PackageAnnotations)  // for extensions
-    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId '{'  // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
-        (defaults  = FieldDefaultsDefinition)?
+    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
+    '{'  
+        (defaults = FieldDefaultsDefinition)?
         types   += TypeDefinition*
         enums   += EnumDefinition*
         classes += ClassDefinition*
@@ -84,14 +93,26 @@ PackageDefinition:
 ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
     // (isDeprecated?='@Deprecated')?
-    (abstract?='abstract' | final?='final')? 'class' name=QualifiedId
+    (abstract?='abstract' | final?='final')? 'class' name = ID
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     '{'
-        (defaults  = FieldDefaultsDefinition)?
+        (defaults = FieldDefaultsDefinition)?
         fields += FieldDefinition*   
+        //methods += MethodDefinition*
     '}'
 ;
+
+// method definition provides the ability to hook additional method implementations into a class
+// the code generators will forward them to (ClassName'Impl') classes and call the same method name there
+// TODO: check if dependency injection or aspect oriented programming would be a better way to implement this
+/*MethodDefinition:
+    (abstract?='abstract' | final?='final')?
+    'method' name = ID
+    ('(' parameters = STRING ')')?
+    ('returns' ('('returnObj = [ClassDefinition|QualifiedId]')') | returnStd = ID)?
+    ';'
+;*/
 
 EnumDefinition:
     'enum' name = ID '{' values += ID (',' values += ID)+ '}'   
@@ -127,15 +148,19 @@ ArrayModifier:
  
 ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
-              | "char"    | "Char"     | "character" | "Character")  // day is 8 digit number, YYYYMMDD
+              | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
+              | "uuid"    | "Uuid")
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
-      | (name= ("timestamp" | "Timestamp") ("(" length=INT ")")? )
+      | (name= ("timestamp" | "Timestamp") ("(" length=INT ")")? )    // Joda-Time
+      | (name= ("calendar"  | "Calendar") ("(" length=INT ")")? )     // Java.util.GregorianCalendar for Compatibility (MUTABLE!)
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase")         "(" length=INT ")"
-           (trim    ?= 'trim'     | notrim   ?= 'notrim')?
+           (trimming   = Trimming)?          
+           (truncating = Truncating)?          
            ('regexp' regexp=STRING)?                )          // ASCII 7 bit chars (0x20 - 0x7e)
       | (name=("unicode"|"Unicode")       "(" length=INT ")"   // any displayable Unicode character
            (trimming   = Trimming)?          
+           (truncating = Truncating)?          
            (allowCtrls = SpecialCharsSetting)?      // Unicode fields: allow control characters
         )
       | (
@@ -145,11 +170,12 @@ ElementaryDataType:
              | name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long"|"float"|"Float"|"double"|"Double")  // numeric primitives with sign only
            )
          )
-      | (name=("raw"|"Raw")           "(" length=INT ")")  // byte array
+      | (name=("raw"|"Raw"|"binary"|"Binary")      "(" length=INT ")")  // byte array (raw = mutable, binary = immutable)
     )   
 ;
 
 // stubs for extensions (derived grammars) to overwrite without destroying anything in here
+/*
 ModelExtensionDefinition:
     {ModelExtensionDefinition}
 ;
@@ -164,4 +190,4 @@ ClassAnnotations:
 
 FieldAnnotations:
     {FieldAnnotations}
-;
+; */

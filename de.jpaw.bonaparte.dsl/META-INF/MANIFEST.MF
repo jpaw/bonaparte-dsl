@@ -20,7 +20,7 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
 Import-Package: org.apache.log4j,
  org.eclipse.xtext.xbase.lib,
  org.eclipse.xtend2.lib
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.dsl,
  de.jpaw.bonaparte.dsl.services,
  de.jpaw.bonaparte.dsl.bonScript,

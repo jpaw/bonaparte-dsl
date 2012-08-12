@@ -50,11 +50,15 @@ class JavaFieldsGettersSetters {
             fieldScope.toString() + " " 
     } 
     
-
+    // TODO: Setters might need to check string max length, and also clone for GregorianCalendar and byte arrays?
     def public static writeFields(ClassDefinition d) '''
-            // fields
+            // fields as defined in DSL
             «FOR i:d.fields»
                 «makeVisbility(i)»«JavaDataTypeNoName(i)» «i.name»;
+            «ENDFOR»
+            
+            // auto-generated getters and setters 
+            «FOR i:d.fields»
                 public «JavaDataTypeNoName(i)» get«Util::capInitial(i.name)»() {
                     return «i.name»;
                 }

@@ -1,0 +1,101 @@
+ /*
+  * Copyright 2012 Michael Bischoff
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *   http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+  
+grammar de.jpaw.persistence.dsl.BDDL with org.eclipse.xtext.common.Terminals
+
+generate bDDL "http://www.jpaw.de/persistence/dsl/BDDL"
+
+import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
+
+Model:
+    includes        += IncludeDefinition*
+    imports         += ImportDefinition*
+    (defaults        = DefaultsDefinition)?
+    tableCategories += TableCategoryDefinition*
+    packages        += PackageDefinition*
+;
+    
+QualifiedId: 
+    ID ('.' ID)*
+;
+
+QualifiedIdWithWildcard: 
+    QualifiedId ('.*')?
+;
+
+IncludeDefinition:
+    'include' importURI=STRING
+;
+ImportDefinition:
+    'import' importedNamespace=QualifiedIdWithWildcard
+;
+
+DefaultsDefinition:
+    'default' {DefaultsDefinition}
+    ('tablenamepattern' namePattern=STRING)?
+    (('tablespacepattern' tablespacePattern=STRING) | 
+     ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
+    ';'
+;
+
+TableCategoryDefinition:
+    'category' name=ID
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition])?  
+    ('tablenamepattern' namePattern=STRING)?
+    (('tablespacepattern' tablespacePattern=STRING) | 
+     ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
+    ('history' historyCategory=[TableCategoryDefinition])?
+    (requiresPk ?= 'requiresPK')?
+    ';'
+;
+
+PackageDefinition:
+    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
+        'owner'  schemaOwner = ID
+        'prefix' dbPrefix = ID
+    '{'  
+        entities += EntityDefinition*
+    '}'
+;
+
+/*
+enum TableType:
+    CFG='cfg' | DAT='dat' | LOG='log' | CNT='cnt' | INT='int'
+; */
+
+EntityDefinition:
+    'entity' name=ID 
+        // 'type' tabletype=TableType
+        'category' tableCategory=[TableCategoryDefinition]
+        'is' pojoType=[pojos::ClassDefinition]
+        (tablename = ID)?  // overwrite auto-generated tablename
+        ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
+    '{'
+        'pk' pk=ListOfColumns
+        ('index' index += ListOfColumns)* 
+    '}'       
+;
+
+// by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
+ListOfColumns:
+    (isUnique ?= 'unique')?
+    '(' columnName += [pojos::FieldDefinition] (',' columnName += [pojos::FieldDefinition])* ')'    
+;
+/*
+ListOfColumns:
+    '(' columnName += ID (',' columnName += ID)* ')'    
+; */

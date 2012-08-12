@@ -19,6 +19,7 @@ package de.jpaw.bonaparte.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
+import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
@@ -41,15 +42,25 @@ class JavaDeserialize {
         case 'double':    '''p.readDouble    («ref.wasUpperCase», «ref.effectiveSigned»)'''
         case 'boolean':   '''p.readBoolean   («ref.wasUpperCase»)'''
         case 'char':      '''p.readCharacter («ref.wasUpperCase»)'''
+        case 'character': '''p.readCharacter («ref.wasUpperCase»)'''
         // text
-        case 'uppercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveAllowCtrls», false)'''
-        case 'lowercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveAllowCtrls», false)'''
-        case 'ascii':     '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveAllowCtrls», false)'''
-        case 'unicode':   '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveAllowCtrls», true)'''
+        case 'uppercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'lowercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'ascii':     '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'unicode':   '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
         // special          
+        case 'uuid':      '''p.readUUID      («ref.wasUpperCase»)'''
+        case 'binary':    '''p.readByteArray («ref.wasUpperCase», «i.length»)'''
         case 'raw':       '''p.readRaw       («ref.wasUpperCase», «i.length»)'''
-        case 'timestamp': '''p.readGregorianCalendar(«ref.wasUpperCase», «i.length»)'''
-        case 'day':       '''p.readGregorianCalendar(«ref.wasUpperCase», -1)'''
+        case 'calendar':  '''p.readGregorianCalendar(«ref.wasUpperCase», «i.length»)'''
+        case 'timestamp': if (Util::useJoda())
+                             '''p.readDayTime(«ref.wasUpperCase», «i.length»)'''
+                          else
+                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.length»)'''
+        case 'day':       if (Util::useJoda())
+                             '''p.readDay(«ref.wasUpperCase»)'''
+                          else
+                             '''p.readGregorianCalendar(«ref.wasUpperCase», -1)'''
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».valueOf(p.readInteger(«ref.wasUpperCase», false))'''
         }
@@ -67,7 +78,7 @@ class JavaDeserialize {
             @Override
             public void deserialise(MessageParser p) throws MessageParserException {
                 int arrayLength;
-                // String embeddingObject = p.setCurrentClass(getMediumClassName); // backup for the class name currently parsed
+                // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
                 «IF d.extendsClass != null»
                     super.deserialise(p);
                     p.eatParentSeparator();

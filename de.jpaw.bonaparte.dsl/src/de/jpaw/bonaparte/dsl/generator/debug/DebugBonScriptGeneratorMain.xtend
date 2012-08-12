@@ -26,20 +26,25 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 
-class BonScriptGeneratorDebug implements IGenerator {
+class DebugBonScriptGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition)))
             fsa.generateFile("debug/" + d.name + ".dump", d.dumpPackage);
     }
     
     def writeDefaults(FieldDefinition i) {
+        if (i.datatype == null)
+           return "***** ERROR ***** datatype is NULL for " + i.name
         var ref = DataTypeExtension::get(i.datatype)
+        if (ref == null)
+           return "***** ERROR ***** ref is NULL for " + i.name
         return "defaults: (v=" +
             (if (ref.visibility != null) ref.visibility else "null") + ", req=" +
             (if (ref.defaultRequired != null) ref.defaultRequired else "null") + ")"
     }
     
     def dumpPackage(PackageDefinition p) '''
+       === PACKAGE «p.name» («IF p.bundle != null»BUNDLE «p.bundle»«ELSE»ROOT«ENDIF») === 
        «FOR c:p.classes»
            CLASS «c.name»: «IF c.extendsClass != null»EXTENDS «c.extendsClass.name»«ENDIF» abstract=«c.isAbstract» final=«c.isFinal»
                //

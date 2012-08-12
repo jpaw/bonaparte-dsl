@@ -23,6 +23,10 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 
 public class Util {
+	static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Gregorian?
+		return true;
+	}
+	
 	static public String capInitial(String s) {
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}

@@ -26,12 +26,13 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 
 // generator for the language Java
-class BonScriptGeneratorJava implements IGenerator {
+class JavaBonScriptGeneratorMain implements IGenerator {
     
     private String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
     var Map<String, String> requiredImports = new HashMap<String, String>()
@@ -83,8 +84,17 @@ class BonScriptGeneratorJava implements IGenerator {
             if (!currentEntry.equals(packageName))  // not good, more than one entry!
                 requiredImports.put(objectName, "-")  // this will cause am intentional compile error of the generated code
     }
-            
-    
+
+/* currently unused
+            «JavaMethods::writeMethods(d)» 
+    def private recurseMethods(ClassDefinition d, boolean isRoot) {
+        for (m : d.methods)
+            if (m.returnObj != null)
+                addImport(getPackageName(m.returnObj), m.returnObj.name)
+        if (!isRoot || (isRoot && !d.isAbstract)) // if we are not root, descend all way through. Otherwise, descend if not abstract
+            if (d.extendsClass != null)
+                recurseMethods(d.extendsClass, false)
+    }  */
     def collectRequiredImports(ClassDefinition d) {
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
@@ -96,6 +106,8 @@ class BonScriptGeneratorJava implements IGenerator {
             if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
                 addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
         }
+        // return parameters of specific methods 
+        //recurseMethods(d, true)
         // finally, possibly the parent object
         if (d.extendsClass != null)
             addImport(getPackageName(d.extendsClass), d.extendsClass.name)
@@ -118,12 +130,21 @@ class BonScriptGeneratorJava implements IGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         package «getPackageName(d)»;
         
-        import java.util.GregorianCalendar;
+        import java.util.Arrays;
         import java.util.List;
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
+        import java.util.GregorianCalendar;
+        import java.util.UUID;
         import java.math.BigDecimal;
+        import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
+        «IF Util::useJoda()»
+        import org.joda.time.LocalDate;
+        import org.joda.time.LocalDateTime;
+        «ELSE»
+        import de.jpaw.util.DayTime;
+        «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».BonaPortableWithMetaData;
         import «bonaparteInterfacesPackage».MessageParser;

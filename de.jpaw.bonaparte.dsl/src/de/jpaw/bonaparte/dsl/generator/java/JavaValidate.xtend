@@ -38,12 +38,12 @@ class JavaValidate {
                 Matcher _m =  regexp$«i.name».matcher(«i.name»«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»«index»", MEDIUM_CLASS_NAME);
+                                                        "«i.name»«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
             «IF ref.isUpperCaseOrLowerCaseSpecialType» 
                 if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«i.name»«index»))
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»«index»", MEDIUM_CLASS_NAME);
+                                                        "«i.name»«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
         }
     '''
@@ -69,12 +69,12 @@ class JavaValidate {
                     «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
                         if («i.name» == null)
                             throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                                "«i.name»", MEDIUM_CLASS_NAME);
+                                                                "«i.name»", PARTIALLY_QUALIFIED_CLASS_NAME);
                         «IF i.isArray != null»
                             for (int i = 0; i < «i.name».length; ++i)
                                 if («i.name»[i] == null)
                                     throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                                "«i.name»["+i+"]", MEDIUM_CLASS_NAME);
+                                                                "«i.name»["+i+"]", PARTIALLY_QUALIFIED_CLASS_NAME);
                         «ENDIF»
                     «ENDIF»
                     «IF resolveObj(i.datatype) != null»
