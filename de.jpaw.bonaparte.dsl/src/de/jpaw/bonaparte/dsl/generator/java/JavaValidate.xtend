@@ -23,37 +23,38 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaValidate {
 
+    
     def public static writePatterns(ClassDefinition d) '''
-            // regexp patterns. TODO: add check for uniqueness
-            «FOR i: d.fields»
-                «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
-                    private static final Pattern regexp$«i.name» = Pattern.compile("\\A«resolveElem(i.datatype).regexp»\\z");
-                «ENDIF»
-            «ENDFOR»
+        // regexp patterns. TODO: add check for uniqueness
+        «FOR i: d.fields»
+            «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
+                private static final Pattern regexp$«i.name» = Pattern.compile("\\A«resolveElem(i.datatype).regexp»\\z");
+            «ENDIF»
+        «ENDFOR»
     '''
 
     def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
-        if («i.name»«index» != null) {
+        «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
             «IF ref.elementaryDataType.regexp != null» 
-                Matcher _m =  regexp$«i.name».matcher(«i.name»«index»);
+                Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
+                                                        "«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
             «IF ref.isUpperCaseOrLowerCaseSpecialType» 
-                if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«i.name»«index»))
+                if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«index»))
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
+                                                        "«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
         }
     '''
 
     def private static makeValidate(FieldDefinition i, String index) '''
         «IF i.isRequired»
-            «i.name»«index».validate();      // check object (!= null checked before)
+            «index».validate();      // check object (!= null checked before)
         «ELSE»
-            if («i.name»«index» != null)
-                «i.name»«index».validate();  // check object
+            if («index» != null)
+                «index».validate();  // check object
         «ENDIF»
     '''
     
@@ -67,35 +68,20 @@ class JavaValidate {
                 «ENDIF»
                 «FOR i:d.fields»
                     «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
-                        if («i.name» == null)
-                            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                                "«i.name»", PARTIALLY_QUALIFIED_CLASS_NAME);
-                        «IF i.isArray != null»
-                            for (int i = 0; i < «i.name».length; ++i)
-                                if («i.name»[i] == null)
+                        «loopStart(i)»
+                                if («indexedName(i)» == null)
                                     throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                                "«i.name»["+i+"]", PARTIALLY_QUALIFIED_CLASS_NAME);
-                        «ENDIF»
+                                                                "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
                     «ENDIF»
                     «IF resolveObj(i.datatype) != null»
-                        «IF i.isArray != null»
-                            if («i.name» != null)
-                                for (int i = 0; i < «i.name».length; ++i)
-                                    «makeValidate(i, "[i]")»
-                        «ELSE»
-                            «makeValidate(i, "")»
-                        «ENDIF»
+                        «loopStart(i)»
+                        «makeValidate(i, indexedName(i))»
                     «ENDIF»
                 «ENDFOR»
                 «FOR i:d.fields»
                     «IF resolveElem(i.datatype) != null && (resolveElem(i.datatype).regexp != null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
-                        «IF i.isArray != null»
-                            if («i.name» != null)
-                                for (int i = 0; i < «i.name».length; ++i)
-                                    «makePatternCheck(i, "[i]", DataTypeExtension::get(i.datatype))»
-                        «ELSE»
-                            «makePatternCheck(i, "", DataTypeExtension::get(i.datatype))»
-                        «ENDIF»
+                        «loopStart(i)»
+                        «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                     «ENDIF»
                 «ENDFOR»
             }

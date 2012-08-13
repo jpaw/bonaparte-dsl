@@ -45,6 +45,20 @@ class XUtil {
         if (f) "true" else "false"
     }
     
+    def public static indexedName(FieldDefinition i) {
+        if (i.isList != null) "_i" else i.name + (if (i.isArray != null) "[_i]" else "")
+    }
+    
+    def public static loopStart(FieldDefinition i) '''
+        «IF i.isArray != null»
+            if («i.name» != null)
+                for (int _i = 0; _i < «i.name».length; ++_i)
+        «ELSEIF i.isList != null»
+            if («i.name» != null)
+                for («JavaDataTypeNoName(i, true)» _i : «i.name»)
+        «ENDIF»
+        '''
+        
     def public static String getJavaDataType(DataType d) {
         val ref = DataTypeExtension::get(d)
         if (ref.isPrimitive)
@@ -53,6 +67,26 @@ class XUtil {
         //    ref.elementaryDataType.enumType.name
         else
             ref.javaType
+    }
+    // the same, more complex scenario
+    def public static JavaDataTypeNoName(FieldDefinition i, boolean skipIndex) {
+        var String dataClass
+        //fieldDebug(i)
+        if (resolveElem(i.datatype) != null)
+            dataClass = getJavaDataType(i.datatype)
+        else {
+            if (resolveObj(i.datatype) == null)
+                throw new RuntimeException("INTERNAL ERROR object type not set for field of type object for " + i.name);
+            dataClass = resolveObj(i.datatype).name
+        }
+        if (skipIndex)
+            dataClass
+        else if (i.isArray != null)
+            dataClass + "[]" 
+        else if (i.isList != null)
+            "List<" + dataClass + ">" 
+        else
+            dataClass
     }
     
     def public static isRequired(FieldDefinition i) {

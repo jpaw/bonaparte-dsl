@@ -50,6 +50,8 @@ enum XSpecialCharsSetting:
     ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
 enum XUsePrimitives:
     USE_PRIMITIVES = 'usePrimitives' | USE_BOXED = 'useBoxed';
+enum XXmlAccess:
+    NOXML = 'noXML' | NONE = 'NONE' | FIELD = 'FIELD' | PROPERTY = 'PROPERTY' | PUBLIC_MEMBER = 'PUBLIC_MEMBER'; // last two should be equivalent due to generated code
 
 // We need a special "undefined" setting for enums. According to the XText documentation (2.3, section 6.2.7),
 // ECore does not support this currently. Therefore extra artificial types are required to represent null values.
@@ -61,6 +63,7 @@ Trimming:            x = XTrimming;
 Truncating:          x = XTruncating;
 SpecialCharsSetting: x = XSpecialCharsSetting;
 UsePrimitives:       x = XUsePrimitives;
+XmlAccess:           x = XXmlAccess;
 
 FieldDefaultsDefinition:
     'default' {FieldDefaultsDefinition}
@@ -80,6 +83,7 @@ FieldDefaultsDefinition:
 PackageDefinition:
     //(annotations=PackageAnnotations)  // for extensions
     'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
     '{'  
         (defaults = FieldDefaultsDefinition)?
@@ -94,6 +98,7 @@ ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
     // (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')? 'class' name = ID
+    ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     '{'
@@ -131,7 +136,7 @@ FieldDefinition:
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType
-    (isArray    = ArrayModifier)?
+    (isArray    = ArrayModifier | isList = ListModifier)?
     name        = ID ';'
 ;
 
@@ -143,7 +148,12 @@ DataType:
 ;
 
 ArrayModifier:
-    '[' {ArrayModifier} (maxcount=INT)? ']'
+    {ArrayModifier}
+    '[' (maxcount=INT)? ']'
+;
+ListModifier:
+    {ListModifier}
+    'List' '<'(maxcount=INT)? '>'
 ;
  
 ElementaryDataType:

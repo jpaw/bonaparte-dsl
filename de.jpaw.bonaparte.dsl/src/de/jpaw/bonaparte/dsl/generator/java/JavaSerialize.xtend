@@ -46,9 +46,9 @@ class JavaSerialize {
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
         «IF resolveElem(i.datatype) != null»
-            «makeWrite(i.name + index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+            «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
-            w.addField((BonaPortable)«i.name»«index»);
+            w.addField((BonaPortable)«index»);
         «ENDIF»
     '''
     
@@ -62,17 +62,24 @@ class JavaSerialize {
                     w.writeSuperclassSeparator();
                 «ENDIF»
                 «FOR i:d.fields»
-                    «IF i.isArray != null»
+                    «IF i.isArray != null || i.isList != null»
                         if («i.name» == null) {
                             w.writeNull();
                         } else {
-                            w.startArray(«i.name».length, «i.isArray.maxcount»);
-                            for (int i = 0; i < «i.name».length; ++i)
-                                «makeWrite2(d, i, "[i]")»
-                            w.terminateArray();
+                            «IF i.isArray != null»
+                                w.startArray(«i.name».length, «i.isArray.maxcount»);
+                                for (int _i = 0; _i < «i.name».length; ++_i)
+                                    «makeWrite2(d, i, indexedName(i))»
+                                w.terminateArray();
+                            «ELSE»
+                                w.startArray(«i.name».size(), «i.isList.maxcount»);
+                                for («JavaDataTypeNoName(i, true)» _i : «i.name»)
+                                    «makeWrite2(d, i, indexedName(i))»
+                                w.terminateArray();
+                            «ENDIF»
                         }
                     «ELSE»
-                        «makeWrite2(d, i, "")»
+                        «makeWrite2(d, i, indexedName(i))»
                     «ENDIF»
                 «ENDFOR»
             }

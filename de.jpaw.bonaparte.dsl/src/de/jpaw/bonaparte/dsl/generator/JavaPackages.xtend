@@ -23,15 +23,17 @@ import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
     public static String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
+
+    def public static getPackageName(PackageDefinition p) {
+        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name  
+    }
     
     // create the package name for a class definition object
     def public static getPackageName(ClassDefinition d) {
-        val PackageDefinition pkg = d.eContainer as PackageDefinition
-        (if (pkg.prefix == null) bonaparteClassDefaultPackagePrefix else pkg.prefix) + "." + pkg.name  
+        getPackageName(d.eContainer as PackageDefinition)
     }
     def public static getPackageName(EnumDefinition d) {
-        val PackageDefinition pkg = d.eContainer as PackageDefinition
-        (if (pkg.prefix == null) bonaparteClassDefaultPackagePrefix else pkg.prefix) + "." + pkg.name  
+        getPackageName(d.eContainer as PackageDefinition)
     }
     
     // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class 

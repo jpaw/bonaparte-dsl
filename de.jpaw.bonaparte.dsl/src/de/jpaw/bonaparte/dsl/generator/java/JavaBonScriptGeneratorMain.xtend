@@ -30,6 +30,10 @@ import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import java.util.List
+import java.util.ArrayList
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -39,7 +43,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
-        return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java";
+        return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
+    }
+    // create the filename to store the JAXB index in
+    def private static getJaxbResourceFilename(String pkg) {
+        return "resources/" + pkg.replaceAll("\\.", "/") + "/jaxb.index"
     }
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
@@ -48,6 +56,19 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeEnumDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
+        for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
+            // get a list of all classes which have an XML tag
+            var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
+            for (cl : d.classes)
+                if (!cl.isAbstract && getXmlAccess(cl) != null)
+                    classList.add(cl)
+            if (classList.size() > 0)
+                fsa.generateFile(getJaxbResourceFilename(getPackageName(d)), '''
+                «FOR cl : classList»
+                    «cl.name»
+                «ENDFOR»
+                ''')
+        }
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }
     
@@ -114,7 +135,13 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }
-    
+
+    def private static getXmlAccess(ClassDefinition d) {
+        var XXmlAccess xmlAccess = if (d.xmlAccess != null) d.xmlAccess.x else if ((d.eContainer as PackageDefinition).xmlAccess != null) (d.eContainer as PackageDefinition).xmlAccess.x else null
+        if (xmlAccess == XXmlAccess::NOXML) xmlAccess = null
+        return xmlAccess         
+    }
+        
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
@@ -122,7 +149,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val String myPackageName = getPackageName(d)
         collectRequiredImports(d)
         addImport(myPackageName, d.name)  // add myself as well
-        
+        // determine XML annotation support
+        var XXmlAccess xmlAccess = getXmlAccess(d)        
     return
     '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -132,6 +160,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         
         import java.util.Arrays;
         import java.util.List;
+        import java.util.ArrayList;
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
         import java.util.GregorianCalendar;
@@ -158,6 +187,14 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «ENDIF»
         «ENDFOR»
         
+        «IF (xmlAccess != null && !d.isAbstract)»
+        import javax.xml.bind.annotation.XmlAccessorType;
+        import javax.xml.bind.annotation.XmlAccessType;
+        import javax.xml.bind.annotation.XmlRootElement;
+        
+        @XmlRootElement(name="«d.name»")
+        @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
+        «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF» implements BonaPortableWithMetaData {
             
             «JavaMeta::writeMetaData(d)» 

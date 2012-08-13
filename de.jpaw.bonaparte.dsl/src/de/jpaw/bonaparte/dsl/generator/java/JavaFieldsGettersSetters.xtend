@@ -24,23 +24,6 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaFieldsGettersSetters {
-    
-    def private static JavaDataTypeNoName(FieldDefinition i) {
-        var String dataClass
-        //fieldDebug(i)
-        if (resolveElem(i.datatype) != null)
-            dataClass = getJavaDataType(i.datatype)
-        else {
-            if (resolveObj(i.datatype) == null)
-                throw new RuntimeException("INTERNAL ERROR object type not set for field of type object for " + i.name);
-            dataClass = resolveObj(i.datatype).name
-        }
-        if (i.isArray != null)
-            // dataClass + "[" + (if (i.isArray.maxcount > 0) i.isArray.maxcount) + "]" 
-            dataClass + "[]" 
-        else
-            dataClass
-    }
 
     def private static makeVisbility(FieldDefinition i) {
         var XVisibility fieldScope = DataTypeExtension::get(i.datatype).visibility
@@ -54,15 +37,15 @@ class JavaFieldsGettersSetters {
     def public static writeFields(ClassDefinition d) '''
             // fields as defined in DSL
             «FOR i:d.fields»
-                «makeVisbility(i)»«JavaDataTypeNoName(i)» «i.name»;
+                «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»;
             «ENDFOR»
             
             // auto-generated getters and setters 
             «FOR i:d.fields»
-                public «JavaDataTypeNoName(i)» get«Util::capInitial(i.name)»() {
+                public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
                     return «i.name»;
                 }
-                public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i)» «i.name») {
+                public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
                     this.«i.name» = «i.name»;
                 }
             «ENDFOR»

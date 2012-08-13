@@ -66,11 +66,11 @@ class JavaDeserialize {
         }
     }
 
-    def private static makeRead2(ClassDefinition d, FieldDefinition i, String index) '''
+    def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
         «IF resolveElem(i.datatype) != null»
-            «i.name»«index» = «makeRead(resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»;
+            «makeRead(resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
         «ELSE»
-            «i.name»«index» = («possiblyFQClassName(d, resolveObj(i.datatype))»)p.readObject(«interfaceDowncast»«possiblyFQClassName(d, resolveObj(i.datatype))».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»);
+            («possiblyFQClassName(d, resolveObj(i.datatype))»)p.readObject(«interfaceDowncast»«possiblyFQClassName(d, resolveObj(i.datatype))».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»)«end»
         «ENDIF»
     '''
             
@@ -84,22 +84,29 @@ class JavaDeserialize {
                     p.eatParentSeparator();
                 «ENDIF»
                 «FOR i:d.fields»
-                    «IF i.isArray != null»
-                        arrayLength = p.parseArrayStart(«i.isArray.maxcount», null, 0);
+                    «IF i.isArray != null || i.isList != null»
+                        arrayLength = p.parseArrayStart(«if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», null, 0);
                         if (arrayLength < 0) {
                             «i.name» = null;
                         } else {
-                            «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
-                                «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»][];  // Java weirdness: dimension swapped to first pair of brackets!
+                            «IF i.isArray != null»
+                                «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
+                                    «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»][];  // Java weirdness: dimension swapped to first pair of brackets!
+                                «ELSE»
+                                    «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else getPackageName(resolveObj(i.datatype)) + "." + resolveObj(i.datatype).name»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»];
+                                «ENDIF»
+                                for (int _i = 0; _i < arrayLength; ++_i)
+                                    «i.name»[_i] = «makeRead2(d, i, ";")»
+                                p.parseArrayEnd();
                             «ELSE»
-                                «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else getPackageName(resolveObj(i.datatype)) + "." + resolveObj(i.datatype).name»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»];
+                                «i.name» = new ArrayList<«JavaDataTypeNoName(i, true)»>(arrayLength);
+                                for (int _i = 0; _i < arrayLength; ++_i)
+                                    «i.name».add(«makeRead2(d, i, ");")»
+                                p.parseArrayEnd();
                             «ENDIF»
-                            for (int i = 0; i < arrayLength; ++i)
-                                «makeRead2(d, i, "[i]")»
-                            p.parseArrayEnd();
                         }
                     «ELSE»
-                        «makeRead2(d, i, "")»
+                        «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»
                 «ENDFOR»
                 // p.setCurrentClass(embeddingObject); // ignore result

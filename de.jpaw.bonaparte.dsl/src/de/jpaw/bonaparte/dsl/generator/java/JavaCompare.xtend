@@ -62,7 +62,7 @@ class JavaCompare {
                     return true
                 «ENDIF»
                 «FOR i:d.fields»
-                    «IF i.isArray != null»
+                    «IF i.isArray != null || i.isList != null»
                         && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
                     «ELSE»
                         && «writeCompareStuff(i, i.name, "")»
@@ -76,8 +76,20 @@ class JavaCompare {
                         // both «i.name» and that «i.name» are known to be not null
                         if («i.name».length != that.«i.name».length)
                             return false;
-                        for (int i = 0; i < «i.name».length; ++i)
-                            if (!(«writeCompareStuff(i, i.name + "[i]", "))")»
+                        for (int _i = 0; _i < «i.name».length; ++_i)
+                            if (!(«writeCompareStuff(i, i.name + "[_i]", "))")»
+                                return false;
+                        return true;
+                    }
+                «ENDIF»
+                «IF i.isList != null»
+                    private boolean arrayCompareSub$«i.name»(«d.name» that) {
+                        // both «i.name» and that «i.name» are known to be not null
+                        if («i.name».size() != that.«i.name».size())
+                            return false;
+                        // indexed access is not optional, but sequential access will be left for later optimization 
+                        for (int _i = 0; _i < «i.name».size(); ++_i)
+                            if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
                                 return false;
                         return true;
                     }
@@ -85,3 +97,14 @@ class JavaCompare {
             «ENDFOR»
     '''
 }
+/*
+ *                         Iterator<«JavaDataTypeNoName(i, true)» _l = that.iterator();
+                        for («JavaDataTypeNoName(i, true)» _i : «i.name») {
+                            if (!_l.hasNext())
+                                return false;
+                            «JavaDataTypeNoName(i, true)» _j = _l.next();
+                            if (!(«writeCompareStuff(i, "e", "))")»
+                                return false;
+                        return true;
+ 
+ */
