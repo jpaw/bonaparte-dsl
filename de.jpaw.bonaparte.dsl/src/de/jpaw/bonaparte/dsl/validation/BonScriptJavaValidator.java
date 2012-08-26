@@ -75,6 +75,16 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 			case "uppercase":
 			case "lowercase":
 			case "binary":
+				if (dt.getMinLength() < 0) {
+					error("Field min length cannot be negative",
+							BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
+					return;
+				}
+				if (dt.getMinLength() > dt.getLength()) {
+					error("Field min length cannot exceed field length",
+							BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
+					return;
+				}
 				if (dt.getLength() <= 0 || dt.getLength() > GIGABYTE)
 					error("Field size must be at least 1 and at most 1 GB",
 							BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);

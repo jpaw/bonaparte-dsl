@@ -52,17 +52,17 @@ class JavaDeserialize {
         case 'uuid':      '''p.readUUID      («ref.wasUpperCase»)'''
         case 'binary':    '''p.readByteArray («ref.wasUpperCase», «i.length»)'''
         case 'raw':       '''p.readRaw       («ref.wasUpperCase», «i.length»)'''
-        case 'calendar':  '''p.readGregorianCalendar(«ref.wasUpperCase», «i.length»)'''
+        case 'calendar':  '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': if (Util::useJoda())
-                             '''p.readDayTime(«ref.wasUpperCase», «i.length»)'''
+                             '''p.readDayTime(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
                           else
-                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.length»)'''
+                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'day':       if (Util::useJoda())
                              '''p.readDay(«ref.wasUpperCase»)'''
                           else
-                             '''p.readGregorianCalendar(«ref.wasUpperCase», -1)'''
+                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», -1)'''
         // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».valueOf(p.readInteger(«ref.wasUpperCase», false))'''
+        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString(«ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger(«ref.wasUpperCase», false))«ENDIF»'''
         }
     }
 
@@ -76,14 +76,18 @@ class JavaDeserialize {
             
     def public static writeDeserialize(ClassDefinition d) '''
             @Override
-            public void deserialise(MessageParser p) throws MessageParserException {
+            public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
+            //public void deserialize(MessageParser p) throws MessageParserException {
                 int arrayLength;
                 // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
                 «IF d.extendsClass != null»
-                    super.deserialise(p);
-                    p.eatParentSeparator();
+                    super.deserialize(p);
                 «ENDIF»
+                p.setClassName(PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
+                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
+                        try {  // for possible EnumExceptions
+                    «ENDIF»
                     «IF i.isArray != null || i.isList != null»
                         arrayLength = p.parseArrayStart(«if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», null, 0);
                         if (arrayLength < 0) {
@@ -108,7 +112,14 @@ class JavaDeserialize {
                     «ELSE»
                         «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»
+                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
+                         } catch (EnumException e) {
+                             // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
+                             throw p.enumExceptionConverter(e);
+                         }
+                    «ENDIF»
                 «ENDFOR»
+                p.eatParentSeparator();
                 // p.setCurrentClass(embeddingObject); // ignore result
             }
     '''

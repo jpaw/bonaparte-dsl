@@ -50,9 +50,14 @@ enum XSpecialCharsSetting:
     ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
 enum XUsePrimitives:
     USE_PRIMITIVES = 'usePrimitives' | USE_BOXED = 'useBoxed';
+// enums for class level settings
 enum XXmlAccess:
     NOXML = 'noXML' | NONE = 'NONE' | FIELD = 'FIELD' | PROPERTY = 'PROPERTY' | PUBLIC_MEMBER = 'PUBLIC_MEMBER'; // last two should be equivalent due to generated code
-
+enum XExternalizable:
+    NOEXT = 'noExt' | EXT = 'Ext';
+enum XBeanValidation:
+    NOBEAN_VAL = 'noBeanVal' | BEAN_VAL = 'BeanVal';
+    
 // We need a special "undefined" setting for enums. According to the XText documentation (2.3, section 6.2.7),
 // ECore does not support this currently. Therefore extra artificial types are required to represent null values.
 // therefore all this weird workaround is required
@@ -63,7 +68,10 @@ Trimming:            x = XTrimming;
 Truncating:          x = XTruncating;
 SpecialCharsSetting: x = XSpecialCharsSetting;
 UsePrimitives:       x = XUsePrimitives;
+
 XmlAccess:           x = XXmlAccess;
+Externalizable:      x = XExternalizable;
+BeanValidation:      x = XBeanValidation;
 
 FieldDefaultsDefinition:
     'default' {FieldDefaultsDefinition}
@@ -84,6 +92,8 @@ PackageDefinition:
     //(annotations=PackageAnnotations)  // for extensions
     'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
+        (isExternalizable = Externalizable)?      // decide if implements Externalizable
+        (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
     '{'  
         (defaults = FieldDefaultsDefinition)?
@@ -99,6 +109,8 @@ ClassDefinition:
     // (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')? 'class' name = ID
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
+    (isExternalizable = Externalizable)?      // decide if implements Externalizable
+    (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     '{'
@@ -120,7 +132,14 @@ ClassDefinition:
 ;*/
 
 EnumDefinition:
-    'enum' name = ID '{' values += ID (',' values += ID)+ '}'   
+    'enum' name = ID '{'
+        ((values += ID (',' values += ID)+) |
+         (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)+))
+    '}'   
+;
+
+EnumAlphaValueDefinition:
+    name = ID '=' token = STRING
 ;
 
 // type definitions can be used in the same or different packages. It is important to know that
@@ -161,14 +180,15 @@ ElementaryDataType:
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
               | "uuid"    | "Uuid")
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
-      | (name= ("timestamp" | "Timestamp") ("(" length=INT ")")? )    // Joda-Time
-      | (name= ("calendar"  | "Calendar") ("(" length=INT ")")? )     // Java.util.GregorianCalendar for Compatibility (MUTABLE!)
+      | (name= ("timestamp" | "Timestamp" | "calendar" | "Calendar") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 
-         name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase")         "(" length=INT ")"
+         name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)
+           "(" (minLength=INT '..')? length=INT ")"
            (trimming   = Trimming)?          
            (truncating = Truncating)?          
-           ('regexp' regexp=STRING)?                )          // ASCII 7 bit chars (0x20 - 0x7e)
-      | (name=("unicode"|"Unicode")       "(" length=INT ")"   // any displayable Unicode character
+           ('regexp' regexp=STRING)?                )          
+      | (name=("unicode"|"Unicode")                            // any displayable Unicode character
+           "(" (minLength=INT '..')? length=INT ")"
            (trimming   = Trimming)?          
            (truncating = Truncating)?          
            (allowCtrls = SpecialCharsSetting)?      // Unicode fields: allow control characters

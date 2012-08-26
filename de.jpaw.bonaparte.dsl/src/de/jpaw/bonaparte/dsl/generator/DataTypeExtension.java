@@ -26,8 +26,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
@@ -43,6 +45,10 @@ import de.jpaw.bonaparte.dsl.bonScript.XSpecialCharsSetting;
 import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
 
 public class DataTypeExtension {
+	// constants for enumMaxTokenLength field
+	static final int NO_ENUM = -2;
+	static final int ENUM_NUMERIC = -1;
+	
 	// a lookup to determine if a data type can (should) be implemented as a Java primitive.
 	// (LANGUAGE SPECIFIC: JAVA)
 	private static final Set<String> JAVA_PRIMITIVES = new HashSet<String>(Arrays.asList(new String[] {
@@ -100,6 +106,8 @@ public class DataTypeExtension {
 	public boolean wasUpperCase = false;
 	public XVisibility visibility;
 	public XRequired defaultRequired;
+	public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
+	public boolean allTokensAscii = true;
 	
 	static public void clear() {
 		map.clear();
@@ -227,9 +235,22 @@ public class DataTypeExtension {
 			// special handling for enums
 	        if (r.javaType == null)
 	        	throw new Exception("unmapped Java data type for " + e.getName());
-			else if (r.javaType.equals("@"))  // special case for enum types: replace java type by referenced class
+			else if (r.javaType.equals("@")) {  // special case for enum types: replace java type by referenced class
 	        	r.javaType = e.getEnumType().getName();
-	        
+	        	// also count the max length if alphanumeric
+	        	EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
+        		r.enumMaxTokenLength = ENUM_NUMERIC;
+	        	if (ead != null && !ead.isEmpty()) {
+	        		// compute the maximum length of all tokens, could be useful for derived grammars...
+	        		for (EnumAlphaValueDefinition enumX : ead) {
+	        			if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
+	        				r.enumMaxTokenLength = enumX.getToken().length();
+	        				if (!Util.isAsciiString(enumX.getToken()))
+	        					r.allTokensAscii = false;
+	        			}
+	        		}
+	        	}
+			}
 	        // compatibility...
 	        if (!Util.useJoda()) {
 	        	if (r.javaType.equals("LocalDate") || r.javaType.equals("LocalDate"))
@@ -262,6 +283,7 @@ public class DataTypeExtension {
         	r.visibility = resolvedReference.visibility;
         	r.defaultRequired = resolvedReference.defaultRequired;
         	r.isUpperCaseOrLowerCaseSpecialType = resolvedReference.isUpperCaseOrLowerCaseSpecialType;
+        	r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
 			r.currentlyVisited = false;
 		} else {
 			// just simply store it (elementary data type or object reference)

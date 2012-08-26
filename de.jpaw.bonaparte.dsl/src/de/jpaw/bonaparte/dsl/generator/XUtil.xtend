@@ -39,6 +39,15 @@ class XUtil {
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
         (d.eContainer as PackageDefinition).name + "." + d.name  
     }
+    // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
+    def public static getSerialUID(ClassDefinition d) {
+        var long myUID = getPartiallyQualifiedClassName(d).hashCode()
+        if (d.revision != null)
+            myUID = 97L * myUID + d.revision.hashCode()
+        if (d.extendsClass != null)
+            myUID = 131L * myUID + getSerialUID(d.extendsClass)   // recurse parent classes
+        return myUID
+    }
     
     // convert an Xtend boolean to Java source token
     def public static b2A(boolean f) {

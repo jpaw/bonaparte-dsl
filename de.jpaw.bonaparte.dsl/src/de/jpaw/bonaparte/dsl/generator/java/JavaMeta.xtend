@@ -54,6 +54,7 @@ class JavaMeta {
                 my$MetaData.setRevision(REVISION); 
                 my$MetaData.setParent(PARENT);
                 my$MetaData.setBundle(BUNDLE);
+                my$MetaData.setSerialUID(serialVersionUID); 
                 my$MetaData.setNumberOfFields(«d.fields.size»);
                 FieldDefinition [] field$array = new FieldDefinition[«d.fields.size»];
                 «FOR i:d.fields»

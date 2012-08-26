@@ -41,31 +41,43 @@ class YUtil {
         return ref as Model
     }
 
+/*
     def public static TableCategoryDefinition getCategory(Model myModel, EntityDefinition t) {
-        t.tableCategory
-        /*
+        t.tableCategory 
+        
         val String category = t.tableCategory.name
         for (c : myModel.tableCategories)
             if (c.name.equals(category))
                 return c
         throw new RuntimeException("could not find category <" + category + "> for Entity " + t.name)
-        */
-    }
+        
+    } */
     
-    def public static String mkTablename(EntityDefinition t) {
-        if (t.tablename != null)
+    def public static String mkTablename(EntityDefinition t, boolean forHistory) {
+        if (!forHistory && t.tablename != null)
             t.tablename
         else {
             // build the table name according to the template in the table category or the default
             // 1. get a suitable pattern
             var myPackage = t.eContainer as PackageDefinition
             var myModel = getModel(myPackage.eContainer)
-            var TableCategoryDefinition myCategory = getCategory(myModel, t)
+            var TableCategoryDefinition myCategory = t.tableCategory
+            var theOtherModel = getModel(myCategory)
             var String myPattern
+            
+            if (forHistory)
+                 myCategory = myCategory.historyCategory
+                 
+            // precedence rules for table name
+            // 1. pattern of referenced category
+            // 2. pattern of defaults of my model
+            // 3. pattern of defaults of model which owns the category 
             if (myCategory.namePattern != null)
                 myPattern = myCategory.namePattern
             else if (myModel.defaults != null && myModel.defaults.namePattern != null)
                 myPattern = myModel.defaults.namePattern
+            else if (theOtherModel.defaults != null && theOtherModel.defaults.namePattern != null)
+                myPattern = theOtherModel.defaults.namePattern
             else
                 myPattern = "(category)_(entity)"  // last fallback 
             // 2. have the pattern, apply substitution rules
@@ -77,7 +89,7 @@ class YUtil {
         }
     }
 
-    def public static String mkTablespaceName(EntityDefinition t, boolean forIndex) {
+    def public static String mkTablespaceName(EntityDefinition t, boolean forIndex, TableCategoryDefinition myCategory) {
         if (t.tablespaceName != null) {
             return if (forIndex && t.indexTablespacename != null) t.indexTablespacename else t.tablespaceName
         } else {
@@ -85,8 +97,13 @@ class YUtil {
             // 1. get a suitable pattern
             var myPackage = t.eContainer as PackageDefinition
             var myModel = getModel(myPackage.eContainer)
-            var TableCategoryDefinition myCategory = getCategory(myModel, t)
+            var theOtherModel = getModel(myCategory)
             var String myPattern
+                 
+            // precedence rules for tablespace names (same as above)
+            // 1. pattern of referenced category
+            // 2. pattern of defaults of my model
+            // 3. pattern of defaults of model which owns the category 
             if (myCategory.tablespacePattern != null) {
                 myPattern = myCategory.tablespacePattern
                 // fall through
@@ -98,6 +115,15 @@ class YUtil {
                     // fall through
                 } else if (myModel.defaults.tablespaceName != null) {
                     return if (forIndex && myModel.defaults.indexTablespacename != null) myModel.defaults.indexTablespacename else myModel.defaults.tablespaceName
+                } else {
+                    return null
+                }
+            } else if (theOtherModel.defaults != null) {
+                if (theOtherModel.defaults.tablespacePattern != null) {
+                    myPattern = theOtherModel.defaults.tablespacePattern
+                    // fall through
+                } else if (theOtherModel.defaults.tablespaceName != null) {
+                    return if (forIndex && theOtherModel.defaults.indexTablespacename != null) theOtherModel.defaults.indexTablespacename else theOtherModel.defaults.tablespaceName
                 } else {
                     return null
                 }

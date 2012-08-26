@@ -30,10 +30,12 @@ import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import java.util.List
 import java.util.ArrayList
+import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -79,16 +81,53 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         package «getPackageName(d)»;
+        
+        import de.jpaw.util.EnumException;
 
         public enum «d.name» {
-            «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
-            
-            public static «d.name» valueOf(Integer ordinal) {
+            «IF d.avalues == null || d.avalues.size() == 0»
+                «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
+            «ELSE»
+                «FOR v:d.avalues SEPARATOR ', '»«v.name»("«v.token»")«ENDFOR»;
+                
+                // constructor by token
+                private String _token; 
+                private «d.name»(String _token) {
+                    this._token = _token;
+                }
+
+                // token retrieval
+                public String getToken() {
+                    return _token;
+                }
+                
+                // static factory method. Requires Java 7
+                public static «d.name» factory(String _token) throws EnumException {
+                    if (_token != null) { 
+                        switch (_token) {
+                        «FOR v:d.avalues»
+                            case "«v.token»": return «v.name»;  
+                        «ENDFOR»
+                        default: throw new EnumException(EnumException.INVALID_NUM, _token);
+                        }
+                    }
+                    return null;
+                }
+            «ENDIF»
+                
+            public static «d.name» valueOf(Integer ordinal) throws EnumException {
                 if (ordinal != null) { 
                     switch (ordinal.intValue()) {
-                    «FOR v:d.values»
-                        case «Integer::valueOf(counter = counter + 1).toString()»: return «v»;  
-                    «ENDFOR»
+                    «IF d.avalues == null || d.avalues.size() == 0»
+                        «FOR v:d.values»
+                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v»;  
+                        «ENDFOR»
+                    «ELSE»
+                        «FOR v:d.avalues»
+                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v.name»;  
+                        «ENDFOR»
+                    «ENDIF»
+                    default: throw new EnumException(EnumException.INVALID_NUM, ordinal.toString());
                     }
                 }
                 return null;
@@ -136,11 +175,38 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }
 
+    // decision classes for the package level settings
     def private static getXmlAccess(ClassDefinition d) {
-        var XXmlAccess xmlAccess = if (d.xmlAccess != null) d.xmlAccess.x else if ((d.eContainer as PackageDefinition).xmlAccess != null) (d.eContainer as PackageDefinition).xmlAccess.x else null
+        var XXmlAccess xmlAccess = if (d.xmlAccess != null)
+                                       d.xmlAccess.x
+                                   else if ((d.eContainer as PackageDefinition).xmlAccess != null)
+                                       (d.eContainer as PackageDefinition).xmlAccess.x
+                                   else
+                                       null
         if (xmlAccess == XXmlAccess::NOXML) xmlAccess = null
         return xmlAccess         
     }
+    def private static getExternalizable(ClassDefinition d) {
+        var XExternalizable isExternalizable = if (d.isExternalizable != null)
+                                                   d.isExternalizable.x
+                                               else if ((d.eContainer as PackageDefinition).isExternalizable != null)
+                                                   (d.eContainer as PackageDefinition).isExternalizable.x
+                                               else
+                                                   XExternalizable::EXT  // default to creation of externalization methods
+        if (isExternalizable == XExternalizable::NOEXT) isExternalizable = null
+        return (isExternalizable != null)         
+    }
+    def private static getBeanValidation(ClassDefinition d) {
+        var XBeanValidation doBeanValidation = if (d.doBeanValidation != null)
+                                                   d.doBeanValidation.x
+                                               else if ((d.eContainer as PackageDefinition).doBeanValidation != null)
+                                                   (d.eContainer as PackageDefinition).doBeanValidation.x
+                                               else
+                                                   XBeanValidation::NOBEAN_VAL  // default to creation of externalization methods
+        if (doBeanValidation == XBeanValidation::NOBEAN_VAL) doBeanValidation = null
+        return (doBeanValidation != null)         
+    }
+        
         
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -150,7 +216,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         collectRequiredImports(d)
         addImport(myPackageName, d.name)  // add myself as well
         // determine XML annotation support
-        var XXmlAccess xmlAccess = getXmlAccess(d)        
+        val XXmlAccess xmlAccess = getXmlAccess(d)
+        val doExt = getExternalizable(d)
+        val doBeanVal = getBeanValidation(d)        
     return
     '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -168,11 +236,27 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import java.math.BigDecimal;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
+        import de.jpaw.util.EnumException;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
         «ELSE»
         import de.jpaw.util.DayTime;
+        «ENDIF»
+        «IF doBeanVal»
+        import javax.validation.constraints.NotNull;
+        import javax.validation.constraints.Digits;
+        import javax.validation.constraints.Size;
+        //import javax.validation.constraints.Pattern;  // conflicts with java.util.regexp.Pattern, use FQON instead
+        «ENDIF»
+        «IF doExt»
+        import java.io.Externalizable;
+        import java.io.IOException;
+        import java.io.ObjectInput;
+        import java.io.ObjectOutput;
+        import «bonaparteInterfacesPackage».ExternalizableConstants;
+        import «bonaparteInterfacesPackage».ExternalizableComposer;
+        import «bonaparteInterfacesPackage».ExternalizableParser;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».BonaPortableWithMetaData;
@@ -195,18 +279,26 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         @XmlRootElement(name="«d.name»")
         @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF» implements BonaPortableWithMetaData {
-            
-            «JavaMeta::writeMetaData(d)» 
-            «JavaFieldsGettersSetters::writeFields(d)» 
-            «JavaValidate::writePatterns(d)» 
-            «JavaSerialize::writeSerialize(d)» 
-            «JavaDeserialize::writeDeserialize(d)» 
-            «JavaValidate::writeValidationCode(d)»            
-            «JavaCompare::writeComparisonCode(d)»            
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF» implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF» {
+            private static final long serialVersionUID = «getSerialUID(d)»L;
+        
+            «JavaMeta::writeMetaData(d)»
+            «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
+            «JavaFieldsGettersSetters::writeGettersSetters(d)»
+            «JavaValidate::writePatterns(d)»
+            «JavaSerialize::writeSerialize(d)»
+            «JavaDeserialize::writeDeserialize(d)»
+            «JavaValidate::writeValidationCode(d)»
+            «JavaCompare::writeComparisonCode(d)»
+            «IF doExt»
+            «JavaExternalize::writeExternalize(d)»
+            «JavaDeexternalize::writeDeexternalize(d)»
+            «ENDIF»
         }
     '''   
     }
+    def JavaDeexternalize(ClassDefinition definition) { }
+
 
       
  

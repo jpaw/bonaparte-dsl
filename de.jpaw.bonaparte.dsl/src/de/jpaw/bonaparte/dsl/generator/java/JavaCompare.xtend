@@ -45,56 +45,118 @@ class JavaCompare {
             «ENDIF»
         «ENDIF»
     '''
+
+    def public static writeHash(FieldDefinition i, ClassDefinition d, DataTypeExtension ref) {
+        if (ref.isPrimitive) {
+            if (i.isArray != null)
+                return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
+            else if (i.isList != null)
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
+            else {
+                // a single primitive type....
+                switch (ref.javaType) {
+                case "Float":   '''(new Float(«i.name»).hashCode())'''
+                case "Double":  '''(new Double(«i.name»).hashCode())'''
+                case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
+                case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
+                case "Integer": '''«i.name»'''
+                default:         '''(int)«i.name»'''  // byte, short, char
+                }
+            }
+        } else {
+            if (i.isArray != null)
+                return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
+            else if (i.isList != null)
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
+            else {
+                // a single non-primitive type (Boxed or Joda or Date?)....
+                if (ref.javaType != null && ref.javaType.equals("byte []"))
+                    // special treatment required, again!
+                    return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
+                else       
+                    return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
+            }
+        }
+    }                    
     
     def public static writeComparisonCode(ClassDefinition d) '''
-            // don't overwrite equals() due to the myriad of pitfalls as shown here: http://www.artima.com/lejava/articles/equality.html
-            // we want a method to check for same contents
-            @Override
-            public boolean hasSameContentsAs(BonaPortable xthat) {
-                if (xthat == null)
-                    return false;
-                if (!(xthat instanceof «d.name»))
-                    return false;
-                «d.name» that = («d.name»)xthat;
-                «IF d.extendsClass != null»
-                    return super.hasSameContentsAs(that)
-                «ELSE»
-                    return true
-                «ENDIF»
-                «FOR i:d.fields»
-                    «IF i.isArray != null || i.isList != null»
-                        && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
-                    «ELSE»
-                        && «writeCompareStuff(i, i.name, "")»
-                    «ENDIF»
-                «ENDFOR»
-                ;
-            }            
+        @Override
+        public int hashCode() {
+            int _hash = «IF d.extendsClass != null»super.hashCode()«ELSE»997«ENDIF»;
             «FOR i:d.fields»
-                «IF i.isArray != null»
-                    private boolean arrayCompareSub$«i.name»(«d.name» that) {
-                        // both «i.name» and that «i.name» are known to be not null
-                        if («i.name».length != that.«i.name».length)
-                            return false;
-                        for (int _i = 0; _i < «i.name».length; ++_i)
-                            if (!(«writeCompareStuff(i, i.name + "[_i]", "))")»
-                                return false;
-                        return true;
-                    }
-                «ENDIF»
-                «IF i.isList != null»
-                    private boolean arrayCompareSub$«i.name»(«d.name» that) {
-                        // both «i.name» and that «i.name» are known to be not null
-                        if («i.name».size() != that.«i.name».size())
-                            return false;
-                        // indexed access is not optional, but sequential access will be left for later optimization 
-                        for (int _i = 0; _i < «i.name».size(); ++_i)
-                            if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
-                                return false;
-                        return true;
-                    }
+                _hash = 29 * _hash + «writeHash(i, d, DataTypeExtension::get(i.datatype))»;
+            «ENDFOR»
+            return _hash;              
+        }
+
+        // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
+        @Override
+        public boolean equals(Object _that) {
+            if (_that == null)
+                return false;
+            if (!(_that instanceof «d.name»))
+                return false;
+            if (this == _that)
+                return true;
+            return equalsSub((BonaPortable)_that);
+        }
+        
+        // same function, but with second argument of (almost) known type
+        @Override
+        public boolean hasSameContentsAs(BonaPortable _that) {
+            if (_that == null)
+                return false;
+            if (!(_that instanceof «d.name»))
+                return false;
+            if (this == _that)
+                return true;
+            return equalsSub(_that);
+        }
+
+        «IF d.extendsClass != null»
+        @Override
+        «ENDIF»
+        protected boolean equalsSub(BonaPortable _that) {
+            «d.name» that = («d.name»)_that;
+            «IF d.extendsClass != null»
+                return super.equalsSub(_that)
+            «ELSE»
+                return true
+            «ENDIF»
+            «FOR i:d.fields»
+                «IF i.isArray != null || i.isList != null»
+                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
+                «ELSE»
+                    && «writeCompareStuff(i, i.name, "")»
                 «ENDIF»
             «ENDFOR»
+            ;
+        }
+        «FOR i:d.fields»
+            «IF i.isArray != null»
+                private boolean arrayCompareSub$«i.name»(«d.name» that) {
+                    // both «i.name» and that «i.name» are known to be not null
+                    if («i.name».length != that.«i.name».length)
+                        return false;
+                    for (int _i = 0; _i < «i.name».length; ++_i)
+                        if (!(«writeCompareStuff(i, i.name + "[_i]", "))")»
+                            return false;
+                    return true;
+                }
+            «ENDIF»
+            «IF i.isList != null»
+                private boolean arrayCompareSub$«i.name»(«d.name» that) {
+                    // both «i.name» and that «i.name» are known to be not null
+                    if («i.name».size() != that.«i.name».size())
+                        return false;
+                    // indexed access is not optional, but sequential access will be left for later optimization 
+                    for (int _i = 0; _i < «i.name».size(); ++_i)
+                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
+                            return false;
+                    return true;
+                }
+            «ENDIF»
+        «ENDFOR»
     '''
 }
 /*

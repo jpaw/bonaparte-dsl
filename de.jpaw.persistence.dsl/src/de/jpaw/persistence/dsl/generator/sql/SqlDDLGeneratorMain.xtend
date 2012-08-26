@@ -26,6 +26,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class SqlDDLGeneratorMain implements IGenerator {
     String separator
+    var int indexCount
 
     def setSeparator(String newval) {
         separator = newval
@@ -37,11 +38,19 @@ class SqlDDLGeneratorMain implements IGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-        // java
+        // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   e.name), e.sqlDdlOut(DatabaseFlavour::ORACLE));
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name), e.sqlDdlOut(DatabaseFlavour::POSTGRES));
+            makeTables(fsa, e, false)
+            if (e.tableCategory != null && e.tableCategory.historyCategory != null)
+                // do histories as well
+                makeTables(fsa, e, true)
         }
+    }
+
+    def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
+        var tablename = YUtil::mkTablename(e, doHistory)
+        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
+        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
     }
 
     def public recurseColumns(ClassDefinition cl, DatabaseFlavour databaseFlavour) '''
@@ -52,14 +61,23 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDFOR»
     '''
     
-    def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour) {
-        val String tablename = YUtil::mkTablename(t)
+    def indexCounter() {
+        return indexCount = indexCount + 1
+    }
+    def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
+        val String tablename = YUtil::mkTablename(t, doHistory)
+        var myCategory = t.tableCategory
+        if (doHistory)
+            myCategory = myCategory.historyCategory
         var String tablespaceData = null
         var String tablespaceIndex = null
         if (SqlMapping::supportsTablespaces(databaseFlavour)) {
-            tablespaceData  = YUtil::mkTablespaceName(t, false)
-            tablespaceIndex = YUtil::mkTablespaceName(t, true)
+            tablespaceData  = YUtil::mkTablespaceName(t, false, myCategory)
+            tablespaceIndex = YUtil::mkTablespaceName(t, true,  myCategory)
         }
+            
+        var grantGroup = myCategory.grantGroup
+        indexCount = 0
         return '''
         -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
         -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -75,6 +93,20 @@ class SqlDDLGeneratorMain implements IGenerator {
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : t.pk.columnName SEPARATOR ', '»«YUtil::columnName(c)»«ENDFOR»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ENDIF»
+        «IF !doHistory»
+            «FOR i : t.index»
+                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» on «tablename»(
+                    «FOR c : i.columnName SEPARATOR ', '»«YUtil::columnName(c)»«ENDFOR»
+                )«IF tablespaceIndex != null» TABLESPACE «tablespaceIndex»«ENDIF»;
+            «ENDFOR»
+        «ENDIF»
+        «IF grantGroup != null && grantGroup.grants != null»
+            «FOR g : grantGroup.grants»
+                «IF g.permissions != null && g.permissions.permissions != null»
+                    GRANT «FOR p : g.permissions.permissions SEPARATOR ','»«p.toString»«ENDFOR» ON «tablename» TO «g.roleOrUserName»;
+                «ENDIF»
+            «ENDFOR»
         «ENDIF»
     '''
     }  

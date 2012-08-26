@@ -25,29 +25,76 @@ import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaFieldsGettersSetters {
 
+    // this one does not work. Why not?
+    def private static doubleEscapes(String in) {
+        var StringBuilder out = new StringBuilder(2 * in.length)
+        var int i = 0
+        while (i < in.length) {
+            var c = in.charAt(i)
+            if (c == '\\')
+                out.append("\\\\")
+            else
+                out.append(c)
+            i = i+1
+        }
+        return out    
+    }
+    
     def private static makeVisbility(FieldDefinition i) {
         var XVisibility fieldScope = DataTypeExtension::get(i.datatype).visibility
+        if (i.visibility != null && i.visibility.x != null)
+            fieldScope = i.visibility.x
         if (fieldScope == null || fieldScope == XVisibility::DEFAULT)
             ""
         else
             fieldScope.toString() + " " 
     } 
     
+    def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
+        val ref = DataTypeExtension::get(i.datatype)
+        
+        return '''
+            «IF doBeanVal»
+                «IF i.isRequired && !ref.isPrimitive»
+                    @NotNull
+                «ENDIF»
+                «IF ref.elementaryDataType != null && i.isArray == null && i.isList == null»
+                    «IF ref.elementaryDataType.name.toLowerCase().equals("number")»
+                        @Digits(integer=«ref.elementaryDataType.length», fraction=0)
+                    «ELSEIF ref.elementaryDataType.name.toLowerCase().equals("decimal")»
+                        @Digits(integer=«ref.elementaryDataType.length - ref.elementaryDataType.decimals», fraction=«ref.elementaryDataType.decimals»)
+                    «ELSEIF ref.javaType.equals("String")»
+                        @Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
+                        «IF ref.isUpperCaseOrLowerCaseSpecialType»
+                            @javax.validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
+                        «ENDIF»
+                        «IF ref.elementaryDataType.regexp != null»
+                            @javax.validation.constraints.Pattern(regexp="\\A«doubleEscapes(ref.elementaryDataType.regexp)»\\z")
+                        «ENDIF»
+                    «ENDIF»
+                «ENDIF»
+            «ENDIF»
+            «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»;
+        '''
+    }
+   
     // TODO: Setters might need to check string max length, and also clone for GregorianCalendar and byte arrays?
-    def public static writeFields(ClassDefinition d) '''
-            // fields as defined in DSL
-            «FOR i:d.fields»
-                «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»;
-            «ENDFOR»
-            
-            // auto-generated getters and setters 
-            «FOR i:d.fields»
-                public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
-                    return «i.name»;
-                }
-                public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
-                    this.«i.name» = «i.name»;
-                }
-            «ENDFOR»
+    def public static writeFields(ClassDefinition d, boolean doBeanVal) '''
+        // fields as defined in DSL
+        «FOR i:d.fields»
+            «writeOneField(d, i, doBeanVal)»
+        «ENDFOR»
+    '''
+                
+    def public static writeGettersSetters(ClassDefinition d) '''
+        // auto-generated getters and setters 
+        «FOR i:d.fields»
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
+                return «i.name»;
+            }
+            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+                this.«i.name» = «i.name»;
+            }
+        «ENDFOR»
     '''
 }

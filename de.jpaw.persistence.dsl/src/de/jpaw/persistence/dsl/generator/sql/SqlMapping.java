@@ -90,6 +90,9 @@ public class SqlMapping {
 		if (ref.objectDataType != null)
 			return "TODO! Object ref!";
 		String datatype = ref.elementaryDataType.getName().toLowerCase();
+		if (ref.enumMaxTokenLength >= 0)
+			// alphanumeric enum! use other type!
+			datatype = "unicode";
 		switch (databaseFlavour) {
 		case ORACLE:
 			datatype = dataTypeSqlOracle.get(datatype);
@@ -110,6 +113,10 @@ public class SqlMapping {
 		//System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
 		//System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
 		//System.out.println("DEBUG: precision = " + Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
+		if (ref.enumMaxTokenLength >= 0) {
+			// special case for alphanumeric enums, again!
+			return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
+		}
 		return datatype.replace("#length",    Integer.valueOf(ref.elementaryDataType.getLength()).toString())
 			       	   .replace("#precision", Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
 	}

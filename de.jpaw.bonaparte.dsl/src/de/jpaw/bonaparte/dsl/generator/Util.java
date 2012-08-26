@@ -27,10 +27,22 @@ public class Util {
 		return true;
 	}
 	
+	// return false if the string contains a non-ASCII printable character, else true
+	public static boolean isAsciiString(String s) {
+		if (s != null) {
+			for (int i = 0; i < s.length(); ++i) {
+				int c = (int)s.charAt(i);
+				if (c < 0x20 || c > 0x7f)
+					return false;
+			}
+		}
+		return true;
+	}
+	
 	static public String capInitial(String s) {
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
-
+/*
 	static List<FieldDefinition> allElementaryDataElements(ClassDefinition dg) {
 		List<FieldDefinition> r = new ArrayList<FieldDefinition>();
 		for (FieldDefinition de : dg.getFields()) {
@@ -58,5 +70,5 @@ public class Util {
 	static List<FieldDefinition> allGroupElementsOrNull(ClassDefinition dg) {
 		List<FieldDefinition> r = allGroupElements(dg);
 		return r.isEmpty() ? null : r;
-	}
+	} */
 }

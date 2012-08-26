@@ -24,7 +24,6 @@ Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
     (defaults        = DefaultsDefinition)?
-    tableCategories += TableCategoryDefinition*
     packages        += PackageDefinition*
 ;
     
@@ -51,6 +50,23 @@ DefaultsDefinition:
     ';'
 ;
 
+NameWithOptionalHash:
+    ID ('#')?
+;
+
+enum Permission:
+    SELECT='SELECT'|INSERT='INSERT'|UPDATE='UPDATE'|DELETE='DELETE';
+    
+PermissionList:
+    (permissions += Permission (',' permissions += Permission)*);
+    
+GrantList:
+    roleOrUserName = NameWithOptionalHash ':' permissions = PermissionList ';';
+    
+GrantCategoryDefinition:
+    'grants' name=ID '{' grants += GrantList* '}' ';';
+
+
 TableCategoryDefinition:
     'category' name=ID
     ('trackinggroup' trackingColumns=[pojos::ClassDefinition])?  
@@ -58,16 +74,20 @@ TableCategoryDefinition:
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
     ('history' historyCategory=[TableCategoryDefinition])?
+    ('historyColumn' historyColumn = ID)?  // TODO: currently unchecked  
     (requiresPk ?= 'requiresPK')?
+    ('grants' grantGroup = [GrantCategoryDefinition])?
     ';'
 ;
 
 PackageDefinition:
-    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+    'package' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
         'owner'  schemaOwner = ID
         'prefix' dbPrefix = ID
-    '{'  
+    '{' 
+        grantCategories += GrantCategoryDefinition* 
+        tableCategories += TableCategoryDefinition*
         entities += EntityDefinition*
     '}'
 ;
@@ -85,8 +105,9 @@ EntityDefinition:
         (tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
     '{'
-        'pk' pk=ListOfColumns
-        ('index' index += ListOfColumns)* 
+        ('tenant' tenantId = SingleColumn)?
+        ('pk'     pk       = ListOfColumns)?
+        ('index'  index   += ListOfColumns)* 
     '}'       
 ;
 
@@ -95,7 +116,7 @@ ListOfColumns:
     (isUnique ?= 'unique')?
     '(' columnName += [pojos::FieldDefinition] (',' columnName += [pojos::FieldDefinition])* ')'    
 ;
-/*
-ListOfColumns:
-    '(' columnName += ID (',' columnName += ID)* ')'    
-; */
+// by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
+SingleColumn:
+    singleColumnName = [pojos::FieldDefinition]    
+;

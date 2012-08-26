@@ -22,14 +22,15 @@ Import-Package: org.apache.log4j,
  org.eclipse.xtend2.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.dsl,
- de.jpaw.bonaparte.dsl.services,
  de.jpaw.bonaparte.dsl.bonScript,
  de.jpaw.bonaparte.dsl.bonScript.impl,
  de.jpaw.bonaparte.dsl.bonScript.util,
- de.jpaw.bonaparte.dsl.serializer,
+ de.jpaw.bonaparte.dsl.formatting,
+ de.jpaw.bonaparte.dsl.generator,
+ de.jpaw.bonaparte.dsl.generator.java,
  de.jpaw.bonaparte.dsl.parser.antlr,
  de.jpaw.bonaparte.dsl.parser.antlr.internal,
- de.jpaw.bonaparte.dsl.validation,
  de.jpaw.bonaparte.dsl.scoping,
- de.jpaw.bonaparte.dsl.generator,
- de.jpaw.bonaparte.dsl.formatting
+ de.jpaw.bonaparte.dsl.serializer,
+ de.jpaw.bonaparte.dsl.services,
+ de.jpaw.bonaparte.dsl.validation

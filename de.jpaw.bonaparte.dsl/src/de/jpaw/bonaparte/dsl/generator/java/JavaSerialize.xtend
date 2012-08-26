@@ -29,8 +29,9 @@ class JavaSerialize {
         val String grammarName = e.name.toLowerCase;
         if (grammarName.equals("unicode"))  // special treatment if Unicode and / or escaped characters must be checked for
             '''w.addUnicodeString(«indexedName», «e.length», «ref.effectiveAllowCtrls»);'''
-        else if (ref.javaType.equals("String") || grammarName.equals("raw") || grammarName.equals("binary")
-            || grammarName.equals("timestamp") || grammarName.equals("calendar"))
+        else if (grammarName.equals("timestamp") || grammarName.equals("calendar"))
+            '''w.addField(«indexedName», «e.doHHMMSS», «e.length»);'''
+        else if (ref.javaType.equals("String") || grammarName.equals("raw") || grammarName.equals("binary"))
             '''w.addField(«indexedName», «e.length»);'''
         else if (grammarName.equals("decimal"))
             '''w.addField(«indexedName», «e.length», «e.decimals», «ref.effectiveSigned»);'''
@@ -38,10 +39,19 @@ class JavaSerialize {
             '''w.addField(«indexedName», «e.length», «ref.effectiveSigned»);'''
         else if (grammarName.equals("day") && !Util::useJoda())
             '''w.addField(«indexedName», -1);'''
-        else if (grammarName.equals("enum"))       // enums to be written as their ordinals
-            '''w.addField(«indexedName».ordinal());'''
-        else // primitive or boxed type
-            '''w.addField(«indexedName»);'''
+        else if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens
+            if (ref.enumMaxTokenLength >= 0) {
+                // alphanumeric enum
+                if (ref.allTokensAscii)
+                    '''if («indexedName» == null) w.writeNull(); else w.addField(«indexedName».getToken(), «ref.enumMaxTokenLength»);'''
+                else
+                    '''if («indexedName» == null) w.writeNull(); else w.addUnicodeString(«indexedName».getToken(), «ref.enumMaxTokenLength», false);'''
+            } else {
+                // numeric enum
+                '''if («indexedName» == null) w.writeNull(); else w.addField(«indexedName».ordinal());'''
+            }
+        } else // primitive or boxed type
+            '''«IF !ref.isPrimitive»if («indexedName» == null) w.writeNull(); else «ENDIF»w.addField(«indexedName»);'''
     }
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
@@ -53,48 +63,36 @@ class JavaSerialize {
     '''
     
     def public static writeSerialize(ClassDefinition d) '''
-            /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
-            @Override
-            public void serialiseSub(MessageComposer w) {
-                «IF d.extendsClass != null»
-                    // recursive call of superclass first
-                    super.serialiseSub(w);
-                    w.writeSuperclassSeparator();
+        /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
+        @Override
+        public <E extends Exception> void serializeSub(MessageComposer<E> w) throws E {
+            «IF d.extendsClass != null»
+                // recursive call of superclass first
+                super.serializeSub(w);
+            «ENDIF»
+            «FOR i:d.fields»
+                «IF i.isArray != null || i.isList != null»
+                    if («i.name» == null) {
+                        w.writeNull();
+                    } else {
+                        «IF i.isArray != null»
+                            w.startArray(«i.name».length, «i.isArray.maxcount»);
+                            for (int _i = 0; _i < «i.name».length; ++_i)
+                                «makeWrite2(d, i, indexedName(i))»
+                            w.terminateArray();
+                        «ELSE»
+                            w.startArray(«i.name».size(), «i.isList.maxcount»);
+                            for («JavaDataTypeNoName(i, true)» _i : «i.name»)
+                                «makeWrite2(d, i, indexedName(i))»
+                            w.terminateArray();
+                        «ENDIF»
+                    }
+                «ELSE»
+                    «makeWrite2(d, i, indexedName(i))»
                 «ENDIF»
-                «FOR i:d.fields»
-                    «IF i.isArray != null || i.isList != null»
-                        if («i.name» == null) {
-                            w.writeNull();
-                        } else {
-                            «IF i.isArray != null»
-                                w.startArray(«i.name».length, «i.isArray.maxcount»);
-                                for (int _i = 0; _i < «i.name».length; ++_i)
-                                    «makeWrite2(d, i, indexedName(i))»
-                                w.terminateArray();
-                            «ELSE»
-                                w.startArray(«i.name».size(), «i.isList.maxcount»);
-                                for («JavaDataTypeNoName(i, true)» _i : «i.name»)
-                                    «makeWrite2(d, i, indexedName(i))»
-                                w.terminateArray();
-                            «ENDIF»
-                        }
-                    «ELSE»
-                        «makeWrite2(d, i, indexedName(i))»
-                    «ENDIF»
-                «ENDFOR»
-            }
+            «ENDFOR»
+            w.writeSuperclassSeparator();
+        }
 
-
-            /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
-            // this method is not needed any more because it is performed in the MessageComposer object
-            @Override
-            public void serialise(MessageComposer w) {
-                // start a new object
-                w.startObject(PARTIALLY_QUALIFIED_CLASS_NAME, REVISION);
-                // do all fields
-                serialiseSub(w);
-                // terminate the object
-                w.terminateObject();
-            }
    '''    
 }

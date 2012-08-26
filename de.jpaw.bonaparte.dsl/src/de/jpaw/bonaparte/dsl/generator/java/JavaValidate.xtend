@@ -21,8 +21,9 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
-class JavaValidate {
+/* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
+class JavaValidate {
     
     def public static writePatterns(ClassDefinition d) '''
         // regexp patterns. TODO: add check for uniqueness
@@ -35,13 +36,25 @@ class JavaValidate {
 
     def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
         «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
+            «IF ref.javaType.equals("String")»
+                if («index».length() > «ref.elementaryDataType.length»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                        "«index».length=" + «index».length() + " > «ref.elementaryDataType.length»",
+                                                        PARTIALLY_QUALIFIED_CLASS_NAME);
+                «IF ref.elementaryDataType.minLength > 0»
+                    if («index».length() < «ref.elementaryDataType.minLength»)
+                        throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
+                                                            "«index».length=" + «index».length() + " < «ref.elementaryDataType.minLength»",
+                                                            PARTIALLY_QUALIFIED_CLASS_NAME);
+                «ENDIF»
+            «ENDIF»
             «IF ref.elementaryDataType.regexp != null» 
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
                                                         "«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
-            «IF ref.isUpperCaseOrLowerCaseSpecialType» 
+            «IF ref.isUpperCaseOrLowerCaseSpecialType»
                 if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«index»))
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
                                                         "«index»", PARTIALLY_QUALIFIED_CLASS_NAME);
