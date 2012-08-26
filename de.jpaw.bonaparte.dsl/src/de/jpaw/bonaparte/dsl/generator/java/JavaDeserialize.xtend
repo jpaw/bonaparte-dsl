@@ -89,7 +89,7 @@ class JavaDeserialize {
                         try {  // for possible EnumExceptions
                     «ENDIF»
                     «IF i.isArray != null || i.isList != null»
-                        arrayLength = p.parseArrayStart(«if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», null, 0);
+                        arrayLength = p.parseArrayStart(«if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», 0);
                         if (arrayLength < 0) {
                             «i.name» = null;
                         } else {

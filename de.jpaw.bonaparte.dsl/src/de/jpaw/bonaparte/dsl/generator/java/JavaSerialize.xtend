@@ -76,12 +76,12 @@ class JavaSerialize {
                         w.writeNull();
                     } else {
                         «IF i.isArray != null»
-                            w.startArray(«i.name».length, «i.isArray.maxcount»);
+                            w.startArray(«i.name».length, «i.isArray.maxcount», 0);
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
                         «ELSE»
-                            w.startArray(«i.name».size(), «i.isList.maxcount»);
+                            w.startArray(«i.name».size(), «i.isList.maxcount», 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
