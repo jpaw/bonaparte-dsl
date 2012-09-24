@@ -16,15 +16,15 @@
 
 package de.jpaw.bonaparte.dsl.generator;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
+import org.apache.commons.lang.StringEscapeUtils;
 
 public class Util {
 	static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Gregorian?
 		return true;
+	}
+	
+	static public String escapeString2Java(String s) {
+		return StringEscapeUtils.escapeJava(s);
 	}
 	
 	// return false if the string contains a non-ASCII printable character, else true
@@ -42,33 +42,5 @@ public class Util {
 	static public String capInitial(String s) {
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
 	}
-/*
-	static List<FieldDefinition> allElementaryDataElements(ClassDefinition dg) {
-		List<FieldDefinition> r = new ArrayList<FieldDefinition>();
-		for (FieldDefinition de : dg.getFields()) {
-			if (de.getDatatype() != null)
-				r.add(de);
-		}
-		return r;
-	}
 
-	static List<FieldDefinition> allElementaryDataElementsOrNull(
-			ClassDefinition dg) {
-		List<FieldDefinition> r = allElementaryDataElements(dg);
-		return r.isEmpty() ? null : r;
-	}
-
-	static List<FieldDefinition> allGroupElements(ClassDefinition dg) {
-		List<FieldDefinition> r = new ArrayList<FieldDefinition>();
-		for (FieldDefinition de : dg.getFields()) {
-			if (de.getDatatype().getObjectDataType() != null)
-				r.add(de);
-		}
-		return r;
-	}
-
-	static List<FieldDefinition> allGroupElementsOrNull(ClassDefinition dg) {
-		List<FieldDefinition> r = allGroupElements(dg);
-		return r.isEmpty() ? null : r;
-	} */
 }

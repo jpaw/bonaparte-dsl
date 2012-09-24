@@ -38,7 +38,45 @@ class JavaMeta {
     def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
         var myPackage = d.eContainer as PackageDefinition
+        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.extendsClass != null 
         return '''
+            // property map
+            private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<>();
+    
+            // initializer
+            protected static void class$fillProperties(ConcurrentMap<String,String> map) {
+                «FOR p : d.properties»
+                    map.putIfAbsent("«p.key.name»", "«Util::escapeString2Java(p.value)»");
+                «ENDFOR»
+                «IF propertiesInherited»
+                    «d.extendsClass.name».class$fillProperties(map);
+                «ENDIF»
+            }
+            static {
+                class$fillProperties(property$Map);
+            }
+            static public ConcurrentMap<String,String> class$PropertyMap() {
+                return property$Map;
+            }
+            public ConcurrentMap<String,String> get$PropertyMap() {
+                return property$Map;
+            }
+    
+            static public String class$Property(String id) {
+                «IF propertiesInherited»
+                    String result = property$Map.get(id);
+                    if (result != null)
+                        return result;
+                    else
+                        return «d.extendsClass.name».class$Property(id);
+                «ELSE»
+                    return property$Map.get(id);
+                «ENDIF»
+            }
+            public String get$Property(String id) {
+                return class$Property(id);
+            }
+            
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
@@ -61,6 +99,7 @@ class JavaMeta {
                     field$array[«(cnt2 = cnt2 + 1)»] = «makeMeta(d, i)»;
                 «ENDFOR»
                 my$MetaData.setFields(field$array);
+                my$MetaData.setPropertiesInherited(«propertiesInherited»);
                 my$MetaData.setWhenLoaded(«IF Util::useJoda()»new LocalDateTime()«ELSE»DayTime.getCurrentTimestamp()«ENDIF»);
             };
 

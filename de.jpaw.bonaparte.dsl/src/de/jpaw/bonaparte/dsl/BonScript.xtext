@@ -97,10 +97,19 @@ PackageDefinition:
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
     '{'  
         (defaults = FieldDefaultsDefinition)?
+        ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')? 
         types   += TypeDefinition*
         enums   += EnumDefinition*
         classes += ClassDefinition*
     '}'
+;
+
+PropertyDefinition:
+    name = ID
+;
+
+PropertyUse:
+    key = [PropertyDefinition] '=' value=STRING
 ;
 
 // a class corresponds to a Java class
@@ -115,6 +124,7 @@ ClassDefinition:
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     '{'
         (defaults = FieldDefaultsDefinition)?
+        ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
         fields += FieldDefinition*   
         //methods += MethodDefinition*
     '}'

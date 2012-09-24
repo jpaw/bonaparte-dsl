@@ -17,9 +17,10 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.eclipse.emf.common,
  org.antlr.runtime,
  org.eclipse.xtext.common.types
-Import-Package: org.apache.log4j,
- org.eclipse.xtext.xbase.lib,
- org.eclipse.xtend2.lib
+Import-Package: org.apache.commons.lang;version="2.1.0",
+ org.apache.log4j,
+ org.eclipse.xtend2.lib,
+ org.eclipse.xtext.xbase.lib
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.dsl,
  de.jpaw.bonaparte.dsl.bonScript,

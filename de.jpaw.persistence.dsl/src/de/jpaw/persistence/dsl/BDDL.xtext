@@ -14,6 +14,7 @@
   * limitations under the License.
   */
   
+//grammar de.jpaw.persistence.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
 grammar de.jpaw.persistence.dsl.BDDL with org.eclipse.xtext.common.Terminals
 
 generate bDDL "http://www.jpaw.de/persistence/dsl/BDDL"
@@ -88,6 +89,7 @@ PackageDefinition:
     '{' 
         grantCategories += GrantCategoryDefinition* 
         tableCategories += TableCategoryDefinition*
+        //xpojos += ClassDefinition*
         entities += EntityDefinition*
     '}'
 ;

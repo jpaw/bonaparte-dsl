@@ -60,6 +60,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF c == pkColumn»
                 @Id
             «ENDIF»
+            @Column(name="«YUtil::columnName(c)»")
             «JavaDataTypeNoName(c, false)» «c.name»;
         «ENDFOR»
     '''    
@@ -73,12 +74,14 @@ class JavaDDLGeneratorMain implements IGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         package «getPackageName(e)»;
         
+        «IF e.tenantId != null»
         //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
-        import org.eclipse.persistence.annotations.Multitenant;  // BAD! OR mapper specific TODO: FIXME
+        import org.eclipse.persistence.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
+        «ENDIF»
         import javax.persistence.Entity;
         import javax.persistence.Table;
+        import javax.persistence.Column;
         import javax.persistence.Id;
-        import de.jpaw.util.EnumException;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -102,7 +105,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.tenantId != null»
         @Multitenant(/* SINGLE_TABLE */)
         «ENDIF»
-        class «e.name» {
+        public class «e.name» {
             «e.tableCategory.trackingColumns?.recurseColumns(pkColumn)»
             «e.pojoType.recurseColumns(pkColumn)»
             «e.tableCategory.trackingColumns?.writeGettersSetters»
