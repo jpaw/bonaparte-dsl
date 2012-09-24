@@ -34,7 +34,7 @@ class JavaValidate {
         «ENDFOR»
     '''
 
-    def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
+    def private static makeLengthCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
         «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
             «IF ref.javaType.equals("String")»
                 if («index».length() > «ref.elementaryDataType.length»)
@@ -48,6 +48,11 @@ class JavaValidate {
                                                             PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
             «ENDIF»
+        }
+    '''
+            
+    def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
+        «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
             «IF ref.elementaryDataType.regexp != null» 
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
@@ -72,31 +77,35 @@ class JavaValidate {
     '''
     
     def public static writeValidationCode(ClassDefinition d) '''
-            // TODO: validation is still work in progress and must be extensively redesigned
-            @Override
-            public void validate() throws ObjectValidationException {
-                // perform checks for required fields
-                «IF d.extendsClass != null»
-                    super.validate();
+        // TODO: validation is still work in progress and must be extensively redesigned
+        @Override
+        public void validate() throws ObjectValidationException {
+            // perform checks for required fields
+            «IF d.extendsClass != null»
+                super.validate();
+            «ENDIF»
+            «FOR i:d.fields»
+                «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
+                    «loopStart(i)»
+                    if («indexedName(i)» == null)
+                        throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                                    "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
-                «FOR i:d.fields»
-                    «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
-                        «loopStart(i)»
-                                if («indexedName(i)» == null)
-                                    throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                                "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
-                    «ENDIF»
-                    «IF resolveObj(i.datatype) != null»
-                        «loopStart(i)»
-                        «makeValidate(i, indexedName(i))»
-                    «ENDIF»
-                «ENDFOR»
-                «FOR i:d.fields»
-                    «IF resolveElem(i.datatype) != null && (resolveElem(i.datatype).regexp != null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
-                        «loopStart(i)»
-                        «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
-                    «ENDIF»
-                «ENDFOR»
-            }
+                «IF resolveObj(i.datatype) != null»
+                    «loopStart(i)»
+                    «makeValidate(i, indexedName(i))»
+                «ENDIF»
+            «ENDFOR»
+            «FOR i:d.fields»
+                «IF resolveElem(i.datatype) != null && DataTypeExtension::get(i.datatype).javaType.equals("String")»
+                    «loopStart(i)»
+                    «makeLengthCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
+                «ENDIF»
+                «IF resolveElem(i.datatype) != null && (resolveElem(i.datatype).regexp != null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
+                    «loopStart(i)»
+                    «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
+                «ENDIF»
+            «ENDFOR»
+        }
     '''
 }

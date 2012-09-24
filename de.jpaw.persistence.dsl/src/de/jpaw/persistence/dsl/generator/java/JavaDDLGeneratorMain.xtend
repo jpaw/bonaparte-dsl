@@ -23,11 +23,13 @@ import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaFieldsGettersSetters.*
+//import static extension de.jpaw.bonaparte.dsl.generator.java.JavaFieldsGettersSetters.*
+//import static extension de.jpaw.persistence.dsl.generator.java.JavaFieldsGettersSetters.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaDDLGeneratorMain implements IGenerator {
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
@@ -53,6 +55,30 @@ class JavaDDLGeneratorMain implements IGenerator {
             fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut)
         }
     }
+    
+    def private writeTemporal(FieldDefinition c, String type) '''
+        @Temporal(TemporalType.«type»)
+        «IF c.isArray != null»
+            GregorianCalendar[] «c.name»;
+        «ELSEIF c.isList != null»
+            List <GregorianCalendar> «c.name»;
+        «ELSE»
+            GregorianCalendar «c.name»;
+        «ENDIF»
+    '''
+    
+    def private writeColumnType(FieldDefinition c) {
+        val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
+        switch (ref.javaType) {
+        case "GregorianCalendar":  writeTemporal(c, "TIMESTAMP")
+        case "LocalDateTime":      writeTemporal(c, "TIMESTAMP")
+        case "DateTime":           writeTemporal(c, "DATE")
+        default:                   '''        
+            «JavaDataTypeNoName(c, false)» «c.name»;
+            '''
+        }
+    }
+    
     def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
         «cl.extendsClass?.recurseColumns(pkColumn)»
         // table columns of java class «cl.name»
@@ -61,9 +87,45 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @Id
             «ENDIF»
             @Column(name="«YUtil::columnName(c)»")
-            «JavaDataTypeNoName(c, false)» «c.name»;
+            «writeColumnType(c)»
         «ENDFOR»
-    '''    
+    '''
+
+    def private writeGettersSetters(ClassDefinition d) '''
+        // auto-generated getters and setters 
+        «FOR i:d.fields»
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
+                «IF DataTypeExtension::get(i.datatype).javaType.equals("LocalDate")»
+                    return LocalDate.fromCalendarFields(«i.name»);
+                «ELSEIF DataTypeExtension::get(i.datatype).javaType.equals("LocalDateTime")»
+                    return LocalDateTime.fromCalendarFields(«i.name»);
+                «ELSE»
+                    return «i.name»;
+                «ENDIF»
+            }
+            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+                «IF DataTypeExtension::get(i.datatype).javaType.equals("LocalDate")»
+                    this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
+                «ELSEIF DataTypeExtension::get(i.datatype).javaType.equals("LocalDateTime")»
+                    this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
+                «ELSE»
+                    this.«i.name» = «i.name»;
+                «ENDIF»
+            }
+        «ENDFOR»
+    '''
+       
+    def private scaledExpiry(int number, String unit) {
+        if (unit.startsWith("minute"))
+            return number * 60
+        else if (unit.startsWith("hour"))
+            return number * 3600
+        else if (unit.startsWith("day"))
+            return number * 86400
+        else
+            return number
+    }     
+    
     def private javaEntityOut(EntityDefinition e) {
         var FieldDefinition pkColumn = null
         if (e.pk != null && e.pk.columnName.size == 1)
@@ -78,10 +140,15 @@ class JavaDDLGeneratorMain implements IGenerator {
         //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
         import org.eclipse.persistence.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
+        «IF e.cacheSize != 0»
+        import org.eclipse.persistence.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
+        «ENDIF»
         import javax.persistence.Entity;
         import javax.persistence.Table;
         import javax.persistence.Column;
         import javax.persistence.Id;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -93,14 +160,16 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.EnumException;
+        import de.jpaw.util.DayTime;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
-        «ELSE»
-        import de.jpaw.util.DayTime;
         «ENDIF»
         
         @Entity
+        «IF e.cacheSize != 0»
+        @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
+        «ENDIF»
         @Table(name="«YUtil::mkTablename(e, false)»")
         «IF e.tenantId != null»
         @Multitenant(/* SINGLE_TABLE */)
@@ -113,5 +182,4 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         '''
     }
-    
 }
