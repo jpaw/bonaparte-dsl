@@ -109,7 +109,7 @@ PropertyDefinition:
 ;
 
 PropertyUse:
-    key = [PropertyDefinition] '=' value=STRING
+    key = [PropertyDefinition] ('=' value=STRING)?
 ;
 
 // a class corresponds to a Java class
@@ -166,7 +166,9 @@ FieldDefinition:
     (required   = Required)?
     datatype    = DataType
     (isArray    = ArrayModifier | isList = ListModifier)?
-    name        = ID ';'
+    name        = ID
+    ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
+    ';'
 ;
 
 DataType:

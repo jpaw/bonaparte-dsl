@@ -30,6 +30,7 @@ import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.ImportCollector
 
 class JavaDDLGeneratorMain implements IGenerator {
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
@@ -69,14 +70,33 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     def private writeColumnType(FieldDefinition c) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
-        switch (ref.javaType) {
-        case "GregorianCalendar":  writeTemporal(c, "TIMESTAMP")
-        case "LocalDateTime":      writeTemporal(c, "TIMESTAMP")
-        case "DateTime":           writeTemporal(c, "DATE")
-        default:                   '''        
-            «JavaDataTypeNoName(c, false)» «c.name»;
+        switch (ref.enumMaxTokenLength) {
+        case DataTypeExtension::NO_ENUM:
+            switch (ref.javaType) {
+            case "GregorianCalendar":  writeTemporal(c, "TIMESTAMP")
+            case "LocalDateTime":      writeTemporal(c, "TIMESTAMP")
+            case "DateTime":           writeTemporal(c, "DATE")
+            default:                   '''        
+                «JavaDataTypeNoName(c, false)» «c.name»;
+                '''
+            }
+        case DataTypeExtension::ENUM_NUMERIC: '''        
+                Integer «c.name»;
+            '''
+        default: '''
+                «IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»
             '''
         }
+    }
+    
+    def private optionalVersionAnnotation(FieldDefinition c) {
+        if (c.properties != null)
+            for (p : c.properties)
+                if (p.key.name.equals("version"))
+                    return '''
+                    @Version
+                    '''
+        return ''''''
     }
     
     def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
@@ -87,30 +107,53 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @Id
             «ENDIF»
             @Column(name="«YUtil::columnName(c)»")
+            «optionalVersionAnnotation(c)»
             «writeColumnType(c)»
         «ENDFOR»
     '''
 
+    def private writeGetter(FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype);
+        if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
+            if (ref.javaType == null)
+                return "return " + i.name + ";"
+            if (ref.javaType.equals("LocalDate"))
+                return "return LocalDate.fromCalendarFields(" + i.name + ");"
+            else if (ref.javaType.equals("LocalDateTime"))
+                return "return LocalDateTime.fromCalendarFields(" + i.name + ");"
+            else
+                return "return " + i.name + ";"
+        } else if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii) {
+            return "return " + ref.elementaryDataType.enumType.name + ".valueOf(" + i.name + ");" 
+        } else {
+            return "try { return " + ref.elementaryDataType.enumType.name + ".factory(" + i.name + "); } catch (Exception e) { return null; }"
+        }
+    }
+    def private writeSetter(FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype);
+        if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
+            if (ref.javaType == null)
+                return '''this.«i.name» = «i.name»;'''
+            if (ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime"))
+                return '''this.«i.name» = DayTime.toGregorianCalendar(«i.name»);'''
+            else
+                return '''this.«i.name» = «i.name»;'''
+        } else if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii) {
+            return '''this.«i.name» = «i.name».ordinal();''' 
+        } else {
+            return '''this.«i.name» = «i.name».getToken();'''
+        }
+    }
+    
     def private writeGettersSetters(ClassDefinition d) '''
-        // auto-generated getters and setters 
+        «d.extendsClass?.writeGettersSetters»
+        // auto-generated getters and setters of «d.name»
         «FOR i:d.fields»
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
-                «IF DataTypeExtension::get(i.datatype).javaType.equals("LocalDate")»
-                    return LocalDate.fromCalendarFields(«i.name»);
-                «ELSEIF DataTypeExtension::get(i.datatype).javaType.equals("LocalDateTime")»
-                    return LocalDateTime.fromCalendarFields(«i.name»);
-                «ELSE»
-                    return «i.name»;
-                «ENDIF»
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «IF DataTypeExtension::get(i.datatype).enumMaxTokenLength != DataTypeExtension::NO_ENUM»throws EnumException «ENDIF»{
+                «writeGetter(i)»
             }
             public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
-                «IF DataTypeExtension::get(i.datatype).javaType.equals("LocalDate")»
-                    this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
-                «ELSEIF DataTypeExtension::get(i.datatype).javaType.equals("LocalDateTime")»
-                    this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
-                «ELSE»
-                    this.«i.name» = «i.name»;
-                «ENDIF»
+                «writeSetter(i)»
             }
         «ENDFOR»
     '''
@@ -126,7 +169,33 @@ class JavaDDLGeneratorMain implements IGenerator {
             return number
     }     
     
+    // same code as in JavaBonScriptGenerator...
+    def private collectImports(ClassDefinition d, ImportCollector imports) {
+        // collect all imports for this class (make sure we don't duplicate any)
+        for (i : d.fields) {
+            var ref = DataTypeExtension::get(i.datatype)
+            // referenced objects
+            if (ref.objectDataType != null)
+                imports.addImport(getPackageName(ref.objectDataType), ref.objectDataType.name)
+            // referenced enums
+            if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
+                imports.addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
+        }
+        // return parameters of specific methods 
+        //recurseMethods(d, true)
+        // finally, possibly the parent object
+        if (d.extendsClass != null)
+            imports.addImport(getPackageName(d.extendsClass), d.extendsClass.name)
+    }
+    
     def private javaEntityOut(EntityDefinition e) {
+        val String myPackageName = getPackageName(e)
+        val ImportCollector imports = new ImportCollector(myPackageName)
+        e.tableCategory.trackingColumns?.collectImports(imports)
+        e.pojoType.collectImports(imports)
+        
+        imports.addImport(myPackageName, e.name)  // add myself as well
+        
         var FieldDefinition pkColumn = null
         if (e.pk != null && e.pk.columnName.size == 1)
             pkColumn = e.pk.columnName.get(0)
@@ -145,6 +214,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         import javax.persistence.Entity;
         import javax.persistence.Table;
+        import javax.persistence.Version;
         import javax.persistence.Column;
         import javax.persistence.Id;
         import javax.persistence.Temporal;
@@ -165,6 +235,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
         «ENDIF»
+        «imports.createImports»
         
         @Entity
         «IF e.cacheSize != 0»

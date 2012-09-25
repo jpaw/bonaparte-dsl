@@ -54,7 +54,7 @@ public class SqlMapping {
 		dataTypeSqlOracle.put("lowercase", "varchar2(#length)");			// only up to 4000 characters, use CLOB if more!
 		dataTypeSqlOracle.put("ascii",     "varchar2(#length)");			// only up to 4000 characters, use CLOB if more!
 		dataTypeSqlOracle.put("unicode",   "varchar2(#length char)");		// only up to 4000 characters, use CLOB if more!
-		dataTypeSqlOracle.put("enum",      "number(4)");                   // we have not yet implemented enums
+		dataTypeSqlOracle.put("enum",      "number(4)");                    // we have not yet implemented enums
 	}
 	static protected Map<String,String> dataTypeSqlPostgres = new HashMap<String, String>(32);
 	static { // see http://www.postgresql.org/docs/9.1/static/datatype.html for reference
@@ -105,9 +105,13 @@ public class SqlMapping {
 			} else if (length == 0 && datatype.equals("timestamp(#length)")) {
 				datatype = "date";  // better performance, less memory consumption
 			}
+			if (ref.allTokensAscii && ref.enumMaxTokenLength >= 0)  // alphanumeric enum
+				datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
 			break;
 		case POSTGRES:
 			datatype = dataTypeSqlPostgres.get(datatype);
+			if (ref.allTokensAscii && ref.enumMaxTokenLength >= 0)  // alphanumeric enum
+				datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
 			break;
 		}
 		//System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");

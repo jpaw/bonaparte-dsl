@@ -36,6 +36,7 @@ import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
+import de.jpaw.bonaparte.dsl.generator.ImportCollector
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -136,14 +137,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         '''
     }
 
-    def void addImport(String packageName, String objectName) {
-        val String currentEntry = requiredImports.get(objectName)
-        if (currentEntry == null) // not yet in, fine, add it!
-            requiredImports.put(objectName, packageName)
-        else
-            if (!currentEntry.equals(packageName))  // not good, more than one entry!
-                requiredImports.put(objectName, "-")  // this will cause am intentional compile error of the generated code
-    }
 
 /* currently unused
             «JavaMethods::writeMethods(d)» 
@@ -155,22 +148,22 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             if (d.extendsClass != null)
                 recurseMethods(d.extendsClass, false)
     }  */
-    def collectRequiredImports(ClassDefinition d) {
+    def collectRequiredImports(ImportCollector imports, ClassDefinition d) {
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
             var ref = DataTypeExtension::get(i.datatype)
             // referenced objects
             if (ref.objectDataType != null)
-                addImport(getPackageName(ref.objectDataType), ref.objectDataType.name)
+                imports.addImport(getPackageName(ref.objectDataType), ref.objectDataType.name)
             // referenced enums
             if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
+                imports.addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
         }
         // return parameters of specific methods 
         //recurseMethods(d, true)
         // finally, possibly the parent object
         if (d.extendsClass != null)
-            addImport(getPackageName(d.extendsClass), d.extendsClass.name)
+            imports.addImport(getPackageName(d.extendsClass), d.extendsClass.name)
 
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }
@@ -213,8 +206,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     // key is the class name, data is the package name
     // using FQONs in case of conflict is not yet implemented
         val String myPackageName = getPackageName(d)
-        collectRequiredImports(d)
-        addImport(myPackageName, d.name)  // add myself as well
+        val ImportCollector imports = new ImportCollector(myPackageName)
+        collectRequiredImports(imports, d)
+        imports.addImport(myPackageName, d.name)  // add myself as well
         // determine XML annotation support
         val XXmlAccess xmlAccess = getXmlAccess(d)
         val doExt = getExternalizable(d)
@@ -267,19 +261,15 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
-        «FOR o : requiredImports.keySet»
-            «IF !requiredImports.get(o).equals(myPackageName)»
-                import «requiredImports.get(o)».«o»;
-            «ENDIF»
-        «ENDFOR»
+        «imports.createImports»
         
         «IF (xmlAccess != null && !d.isAbstract)»
-        import javax.xml.bind.annotation.XmlAccessorType;
-        import javax.xml.bind.annotation.XmlAccessType;
-        import javax.xml.bind.annotation.XmlRootElement;
-        
-        @XmlRootElement(name="«d.name»")
-        @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
+            import javax.xml.bind.annotation.XmlAccessorType;
+            import javax.xml.bind.annotation.XmlAccessType;
+            import javax.xml.bind.annotation.XmlRootElement;
+            
+            @XmlRootElement(name="«d.name»")
+            @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF» implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;

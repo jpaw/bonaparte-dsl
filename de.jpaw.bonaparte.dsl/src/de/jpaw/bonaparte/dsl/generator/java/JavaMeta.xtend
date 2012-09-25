@@ -46,7 +46,7 @@ class JavaMeta {
             // initializer
             protected static void class$fillProperties(ConcurrentMap<String,String> map) {
                 «FOR p : d.properties»
-                    map.putIfAbsent("«p.key.name»", "«Util::escapeString2Java(p.value)»");
+                    map.putIfAbsent("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
                 «ENDFOR»
                 «IF propertiesInherited»
                     «d.extendsClass.name».class$fillProperties(map);

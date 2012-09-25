@@ -46,8 +46,8 @@ import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
 
 public class DataTypeExtension {
 	// constants for enumMaxTokenLength field
-	static final int NO_ENUM = -2;
-	static final int ENUM_NUMERIC = -1;
+	public static final int NO_ENUM = -2;
+	public static final int ENUM_NUMERIC = -1;
 	
 	// a lookup to determine if a data type can (should) be implemented as a Java primitive.
 	// (LANGUAGE SPECIFIC: JAVA)
