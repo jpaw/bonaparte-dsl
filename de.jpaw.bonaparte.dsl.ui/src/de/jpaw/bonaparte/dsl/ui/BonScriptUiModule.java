@@ -11,12 +11,12 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
  * Use this class to register components to be used within the IDE.
  */
 public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScriptUiModule {
-	public BonScriptUiModule(AbstractUIPlugin plugin) {
-		super(plugin);
-	}
+    public BonScriptUiModule(AbstractUIPlugin plugin) {
+        super(plugin);
+    }
 /*
-	public Class<? extends AbstractEditStrategyProvider> bindAbstractEditStrategyProvider() {
-		return CamelCaseConverter.class;
-	}
-	*/
+    public Class<? extends AbstractEditStrategyProvider> bindAbstractEditStrategyProvider() {
+        return CamelCaseConverter.class;
+    }
+    */
 }

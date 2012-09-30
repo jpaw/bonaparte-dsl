@@ -15,18 +15,18 @@ import com.google.inject.Inject;
  */
 public class BDDLLabelProvider extends DefaultEObjectLabelProvider {
 
-	@Inject
-	public BDDLLabelProvider(AdapterFactoryLabelProvider delegate) {
-		super(delegate);
-	}
+    @Inject
+    public BDDLLabelProvider(AdapterFactoryLabelProvider delegate) {
+        super(delegate);
+    }
 
 /*
-	//Labels and icons can be computed like this:
-	
-	String text(MyModel ele) {
-	  return "my "+ele.getName();
-	}
-	 
+    //Labels and icons can be computed like this:
+    
+    String text(MyModel ele) {
+      return "my "+ele.getName();
+    }
+     
     String image(MyModel ele) {
       return "MyModel.gif";
     }

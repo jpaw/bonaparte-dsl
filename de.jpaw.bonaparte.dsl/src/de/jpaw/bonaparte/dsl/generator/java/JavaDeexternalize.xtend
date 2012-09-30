@@ -47,6 +47,7 @@ class JavaDeexternalize {
                              '''ExternalizableParser.readGregorianCalendar(_in, «ref.wasUpperCase», -1)'''
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(ExternalizableParser.readString(_in, «ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(ExternalizableParser.readInteger(_in, «ref.wasUpperCase», false))«ENDIF»'''
+        case 'object':    '''ExternalizableParser.readObject(_in, BonaPortable.class, «ref.wasUpperCase», true)'''
         }
     }
 

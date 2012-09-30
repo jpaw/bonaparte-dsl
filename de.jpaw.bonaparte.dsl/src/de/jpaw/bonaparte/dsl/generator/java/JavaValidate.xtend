@@ -91,7 +91,7 @@ class JavaValidate {
                         throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
                                                     "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
-                «IF resolveObj(i.datatype) != null»
+                «IF resolveObj(i.datatype) != null || (resolveElem(i.datatype) != null && resolveElem(i.datatype).name.toLowerCase.equals("object"))»
                     «loopStart(i)»
                     «makeValidate(i, indexedName(i))»
                 «ENDIF»

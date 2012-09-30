@@ -94,11 +94,6 @@ PackageDefinition:
     '}'
 ;
 
-/*
-enum TableType:
-    CFG='cfg' | DAT='dat' | LOG='log' | CNT='cnt' | INT='int'
-; */
-
 EntityDefinition:
     'entity' name=ID 
         // 'type' tabletype=TableType
@@ -106,7 +101,10 @@ EntityDefinition:
         'is' pojoType=[pojos::ClassDefinition]
         (tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
+        ('implements' implementsInterface = QualifiedId )?
     '{'
+        (cacheable ?= 'cacheable')?
+        // EclipseLink specific caching: do not use
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?
         ('tenant' tenantId = SingleColumn)?
         ('pk'     pk       = ListOfColumns)?

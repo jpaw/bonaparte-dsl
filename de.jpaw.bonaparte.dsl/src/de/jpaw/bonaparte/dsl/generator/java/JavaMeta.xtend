@@ -42,7 +42,7 @@ class JavaMeta {
         return '''
             // property map
             private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<>();
-    
+
             // initializer
             protected static void class$fillProperties(ConcurrentMap<String,String> map) {
                 «FOR p : d.properties»
@@ -61,7 +61,7 @@ class JavaMeta {
             public ConcurrentMap<String,String> get$PropertyMap() {
                 return property$Map;
             }
-    
+
             static public String class$Property(String id) {
                 «IF propertiesInherited»
                     String result = property$Map.get(id);
@@ -76,7 +76,7 @@ class JavaMeta {
             public String get$Property(String id) {
                 return class$Property(id);
             }
-            
+
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
@@ -107,7 +107,7 @@ class JavaMeta {
             static public ClassDefinition class$MetaData() {
                 return my$MetaData;
             }
-            
+
             // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect
             // no namespace conflicts here
             // must be repeated as a member method to make it available in the (extended) interface 
@@ -116,7 +116,7 @@ class JavaMeta {
             public ClassDefinition get$MetaData() {
                 return my$MetaData;
             }
-            
+
             // convenience functions for faster access if the metadata structure is not used
             @Override
             public String get$PQON() {
@@ -134,6 +134,10 @@ class JavaMeta {
             public String get$Bundle() {
                 return BUNDLE;
             }
-    '''
+            @Override
+            public long get$Serial() {
+                return serialVersionUID;
+            }
+        '''
     }
 }

@@ -22,17 +22,19 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
-//import static extension de.jpaw.bonaparte.dsl.generator.java.JavaFieldsGettersSetters.*
-//import static extension de.jpaw.persistence.dsl.generator.java.JavaFieldsGettersSetters.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
-import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import java.util.List
 
 class JavaDDLGeneratorMain implements IGenerator {
+    val String JAVA_OBJECT_TYPE = "BonaPortable";
+    
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
@@ -76,6 +78,10 @@ class JavaDDLGeneratorMain implements IGenerator {
             case "GregorianCalendar":  writeTemporal(c, "TIMESTAMP")
             case "LocalDateTime":      writeTemporal(c, "TIMESTAMP")
             case "DateTime":           writeTemporal(c, "DATE")
+            case JAVA_OBJECT_TYPE:       '''
+                @Lob
+                byte [] «c.name»;
+                '''
             default:                   '''        
                 «JavaDataTypeNoName(c, false)» «c.name»;
                 '''
@@ -89,14 +95,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def private optionalVersionAnnotation(FieldDefinition c) {
-        if (c.properties != null)
-            for (p : c.properties)
-                if (p.key.name.equals("version"))
-                    return '''
-                    @Version
-                    '''
-        return ''''''
+  
+    def private optionalAnnotation(List <PropertyUse> properties, String key, String annotation) {
+        '''«IF hasProperty(properties, key)»«annotation»«ENDIF»'''
     }
     
     def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
@@ -106,15 +107,42 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF c == pkColumn»
                 @Id
             «ENDIF»
-            @Column(name="«YUtil::columnName(c)»")
-            «optionalVersionAnnotation(c)»
+            @Column(name="«columnName(c)»"«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
+            «optionalAnnotation(c.properties, "version", "@Version")»
+            «optionalAnnotation(c.properties, "lob",     "@Lob")»
+            «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
             «writeColumnType(c)»
+            «IF hasProperty(c.properties, "version")»
+                // specific getter/setters for the version field
+                public void set$Version(«JavaDataTypeNoName(c, false)» _v) {
+                    set«Util::capInitial(c.name)»(_v);
+                }
+                public «JavaDataTypeNoName(c, false)» get$Version() {
+                    return get«Util::capInitial(c.name)»();
+                }
+            «ENDIF»
+            «IF hasProperty(c.properties, "active")»
+                // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
+                public void set$Active(boolean _a) {
+                    set«Util::capInitial(c.name)»(_a);
+                }
+                public boolean get$Active() {
+                    return get«Util::capInitial(c.name)»();
+                }
+            «ENDIF»
         «ENDFOR»
     '''
 
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
-        if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
+        if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
+            // write a Parser
+            return '''
+                if («i.name» == null)
+                    return null;
+                ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
+                return _bap.readObject(BonaPortable.class, true, true);'''
+        } else if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
             if (ref.javaType == null)
                 return "return " + i.name + ";"
             if (ref.javaType.equals("LocalDate"))
@@ -126,12 +154,22 @@ class JavaDDLGeneratorMain implements IGenerator {
         } else if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii) {
             return "return " + ref.elementaryDataType.enumType.name + ".valueOf(" + i.name + ");" 
         } else {
-            return "try { return " + ref.elementaryDataType.enumType.name + ".factory(" + i.name + "); } catch (Exception e) { return null; }"
+            return "return " + ref.elementaryDataType.enumType.name + ".factory(" + i.name + ");"
         }
     }
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
-        if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
+        if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
+            // write a Composer
+            return '''
+                if («i.name» == null) {
+                    this.«i.name» = null;
+                } else {
+                    ByteArrayComposer _bac = new ByteArrayComposer();
+                    _bac.addField(«i.name»);
+                    this.«i.name» = _bac.getBytes();
+                }'''
+        } else if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
             if (ref.javaType == null)
                 return '''this.«i.name» = «i.name»;'''
             if (ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime"))
@@ -145,11 +183,20 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
+    def private writeException(DataTypeExtension ref) {
+        if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+            return "throws EnumException "
+        else if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
+            return "throws MessageParserException "
+        } else
+            return ""
+    }
+    
     def private writeGettersSetters(ClassDefinition d) '''
         «d.extendsClass?.writeGettersSetters»
         // auto-generated getters and setters of «d.name»
         «FOR i:d.fields»
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «IF DataTypeExtension::get(i.datatype).enumMaxTokenLength != DataTypeExtension::NO_ENUM»throws EnumException «ENDIF»{
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
                 «writeGetter(i)»
             }
             public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
@@ -188,6 +235,113 @@ class JavaDDLGeneratorMain implements IGenerator {
             imports.addImport(getPackageName(d.extendsClass), d.extendsClass.name)
     }
     
+    def private recurseDataGetter(ClassDefinition d) '''
+        «d.extendsClass?.recurseDataGetter»
+        // auto-generated data getter for «d.name»
+        «FOR i:d.fields»
+            _r.set«Util::capInitial(i.name)»(get«Util::capInitial(i.name)»());
+        «ENDFOR»
+    '''
+    
+    def private recurseDataSetter(ClassDefinition d) '''
+        «d.extendsClass?.recurseDataSetter»
+        // auto-generated data setter for «d.name»
+        «FOR i:d.fields»
+            set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
+        «ENDFOR»
+    '''
+    
+    def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
+        @Override
+        public Class<«pkType»> get$KeyClass() {
+            return «pkType».class;
+        }
+        @Override
+        public String get$DataPQON() {
+            return "«getPartiallyQualifiedClassName(e.pojoType)»";
+        }
+        @Override
+        public Class<«e.pojoType.name»> get$DataClass() {
+            return «e.pojoType.name».class;
+        }
+        @Override
+        public String get$TrackingPQON() {
+            «IF e.tableCategory.trackingColumns == null»
+                return null;
+            «ELSE»
+                return "«getPartiallyQualifiedClassName(e.tableCategory.trackingColumns)»";
+            «ENDIF»
+        }
+        @Override
+        public Class<«trackingType»> get$TrackingClass() {
+            «IF e.tableCategory.trackingColumns == null»
+                return null;
+            «ELSE»
+                return «trackingType».class;
+            «ENDIF»
+        }
+        
+        @Override
+        public «pkType» get$Key() throws ApplicationException {
+            «IF pkType.equals("Serializable")»
+                return null;  // FIXME! not yet implemented!
+            «ELSE»
+                return «e.pk.columnName.get(0).name»;
+            «ENDIF»
+        }
+        @Override
+        public void set$Key(«pkType» _k) {
+            «IF pkType.equals("Serializable")»
+                // FIXME! not yet implemented!!!
+            «ELSE»
+                set«Util::capInitial(e.pk.columnName.get(0).name)»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
+            «ENDIF»
+        }
+        @Override
+        public «e.pojoType.name» get$Data() throws ApplicationException {
+            «e.pojoType.name» _r = new «e.pojoType.name»();
+            «recurseDataGetter(e.pojoType)»
+            return _r;
+        }
+        @Override
+        public void set$Data(«e.pojoType.name» _d) {
+            «recurseDataSetter(e.pojoType)»
+        }
+        @Override
+        public «trackingType» get$Tracking() throws ApplicationException {
+            «IF e.tableCategory.trackingColumns == null»
+                return null;
+            «ELSE»
+                «e.tableCategory.trackingColumns.name» _r = new «e.tableCategory.trackingColumns.name»();
+                «recurseDataGetter(e.tableCategory.trackingColumns)»
+                return _r;
+            «ENDIF»
+        }
+        @Override
+        public void set$Tracking(«trackingType» _d) {
+            «IF e.tableCategory.trackingColumns != null»
+                «recurseDataSetter(e.tableCategory.trackingColumns)»
+            «ENDIF»
+        }
+    '''
+
+    def private writeStaticFindByMethods(ClassDefinition d, EntityDefinition e) '''
+        «d.extendsClass?.writeStaticFindByMethods(e)»
+        «FOR i:d.fields»
+            «IF hasProperty(i.properties, "findBy")»
+                static «e.name» findBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) throws NoResultException {
+                     TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                     return _query.setParameter(1, _key).getSingleResult();
+                }
+            «ELSEIF hasProperty(i.properties, "listBy")»
+                static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) throws NoResultException {
+                     TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                     return _query.setParameter(1, _key).getResultList();
+                }
+            «ENDIF»
+        «ENDFOR»
+    '''
+    
     def private javaEntityOut(EntityDefinition e) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -195,10 +349,20 @@ class JavaDDLGeneratorMain implements IGenerator {
         e.pojoType.collectImports(imports)
         
         imports.addImport(myPackageName, e.name)  // add myself as well
-        
+        imports.addImport(getPackageName(e.pojoType), e.pojoType.name);
+        if (e.tableCategory.trackingColumns != null)
+            imports.addImport(getPackageName(e.tableCategory.trackingColumns), e.tableCategory.trackingColumns.name);
+            
         var FieldDefinition pkColumn = null
-        if (e.pk != null && e.pk.columnName.size == 1)
+        var String pkType = "Serializable"
+        var String trackingType = "BonaPortable"
+        if (e.pk != null && e.pk.columnName.size == 1) {
             pkColumn = e.pk.columnName.get(0)
+            pkType = JavaDataTypeNoName(pkColumn, false)
+        }
+        if (e.tableCategory.trackingColumns != null) {
+            trackingType = e.tableCategory.trackingColumns.name
+        }
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -212,13 +376,22 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.cacheSize != 0»
         import org.eclipse.persistence.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
+        «IF e.cacheable»
+        import javax.persistence.Cacheable;
+        «ENDIF»
+        import javax.persistence.EntityManager;
         import javax.persistence.Entity;
         import javax.persistence.Table;
         import javax.persistence.Version;
         import javax.persistence.Column;
+        import javax.persistence.Lob;
+        import javax.persistence.Basic;
+        import javax.persistence.FetchType;
         import javax.persistence.Id;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
+        import javax.persistence.NoResultException;
+        import javax.persistence.TypedQuery;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -227,9 +400,16 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.util.GregorianCalendar;
         import java.util.UUID;
         import java.math.BigDecimal;
+        
+        import de.jpaw.bonaparte.jpa.BonaPersistable;
+        import de.jpaw.bonaparte.core.BonaPortable;
+        import de.jpaw.bonaparte.core.ByteArrayComposer;
+        import de.jpaw.bonaparte.core.ByteArrayParser;
+        import de.jpaw.bonaparte.core.MessageParserException;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.EnumException;
+        import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
@@ -238,18 +418,23 @@ class JavaDDLGeneratorMain implements IGenerator {
         «imports.createImports»
         
         @Entity
+        «IF e.cacheable»
+        @Cacheable(true)
+        «ENDIF»
         «IF e.cacheSize != 0»
         @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
         «ENDIF»
-        @Table(name="«YUtil::mkTablename(e, false)»")
+        @Table(name="«mkTablename(e, false)»")
         «IF e.tenantId != null»
         @Multitenant(/* SINGLE_TABLE */)
         «ENDIF»
-        public class «e.name» {
+        public class «e.name» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
             «e.tableCategory.trackingColumns?.recurseColumns(pkColumn)»
             «e.pojoType.recurseColumns(pkColumn)»
             «e.tableCategory.trackingColumns?.writeGettersSetters»
             «e.pojoType.writeGettersSetters()»
+            «writeInterfaceMethods(e, pkType, trackingType)»
+            «writeStaticFindByMethods(e.pojoType, e)»
         }
         '''
     }

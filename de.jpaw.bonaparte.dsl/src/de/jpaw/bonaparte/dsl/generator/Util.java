@@ -19,28 +19,28 @@ package de.jpaw.bonaparte.dsl.generator;
 import org.apache.commons.lang.StringEscapeUtils;
 
 public class Util {
-	static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Gregorian?
-		return true;
-	}
-	
-	static public String escapeString2Java(String s) {
-		return StringEscapeUtils.escapeJava(s);
-	}
-	
-	// return false if the string contains a non-ASCII printable character, else true
-	public static boolean isAsciiString(String s) {
-		if (s != null) {
-			for (int i = 0; i < s.length(); ++i) {
-				int c = (int)s.charAt(i);
-				if (c < 0x20 || c > 0x7f)
-					return false;
-			}
-		}
-		return true;
-	}
-	
-	static public String capInitial(String s) {
-		return Character.toUpperCase(s.charAt(0)) + s.substring(1);
-	}
+    static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Gregorian?
+        return true;
+    }
+    
+    static public String escapeString2Java(String s) {
+        return StringEscapeUtils.escapeJava(s);
+    }
+    
+    // return false if the string contains a non-ASCII printable character, else true
+    public static boolean isAsciiString(String s) {
+        if (s != null) {
+            for (int i = 0; i < s.length(); ++i) {
+                int c = (int)s.charAt(i);
+                if (c < 0x20 || c > 0x7f)
+                    return false;
+            }
+        }
+        return true;
+    }
+    
+    static public String capInitial(String s) {
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
 
 }

@@ -15,18 +15,18 @@ import com.google.inject.Inject;
  */
 public class BonScriptLabelProvider extends DefaultEObjectLabelProvider {
 
-	@Inject
-	public BonScriptLabelProvider(AdapterFactoryLabelProvider delegate) {
-		super(delegate);
-	}
+    @Inject
+    public BonScriptLabelProvider(AdapterFactoryLabelProvider delegate) {
+        super(delegate);
+    }
 
 /*
-	//Labels and icons can be computed like this:
-	
-	String text(MyModel ele) {
-	  return "my "+ele.getName();
-	}
-	 
+    //Labels and icons can be computed like this:
+    
+    String text(MyModel ele) {
+      return "my "+ele.getName();
+    }
+     
     String image(MyModel ele) {
       return "MyModel.gif";
     }

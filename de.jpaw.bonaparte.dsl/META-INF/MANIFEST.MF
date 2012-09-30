@@ -16,7 +16,8 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
  org.antlr.runtime,
- org.eclipse.xtext.common.types
+ org.eclipse.xtext.common.types,
+ org.eclipse.xtext.xbase.lib
 Import-Package: org.apache.commons.lang;version="2.1.0",
  org.apache.log4j,
  org.eclipse.xtend2.lib,
@@ -34,4 +35,6 @@ Export-Package: de.jpaw.bonaparte.dsl,
  de.jpaw.bonaparte.dsl.scoping,
  de.jpaw.bonaparte.dsl.serializer,
  de.jpaw.bonaparte.dsl.services,
- de.jpaw.bonaparte.dsl.validation
+ de.jpaw.bonaparte.dsl.validation,
+ de.jpaw.bonaparte.dsl.jvmmodel
+

@@ -19,10 +19,10 @@ import de.jpaw.bonaparte.dsl.services.BonScriptGrammarAccess;
  * Also see {@link org.eclipse.xtext.xtext.XtextFormattingTokenSerializer} as an example
  */
 public class BonScriptFormatter extends AbstractDeclarativeFormatter {
-	
-	@Override
-	protected void configureFormatting(FormattingConfig c) {
-		BonScriptGrammarAccess grammar = (BonScriptGrammarAccess) getGrammarAccess();
+    
+    @Override
+    protected void configureFormatting(FormattingConfig c) {
+        BonScriptGrammarAccess grammar = (BonScriptGrammarAccess) getGrammarAccess();
         
         c.setAutoLinewrap(128);
 
@@ -53,8 +53,8 @@ public class BonScriptFormatter extends AbstractDeclarativeFormatter {
                 c.setLinewrap(1,1,2).after (rightCurlyBracket);
         }
         
-		c.setLinewrap(0, 1, 2).before(((BonScriptGrammarAccess)getGrammarAccess()).getSL_COMMENTRule());
-		c.setLinewrap(0, 1, 2).before(((BonScriptGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
-		c.setLinewrap(0, 1, 1).after (((BonScriptGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
-	}
+        c.setLinewrap(0, 1, 2).before(((BonScriptGrammarAccess)getGrammarAccess()).getSL_COMMENTRule());
+        c.setLinewrap(0, 1, 2).before(((BonScriptGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
+        c.setLinewrap(0, 1, 1).after (((BonScriptGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
+    }
 }

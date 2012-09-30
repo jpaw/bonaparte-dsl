@@ -9,7 +9,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
  * Use this class to register components to be used within the IDE.
  */
 public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModule {
-	public BDDLUiModule(AbstractUIPlugin plugin) {
-		super(plugin);
-	}
+    public BDDLUiModule(AbstractUIPlugin plugin) {
+        super(plugin);
+    }
 }

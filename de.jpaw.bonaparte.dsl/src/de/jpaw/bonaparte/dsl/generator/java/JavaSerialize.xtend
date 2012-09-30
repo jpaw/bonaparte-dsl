@@ -50,7 +50,7 @@ class JavaSerialize {
                 // numeric enum
                 '''if («indexedName» == null) w.writeNull(); else w.addField(«indexedName».ordinal());'''
             }
-        } else // primitive or boxed type
+        } else // primitive or boxed type or object
             '''«IF !ref.isPrimitive»if («indexedName» == null) w.writeNull(); else «ENDIF»w.addField(«indexedName»);'''
     }
 

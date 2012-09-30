@@ -23,8 +23,12 @@ import org.eclipse.emf.ecore.EObject
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+// using JCL here, because it is already a project dependency, should switch to slf4j
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 
 class SqlDDLGeneratorMain implements IGenerator {
+    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
     String separator
     var int indexCount
 
@@ -40,15 +44,21 @@ class SqlDDLGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
+            logger.info("start code output of main table for " + e.name)
+            // System::out.println("start code output of main table for " + e.name)
             makeTables(fsa, e, false)
-            if (e.tableCategory != null && e.tableCategory.historyCategory != null)
+            if (e.tableCategory != null && e.tableCategory.historyCategory != null) {
                 // do histories as well
+                logger.info("    doing history table as well, due to category " + e.tableCategory.name);
+                // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
                 makeTables(fsa, e, true)
+            }
         }
     }
 
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
         var tablename = YUtil::mkTablename(e, doHistory)
+        // System::out.println("    tablename is " + tablename);
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
     }
@@ -75,6 +85,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceData  = YUtil::mkTablespaceName(t, false, myCategory)
             tablespaceIndex = YUtil::mkTablespaceName(t, true,  myCategory)
         }
+        // System::out.println("      tablename is " + tablename);
             
         var grantGroup = myCategory.grantGroup
         indexCount = 0

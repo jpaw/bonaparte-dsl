@@ -63,6 +63,7 @@ class JavaDeserialize {
                              '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», -1)'''
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString(«ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger(«ref.wasUpperCase», false))«ENDIF»'''
+        case 'object':    '''p.readObject(BonaPortable.class, «ref.wasUpperCase», true)'''
         }
     }
 

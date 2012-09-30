@@ -7,8 +7,8 @@ package de.jpaw.persistence.dsl;
  */
 public class BDDLStandaloneSetup extends BDDLStandaloneSetupGenerated{
 
-	public static void doSetup() {
-		new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration();
-	}
+    public static void doSetup() {
+        new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration();
+    }
 }
 

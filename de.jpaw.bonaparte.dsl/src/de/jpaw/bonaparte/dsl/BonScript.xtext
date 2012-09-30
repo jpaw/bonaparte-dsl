@@ -15,7 +15,12 @@
   */
   
 grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
+/* NEW: required for generics
+grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase // org.eclipse.xtext.common.Terminals
 
+import "http://www.eclipse.org/xtext/xbase/Xtype"        as xTypes
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes
+ */
 generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
 
 Model:
@@ -35,6 +40,13 @@ ImportDefinition:
     'import' importedNamespace=QualifiedIdWithWildcard
 ;
 
+/*
+InterfaceDefinition:
+    interfaceClassName = [jvmTypes::JvmType|QualifiedId]
+    ('<' genericsList += [jvmTypes::JvmGenericType] '>')?
+;
+ */
+ 
 // enums for field attributes. Defaults can be set at package or class level
 enum XVisibility:
     PUBLIC='public' | PRIVATE='private' | PROTECTED='protected' | DEFAULT='default';  // default means standard Java visibility
@@ -122,6 +134,7 @@ ClassDefinition:
     (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
+    ('implements' implementsInterface=QualifiedId /*JvmParameterizedTypeReference*/)?
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
@@ -190,7 +203,7 @@ ListModifier:
 ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
-              | "uuid"    | "Uuid")
+              | "uuid"    | "Uuid"     | "object"    | "Object" )
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name= ("timestamp" | "Timestamp" | "calendar" | "Calendar") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 

@@ -72,8 +72,6 @@ class XUtil {
         val ref = DataTypeExtension::get(d)
         if (ref.isPrimitive)
             ref.elementaryDataType.name
-        // else if (ref.javaType.equals("enum"))    // not required, covered by DatTypeExtension class!
-        //    ref.elementaryDataType.enumType.name
         else
             ref.javaType
     }

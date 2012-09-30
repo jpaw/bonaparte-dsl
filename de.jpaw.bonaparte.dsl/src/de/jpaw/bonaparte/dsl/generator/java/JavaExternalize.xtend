@@ -43,6 +43,7 @@ class JavaExternalize {
             case "GregorianCalendar":'''ExternalizableComposer.writeGregorianCalendar(_out, «e.doHHMMSS», «indexedName»);'''
             case "LocalDateTime":    '''ExternalizableComposer.writeLocalDateTime(_out, «e.doHHMMSS», «indexedName»);'''
             case "LocalDate":        '''ExternalizableComposer.writeLocalDate(_out, «indexedName»);'''
+            case "BonaPortable":     '''ExternalizableComposer.writeObject(_out, «indexedName»);'''
             default:  // enums...
                 if (ref.enumMaxTokenLength >= 0) {
                     '''ExternalizableComposer.writeString (_out, «indexedName».getToken());'''
@@ -57,7 +58,7 @@ class JavaExternalize {
         «IF resolveElem(i.datatype) != null»
             «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
-            ExternalizableComposer.writeObject(_out, (BonaPortable)«index», serialVersionUID);
+            ExternalizableComposer.writeObject(_out, (BonaPortable)«index»);
         «ENDIF»
     '''
     

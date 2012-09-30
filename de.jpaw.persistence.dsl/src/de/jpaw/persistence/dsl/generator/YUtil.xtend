@@ -23,6 +23,8 @@ import org.eclipse.emf.ecore.EObject
 import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import java.util.List
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 
 class YUtil {
     def public static java2sql(String javaname) {
@@ -32,7 +34,15 @@ class YUtil {
     def public static String columnName(FieldDefinition c) {
         return java2sql(c.name)  // allow to add column data type prefixes here... (systems Hungarian notation: http://en.wikipedia.org/wiki/Hungarian_notation)
     }
-    
+
+    def public static boolean hasProperty(List <PropertyUse> properties, String key) {
+        if (properties != null)
+            for (p : properties)
+                if (key.equals(p.key.name))
+                    return true
+        return false
+    }
+        
     def public static Model getModel(EObject someReference) {
         var EObject ref = someReference
         while (!(ref instanceof Model))
@@ -59,14 +69,13 @@ class YUtil {
         else {
             // build the table name according to the template in the table category or the default
             // 1. get a suitable pattern
+            var String myPattern
             var myPackage = t.eContainer as PackageDefinition
             var myModel = getModel(myPackage.eContainer)
             var TableCategoryDefinition myCategory = t.tableCategory
-            var theOtherModel = getModel(myCategory)
-            var String myPattern
-            
             if (forHistory)
                  myCategory = myCategory.historyCategory
+            var theOtherModel = getModel(myCategory)
                  
             // precedence rules for table name
             // 1. pattern of referenced category
@@ -81,7 +90,7 @@ class YUtil {
             else
                 myPattern = "(category)_(entity)"  // last fallback 
             // 2. have the pattern, apply substitution rules
-            return myPattern.replace("(category)", t.tableCategory.name)
+            return myPattern.replace("(category)", myCategory.name)
                             .replace("(entity)",   java2sql(t.name))
                             .replace("(prefix)",   myPackage.dbPrefix)
                             .replace("(owner)",    myPackage.schemaOwner)

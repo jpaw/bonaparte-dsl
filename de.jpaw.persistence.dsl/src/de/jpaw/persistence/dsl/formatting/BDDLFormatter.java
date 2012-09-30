@@ -19,10 +19,10 @@ import de.jpaw.persistence.dsl.services.BDDLGrammarAccess;
  * Also see {@link org.eclipse.xtext.xtext.XtextFormattingTokenSerializer} as an example
  */
 public class BDDLFormatter extends AbstractDeclarativeFormatter {
-	
-	@Override
-	protected void configureFormatting(FormattingConfig c) {
-		BDDLGrammarAccess grammar = (BDDLGrammarAccess) getGrammarAccess();
+    
+    @Override
+    protected void configureFormatting(FormattingConfig c) {
+        BDDLGrammarAccess grammar = (BDDLGrammarAccess) getGrammarAccess();
         
         c.setAutoLinewrap(128);
 
@@ -53,8 +53,8 @@ public class BDDLFormatter extends AbstractDeclarativeFormatter {
                 c.setLinewrap(1,1,2).after (rightCurlyBracket);
         }
         
-		c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getSL_COMMENTRule());
-		c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
-		c.setLinewrap(0, 1, 1).after (((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
-	}
+        c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getSL_COMMENTRule());
+        c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
+        c.setLinewrap(0, 1, 1).after (((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
+    }
 }

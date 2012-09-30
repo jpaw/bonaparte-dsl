@@ -23,10 +23,18 @@ import de.jpaw.persistence.dsl.generator.YUtil
 class SqlColumns {
     // TODO: check if column is in PK (then ssume implicit NOT NULL)
     def public static nullconstraint(FieldDefinition c) {
-        if (XUtil::isRequired(c)) " not null" else ""
+        if (XUtil::isRequired(c)) " NOT NULL" else ""
+    }
+    def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
+        if (YUtil::hasProperty(c.properties, "currentUser"))
+            SqlMapping::getCurrentUser(databaseFlavour)
+        else if (YUtil::hasProperty(c.properties, "currentTimestamp"))
+            SqlMapping::getCurrentTimestamp(databaseFlavour)
+        else
+            ""
     }
 
     def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour) '''
-        «YUtil::columnName(c)» «SqlMapping::sqlType(c, databaseFlavour)»«nullconstraint(c)»
+        «YUtil::columnName(c)» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«nullconstraint(c)»
     '''
 }

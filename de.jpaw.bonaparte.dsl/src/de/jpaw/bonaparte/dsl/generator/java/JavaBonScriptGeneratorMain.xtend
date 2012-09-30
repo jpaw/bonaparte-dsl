@@ -271,7 +271,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @XmlRootElement(name="«d.name»")
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF» implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF» {
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF»
+          implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         
             «JavaMeta::writeMetaData(d)»

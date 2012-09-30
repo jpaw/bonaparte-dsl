@@ -7,8 +7,8 @@ package de.jpaw.bonaparte.dsl;
  */
 public class BonScriptStandaloneSetup extends BonScriptStandaloneSetupGenerated{
 
-	public static void doSetup() {
-		new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
-	}
+    public static void doSetup() {
+        new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
+    }
 }
 
