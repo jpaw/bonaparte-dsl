@@ -22,8 +22,9 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
@@ -34,6 +35,8 @@ import java.util.List
 
 class JavaDDLGeneratorMain implements IGenerator {
     val String JAVA_OBJECT_TYPE = "BonaPortable";
+    var FieldDefinition haveIntVersion = null
+    var haveActive = false
     
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
@@ -100,6 +103,14 @@ class JavaDDLGeneratorMain implements IGenerator {
         '''«IF hasProperty(properties, key)»«annotation»«ENDIF»'''
     }
     
+    def private setIntVersion(FieldDefinition c) {
+        haveIntVersion = c
+        return ""
+    }
+    def private setHaveActive() {
+        haveActive = true
+        return ""
+    }
     def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
         «cl.extendsClass?.recurseColumns(pkColumn)»
         // table columns of java class «cl.name»
@@ -113,6 +124,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
             «writeColumnType(c)»
             «IF hasProperty(c.properties, "version")»
+                «IF JavaDataTypeNoName(c, false).equals("int") || JavaDataTypeNoName(c, false).equals("Integer")»
+                    «setIntVersion(c)»
+                «ENDIF»
                 // specific getter/setters for the version field
                 public void set$Version(«JavaDataTypeNoName(c, false)» _v) {
                     set«Util::capInitial(c.name)»(_v);
@@ -122,6 +136,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 }
             «ENDIF»
             «IF hasProperty(c.properties, "active")»
+                «setHaveActive»
                 // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
                 public void set$Active(boolean _a) {
                     set«Util::capInitial(c.name)»(_a);
@@ -251,6 +266,36 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDFOR»
     '''
     
+    def private writeStubs(EntityDefinition e) '''
+        «writeRtti(e.pojoType)»
+        «IF !haveActive»
+            // no isActive column in this entity, create stubs to satisfy interface 
+            public void set$Active(boolean _a) {
+                throw new RuntimeException("Entity «e.name» does not have an isActive field");
+            }
+            public boolean get$Active() {
+                return true;  // no isActive column => all rows are active by default
+            }
+        «ENDIF»
+        «IF haveIntVersion == null»
+            // no version column of type int or Integer, write stub
+            public void set$IntVersion(int _v) {
+                throw new RuntimeException("Entity «e.name» does not have an integer type version field");
+            }
+            public int get$IntVersion() {
+                return -1;
+            }
+        «ELSE»        
+            // version column of type int or Integer exists, write proxy
+            public void set$IntVersion(int _v) {
+                set«Util::capInitial(haveIntVersion.name)»(_v);
+            }
+            public int get$IntVersion() {
+                return get«Util::capInitial(haveIntVersion.name)»();
+            }
+        «ENDIF»
+        '''
+                
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
         @Override
         public Class<«pkType»> get$KeyClass() {
@@ -329,25 +374,37 @@ class JavaDDLGeneratorMain implements IGenerator {
         «d.extendsClass?.writeStaticFindByMethods(e)»
         «FOR i:d.fields»
             «IF hasProperty(i.properties, "findBy")»
-                static «e.name» findBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) throws NoResultException {
-                     TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
-                     return _query.setParameter(1, _key).getSingleResult();
+                public static «e.name» findBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+                    try {
+                        TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                        return _query.setParameter(1, _key).getSingleResult();
+                    } catch (NoResultException e) {
+                        return null;
+                    }
                 }
             «ELSEIF hasProperty(i.properties, "listBy")»
-                static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) throws NoResultException {
-                     TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
-                     return _query.setParameter(1, _key).getResultList();
+                public static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+                    try {
+                        TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                        return _query.setParameter(1, _key).getResultList();
+                    } catch (NoResultException e) {
+                        return null;
+                    }
                 }
             «ENDIF»
         «ENDFOR»
     '''
     
+                
     def private javaEntityOut(EntityDefinition e) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         e.tableCategory.trackingColumns?.collectImports(imports)
         e.pojoType.collectImports(imports)
-        
+        // reset tracking flags
+        haveIntVersion = null
+        haveActive = false
+            
         imports.addImport(myPackageName, e.name)  // add myself as well
         imports.addImport(getPackageName(e.pojoType), e.pojoType.name);
         if (e.tableCategory.trackingColumns != null)
@@ -379,6 +436,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.cacheable»
         import javax.persistence.Cacheable;
         «ENDIF»
+        «IF e.isAbstract»
+        @MappedSuperclass
+        «ENDIF»
         import javax.persistence.EntityManager;
         import javax.persistence.Entity;
         import javax.persistence.Table;
@@ -399,7 +459,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.util.regex.Matcher;
         import java.util.GregorianCalendar;
         import java.util.UUID;
+        import java.io.Serializable;
         import java.math.BigDecimal;
+        «IF e.isDeprecated || e.pojoType.isDeprecated»
+        import java.lang.annotation.Deprecated;
+        «ENDIF»
         
         import de.jpaw.bonaparte.jpa.BonaPersistable;
         import de.jpaw.bonaparte.core.BonaPortable;
@@ -417,6 +481,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «imports.createImports»
         
+        «IF e.isAbstract»
+        @MappedSuperclass
+        «ELSE»
         @Entity
         «IF e.cacheable»
         @Cacheable(true)
@@ -428,11 +495,16 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.tenantId != null»
         @Multitenant(/* SINGLE_TABLE */)
         «ENDIF»
-        public class «e.name» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
+        «ENDIF»
+        «IF e.isDeprecated || e.pojoType.isDeprecated»
+        @Deprecated
+        «ENDIF»
+        public «IF e.isFinal»final «ENDIF»class «e.name» «IF e.extendsClass != null»extends «e.extendsClass.name»«ENDIF» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
             «e.tableCategory.trackingColumns?.recurseColumns(pkColumn)»
             «e.pojoType.recurseColumns(pkColumn)»
             «e.tableCategory.trackingColumns?.writeGettersSetters»
             «e.pojoType.writeGettersSetters()»
+            «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
             «writeStaticFindByMethods(e.pojoType, e)»
         }

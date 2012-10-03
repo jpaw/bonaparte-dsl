@@ -133,6 +133,22 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle()))
                 error("Parent classes must be in the same or a superbundle of the current package",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+            // check for cyclic dependencies
+            int depth = 0;
+            boolean haveAnchestorWithAbsoluteRtti = false;
+            ClassDefinition anchestor = cd.getExtendsClass();
+            while (++depth < 100) {  // after 100 iterations we assume cyclicity
+            	if (anchestor.getRtti() > 0 && !anchestor.isAddRtti())
+            		haveAnchestorWithAbsoluteRtti = true;
+            	anchestor = anchestor.getExtendsClass();
+            	if (anchestor == null)
+            		break;
+            }
+            if (depth >= 100)
+                error("Parent hierarchy is cyclical", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);            	
+            // check that relative rtti may only be given if there is a parent class with a fixed rtti
+            if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti())
+                error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);            	
         }
     }
     

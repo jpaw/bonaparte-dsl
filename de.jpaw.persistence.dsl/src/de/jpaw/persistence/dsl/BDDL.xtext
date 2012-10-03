@@ -94,13 +94,19 @@ PackageDefinition:
     '}'
 ;
 
+enum Inheritance:
+    SINGLE_TABLE='singleTable' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
+
 EntityDefinition:
-    'entity' name=ID 
+    (isDeprecated?='@Deprecated')?
+    (isAbstract?='abstract' | isFinal?='final')? 'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
         'category' tableCategory=[TableCategoryDefinition]
         'is' pojoType=[pojos::ClassDefinition]
         (tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
+        ('inheritance' inheritance=Inheritance)?
+        ('extends' extendsClass=[pojos::ClassDefinition])?
         ('implements' implementsInterface = QualifiedId )?
     '{'
         (cacheable ?= 'cacheable')?

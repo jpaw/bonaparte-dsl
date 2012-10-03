@@ -127,11 +127,12 @@ PropertyUse:
 // a class corresponds to a Java class
 ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
-    // (isDeprecated?='@Deprecated')?
+    (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')? 'class' name = ID
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     (isExternalizable = Externalizable)?      // decide if implements Externalizable
     (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
+    ('RTTI' (addRtti ?= '+')? rtti = INT)?    // numeric runtime type information
     ('revision' revision = STRING)?
     ('extends' extendsClass=[ClassDefinition|QualifiedId])?
     ('implements' implementsInterface=QualifiedId /*JvmParameterizedTypeReference*/)?

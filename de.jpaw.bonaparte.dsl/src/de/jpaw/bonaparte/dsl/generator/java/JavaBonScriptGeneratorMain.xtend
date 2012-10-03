@@ -239,6 +239,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ELSE»
         import de.jpaw.util.DayTime;
         «ENDIF»
+        «IF d.isDeprecated»
+        import java.lang.annotation.Deprecated;
+        «ENDIF»
         «IF doBeanVal»
         import javax.validation.constraints.NotNull;
         import javax.validation.constraints.Digits;
@@ -271,11 +274,15 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @XmlRootElement(name="«d.name»")
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
+        «IF d.isDeprecated»
+        @Deprecated
+        «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF»
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         
             «JavaMeta::writeMetaData(d)»
+            «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
             «JavaValidate::writePatterns(d)»
