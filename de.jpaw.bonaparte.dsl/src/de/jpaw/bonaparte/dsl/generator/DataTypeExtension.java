@@ -29,6 +29,7 @@ import java.util.Set;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
@@ -58,6 +59,38 @@ public class DataTypeExtension {
     // a lookup to resolve typedefs. Also collects preprocessed information about a data type
     static private Map<DataType,DataTypeExtension> map = new HashMap<DataType,DataTypeExtension>(200);
 
+    // a lookup to determine the Java data type to use for a given grammar type.
+    // (LANGUAGE SPECIFIC: JAVA)
+    static protected Map<String,DataCategory> dataCategory = new HashMap<String, DataCategory>(32);
+    static {
+        dataCategory.put("boolean",   DataCategory.MISC);
+        dataCategory.put("int",       DataCategory.NUMERIC);
+        dataCategory.put("integer",   DataCategory.NUMERIC);
+        dataCategory.put("long",      DataCategory.NUMERIC);
+        dataCategory.put("float",     DataCategory.NUMERIC);
+        dataCategory.put("double",    DataCategory.NUMERIC);
+        dataCategory.put("number",    DataCategory.NUMERIC);
+        dataCategory.put("decimal",   DataCategory.NUMERIC);
+        dataCategory.put("byte",      DataCategory.NUMERIC);
+        dataCategory.put("short",     DataCategory.NUMERIC);
+        dataCategory.put("char",      DataCategory.MISC);
+        dataCategory.put("character", DataCategory.MISC);
+        
+        dataCategory.put("raw",       DataCategory.MISC);    // not recommended because mutable. Also weird for 2nd level of array index
+        dataCategory.put("binary",    DataCategory.MISC);
+        dataCategory.put("uuid",      DataCategory.MISC);
+        dataCategory.put("calendar",  DataCategory.TEMPORAL);  // not recommended because mutable
+        dataCategory.put("timestamp", DataCategory.TEMPORAL);  // temporary solution until JSR 310 has been implemented
+        dataCategory.put("day",       DataCategory.TEMPORAL);      // temporary solution until JSR 310 has been implemented
+        
+        dataCategory.put("uppercase", DataCategory.STRING);
+        dataCategory.put("lowercase", DataCategory.STRING);
+        dataCategory.put("ascii",     DataCategory.STRING);
+        dataCategory.put("unicode",   DataCategory.STRING);
+        dataCategory.put("enum",      DataCategory.ENUM);  // artificial entry for enum
+        dataCategory.put("object",    DataCategory.OBJECT);  // which is really an object reference instead of an elementary item...
+    }
+    
     // a lookup to determine the Java data type to use for a given grammar type.
     // (LANGUAGE SPECIFIC: JAVA)
     static protected Map<String,String> dataTypeJava = new HashMap<String, String>(32);
@@ -93,10 +126,11 @@ public class DataTypeExtension {
     
     // member variables
     private boolean currentlyVisited = false;
-    public ElementaryDataType elementaryDataType;
-    public ClassDefinition objectDataType;
+    public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
+    public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
+    public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
-    public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type)
+    public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference
     public boolean isUpperCaseOrLowerCaseSpecialType = false;  // true for uppercase or lowercase (has extra built-in validation function)
     // parameters which cascade down from global defaults to package defaults to class defaults (grammar: FieldDefaultsDefinition)
     public boolean effectiveSigned = true;
@@ -109,6 +143,7 @@ public class DataTypeExtension {
     public XRequired defaultRequired;
     public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
     public boolean allTokensAscii = true;
+    public DataCategory category = DataCategory.MISC;
     
     static public void clear() {
         map.clear();
@@ -210,8 +245,18 @@ public class DataTypeExtension {
         // does not exist, create a new one!
         r = new DataTypeExtension();
         r.elementaryDataType = key.getElementaryDataType();
-        r.objectDataType = key.getObjectDataType();
         r.typedef = key.getReferenceDataType();
+        r.objectDataType = null;
+        r.genericsRef = key.getObjectDataType();
+        if (key.getObjectDataType() != null) {
+        	r.category = DataCategory.OBJECT;
+        	// construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
+        	r.javaType = XUtil.genericRef2String(key.getObjectDataType());
+        	if (key.getObjectDataType().getClassRef() != null)
+        		r.objectDataType = key.getObjectDataType().getClassRef();
+        	// TODO: how to fill objectDataType when we have generics...
+        }
+        
         if (r.elementaryDataType != null) {
             // immediate data: perform postprocessing. transfer defaults of embedding package to this instance
             ElementaryDataType e = r.elementaryDataType;
@@ -230,6 +275,7 @@ public class DataTypeExtension {
                     e.setName("char");        // fix java naming inconsistency
             }
             r.javaType = dataTypeJava.get(e.getName().toLowerCase());
+            r.category = dataCategory.get(e.getName().toLowerCase());
             // merge the defaults specifications
             mergeFieldSpecsWithDefaults(r, key);
             
@@ -274,6 +320,7 @@ public class DataTypeExtension {
             DataTypeExtension resolvedReference = get(r.typedef.getDatatype());  // descend via DFS
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
+            r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
             r.effectiveSigned = resolvedReference.effectiveSigned;
@@ -285,6 +332,7 @@ public class DataTypeExtension {
             r.defaultRequired = resolvedReference.defaultRequired;
             r.isUpperCaseOrLowerCaseSpecialType = resolvedReference.isUpperCaseOrLowerCaseSpecialType;
             r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
+            r.category = resolvedReference.category;
             r.currentlyVisited = false;
         } else {
             // just simply store it (elementary data type or object reference)

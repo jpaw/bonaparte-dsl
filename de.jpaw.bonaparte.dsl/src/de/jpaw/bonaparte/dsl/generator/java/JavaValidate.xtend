@@ -20,6 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
@@ -91,13 +92,13 @@ class JavaValidate {
                         throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
                                                     "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
-                «IF resolveObj(i.datatype) != null || (resolveElem(i.datatype) != null && resolveElem(i.datatype).name.toLowerCase.equals("object"))»
+                «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
                     «loopStart(i)»
                     «makeValidate(i, indexedName(i))»
                 «ENDIF»
             «ENDFOR»
             «FOR i:d.fields»
-                «IF resolveElem(i.datatype) != null && DataTypeExtension::get(i.datatype).javaType.equals("String")»
+                «IF DataTypeExtension::get(i.datatype).category == DataCategory::STRING»
                     «loopStart(i)»
                     «makeLengthCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                 «ENDIF»

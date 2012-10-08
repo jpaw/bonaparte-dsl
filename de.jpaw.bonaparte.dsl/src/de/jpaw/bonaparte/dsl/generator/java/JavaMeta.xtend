@@ -17,12 +17,12 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.JavaPackages
 
 class JavaMeta {
     
@@ -37,8 +37,8 @@ class JavaMeta {
     
     def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
-        var myPackage = d.eContainer as PackageDefinition
-        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.extendsClass != null 
+        var myPackage = JavaPackages::getPackage(d)
+        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
         return '''
             // property map
             private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<>();
@@ -49,7 +49,7 @@ class JavaMeta {
                     map.putIfAbsent("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
                 «ENDFOR»
                 «IF propertiesInherited»
-                    «d.extendsClass.name».class$fillProperties(map);
+                    «d.getParent.name».class$fillProperties(map);
                 «ENDIF»
             }
             static {
@@ -68,7 +68,7 @@ class JavaMeta {
                     if (result != null)
                         return result;
                     else
-                        return «d.extendsClass.name».class$Property(id);
+                        return «d.getParent.name».class$Property(id);
                 «ELSE»
                     return property$Map.get(id);
                 «ENDIF»
@@ -80,7 +80,7 @@ class JavaMeta {
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
-            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.extendsClass)»"«ELSE»null«ENDIF»; 
+            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»; 
             private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»; 
 
             // extended meta data (for the enhanced interface)

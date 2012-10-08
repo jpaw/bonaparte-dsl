@@ -9,8 +9,9 @@ import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaDeexternalize {
-    private static String interfaceDowncast = "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
+    private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
+/* unused now. Solved through different parser.
     def private static makeRead(ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
@@ -55,10 +56,11 @@ class JavaDeexternalize {
         «IF resolveElem(i.datatype) != null»
             «makeRead(resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
         «ELSE»
-            («possiblyFQClassName(d, resolveObj(i.datatype))»)ExternalizableParser.readObject(_in, «interfaceDowncast»«possiblyFQClassName(d, resolveObj(i.datatype))».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»)«end»
+            («DataTypeExtension::get(i.datatype).javaType»)ExternalizableParser.readObject(_in, «interfaceDowncast»«DataTypeExtension::get(i.datatype).javaType».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»)«end»
         «ENDIF»
     '''
-    
+   */
+     
     def public static writeDeexternalizeOld(ClassDefinition d) '''
         @Override
         public void readExternal(ObjectInput _in) throws IOException,

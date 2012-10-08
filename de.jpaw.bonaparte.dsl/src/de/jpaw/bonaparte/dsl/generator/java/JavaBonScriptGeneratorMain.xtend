@@ -154,16 +154,19 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             var ref = DataTypeExtension::get(i.datatype)
             // referenced objects
             if (ref.objectDataType != null)
-                imports.addImport(getPackageName(ref.objectDataType), ref.objectDataType.name)
+                imports.addImport(ref.objectDataType)
+            // any referenced generics types 
+            if (ref.genericsRef != null)
+                imports.addImport(ref.genericsRef)
             // referenced enums
             if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                imports.addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
+                imports.addImport(ref.elementaryDataType.enumType)
         }
         // return parameters of specific methods 
         //recurseMethods(d, true)
         // finally, possibly the parent object
         if (d.extendsClass != null)
-            imports.addImport(getPackageName(d.extendsClass), d.extendsClass.name)
+            imports.addImport(d.getParent)
 
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }
@@ -172,8 +175,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getXmlAccess(ClassDefinition d) {
         var XXmlAccess xmlAccess = if (d.xmlAccess != null)
                                        d.xmlAccess.x
-                                   else if ((d.eContainer as PackageDefinition).xmlAccess != null)
-                                       (d.eContainer as PackageDefinition).xmlAccess.x
+                                   else if (getPackage(d).xmlAccess != null)
+                                       (getPackage(d)).xmlAccess.x
                                    else
                                        null
         if (xmlAccess == XXmlAccess::NOXML) xmlAccess = null
@@ -182,8 +185,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getExternalizable(ClassDefinition d) {
         var XExternalizable isExternalizable = if (d.isExternalizable != null)
                                                    d.isExternalizable.x
-                                               else if ((d.eContainer as PackageDefinition).isExternalizable != null)
-                                                   (d.eContainer as PackageDefinition).isExternalizable.x
+                                               else if (getPackage(d).isExternalizable != null)
+                                                   getPackage(d).isExternalizable.x
                                                else
                                                    XExternalizable::EXT  // default to creation of externalization methods
         if (isExternalizable == XExternalizable::NOEXT) isExternalizable = null
@@ -192,8 +195,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getBeanValidation(ClassDefinition d) {
         var XBeanValidation doBeanValidation = if (d.doBeanValidation != null)
                                                    d.doBeanValidation.x
-                                               else if ((d.eContainer as PackageDefinition).doBeanValidation != null)
-                                                   (d.eContainer as PackageDefinition).doBeanValidation.x
+                                               else if (getPackage(d).doBeanValidation != null)
+                                                   getPackage(d).doBeanValidation.x
                                                else
                                                    XBeanValidation::NOBEAN_VAL  // default to creation of externalization methods
         if (doBeanValidation == XBeanValidation::NOBEAN_VAL) doBeanValidation = null
@@ -208,7 +211,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val String myPackageName = getPackageName(d)
         val ImportCollector imports = new ImportCollector(myPackageName)
         collectRequiredImports(imports, d)
-        imports.addImport(myPackageName, d.name)  // add myself as well
+        imports.addImport(d)  // add myself as well
+        if (d.genericParameters != null)
+            for (gp : d.genericParameters)
+                if (gp.^extends != null)
+                    imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getXmlAccess(d)
         val doExt = getExternalizable(d)
@@ -277,7 +284,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«IF d.extendsClass != null» extends «possiblyFQClassName(d, d.extendsClass)»«ENDIF»
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.extendsClass != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         

@@ -24,12 +24,12 @@ class JavaRtti {
     def public static getRtti(ClassDefinition d) {
         var rtti = d.rtti
         if (d.addRtti) {
-            var dd = d.extendsClass
+            var dd = d.getParent
             while (dd != null) {
                 if (dd.rtti != 0 && !dd.addRtti)
                     return rtti + dd.rtti
                 // recurse
-                dd = dd.extendsClass
+                dd = dd.getParent
             }
         }
         return rtti;

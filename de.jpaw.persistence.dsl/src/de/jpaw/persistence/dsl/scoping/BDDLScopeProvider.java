@@ -58,7 +58,7 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
             String qualifiedImportNamespace = bonScriptPd.getName() + "." + cl.getName() + ".*";
             //System.out.println("DEBUG:   adding " + qualifiedImportNamespace + " to imports...");
             preliminaryResult.add(createImportedNamespaceResolver(qualifiedImportNamespace, ignoreCase));
-            cl = cl.getExtendsClass();
+            cl = cl.getExtendsClass().getClassRef();
         }
     }
     

@@ -57,7 +57,7 @@ enum XRequired:
 enum XTrimming:
     TRIM='trim' | NOTRIM='notrim';
 enum XTruncating:
-    TRUNCATE='truncate' | NOTRUNCATE='failonoversize';
+    TRUNCATE='truncate' | NOTRUNCATE='failOnOversize';
 enum XSpecialCharsSetting:
     ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
 enum XUsePrimitives:
@@ -124,17 +124,30 @@ PropertyUse:
     key = [PropertyDefinition] ('=' value=STRING)?
 ;
 
+GenericsDef:
+    name = ID ('extends' extends = ClassReference)?
+;
+
+ClassReference:
+    (plainObject ?= 'Object') |
+    ('!' genericsParameterRef = [GenericsDef|ID]) |
+    (classRef = [ClassDefinition|QualifiedId]
+        ('<' classRefGenericParms += ClassReference (',' classRefGenericParms += ClassReference)* '>')?
+    )
+;
+
 // a class corresponds to a Java class
 ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
     (isDeprecated?='@Deprecated')?
-    (abstract?='abstract' | final?='final')? 'class' name = ID
+    (abstract?='abstract' | final?='final')? 'class'
+     name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     (isExternalizable = Externalizable)?      // decide if implements Externalizable
     (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
     ('RTTI' (addRtti ?= '+')? rtti = INT)?    // numeric runtime type information
     ('revision' revision = STRING)?
-    ('extends' extendsClass=[ClassDefinition|QualifiedId])?
+    ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('implements' implementsInterface=QualifiedId /*JvmParameterizedTypeReference*/)?
     '{'
         (defaults = FieldDefaultsDefinition)?
@@ -187,7 +200,7 @@ FieldDefinition:
 
 DataType:
     (elementaryDataType=ElementaryDataType
-        | ('(' objectDataType=[ClassDefinition|QualifiedId] (orSuperClass?='...')? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
+        | ('(' objectDataType=ClassReference (orSuperClass?='...')? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
         | referenceDataType=[TypeDefinition|QualifiedId]
     )  
 ;

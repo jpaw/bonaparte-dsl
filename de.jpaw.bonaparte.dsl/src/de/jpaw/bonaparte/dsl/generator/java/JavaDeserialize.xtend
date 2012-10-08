@@ -23,9 +23,11 @@ import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 
 class JavaDeserialize {
-    private static String interfaceDowncast = "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
+    private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
     def private static makeRead(ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
@@ -67,11 +69,26 @@ class JavaDeserialize {
         }
     }
 
+    def private static getKnownSupertype(ClassReference d) {
+        if (d.plainObject)
+            return "BonaPortable"
+        if (d.classRef != null)
+            return d.classRef.name
+        // this must be a generics ref. Return the static type for now, but later extend to the runtime type!
+        if (d.genericsParameterRef != null) {
+            if (d.genericsParameterRef.^extends != null)
+                return getKnownSupertype(d.genericsParameterRef.^extends)
+            else
+                return "BonaPortable"  // unspecified type
+        }
+        return "FIXME! no supertype resolved!"
+    }
+    
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
         «IF resolveElem(i.datatype) != null»
             «makeRead(resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
         «ELSE»
-            («possiblyFQClassName(d, resolveObj(i.datatype))»)p.readObject(«interfaceDowncast»«possiblyFQClassName(d, resolveObj(i.datatype))».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»)«end»
+            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(«interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(i.datatype.orSuperClass)»)«end»
         «ENDIF»
     '''
             
@@ -98,7 +115,7 @@ class JavaDeserialize {
                                 «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
                                     «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»][];  // Java weirdness: dimension swapped to first pair of brackets!
                                 «ELSE»
-                                    «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else getPackageName(resolveObj(i.datatype)) + "." + resolveObj(i.datatype).name»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»];
+                                    «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else DataTypeExtension::get(i.datatype).javaType»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»];
                                 «ENDIF»
                                 for (int _i = 0; _i < arrayLength; ++_i)
                                     «i.name»[_i] = «makeRead2(d, i, ";")»

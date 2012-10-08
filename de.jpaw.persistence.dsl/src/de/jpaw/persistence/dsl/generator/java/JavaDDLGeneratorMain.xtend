@@ -29,6 +29,7 @@ import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import java.util.List
@@ -112,7 +113,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ""
     }
     def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
-        «cl.extendsClass?.recurseColumns(pkColumn)»
+        «cl.extendsClass?.classRef?.recurseColumns(pkColumn)»
         // table columns of java class «cl.name»
         «FOR c : cl.fields»
             «IF c == pkColumn»
@@ -208,7 +209,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     def private writeGettersSetters(ClassDefinition d) '''
-        «d.extendsClass?.writeGettersSetters»
+        «d.extendsClass?.classRef?.writeGettersSetters»
         // auto-generated getters and setters of «d.name»
         «FOR i:d.fields»
             public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
@@ -238,20 +239,22 @@ class JavaDDLGeneratorMain implements IGenerator {
             var ref = DataTypeExtension::get(i.datatype)
             // referenced objects
             if (ref.objectDataType != null)
-                imports.addImport(getPackageName(ref.objectDataType), ref.objectDataType.name)
+                imports.addImport(ref.objectDataType)
+            if (ref.genericsRef != null)
+                imports.addImport(ref.genericsRef)
             // referenced enums
-            if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                imports.addImport(getPackageName(ref.elementaryDataType.enumType), ref.elementaryDataType.enumType.name)
+            if (ref.category == DataCategory::ENUM)
+                imports.addImport(ref.elementaryDataType.enumType)
         }
         // return parameters of specific methods 
         //recurseMethods(d, true)
         // finally, possibly the parent object
-        if (d.extendsClass != null)
-            imports.addImport(getPackageName(d.extendsClass), d.extendsClass.name)
+        if (d.extendsClass != null && d.extendsClass.classRef != null)
+            imports.addImport(d.extendsClass.classRef)
     }
     
     def private recurseDataGetter(ClassDefinition d) '''
-        «d.extendsClass?.recurseDataGetter»
+        «d.extendsClass?.classRef?.recurseDataGetter»
         // auto-generated data getter for «d.name»
         «FOR i:d.fields»
             _r.set«Util::capInitial(i.name)»(get«Util::capInitial(i.name)»());
@@ -259,7 +262,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     '''
     
     def private recurseDataSetter(ClassDefinition d) '''
-        «d.extendsClass?.recurseDataSetter»
+        «d.extendsClass?.classRef?.recurseDataSetter»
         // auto-generated data setter for «d.name»
         «FOR i:d.fields»
             set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
@@ -371,7 +374,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     '''
 
     def private writeStaticFindByMethods(ClassDefinition d, EntityDefinition e) '''
-        «d.extendsClass?.writeStaticFindByMethods(e)»
+        «d.extendsClass?.classRef?.writeStaticFindByMethods(e)»
         «FOR i:d.fields»
             «IF hasProperty(i.properties, "findBy")»
                 public static «e.name» findBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
@@ -406,9 +409,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         haveActive = false
             
         imports.addImport(myPackageName, e.name)  // add myself as well
-        imports.addImport(getPackageName(e.pojoType), e.pojoType.name);
-        if (e.tableCategory.trackingColumns != null)
-            imports.addImport(getPackageName(e.tableCategory.trackingColumns), e.tableCategory.trackingColumns.name);
+        imports.addImport(e.pojoType);
+        imports.addImport(e.tableCategory.trackingColumns);
             
         var FieldDefinition pkColumn = null
         var String pkType = "Serializable"

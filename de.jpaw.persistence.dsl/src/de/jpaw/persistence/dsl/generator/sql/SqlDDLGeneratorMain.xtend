@@ -64,7 +64,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     }
 
     def public recurseColumns(ClassDefinition cl, DatabaseFlavour databaseFlavour) '''
-        «cl.extendsClass?.recurseColumns(databaseFlavour)»
+        «cl.extendsClass?.classRef?.recurseColumns(databaseFlavour)»
         -- table columns of java class «cl.name»
         «FOR c : cl.fields»
             «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»

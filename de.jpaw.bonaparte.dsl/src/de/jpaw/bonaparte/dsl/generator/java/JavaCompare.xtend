@@ -20,14 +20,15 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaCompare {
     
     def private static writeCompareSub(FieldDefinition i, String index) {
-        switch (getJavaDataType(i.datatype).toLowerCase) {
+        switch (getJavaDataType(i.datatype)) {
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "bytearray":           '''«index».contentEquals(that.«index»)'''
-        case "gregoriancalendar":   '''«index».compareTo(that.«index») == 0'''
+        case "ByteArray":           '''«index».contentEquals(that.«index»)'''
+        case "GregorianCalendar":   '''«index».compareTo(that.«index») == 0'''
         default:                    '''«index».equals(that.«index»)'''
         }
     } 
@@ -35,7 +36,7 @@ class JavaCompare {
     
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
     def private static writeCompareStuff(FieldDefinition i, String index, String end) ''' 
-        «IF resolveObj(i.datatype) != null || (resolveElem(i.datatype) != null && resolveElem(i.datatype).name.toLowerCase.equals("object"))»
+        «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
             ((«index» == null && that.«index» == null) || «index».hasSameContentsAs(that.«index»))«end»
         «ELSE»
             «IF DataTypeExtension::get(i.datatype).isPrimitive»
@@ -117,7 +118,7 @@ class JavaCompare {
         @Override
         «ENDIF»
         protected boolean equalsSub(BonaPortable _that) {
-            «d.name» that = («d.name»)_that;
+            «d.name»«genericDef2StringAsParams(d.genericParameters)» that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)_that;
             «IF d.extendsClass != null»
                 return super.equalsSub(_that)
             «ELSE»
@@ -134,7 +135,7 @@ class JavaCompare {
         }
         «FOR i:d.fields»
             «IF i.isArray != null»
-                private boolean arrayCompareSub$«i.name»(«d.name» that) {
+                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».length != that.«i.name».length)
                         return false;
@@ -145,7 +146,7 @@ class JavaCompare {
                 }
             «ENDIF»
             «IF i.isList != null»
-                private boolean arrayCompareSub$«i.name»(«d.name» that) {
+                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
                         return false;
@@ -159,14 +160,3 @@ class JavaCompare {
         «ENDFOR»
     '''
 }
-/*
- *                         Iterator<«JavaDataTypeNoName(i, true)» _l = that.iterator();
-                        for («JavaDataTypeNoName(i, true)» _i : «i.name») {
-                            if (!_l.hasNext())
-                                return false;
-                            «JavaDataTypeNoName(i, true)» _j = _l.next();
-                            if (!(«writeCompareStuff(i, "e", "))")»
-                                return false;
-                        return true;
- 
- */

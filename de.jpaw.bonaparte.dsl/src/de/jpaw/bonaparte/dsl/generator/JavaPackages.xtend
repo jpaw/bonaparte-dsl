@@ -19,6 +19,7 @@ package de.jpaw.bonaparte.dsl.generator
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import org.eclipse.emf.ecore.EObject
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
@@ -28,16 +29,27 @@ class JavaPackages {
         (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name  
     }
     
-    // create the package name for a class definition object
-    def public static getPackageName(ClassDefinition d) {
-        getPackageName(d.eContainer as PackageDefinition)
-    }
-    def public static getPackageName(EnumDefinition d) {
-        getPackageName(d.eContainer as PackageDefinition)
+    def public static getPackage(EObject ee) {
+        var e = ee
+        while (e != null) {
+            if (e instanceof PackageDefinition)
+                return e as PackageDefinition
+            e = e.eContainer
+        }
+        return null
     }
     
-    // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class 
-    def public static possiblyFQClassName(ClassDefinition current, ClassDefinition target) {
+    // create the package name for a class definition object
+    def public static getPackageName(ClassDefinition d) {
+        getPackageName(getPackage(d))
+    }
+    def public static getPackageName(EnumDefinition d) {
+        getPackageName(getPackage(d))
+    }
+    
+    // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class
+    // TODO: do this in dependence of the import list 
+    def public static xxxxxpossiblyFQClassName(ClassDefinition current, ClassDefinition target) {
         if (getPackageName(current) == getPackageName(target))
             target.name
         else

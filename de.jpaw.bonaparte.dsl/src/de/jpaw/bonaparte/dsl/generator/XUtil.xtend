@@ -16,14 +16,52 @@
   
 package de.jpaw.bonaparte.dsl.generator
 
+import java.util.List
+
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
 import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 
 class XUtil {
+    def public static ClassDefinition getParent(ClassDefinition d) {
+        if (d == null || d.getExtendsClass == null)
+            return null;
+        d.getExtendsClass.getClassRef
+    }
+    
+    def public static genericRef2String(ClassReference r) {
+        if (r.plainObject)
+            return "BonaPortable"
+        if (r.genericsParameterRef != null)
+            return r.genericsParameterRef.name
+        if (r.classRef != null)
+            return r.classRef.name + genericArgs2String(r.classRefGenericParms)
+        return "*** FIXME: class reference with all null fields ***"        
+    }
+    
+    def public static genericArgs2String(List<ClassReference> args) {
+        if (args == null)
+            return ""
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«genericRef2String(a)»«ENDFOR»'''        
+    }
+    
+    def public static genericDef2String(List<GenericsDef> args) {
+        if (args == null)
+            return ""
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''        
+    }
+    
+    def public static genericDef2StringAsParams(List<GenericsDef> args) {
+        if (args == null)
+            return ""
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«ENDFOR»'''        
+    }
+    
     // get the elementary data object after resolving typedefs
     // uses caching to keep overall running time at O(1) per call
     def public static ElementaryDataType resolveElem(DataType d) {
@@ -37,15 +75,15 @@ class XUtil {
     }
     // Utility methods
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
-        (d.eContainer as PackageDefinition).name + "." + d.name  
+        JavaPackages::getPackage(d).name + "." + d.name  
     }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
     def public static getSerialUID(ClassDefinition d) {
         var long myUID = getPartiallyQualifiedClassName(d).hashCode()
         if (d.revision != null)
             myUID = 97L * myUID + d.revision.hashCode()
-        if (d.extendsClass != null)
-            myUID = 131L * myUID + getSerialUID(d.extendsClass)   // recurse parent classes
+        if (d.extendsClass != null && d.extendsClass.classRef != null)
+            myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
         return myUID
     }
     
@@ -82,9 +120,7 @@ class XUtil {
         if (resolveElem(i.datatype) != null)
             dataClass = getJavaDataType(i.datatype)
         else {
-            if (resolveObj(i.datatype) == null)
-                throw new RuntimeException("INTERNAL ERROR object type not set for field of type object for " + i.name);
-            dataClass = resolveObj(i.datatype).name
+            dataClass = DataTypeExtension::get(i.datatype).javaType
         }
         if (skipIndex)
             dataClass

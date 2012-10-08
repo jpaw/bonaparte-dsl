@@ -16,14 +16,20 @@
 
 package de.jpaw.bonaparte.dsl.validation;
 
+import java.util.List;
+
 import org.eclipse.xtext.validation.Check;
 
 import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
+import de.jpaw.bonaparte.dsl.generator.XUtil;
+import de.jpaw.bonaparte.dsl.generator.JavaPackages;
 
 public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -123,24 +129,30 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                         BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
         }
         if (cd.getExtendsClass() != null) {
+        	// the extension must reference a specific class (plus optional generics parameters), but not a generic type itself 
+            if (cd.getExtendsClass().getClassRef() == null) {
+                error("Parent class must be an explicit class, not a generic type",
+                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+                return;
+            }
             // the extended class may not be final
-            if (cd.getExtendsClass().isFinal())
+            if (cd.getExtendsClass().getClassRef().isFinal())
                 error("Classes max not extend a final class",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             // the extended class must be in the same bundle or a superbundle
-            PackageDefinition myPackage = (PackageDefinition)cd.eContainer();
-            PackageDefinition extendedFromPackage = (PackageDefinition)cd.getExtendsClass().eContainer();
+            PackageDefinition myPackage = JavaPackages.getPackage(cd);
+            PackageDefinition extendedFromPackage = JavaPackages.getPackage(cd.getExtendsClass().getClassRef());
             if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle()))
                 error("Parent classes must be in the same or a superbundle of the current package",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             // check for cyclic dependencies
             int depth = 0;
             boolean haveAnchestorWithAbsoluteRtti = false;
-            ClassDefinition anchestor = cd.getExtendsClass();
+            ClassDefinition anchestor = cd.getExtendsClass().getClassRef();
             while (++depth < 100) {  // after 100 iterations we assume cyclicity
             	if (anchestor.getRtti() > 0 && !anchestor.isAddRtti())
             		haveAnchestorWithAbsoluteRtti = true;
-            	anchestor = anchestor.getExtendsClass();
+            	anchestor = XUtil.getParent(anchestor);
             	if (anchestor == null)
             		break;
             }
@@ -177,7 +189,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             error("field name is not unique within this class",
                     BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
         // check parent classes as well
-        for (ClassDefinition parentClass = cl.getExtendsClass(); parentClass != null; parentClass = parentClass.getExtendsClass())
+        for (ClassDefinition parentClass = XUtil.getParent(cl); parentClass != null; parentClass = XUtil.getParent(parentClass))
             if (countSameName(parentClass, s) != 0)
                 error("field occurs in extended class "
                         + ((PackageDefinition)parentClass.eContainer()).getName() + "."
@@ -199,5 +211,40 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                         BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
             }
         }
+    }
+    
+    @Check
+    public void checkGenericsParameterList(ClassReference ref) {
+    	if (ref.getClassRef() != null) {
+    		// verify that the parameters given match the definition of the class referenced
+    		List <GenericsDef> requiredParameters = ref.getClassRef().getGenericParameters();
+    		List <ClassReference> providedParameters = ref.getClassRefGenericParms();
+    		if (requiredParameters == null && providedParameters == null)
+    			return;  // OK, both have no parameters
+    		if (requiredParameters == null) {
+    			// not ok, one is empty, the other not!
+    			error("list of generic type attributes does not match definition of referenced class, which is a non-generic type",
+    					BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF_GENERIC_PARMS);
+    			return;
+    		}
+    		if (providedParameters == null) {
+    			// not ok, one is empty, the other not!
+    			error("must provide a list of generic type attributes",
+    					BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF);
+    			return;
+    		}
+    		if (requiredParameters.size() != providedParameters.size()) {
+    			// not ok, one is empty, the other not!
+    			error("list of generic type attributes differs in length from definition in referenced class",
+    					BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF_GENERIC_PARMS);
+    			return;
+    		}
+    		for (int i = 0; i < requiredParameters.size(); ++i) {
+    			if (requiredParameters.get(i).getExtends() != null) {
+    				// provided parameter must be a subclass of the requested one
+    				; //if (!isSuperClass(requiredParameters.get(i).getExtends(), providedParameters.get(i)))
+    			}
+    		}
+    	}
     }
 }
