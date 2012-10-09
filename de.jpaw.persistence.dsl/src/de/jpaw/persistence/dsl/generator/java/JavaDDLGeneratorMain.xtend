@@ -567,7 +567,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
                 
             «ENDIF»
-            «e.tableCategory.trackingColumns?.recurseColumns(null, false)»
+            «e.tableCategory.trackingColumns?.recurseColumns(pkColumns, compositeKey)»
             «e.pojoType.recurseColumns(pkColumns, compositeKey)»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
