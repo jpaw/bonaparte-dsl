@@ -21,6 +21,7 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
@@ -29,7 +30,6 @@ import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import java.util.List
@@ -59,7 +59,13 @@ class JavaDDLGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut)
+            var boolean compositeKey = false;
+            if (e.pk != null && e.pk.columnName.size > 1) {
+                // write a separate class for the composite key
+                fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
+                compositeKey = true
+            }
+            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
         }
     }
     
@@ -79,12 +85,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             switch (ref.javaType) {
-            case "GregorianCalendar":  writeTemporal(c, "TIMESTAMP")
-            case "LocalDateTime":      writeTemporal(c, "TIMESTAMP")
-            case "DateTime":           writeTemporal(c, "DATE")
-            case JAVA_OBJECT_TYPE:       '''
-                @Lob
-                byte [] «c.name»;
+            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP")
+            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP")
+            case "DateTime":            writeTemporal(c, "DATE")
+            case "ByteArray":           '''byte [] «c.name»;'''
+            case JAVA_OBJECT_TYPE:      '''
+                    @Lob
+                    byte [] «c.name»;
                 '''
             default:                   '''        
                 «JavaDataTypeNoName(c, false)» «c.name»;
@@ -94,7 +101,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 Integer «c.name»;
             '''
         default: '''
-                «IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»
+                «IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»;
             '''
         }
     }
@@ -112,91 +119,123 @@ class JavaDDLGeneratorMain implements IGenerator {
         haveActive = true
         return ""
     }
-    def public recurseColumns(ClassDefinition cl, FieldDefinition pkColumn) '''
-        «cl.extendsClass?.classRef?.recurseColumns(pkColumn)»
-        // table columns of java class «cl.name»
-        «FOR c : cl.fields»
-            «IF c == pkColumn»
-                @Id
-            «ENDIF»
+    
+    // write the definition of a single column
+    def private singleColumn(FieldDefinition c) '''
             @Column(name="«columnName(c)»"«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
             «optionalAnnotation(c.properties, "version", "@Version")»
             «optionalAnnotation(c.properties, "lob",     "@Lob")»
             «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
             «writeColumnType(c)»
-            «IF hasProperty(c.properties, "version")»
-                «IF JavaDataTypeNoName(c, false).equals("int") || JavaDataTypeNoName(c, false).equals("Integer")»
-                    «setIntVersion(c)»
-                «ENDIF»
-                // specific getter/setters for the version field
-                public void set$Version(«JavaDataTypeNoName(c, false)» _v) {
-                    set«Util::capInitial(c.name)»(_v);
-                }
-                public «JavaDataTypeNoName(c, false)» get$Version() {
-                    return get«Util::capInitial(c.name)»();
-                }
+    '''
+    
+    def private boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
+        for (i : pkColumns)
+            if (i == c)
+                return true
+        return false    
+    }
+    
+    def public recurseColumns(ClassDefinition cl, List<FieldDefinition> pkColumns, boolean excludePkColumns) '''
+        «cl.extendsClass?.classRef?.recurseColumns(pkColumns, excludePkColumns)»
+        // table columns of java class «cl.name»
+        «FOR c : cl.fields»
+            «IF pkColumns != null && pkColumns.size == 1 && c == pkColumns.get(0)»
+                @Id
             «ENDIF»
-            «IF hasProperty(c.properties, "active")»
-                «setHaveActive»
-                // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
-                public void set$Active(boolean _a) {
-                    set«Util::capInitial(c.name)»(_a);
-                }
-                public boolean get$Active() {
-                    return get«Util::capInitial(c.name)»();
-                }
+            «IF !excludePkColumns || !inList(pkColumns, c)»
+                «singleColumn(c)»
+                «writeGetter(c)»
+                «writeSetter(c)»
+                «IF hasProperty(c.properties, "version")»
+                    «IF JavaDataTypeNoName(c, false).equals("int") || JavaDataTypeNoName(c, false).equals("Integer")»
+                        «setIntVersion(c)»
+                    «ENDIF»
+                    // specific getter/setters for the version field
+                    public void set$Version(«JavaDataTypeNoName(c, false)» _v) {
+                        set«Util::capInitial(c.name)»(_v);
+                    }
+                    public «JavaDataTypeNoName(c, false)» get$Version() {
+                        return get«Util::capInitial(c.name)»();
+                    }
+                «ENDIF»
+                «IF hasProperty(c.properties, "active")»
+                    «setHaveActive»
+                    // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
+                    public void set$Active(boolean _a) {
+                        set«Util::capInitial(c.name)»(_a);
+                    }
+                    public boolean get$Active() {
+                        return get«Util::capInitial(c.name)»();
+                    }
+                «ENDIF»
             «ENDIF»
         «ENDFOR»
     '''
 
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
-        if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
-            // write a Parser
-            return '''
-                if («i.name» == null)
-                    return null;
-                ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
-                return _bap.readObject(BonaPortable.class, true, true);'''
-        } else if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
-            if (ref.javaType == null)
-                return "return " + i.name + ";"
-            if (ref.javaType.equals("LocalDate"))
-                return "return LocalDate.fromCalendarFields(" + i.name + ");"
-            else if (ref.javaType.equals("LocalDateTime"))
-                return "return LocalDateTime.fromCalendarFields(" + i.name + ");"
-            else
-                return "return " + i.name + ";"
-        } else if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii) {
-            return "return " + ref.elementaryDataType.enumType.name + ".valueOf(" + i.name + ");" 
-        } else {
-            return "return " + ref.elementaryDataType.enumType.name + ".factory(" + i.name + ");"
-        }
+        return '''
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
+                    if («i.name» == null)
+                        return null;
+                    ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
+                    return _bap.readObject(BonaPortable.class, true, true);
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
+                    «IF ref.category == DataCategory::OBJECT»
+                        return «i.name»;
+                    «ELSEIF ref.javaType.equals("LocalDate")»
+                        return LocalDate.fromCalendarFields(«i.name»);
+                    «ELSEIF ref.javaType.equals("LocalDateTime")»
+                        return LocalDateTime.fromCalendarFields(«i.name»);
+                    «ELSEIF ref.javaType.equals("byte []")»
+                        return ByteUtil.deepCopy(«i.name»);       // deep copy
+                    «ELSEIF ref.javaType.equals("ByteArray")»
+                        return new ByteArray(«i.name», 0, -1);
+                    «ELSE»
+                        return «i.name»;
+                    «ENDIF»
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
+                    return «ref.elementaryDataType.enumType.name».valueOf(«i.name»);
+                «ELSE»
+                    return «ref.elementaryDataType.enumType.name».factory(«i.name»);
+                «ENDIF»
+            }
+        '''
     }
+    
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
-        if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
-            // write a Composer
-            return '''
-                if («i.name» == null) {
-                    this.«i.name» = null;
-                } else {
-                    ByteArrayComposer _bac = new ByteArrayComposer();
-                    _bac.addField(«i.name»);
-                    this.«i.name» = _bac.getBytes();
-                }'''
-        } else if (ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM) {
-            if (ref.javaType == null)
-                return '''this.«i.name» = «i.name»;'''
-            if (ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime"))
-                return '''this.«i.name» = DayTime.toGregorianCalendar(«i.name»);'''
-            else
-                return '''this.«i.name» = «i.name»;'''
-        } else if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii) {
-            return '''this.«i.name» = «i.name».ordinal();''' 
-        } else {
-            return '''this.«i.name» = «i.name».getToken();'''
-        }
+        return '''
+            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
+                    if («i.name» == null) {
+                        this.«i.name» = null;
+                    } else {
+                        ByteArrayComposer _bac = new ByteArrayComposer();
+                        _bac.addField(«i.name»);
+                        this.«i.name» = _bac.getBytes();
+                    }
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
+                    «IF ref.category == DataCategory::OBJECT»
+                        this.«i.name» = «i.name»;
+                    «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
+                        this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
+                    «ELSEIF ref.javaType.equals("byte []")»
+                        this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
+                    «ELSEIF ref.javaType.equals("ByteArray")»
+                        this.«i.name» = «i.name».getBytes();  // deep copy of contents
+                    «ELSE»
+                        this.«i.name» = «i.name»;
+                    «ENDIF»
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
+                     this.«i.name» = «i.name».ordinal();
+                «ELSE»
+                    this.«i.name» = «i.name».getToken();
+                «ENDIF»
+            }
+        '''
     }
     
     def private writeException(DataTypeExtension ref) {
@@ -208,18 +247,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             return ""
     }
     
-    def private writeGettersSetters(ClassDefinition d) '''
-        «d.extendsClass?.classRef?.writeGettersSetters»
-        // auto-generated getters and setters of «d.name»
-        «FOR i:d.fields»
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
-                «writeGetter(i)»
-            }
-            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
-                «writeSetter(i)»
-            }
-        «ENDFOR»
-    '''
        
     def private scaledExpiry(int number, String unit) {
         if (unit.startsWith("minute"))
@@ -334,7 +361,11 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF pkType.equals("Serializable")»
                 return null;  // FIXME! not yet implemented!
             «ELSE»
-                return «e.pk.columnName.get(0).name»;
+                «IF e.pk.columnName.size > 1»
+                    return key; // FIXME! do deep copy & data type conversions
+                «ELSE»
+                    return «e.pk.columnName.get(0).name»;
+                «ENDIF»
             «ENDIF»
         }
         @Override
@@ -342,7 +373,11 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF pkType.equals("Serializable")»
                 // FIXME! not yet implemented!!!
             «ELSE»
-                set«Util::capInitial(e.pk.columnName.get(0).name)»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
+                «IF e.pk.columnName.size > 1»
+                    key = _k;   // FIXME! do deep copy & data type conversions
+                «ELSE»
+                    set«Util::capInitial(e.pk.columnName.get(0).name)»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
+                «ENDIF»
             «ENDIF»
         }
         @Override
@@ -395,11 +430,21 @@ class JavaDDLGeneratorMain implements IGenerator {
                     }
                 }
             «ENDIF»
+            «IF hasProperty(i.properties, "listActiveBy")»
+                public static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+                    try {
+                        TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1 AND isActive = true", «e.name».class);
+                        return _query.setParameter(1, _key).getResultList();
+                    } catch (NoResultException e) {
+                        return null;
+                    }
+                }
+            «ENDIF»
         «ENDFOR»
     '''
     
                 
-    def private javaEntityOut(EntityDefinition e) {
+    def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         e.tableCategory.trackingColumns?.collectImports(imports)
@@ -412,13 +457,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         imports.addImport(e.pojoType);
         imports.addImport(e.tableCategory.trackingColumns);
             
-        var FieldDefinition pkColumn = null
+        var List<FieldDefinition> pkColumns = null
         var String pkType = "Serializable"
         var String trackingType = "BonaPortable"
-        if (e.pk != null && e.pk.columnName.size == 1) {
-            pkColumn = e.pk.columnName.get(0)
-            pkType = JavaDataTypeNoName(pkColumn, false)
+        if (e.pk != null) {
+            pkColumns = e.pk.columnName
+            if (pkColumns.size > 1)
+                pkType = e.name + "Key"
+            else
+                pkType = pkColumns.get(0).JavaDataTypeNoName(true) 
         }
+            
         if (e.tableCategory.trackingColumns != null) {
             trackingType = e.tableCategory.trackingColumns.name
         }
@@ -454,6 +503,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.TemporalType;
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
+        import javax.persistence.EmbeddedId;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -477,6 +527,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.EnumException;
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
+        import de.jpaw.util.ByteUtil;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
@@ -502,13 +553,80 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Deprecated
         «ENDIF»
         public «IF e.isFinal»final «ENDIF»class «e.name» «IF e.extendsClass != null»extends «e.extendsClass.name»«ENDIF» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
-            «e.tableCategory.trackingColumns?.recurseColumns(pkColumn)»
-            «e.pojoType.recurseColumns(pkColumn)»
-            «e.tableCategory.trackingColumns?.writeGettersSetters»
-            «e.pojoType.writeGettersSetters()»
+            «IF compositeKey»
+                @EmbeddedId
+                «e.name»Key key;
+                // forwarding getters and setters
+                «FOR i:e.pk.columnName»
+                    public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» _x) {
+                        key.set«Util::capInitial(i.name)»(_x);
+                    }
+                    public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
+                        return key.get«Util::capInitial(i.name)»();
+                    }
+                «ENDFOR»
+                
+            «ENDIF»
+            «e.tableCategory.trackingColumns?.recurseColumns(null, false)»
+            «e.pojoType.recurseColumns(pkColumns, compositeKey)»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
             «writeStaticFindByMethods(e.pojoType, e)»
+        }
+        '''
+    }
+    def private javaKeyOut(EntityDefinition e) {
+        val String myPackageName = getPackageName(e)
+        val ImportCollector imports = new ImportCollector(myPackageName)
+        e.pojoType.collectImports(imports)
+            
+        imports.addImport(myPackageName, e.name + "Key")  // add myself as well
+            
+        return '''
+        // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+        // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
+        package «getPackageName(e)»;
+        
+        import javax.persistence.EntityManager;
+        import javax.persistence.Embeddable;
+        import javax.persistence.Column;
+        import javax.persistence.EmbeddedId;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
+        import java.util.Arrays;
+        import java.util.List;
+        import java.util.ArrayList;
+        import java.util.regex.Pattern;
+        import java.util.regex.Matcher;
+        import java.util.GregorianCalendar;
+        import java.util.UUID;
+        import java.io.Serializable;
+        import java.math.BigDecimal;
+        
+        import de.jpaw.bonaparte.core.BonaPortable;
+        import de.jpaw.bonaparte.core.ByteArrayComposer;
+        import de.jpaw.bonaparte.core.ByteArrayParser;
+        import de.jpaw.bonaparte.core.MessageParserException;
+        import de.jpaw.util.ByteArray;
+        import de.jpaw.util.CharTestsASCII;
+        import de.jpaw.util.EnumException;
+        import de.jpaw.util.ApplicationException;
+        import de.jpaw.util.DayTime;
+        import de.jpaw.util.ByteUtil;
+        «IF Util::useJoda()»
+        import org.joda.time.LocalDate;
+        import org.joda.time.LocalDateTime;
+        «ENDIF»
+        «imports.createImports»
+        
+        @Embeddable
+        public class «e.name»Key implements Serializable {
+            «FOR col : e.pk.columnName»
+                «singleColumn(col)»
+                «writeGetter(col)»
+                «writeSetter(col)»
+            «ENDFOR»
         }
         '''
     }
