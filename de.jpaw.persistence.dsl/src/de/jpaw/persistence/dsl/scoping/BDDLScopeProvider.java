@@ -27,6 +27,7 @@ import org.eclipse.xtext.scoping.impl.ImportedNamespaceAwareLocalScopeProvider;
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
+import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.ListOfColumns;
 import de.jpaw.persistence.dsl.bDDL.SingleColumn;
@@ -58,7 +59,7 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
             String qualifiedImportNamespace = bonScriptPd.getName() + "." + cl.getName() + ".*";
             //System.out.println("DEBUG:   adding " + qualifiedImportNamespace + " to imports...");
             preliminaryResult.add(createImportedNamespaceResolver(qualifiedImportNamespace, ignoreCase));
-            cl = cl.getExtendsClass().getClassRef();
+            cl = XUtil.getParent(cl);
         }
     }
     

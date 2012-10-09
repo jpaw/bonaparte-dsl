@@ -21,7 +21,6 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
 import de.jpaw.bonaparte.dsl.bonScript.XRequired

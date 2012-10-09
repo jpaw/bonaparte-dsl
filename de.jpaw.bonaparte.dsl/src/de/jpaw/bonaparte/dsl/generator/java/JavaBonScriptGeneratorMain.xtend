@@ -164,9 +164,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         }
         // return parameters of specific methods 
         //recurseMethods(d, true)
-        // finally, possibly the parent object
-        if (d.extendsClass != null)
-            imports.addImport(d.getParent)
+        // finally, possibly the parent object (if it exists)
+        imports.addImport(d.getParent)
 
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }
