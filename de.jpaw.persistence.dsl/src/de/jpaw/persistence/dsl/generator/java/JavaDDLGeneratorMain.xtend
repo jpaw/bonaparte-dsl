@@ -569,6 +569,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «e.tableCategory.trackingColumns?.recurseColumns(pkColumns, compositeKey)»
             «e.pojoType.recurseColumns(pkColumns, compositeKey)»
+            «EqualsHash::writeEqualsAndHashCode(e, compositeKey)»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
             «writeStaticFindByMethods(e.pojoType, e)»
@@ -627,6 +628,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «writeGetter(col)»
                 «writeSetter(col)»
             «ENDFOR»
+            «EqualsHash::writeHash(null, e.pk.columnName)»
+            «EqualsHash::writeKeyEquals(e, e.pk.columnName)»
         }
         '''
     }

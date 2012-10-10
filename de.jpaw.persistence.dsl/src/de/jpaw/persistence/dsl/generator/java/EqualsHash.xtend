@@ -1,4 +1,4 @@
- /*
+/*
   * Copyright 2012 Michael Bischoff
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,21 +14,28 @@
   * limitations under the License.
   */
 
-package de.jpaw.bonaparte.dsl.generator.java
+package de.jpaw.persistence.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import java.util.List
 
-class JavaCompare {
-    
+class EqualsHash {
     def private static writeCompareSub(FieldDefinition i, String index) {
         switch (getJavaDataType(i.datatype)) {
+        case "BonaPortable":        '''Arrays.equals(«index», that.«index»)''' // mapped to byte []
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "ByteArray":           '''«index».contentEquals(that.«index»)'''
+        case "ByteArray":           '''Arrays.equals(«index», that.«index»)''' // '''«index».contentEquals(that.«index»)''' is mapped to byte[]
         case "GregorianCalendar":   '''«index».compareTo(that.«index») == 0'''
+        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
+        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         default:                    '''«index».equals(that.«index»)'''
         }
     } 
@@ -46,7 +53,7 @@ class JavaCompare {
             «ENDIF»
         «ENDIF»
     '''
-
+    
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray != null)
@@ -71,7 +78,7 @@ class JavaCompare {
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType != null && ref.javaType.equals("byte []"))
+                if (ref.javaType != null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
                     // special treatment required, again!
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
                 else       
@@ -80,20 +87,33 @@ class JavaCompare {
         }
     }                    
     
-    def public static writeHash(ClassDefinition d) '''
-        @Override
-        public int hashCode() {
-            int _hash = «IF d.extendsClass != null»super.hashCode()«ELSE»997«ENDIF»;
-            «FOR i:d.fields»
+    def private static writeHashSub2(List<FieldDefinition> l) '''
+        «IF l != null»
+            «FOR i:l»
                 _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
             «ENDFOR»
+        «ENDIF»
+    '''
+    def private static writeHashSub(ClassDefinition d) '''
+        «IF d.extendsClass != null»
+            «writeHashSub(d.extendsClass.classRef)»
+        «ENDIF»
+        «writeHashSub2(d.fields)»
+    '''
+    def public static writeHash(ClassDefinition d, List<FieldDefinition> l) '''
+        @Override
+        public int hashCode() {
+            int _hash = 997;
+            «IF d != null»
+                «writeHashSub(d)»
+            «ENDIF»
+            «writeHashSub2(l)»
             return _hash;              
         }
         
         '''
         
-    def public static writeComparisonCode(ClassDefinition d) '''
-        // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
+    def public static writeEquals(ClassDefinition d) '''
         @Override
         public boolean equals(Object _that) {
             if (_that == null)
@@ -102,25 +122,13 @@ class JavaCompare {
                 return false;
             if (this == _that)
                 return true;
-            return equalsSub((BonaPortable)_that);
-        }
-        
-        // same function, but with second argument of (almost) known type
-        @Override
-        public boolean hasSameContentsAs(BonaPortable _that) {
-            if (_that == null)
-                return false;
-            if (!(_that instanceof «d.name»))
-                return false;
-            if (this == _that)
-                return true;
             return equalsSub(_that);
         }
-
+        
         «IF d.extendsClass != null»
         @Override
         «ENDIF»
-        protected boolean equalsSub(BonaPortable _that) {
+        protected boolean equalsSub(Object _that) {
             «d.name»«genericDef2StringAsParams(d.genericParameters)» that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)_that;
             «IF d.extendsClass != null»
                 return super.equalsSub(_that)
@@ -136,30 +144,55 @@ class JavaCompare {
             «ENDFOR»
             ;
         }
-        «FOR i:d.fields»
-            «IF i.isArray != null»
-                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».length != that.«i.name».length)
-                        return false;
-                    for (int _i = 0; _i < «i.name».length; ++_i)
-                        if (!(«writeCompareStuff(i, i.name + "[_i]", "))")»
-                            return false;
-                    return true;
-                }
-            «ENDIF»
-            «IF i.isList != null»
-                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».size() != that.«i.name».size())
-                        return false;
-                    // indexed access is not optional, but sequential access will be left for later optimization 
-                    for (int _i = 0; _i < «i.name».size(); ++_i)
-                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
-                            return false;
-                    return true;
-                }
-            «ENDIF»
-        «ENDFOR»
     '''
+    
+    def private static writeSub(EntityDefinition e, String name) '''
+            @Override
+            public int hashCode() {
+                return «name» == null ? -1 : «name».hashCode();
+            }
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null || this.getClass() != obj.getClass())
+                    return false;
+                if («name» == null) // not yet assigned => treat it as different
+                    return false;
+                return this.«name».equals(((«e.name»)obj).«name»);
+            }
+    '''
+    def public static writeEqualsAndHashCode(EntityDefinition e, boolean compositeKey) '''
+        // equals and hash code
+        «IF compositeKey»
+            «writeSub(e, "key")»
+        «ELSEIF e.pk != null && e.pk.columnName != null»
+            «writeSub(e, e.pk.columnName.get(0).name)»
+        «ELSE»
+            «writeHash(e.pojoType, null)»
+            «writeEquals(e.pojoType)»
+        «ENDIF»
+    '''
+
+    def public static writeKeyEquals(EntityDefinition e, List<FieldDefinition> l) '''
+        @Override
+        public boolean equals(Object _that) {
+            if (_that == null)
+                return false;
+            if (!(_that instanceof «e.name»Key))
+                return false;
+            if (this == _that)
+                return true;
+            «e.name»Key that = («e.name»Key)_that;
+            return true
+            «FOR i:l»
+                «IF i.isArray != null || i.isList != null»
+                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
+                «ELSE»
+                    && «writeCompareStuff(i, i.name, "")»
+                «ENDIF»
+            «ENDFOR»
+            ;
+        }
+    '''
+    
 }

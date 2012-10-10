@@ -28,6 +28,9 @@ Model:
     packages += PackageDefinition*
     //(extensions = ModelExtensionDefinition)      // Extensions only
 ;
+
+terminal ML_JAVADOC_COMMENT : '/#' -> '#/';
+terminal SL_JAVADOC_COMMENT : '/-' !('\n'|'\r')* ('\r'? '\n')?;
     
 QualifiedId: 
     ID ('.' ID)*

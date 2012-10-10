@@ -54,7 +54,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 else
                     // not good anyway
-                    warning("The type calendar is mapped to the mutable Java class GregorianCalendar. Use of day or timestamp is preferred.",
+                    warning("The type \"Calendar\" is mapped to the mutable Java class GregorianCalendar. Use of \"Day\" or \"Timestamp\" is preferred.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 return;
             case "timestamp": // similar to default, but allow 0 decimals and max. 3 digits precision
@@ -101,7 +101,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 else
                     // not good anyway
-                    warning("The type raw is mapped to the mutable Java class byte []. Use of binary is preferred.",
+                    warning("The type \"Raw\" is mapped to the mutable Java class byte []. Use of \"Binary\" is preferred.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 return;
             }

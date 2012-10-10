@@ -295,6 +295,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaSerialize::writeSerialize(d)»
             «JavaDeserialize::writeDeserialize(d)»
             «JavaValidate::writeValidationCode(d)»
+            «JavaCompare::writeHash(d)»
             «JavaCompare::writeComparisonCode(d)»
             «IF doExt»
             «JavaExternalize::writeExternalize(d)»
