@@ -248,6 +248,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.isDeprecated»
         import java.lang.annotation.Deprecated;
         «ENDIF»
+        «IF (xmlAccess != null && !d.isAbstract)»
+            import javax.xml.bind.annotation.XmlAccessorType;
+            import javax.xml.bind.annotation.XmlAccessType;
+            import javax.xml.bind.annotation.XmlRootElement;
+        «ENDIF»
         «IF doBeanVal»
         import javax.validation.constraints.NotNull;
         import javax.validation.constraints.Digits;
@@ -272,11 +277,12 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
         
+        
+        «IF d.javadoc != null»
+            «d.javadoc»
+        «ENDIF»        
+
         «IF (xmlAccess != null && !d.isAbstract)»
-            import javax.xml.bind.annotation.XmlAccessorType;
-            import javax.xml.bind.annotation.XmlAccessType;
-            import javax.xml.bind.annotation.XmlRootElement;
-            
             @XmlRootElement(name="«d.name»")
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»

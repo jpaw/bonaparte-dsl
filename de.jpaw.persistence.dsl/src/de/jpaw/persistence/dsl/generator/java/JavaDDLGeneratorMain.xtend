@@ -186,13 +186,13 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return LocalDate.fromCalendarFields(«i.name»);
+                        return «i.name» == null ? null : LocalDate.fromCalendarFields(«i.name»);
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return LocalDateTime.fromCalendarFields(«i.name»);
+                        return «i.name» == null ? null : LocalDateTime.fromCalendarFields(«i.name»);
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        return new ByteArray(«i.name», 0, -1);
+                        return «i.name» == null ? null : new ByteArray(«i.name», 0, -1);
                     «ELSE»
                         return «i.name»;
                     «ENDIF»
@@ -534,6 +534,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «imports.createImports»
         
+        «IF e.javadoc != null»
+            «e.javadoc»
+        «ENDIF»
         «IF e.isAbstract»
         @MappedSuperclass
         «ELSE»
@@ -552,7 +555,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
         @Deprecated
         «ENDIF»
-        public «IF e.isFinal»final «ENDIF»class «e.name» «IF e.extendsClass != null»extends «e.extendsClass.name»«ENDIF» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
+        public class «e.name» «IF e.extendsClass != null»extends «e.extendsClass.name»«ENDIF» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF» {
             «IF compositeKey»
                 @EmbeddedId
                 «e.name»Key key;

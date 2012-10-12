@@ -54,6 +54,9 @@ class JavaFieldsGettersSetters {
         val ref = DataTypeExtension::get(i.datatype)
         
         return '''
+            «IF i.comment != null»
+                // «i.comment» !
+            «ENDIF»
             «IF doBeanVal»
                 «IF i.isRequired && !ref.isPrimitive»
                     @NotNull

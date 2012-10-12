@@ -4,8 +4,7 @@
 package de.jpaw.bonaparte.dsl.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-//import org.eclipse.xtext.ui.editor.autoedit.AbstractEditStrategyProvider;
-//import de.jpaw.bonaparte.dsl.ui.autoedit.CamelCaseConverter;
+import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
 
 /**
  * Use this class to register components to be used within the IDE.
@@ -14,9 +13,8 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
     public BonScriptUiModule(AbstractUIPlugin plugin) {
         super(plugin);
     }
-/*
-    public Class<? extends AbstractEditStrategyProvider> bindAbstractEditStrategyProvider() {
-        return CamelCaseConverter.class;
-    }
-    */
+/*    
+	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
+		return Highlighter.class;
+	} */
 }

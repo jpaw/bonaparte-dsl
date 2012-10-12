@@ -71,6 +71,16 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDFOR»
     '''
     
+    def public recurseComments(ClassDefinition cl, EntityDefinition e, String tablename, DatabaseFlavour databaseFlavour) '''
+        «cl.extendsClass?.classRef?.recurseComments(e, tablename, databaseFlavour)»
+        -- comments for columns of java class «cl.name»
+        «FOR c : cl.fields»
+            «IF c.comment != null»
+                COMMENT ON «tablename».«YUtil::columnName(c)» IS '«YUtil::quoteSQL(c.comment)»';
+            «ENDIF»
+        «ENDFOR»
+    '''
+    
     def indexCounter() {
         return indexCount = indexCount + 1
     }
@@ -119,6 +129,9 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
+        
+            «t.tableCategory.trackingColumns?.recurseComments(t, tablename, databaseFlavour)»
+            «t.pojoType.recurseComments(t, tablename, databaseFlavour)»
     '''
     }  
 }

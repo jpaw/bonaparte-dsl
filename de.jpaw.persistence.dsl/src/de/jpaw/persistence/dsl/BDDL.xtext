@@ -14,8 +14,8 @@
   * limitations under the License.
   */
   
-//grammar de.jpaw.persistence.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
-grammar de.jpaw.persistence.dsl.BDDL with org.eclipse.xtext.common.Terminals
+grammar de.jpaw.persistence.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
+//grammar de.jpaw.persistence.dsl.BDDL with org.eclipse.xtext.common.Terminals
 
 generate bDDL "http://www.jpaw.de/persistence/dsl/BDDL"
 
@@ -51,10 +51,6 @@ DefaultsDefinition:
     ';'
 ;
 
-NameWithOptionalHash:
-    ID ('#')?
-;
-
 enum Permission:
     SELECT='SELECT'|INSERT='INSERT'|UPDATE='UPDATE'|DELETE='DELETE';
     
@@ -62,7 +58,7 @@ PermissionList:
     (permissions += Permission (',' permissions += Permission)*);
     
 GrantList:
-    roleOrUserName = NameWithOptionalHash ':' permissions = PermissionList ';';
+    roleOrUserName = ID ':' permissions = PermissionList ';';
     
 GrantCategoryDefinition:
     'grants' name=ID '{' grants += GrantList* '}' ';';
@@ -89,24 +85,28 @@ PackageDefinition:
     '{' 
         grantCategories += GrantCategoryDefinition* 
         tableCategories += TableCategoryDefinition*
-        //xpojos += ClassDefinition*
+        // xpojos += ClassDefinition*   // can fail because BonScript assumes that the parent of a ClassDefinition is a BonScript Package
         entities += EntityDefinition*
     '}'
 ;
 
 enum Inheritance:
-    SINGLE_TABLE='singleTable' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
+    SINGLE_TABLE='singleTable' | TABLE_PER_ENTITY='tablePerEntity' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
 
 EntityDefinition:
+    (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    (isAbstract?='abstract' | isFinal?='final')? 'entity' name = ID      // abstract means mappedSuperclass
+    (isAbstract?='abstract')?
+    'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
         'category' tableCategory=[TableCategoryDefinition]
         'is' pojoType=[pojos::ClassDefinition]
         (tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
-        ('inheritance' inheritance=Inheritance)?
-        ('extends' extendsClass=[pojos::ClassDefinition])?
+        (('inheritance' inheritance=Inheritance ('discriminator' (discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))
+         | ('extends' extendsClass=[pojos::ClassDefinition])
+         | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING))
+        )?
         ('implements' implementsInterface = QualifiedId )?
     '{'
         (cacheable ?= 'cacheable')?

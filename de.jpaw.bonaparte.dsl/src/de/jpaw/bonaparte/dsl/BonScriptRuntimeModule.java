@@ -3,9 +3,13 @@
  */
 package de.jpaw.bonaparte.dsl;
 
+import de.jpaw.bonaparte.dsl.generator.CommentConverter;
+
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class BonScriptRuntimeModule extends de.jpaw.bonaparte.dsl.AbstractBonScriptRuntimeModule {
-
+	public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
+		return CommentConverter.class;
+	}
 }

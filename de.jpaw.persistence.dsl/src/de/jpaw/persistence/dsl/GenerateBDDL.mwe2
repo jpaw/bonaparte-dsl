@@ -16,7 +16,7 @@ Workflow {
             // The following two lines can be removed, if Xbase is not used.
             //registerGeneratedEPackage = "org.eclipse.xtext.xbase.XbasePackage"
             //registerGenModelFile = "platform:/resource/org.eclipse.xtext.xbase/model/Xbase.genmodel"
-            // the next 2 lines reference the bonaparte DSL
+            // XXXX the next 2 lines reference the bonaparte DSL
             registerGeneratedEPackage = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
             registerGenModelFile = "platform:/resource/de.jpaw.bonaparte.dsl/src-gen/de/jpaw/bonaparte/dsl/BonScript.genmodel"        }
     
@@ -47,6 +47,10 @@ Workflow {
                 //  platform:/resource/org.eclipse.xtext.xbase/model/Xbase.genmodel,
                 //  platform:/resource/org.eclipse.xtext.common.types/model/JavaVMTypes.genmodel
                 // "
+                // XXX access to BonScript: deprecated
+                //referencedGenModels = "
+                //  platform:/resource/de.jpaw.bonaparte.dsl/src-gen/de/jpaw/bonaparte/dsl/BonScript.genmodel
+                //"
                 }
     
                 // Serializer 2.0

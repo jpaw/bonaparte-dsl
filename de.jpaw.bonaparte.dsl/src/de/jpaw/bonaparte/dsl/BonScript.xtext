@@ -29,9 +29,15 @@ Model:
     //(extensions = ModelExtensionDefinition)      // Extensions only
 ;
 
-terminal ML_JAVADOC_COMMENT : '/#' -> '#/';
-terminal SL_JAVADOC_COMMENT : '/-' !('\n'|'\r')* ('\r'? '\n')?;
+//terminal ML_JAVADOC_COMMENT : '/#' -> '#/';
+//terminal SL_JAVADOC_COMMENT : '/-' !('\n'|'\r')* ('\r'? '\n')?;
     
+
+
+terminal ML_COMMENT: '/*' !'*'-> '*/' ;     // overwrite ML_COMMENT to derive the non-Terminal JAVADOC comment
+terminal JAVADOC_COMMENT: '/**' -> '*/';    // and provide a separate JavaDoc multiline comment
+
+
 QualifiedId: 
     ID ('.' ID)*
 ;
@@ -42,13 +48,6 @@ QualifiedIdWithWildcard:
 ImportDefinition:
     'import' importedNamespace=QualifiedIdWithWildcard
 ;
-
-/*
-InterfaceDefinition:
-    interfaceClassName = [jvmTypes::JvmType|QualifiedId]
-    ('<' genericsList += [jvmTypes::JvmGenericType] '>')?
-;
- */
  
 // enums for field attributes. Defaults can be set at package or class level
 enum XVisibility:
@@ -142,6 +141,7 @@ ClassReference:
 // a class corresponds to a Java class
 ClassDefinition:
     // (annotations=ClassAnnotations)  // for extensions
+    (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')? 'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
@@ -190,7 +190,7 @@ TypeDefinition:
 ;
 
 // Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
-FieldDefinition:
+FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     // (annotations=FieldAnnotations)  // for extensions, for example additional JSR303 like validations. Mixed feelings about this, because it actually violates the "single responsibility" principle.
     (visibility = Visibility)?
     (required   = Required)?
@@ -199,6 +199,7 @@ FieldDefinition:
     name        = ID
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
     ';'
+    (comment     = SL_COMMENT)?
 ;
 
 DataType:
