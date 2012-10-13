@@ -78,6 +78,7 @@ TableCategoryDefinition:
 ;
 
 PackageDefinition:
+    (javadoc = JAVADOC_COMMENT)?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
         'owner'  schemaOwner = ID

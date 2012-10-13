@@ -4,17 +4,28 @@
 package de.jpaw.bonaparte.dsl.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
+//import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractTokenScanner;
 
 /**
- * Use this class to register components to be used within the IDE.
+ * Customizations provided: Highlighting for Javadoc style comments.
  */
 public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScriptUiModule {
     public BonScriptUiModule(AbstractUIPlugin plugin) {
         super(plugin);
     }
-/*    
+    
 	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
 		return Highlighter.class;
+	}
+
+/*	// contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
+	public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
+		return AbstractTokenScanner.class;
 	} */
+
+	public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+		return BonAntlrTokenToAttributeIdMapper.class ;
+	}
 }

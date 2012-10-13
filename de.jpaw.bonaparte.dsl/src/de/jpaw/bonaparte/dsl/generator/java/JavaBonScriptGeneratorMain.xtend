@@ -71,6 +71,18 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     «cl.name»
                 «ENDFOR»
                 ''')
+            
+            // also, write a package-info.java file, if javadoc on package level exists
+            if (d.javadoc != null) {
+                fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
+                    // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+                    // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+                    // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+                    
+                    «d.javadoc» 
+                    package «getPackageName(d)»;
+                ''')
+            }
         }
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }

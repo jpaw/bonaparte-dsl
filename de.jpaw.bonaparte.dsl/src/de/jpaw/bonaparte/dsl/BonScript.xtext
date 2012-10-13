@@ -103,6 +103,7 @@ FieldDefaultsDefinition:
 
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
+    (javadoc = JAVADOC_COMMENT)?
     //(annotations=PackageAnnotations)  // for extensions
     'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
@@ -140,8 +141,8 @@ ClassReference:
 
 // a class corresponds to a Java class
 ClassDefinition:
-    // (annotations=ClassAnnotations)  // for extensions
     (javadoc = JAVADOC_COMMENT)?
+    // (annotations=ClassAnnotations)  // for extensions
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')? 'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
