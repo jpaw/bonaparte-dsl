@@ -10,7 +10,7 @@
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>de.jpaw.persitence</groupId>
+	<groupId>de.jpaw.persistence</groupId>
 	<artifactId>de.jpaw.persistence.dsl</artifactId>
 	<packaging>eclipse-plugin</packaging>
 
