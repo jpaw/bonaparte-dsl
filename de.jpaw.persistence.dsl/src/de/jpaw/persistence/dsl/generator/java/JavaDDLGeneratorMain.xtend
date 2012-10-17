@@ -37,6 +37,7 @@ import de.jpaw.persistence.dsl.bDDL.Inheritance
 
 class JavaDDLGeneratorMain implements IGenerator {
     val String JAVA_OBJECT_TYPE = "BonaPortable";
+    val String calendar = "Calendar";  // "GregorianCalendar"
     var FieldDefinition haveIntVersion = null
     var haveActive = false
     
@@ -82,11 +83,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeTemporal(FieldDefinition c, String type) '''
         @Temporal(TemporalType.«type»)
         «IF c.isArray != null»
-            GregorianCalendar[] «c.name»;
+            «calendar»[] «c.name»;
         «ELSEIF c.isList != null»
-            List <GregorianCalendar> «c.name»;
+            List <«calendar»> «c.name»;
         «ELSE»
-            GregorianCalendar «c.name»;
+            «calendar» «c.name»;
         «ENDIF»
     '''
     
@@ -342,14 +343,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 }
             «ENDIF»
         «ENDIF»
-        '''
-                
-    def private getInheritanceRoot(EntityDefinition e) {
-        var EntityDefinition ee = e
-        while (ee.^extends != null)
-            ee = ee.^extends
-        return ee
-    }
+    '''
      
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
         @Override
@@ -571,6 +565,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
         import java.util.GregorianCalendar;
+        import java.util.Calendar;
         import java.util.UUID;
         import java.io.Serializable;
         import java.math.BigDecimal;
@@ -672,6 +667,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
         import java.util.GregorianCalendar;
+        import java.util.Calendar;
         import java.util.UUID;
         import java.io.Serializable;
         import java.math.BigDecimal;

@@ -39,6 +39,14 @@ class YUtil {
         return java2sql(c.name)  // allow to add column data type prefixes here... (systems Hungarian notation: http://en.wikipedia.org/wiki/Hungarian_notation)
     }
 
+                
+    def public static getInheritanceRoot(EntityDefinition e) {
+        var EntityDefinition ee = e
+        while (ee.^extends != null)
+            ee = ee.^extends
+        return ee
+    }
+    
     def public static boolean hasProperty(List <PropertyUse> properties, String key) {
         if (properties != null)
             for (p : properties)

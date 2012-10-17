@@ -20,12 +20,14 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.emf.ecore.EObject
+import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
@@ -57,7 +59,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     }
 
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
-        var tablename = YUtil::mkTablename(e, doHistory)
+        var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
@@ -66,7 +68,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
-            case DatabaseFlavour::ORACLE:    return '''«t.discname» NUMBER(4) DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::ORACLE:    return '''«t.discname» NUMBER(9) DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::POSTGRES:  return '''«t.discname» integer DEFAULT 0 NOT NULL'''
             }
         } else {
@@ -93,7 +95,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             -- comments for columns of java class «cl.name»
             «FOR c : cl.fields»
                 «IF c.comment != null»
-                    COMMENT ON «tablename».«YUtil::columnName(c)» IS '«YUtil::quoteSQL(c.comment)»';
+                    COMMENT ON COLUMN «tablename».«columnName(c)» IS '«quoteSQL(c.comment)»';
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
@@ -111,12 +113,12 @@ class SqlDDLGeneratorMain implements IGenerator {
         var String tablespaceIndex = null
         var ClassDefinition stopper = null
         if (SqlMapping::supportsTablespaces(databaseFlavour)) {
-            tablespaceData  = YUtil::mkTablespaceName(t, false, myCategory)
-            tablespaceIndex = YUtil::mkTablespaceName(t, true,  myCategory)
+            tablespaceData  = mkTablespaceName(t, false, myCategory)
+            tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         // System::out.println("      tablename is " + tablename);
-        if (t.^extends != null) {
-            stopper = t.^extends.pojoType
+        if (t.^extends != null && t.inheritanceRoot.inheritance == Inheritance::JOIN) {
+            stopper = t.^extends.pojoType       // stopper is set for JOIN type subclasses
         }            
             
         var grantGroup = myCategory.grantGroup
@@ -129,17 +131,22 @@ class SqlDDLGeneratorMain implements IGenerator {
         CREATE TABLE «tablename» (
             «setSeparator("  ")»
             «IF stopper == null»
-            «t.tableCategory.trackingColumns?.recurseColumns(databaseFlavour, null)»
+                «t.tableCategory.trackingColumns?.recurseColumns(databaseFlavour, null)»
             «ENDIF»
             «IF t.discname != null»
                 «separator»«doDiscriminator(t, databaseFlavour)»«setSeparator(", ")»
             «ENDIF»
+            «IF t.getInheritanceRoot.pk != null && stopper != null»
+                «FOR c : t.getInheritanceRoot.pk.columnName»
+                    «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»
+                «ENDFOR»
+            «ENDIF»
             «t.pojoType.recurseColumns(databaseFlavour, stopper)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
         
-        «IF t.pk != null»
+        «IF t.getInheritanceRoot.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : t.pk.columnName SEPARATOR ', '»«YUtil::columnName(c)»«ENDFOR»
+                «FOR c : t.getInheritanceRoot.pk.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»
