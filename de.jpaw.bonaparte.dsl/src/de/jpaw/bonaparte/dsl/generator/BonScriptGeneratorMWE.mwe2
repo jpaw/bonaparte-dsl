@@ -1,0 +1,26 @@
+module de.jpaw.bonaparte.dsl.generator.BonScriptGeneratorMWE
+
+import org.eclipse.emf.mwe.utils.*
+import org.eclipse.xtext.generator.*
+
+var modelPath = "src/main/bon"
+var targetDir = "./src/generated"
+ 
+Workflow {
+	component = org.eclipse.xtext.mwe.Reader {
+		useJavaClassPath = true
+		path = modelPath
+		register = de.jpaw.bonaparte.dsl.BonScriptStandaloneSetup {}
+		loadResource = {
+			slot = "model"
+		}
+	}
+
+	component = GeneratorComponent {
+		register = de.jpaw.bonaparte.dsl.BonScriptStandaloneSetup {}
+		slot = 'model'		
+		outlet = {
+			path = targetDir
+		}
+	}
+}
