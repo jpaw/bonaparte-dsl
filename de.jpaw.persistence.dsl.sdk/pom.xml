@@ -3,14 +3,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>de.jpaw</groupId>
-		<artifactId>parent</artifactId>
-		<version>1.0.0-SNAPSHOT</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>de.jpaw</groupId>
+        <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+        <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
+    </parent>
 
-	<groupId>de.jpaw.persistence</groupId>
+    <groupId>de.jpaw.persistence-dsl</groupId>
 	<artifactId>de.jpaw.persistence.dsl.sdk</artifactId>
 	<packaging>eclipse-feature</packaging>
 

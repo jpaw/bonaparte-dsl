@@ -4,11 +4,11 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.jpaw</groupId>
-	<artifactId>parent</artifactId>
+	<artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Bonaparte DSL - Parent</name>
+	<name>Bonaparte DSL - Parent for all plugin projects</name>
 
 	<licenses>
 		<license>
@@ -31,13 +31,13 @@
 	</developers>
 
 	<modules>
-		<module>de.jpaw.bonaparte.dsl</module>
-		<module>de.jpaw.bonaparte.dsl.ui</module>
-		<module>de.jpaw.bonaparte.dsl.sdk</module>
-		<module>de.jpaw.persistence.dsl</module>
-		<module>de.jpaw.persistence.dsl.ui</module>
-		<module>de.jpaw.persistence.dsl.sdk</module>
-		<module>de.jpaw.updatesite</module>
+		<module>../de.jpaw.bonaparte.dsl</module>
+		<module>../de.jpaw.bonaparte.dsl.ui</module>
+		<module>../de.jpaw.bonaparte.dsl.sdk</module>
+		<module>../de.jpaw.persistence.dsl</module>
+		<module>../de.jpaw.persistence.dsl.ui</module>
+		<module>../de.jpaw.persistence.dsl.sdk</module>
+		<module>../de.jpaw.updatesite</module>
 	</modules>
 
 	<properties>
