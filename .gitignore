@@ -21,8 +21,12 @@
 target/
 
 # generated files within XText / XTend projects
-src-gen/
-xtend-gen/
 bin/
 test-output/
 generated/
+
+# generated files within XText / XTend projects that are used a eclipse source folders
+*/src-gen/*
+!*/src-gen/.gitignore
+*/xtend-gen/*
+!*/xtend-gen/.gitignore
