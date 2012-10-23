@@ -6,4 +6,3 @@
 // 6. more unit tests (especially base64 with big data sizes)
 // 7. class / package mappers (bonaparte-core)
 // 8. sample derived grammars
-// 9. allow "any object" (BonaPortable...) in ClassReference

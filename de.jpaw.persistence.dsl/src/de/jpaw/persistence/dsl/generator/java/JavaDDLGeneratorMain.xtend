@@ -355,6 +355,28 @@ class JavaDDLGeneratorMain implements IGenerator {
             return «e.pojoType.name».class;
         }
         «IF e.^extends == null»
+        // static methods
+        //public static int class$rtti() {
+        //    return «e.pojoType.name».class$rtti();
+        //}
+        public static Class<«e.pojoType.name»> class$DataClass() {
+            return «e.pojoType.name».class;
+        }
+        public static Class<«pkType»> class$KeyClass() {
+            return «pkType».class;
+        }
+        public static Class<«trackingType»> class$TrackingClass() {
+            «IF e.tableCategory.trackingColumns == null»
+                return null;
+            «ELSE»
+                return «trackingType».class;
+            «ENDIF»
+        }
+        public static String class$DataPQON() {
+            return "«getPartiallyQualifiedClassName(e.pojoType)»";
+        }
+        
+                
         @Override
         public Class<«pkType»> get$KeyClass() {
             return «pkType».class;
