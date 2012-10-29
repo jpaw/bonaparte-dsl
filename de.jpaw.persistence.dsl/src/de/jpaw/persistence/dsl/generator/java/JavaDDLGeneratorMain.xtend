@@ -26,6 +26,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
@@ -57,13 +58,15 @@ class JavaDDLGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            var boolean compositeKey = false;
-            if (e.pk != null && e.pk.columnName.size > 1) {
-                // write a separate class for the composite key
-                fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
-                compositeKey = true
+            if (!e.noJava) {
+                var boolean compositeKey = false;
+                if (e.pk != null && e.pk.columnName.size > 1) {
+                    // write a separate class for the composite key
+                    fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
+                    compositeKey = true
+                }
+                fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
             }
-            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
         }
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists
@@ -101,7 +104,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             case "DateTime":            writeTemporal(c, "DATE")
             case "ByteArray":           '''byte [] «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
-                    @Lob
+                    // @Lob
                     byte [] «c.name»;
                 '''
             default:                   '''        
@@ -293,25 +296,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             imports.addImport(d.extendsClass.classRef)
     }
     
-    def private recurseDataGetter(ClassDefinition d, ClassDefinition stopper) '''
-        «IF d != stopper»
-            «d.extendsClass?.classRef?.recurseDataGetter(stopper)»
-            // auto-generated data getter for «d.name»
-            «FOR i:d.fields»
-                _r.set«Util::capInitial(i.name)»(get«Util::capInitial(i.name)»());
-            «ENDFOR»
-        «ENDIF»
-    '''
-    
-    def private recurseDataSetter(ClassDefinition d, ClassDefinition stopper) '''
-        «IF d != stopper»
-            «d.extendsClass?.classRef?.recurseDataSetter(stopper)»
-            // auto-generated data setter for «d.name»
-            «FOR i:d.fields»
-                set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
-            «ENDFOR»
-        «ENDIF»
-    '''
     
     def private writeStubs(EntityDefinition e) '''
         «IF e.^extends == null»
@@ -346,22 +330,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     '''
      
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
-        @Override
-        public String get$DataPQON() {
-            return "«getPartiallyQualifiedClassName(e.pojoType)»";
-        }
-        @Override
-        public Class<? extends «e.getInheritanceRoot.pojoType.name»> get$DataClass() {
-            return «e.pojoType.name».class;
-        }
         «IF e.^extends == null»
         // static methods
         //public static int class$rtti() {
         //    return «e.pojoType.name».class$rtti();
         //}
-        public static Class<«e.pojoType.name»> class$DataClass() {
-            return «e.pojoType.name».class;
-        }
         public static Class<«pkType»> class$KeyClass() {
             return «pkType».class;
         }
@@ -371,9 +344,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ELSE»
                 return «trackingType».class;
             «ENDIF»
-        }
-        public static String class$DataPQON() {
-            return "«getPartiallyQualifiedClassName(e.pojoType)»";
         }
         
                 
@@ -439,27 +409,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         }
         «ENDIF»
-        @Override
-        public «e.pojoType.name» get$Data() throws ApplicationException {
-            «e.pojoType.name» _r = new «e.pojoType.name»();
-            «recurseDataGetter(e.pojoType, null)»
-            return _r;
-        }
-        @Override
-        public void set$Data(«e.getInheritanceRoot.pojoType.name» _d) {
-            «IF e.^extends == null»
-                «recurseDataSetter(e.pojoType, null)»
-            «ELSE»
-                super.set$Data(_d);
-                if (_d instanceof «e.pojoType.name») {
-                    «e.pojoType.name» _dd = («e.pojoType.name»)_d;
-                    // auto-generated data setter for «e.pojoType.name»
-                    «FOR i:e.pojoType.fields»
-                        set«Util::capInitial(i.name)»(_dd.get«Util::capInitial(i.name)»());
-                    «ENDFOR»
-                }
-            «ENDIF»
-        }
     '''
 
     def private writeStaticFindByMethods(ClassDefinition d, EntityDefinition e, ClassDefinition stopper) '''
@@ -506,6 +455,14 @@ class JavaDDLGeneratorMain implements IGenerator {
         case Inheritance::TABLE_PER_ENTITY: return "TABLE_PER_ENTITY"
         }
     }
+    
+    def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
+        if (e.noMapper)
+            '''BonaPersistableNoData<>'''
+        else
+            '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
+    }
+    
     
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
         val String myPackageName = getPackageName(e)
@@ -595,7 +552,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.lang.annotation.Deprecated;
         «ENDIF»
         
+        «IF e.noMapper»
+        import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
+        «ELSE»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
+        «ENDIF»
         import de.jpaw.bonaparte.core.BonaPortable;
         import de.jpaw.bonaparte.core.ByteArrayComposer;
         import de.jpaw.bonaparte.core.ByteArrayParser;
@@ -640,7 +601,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
         @Deprecated
         «ENDIF»
-        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
+        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
             «IF stopper == null && compositeKey»
                 @EmbeddedId
                 «e.name»Key key;
@@ -660,6 +621,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
+            «IF (!e.noMapper)»
+                «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
+            «ENDIF»
             «writeStaticFindByMethods(e.pojoType, e, stopper)»
         }
         '''
