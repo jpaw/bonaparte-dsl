@@ -458,7 +458,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
         if (e.noMapper)
-            '''BonaPersistableNoData<>'''
+            '''BonaPersistableNoData<«pkType», «trackingType»>'''
         else
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
     }
