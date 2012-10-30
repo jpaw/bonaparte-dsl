@@ -1,12 +1,6 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
-import de.jpaw.bonaparte.dsl.generator.Util
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaDeexternalize {
     private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta

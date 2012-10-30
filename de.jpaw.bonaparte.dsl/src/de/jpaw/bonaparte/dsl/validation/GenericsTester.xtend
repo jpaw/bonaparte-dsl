@@ -17,8 +17,6 @@
 package de.jpaw.bonaparte.dsl.validation
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 class GenericsTester {
     def public static int getGenericsParameterCount(ClassDefinition d) {

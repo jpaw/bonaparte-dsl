@@ -97,6 +97,7 @@ enum Inheritance:
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
+    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper') ')')?
     (isAbstract?='abstract')?
     'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
