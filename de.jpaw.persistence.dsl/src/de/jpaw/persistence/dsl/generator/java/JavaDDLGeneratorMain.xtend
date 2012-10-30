@@ -83,14 +83,19 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def private writeTemporal(FieldDefinition c, String type) '''
+    def private writeTemporal(FieldDefinition c, String type, String fieldType) '''
+        «IF fieldType.equals("LocalDateTime")»
+        @Converter(name = "dateTimeConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateTimeConverter.class)
+        @Convert("dateTimeConverter")
+        «ELSE»        
         @Temporal(TemporalType.«type»)
+        «ENDIF»
         «IF c.isArray != null»
-            «calendar»[] «c.name»;
+            «fieldType»[] «c.name»;
         «ELSEIF c.isList != null»
-            List <«calendar»> «c.name»;
+            List <«fieldType»> «c.name»;
         «ELSE»
-            «calendar» «c.name»;
+            «fieldType» «c.name»;
         «ENDIF»
     '''
     
@@ -99,9 +104,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             switch (ref.javaType) {
-            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP")
-            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP")
-            case "DateTime":            writeTemporal(c, "DATE")
+            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP", calendar)
+            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP", ref.javaType)
+            case "DateTime":            writeTemporal(c, "DATE", calendar)
             case "ByteArray":           '''byte [] «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
                     // @Lob
@@ -202,9 +207,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «i.name» == null ? null : LocalDate.fromCalendarFields(«i.name»);
+                        return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «i.name» == null ? null : LocalDateTime.fromCalendarFields(«i.name»);
+                        return «i.name»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSEIF ref.javaType.equals("ByteArray")»
@@ -237,7 +242,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «IF ref.category == DataCategory::OBJECT»
                         this.«i.name» = «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
-                        this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
+                        this.«i.name» = «i.name»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSEIF ref.javaType.equals("ByteArray")»
@@ -570,6 +575,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
+        import org.eclipse.persistence.annotations.Convert;
+        import org.eclipse.persistence.annotations.Converter;
         «ENDIF»
         «imports.createImports»
         
