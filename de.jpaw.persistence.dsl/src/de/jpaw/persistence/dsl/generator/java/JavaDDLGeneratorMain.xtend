@@ -87,6 +87,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF fieldType.equals("LocalDateTime")»
         @Converter(name = "dateTimeConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateTimeConverter.class)
         @Convert("dateTimeConverter")
+        «ELSEIF fieldType.equals("LocalDate")»
+        @Converter(name = "dateConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateConverter.class)
+        @Convert("dateConverter")
         «ELSE»        
         @Temporal(TemporalType.«type»)
         «ENDIF»
@@ -106,6 +109,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             switch (ref.javaType) {
             case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP", calendar)
             case "LocalDateTime":       writeTemporal(c, "TIMESTAMP", ref.javaType)
+            case "LocalDate":           writeTemporal(c, "TIMESTAMP", ref.javaType)
             case "DateTime":            writeTemporal(c, "DATE", calendar)
             case "ByteArray":           '''byte [] «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
