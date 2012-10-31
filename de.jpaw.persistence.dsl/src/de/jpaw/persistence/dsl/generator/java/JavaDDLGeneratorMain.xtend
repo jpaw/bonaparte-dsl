@@ -83,14 +83,22 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def private writeTemporal(FieldDefinition c, String type) '''
+    def private writeTemporal(FieldDefinition c, String type, String fieldType) '''
+        «IF fieldType.equals("LocalDateTime")»
+        @Converter(name = "dateTimeConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateTimeConverter.class)
+        @Convert("dateTimeConverter")
+        «ELSEIF fieldType.equals("LocalDate")»
+        @Converter(name = "dateConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateConverter.class)
+        @Convert("dateConverter")
+        «ELSE»        
         @Temporal(TemporalType.«type»)
+        «ENDIF»
         «IF c.isArray != null»
-            «calendar»[] «c.name»;
+            «fieldType»[] «c.name»;
         «ELSEIF c.isList != null»
-            List <«calendar»> «c.name»;
+            List <«fieldType»> «c.name»;
         «ELSE»
-            «calendar» «c.name»;
+            «fieldType» «c.name»;
         «ENDIF»
     '''
     
@@ -99,13 +107,21 @@ class JavaDDLGeneratorMain implements IGenerator {
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             switch (ref.javaType) {
-            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP")
-            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP")
-            case "DateTime":            writeTemporal(c, "DATE")
-            case "ByteArray":           '''byte [] «c.name»;'''
+            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP", calendar)
+            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP", ref.javaType)
+            case "LocalDate":           writeTemporal(c, "TIMESTAMP", ref.javaType)
+            case "DateTime":            writeTemporal(c, "DATE", calendar)
+            case "ByteArray":           '''
+                    @Converter(name = "byteArrayConverter", converterClass = de.jpaw.bonaparte.jpa.ByteArrayConverter.class)
+                    @Convert("byteArrayConverter")
+                    @Type(type = "de.jpaw.bonaparte.jpa.ByteArrayUserType")
+                    ByteArray «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
                     // @Lob
-                    byte [] «c.name»;
+                    @Converter(name = "bonaPortableConverter", converterClass = de.jpaw.bonaparte.jpa.BonaPortableConverter.class)
+                    @Convert("byteArrayConverter")
+                    @Type(type = "de.jpaw.bonaparte.jpa.BonaPortableUserType")
+                    BonaPortable «c.name»;
                 '''
             default:                   '''        
                 «JavaDataTypeNoName(c, false)» «c.name»;
@@ -194,21 +210,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         return '''
             public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
-                    if («i.name» == null)
-                        return null;
-                    ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
-                    return _bap.readObject(BonaPortable.class, true, true);
+                    return «i.name»;
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «i.name» == null ? null : LocalDate.fromCalendarFields(«i.name»);
+                        return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «i.name» == null ? null : LocalDateTime.fromCalendarFields(«i.name»);
+                        return «i.name»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        return «i.name» == null ? null : new ByteArray(«i.name», 0, -1);
+                        return «i.name»;
                     «ELSE»
                         return «i.name»;
                     «ENDIF»
@@ -226,22 +239,16 @@ class JavaDDLGeneratorMain implements IGenerator {
         return '''
             public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
-                    if («i.name» == null) {
-                        this.«i.name» = null;
-                    } else {
-                        ByteArrayComposer _bac = new ByteArrayComposer();
-                        _bac.addField(«i.name»);
-                        this.«i.name» = _bac.getBytes();
-                    }
+                    this.«i.name» = «i.name»;
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         this.«i.name» = «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
-                        this.«i.name» = DayTime.toGregorianCalendar(«i.name»);
+                        this.«i.name» = «i.name»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        this.«i.name» = «i.name».getBytes();  // deep copy of contents
+                        this.«i.name» = «i.name»;
                     «ELSE»
                         this.«i.name» = «i.name»;
                     «ENDIF»
@@ -567,6 +574,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
+        import org.eclipse.persistence.annotations.Convert;
+        import org.eclipse.persistence.annotations.Converter;
+        import org.hibernate.annotations.Type;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
