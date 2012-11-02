@@ -117,9 +117,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     ByteArray «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
                     // @Lob
-                    @Converter(name = "bonaPortableConverter", converterClass = de.jpaw.bonaparte.jpa.BonaPortableConverter.class)
-                    @Convert("byteArrayConverter")
-                    BonaPortable «c.name»;
+                    byte [] «c.name»;
                 '''
             default:                   '''        
                 «JavaDataTypeNoName(c, false)» «c.name»;
@@ -208,7 +206,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         return '''
             public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
-                    return «i.name»;
+                    if («i.name» == null)
+                        return null;
+                    ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
+                    return _bap.readObject(BonaPortable.class, true, true);
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
@@ -237,7 +238,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         return '''
             public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
-                    this.«i.name» = «i.name»;
+                    if («i.name» == null) {
+                        this.«i.name» = null;
+                    } else {
+                        ByteArrayComposer _bac = new ByteArrayComposer();
+                        _bac.addField(«i.name»);
+                        this.«i.name» = _bac.getBytes();
+                    }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         this.«i.name» = «i.name»;
