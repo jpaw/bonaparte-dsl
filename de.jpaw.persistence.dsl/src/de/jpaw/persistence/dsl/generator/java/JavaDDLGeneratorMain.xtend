@@ -114,13 +114,11 @@ class JavaDDLGeneratorMain implements IGenerator {
             case "ByteArray":           '''
                     @Converter(name = "byteArrayConverter", converterClass = de.jpaw.bonaparte.jpa.ByteArrayConverter.class)
                     @Convert("byteArrayConverter")
-                    @Type(type = "de.jpaw.bonaparte.jpa.ByteArrayUserType")
                     ByteArray «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
                     // @Lob
                     @Converter(name = "bonaPortableConverter", converterClass = de.jpaw.bonaparte.jpa.BonaPortableConverter.class)
                     @Convert("byteArrayConverter")
-                    @Type(type = "de.jpaw.bonaparte.jpa.BonaPortableUserType")
                     BonaPortable «c.name»;
                 '''
             default:                   '''        
