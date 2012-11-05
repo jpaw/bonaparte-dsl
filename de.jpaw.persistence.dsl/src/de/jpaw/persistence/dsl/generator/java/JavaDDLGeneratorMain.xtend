@@ -83,16 +83,12 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def private writeTemporal(FieldDefinition c, String type, String fieldType) '''
-        «IF fieldType.equals("LocalDateTime")»
-        @Converter(name = "dateTimeConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateTimeConverter.class)
-        @Convert("dateTimeConverter")
-        «ELSEIF fieldType.equals("LocalDate")»
-        @Converter(name = "dateConverter", converterClass = de.jpaw.bonaparte.jpa.JodaLocalDateConverter.class)
-        @Convert("dateConverter")
-        «ELSE»        
+    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType) '''
         @Temporal(TemporalType.«type»)
-        «ENDIF»
+        «writeTemporalField(c, fieldType)»
+    '''
+    
+    def private writeTemporalField(FieldDefinition c, String fieldType) '''
         «IF c.isArray != null»
             «fieldType»[] «c.name»;
         «ELSEIF c.isList != null»
@@ -107,13 +103,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             switch (ref.javaType) {
-            case "GregorianCalendar":   writeTemporal(c, "TIMESTAMP", calendar)
-            case "LocalDateTime":       writeTemporal(c, "TIMESTAMP", ref.javaType)
-            case "LocalDate":           writeTemporal(c, "TIMESTAMP", ref.javaType)
-            case "DateTime":            writeTemporal(c, "DATE", calendar)
+            case "GregorianCalendar":   writeTemporalFieldAndAnnotation(c, "TIMESTAMP", calendar)
+            case "DateTime":            writeTemporalFieldAndAnnotation(c, "DATE", calendar)
+            case "LocalDateTime":       writeTemporalField(c, ref.javaType)
+            case "LocalDate":           writeTemporalField(c, ref.javaType)
             case "ByteArray":           '''
-                    @Converter(name = "byteArrayConverter", converterClass = de.jpaw.bonaparte.jpa.ByteArrayConverter.class)
-                    @Convert("byteArrayConverter")
                     ByteArray «c.name»;'''
             case JAVA_OBJECT_TYPE:      '''
                     // @Lob
@@ -579,8 +573,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
-        import org.eclipse.persistence.annotations.Convert;
-        import org.eclipse.persistence.annotations.Converter;
+        //import org.eclipse.persistence.annotations.Convert;
+        //import org.eclipse.persistence.annotations.Converter;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
