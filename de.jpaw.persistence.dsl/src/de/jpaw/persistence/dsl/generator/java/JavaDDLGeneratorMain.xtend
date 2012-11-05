@@ -581,7 +581,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.ByteUtil;
         import org.eclipse.persistence.annotations.Convert;
         import org.eclipse.persistence.annotations.Converter;
-        import org.hibernate.annotations.Type;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
