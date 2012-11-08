@@ -15,5 +15,10 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 				error("entities inherited from must define inheritance properties",
 						BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
 		}
+		
+		String tablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, false);
+		if (tablename.length() > 30)
+			warning("The resulting SQL table name " + tablename + " exceeds 30 characters length and will not work for some database brands (Oracle)",
+					BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
 	}
 }

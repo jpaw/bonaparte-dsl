@@ -82,6 +82,8 @@ class YUtil {
             // build the table name according to the template in the table category or the default
             // 1. get a suitable pattern
             var String myPattern
+            var String dropSuffix
+            var String tablename
             var myPackage = t.eContainer as PackageDefinition
             var myModel = getModel(myPackage.eContainer)
             var TableCategoryDefinition myCategory = t.tableCategory
@@ -93,20 +95,32 @@ class YUtil {
             // 1. pattern of referenced category
             // 2. pattern of defaults of my model
             // 3. pattern of defaults of model which owns the category 
-            if (myCategory.namePattern != null)
+            if (myCategory.namePattern != null) {
                 myPattern = myCategory.namePattern
-            else if (myModel.defaults != null && myModel.defaults.namePattern != null)
+                dropSuffix = myCategory.dropSuffix
+            } else if (myModel.defaults != null && myModel.defaults.namePattern != null) {
                 myPattern = myModel.defaults.namePattern
-            else if (theOtherModel.defaults != null && theOtherModel.defaults.namePattern != null)
+                dropSuffix = myModel.defaults.dropSuffix
+            } else if (theOtherModel.defaults != null && theOtherModel.defaults.namePattern != null) {
                 myPattern = theOtherModel.defaults.namePattern
-            else
-                myPattern = "(category)_(entity)"  // last fallback 
+                dropSuffix = theOtherModel.defaults.dropSuffix
+            } else {
+                myPattern = "(category)_(entity)"  // last fallback
+                dropSuffix = null
+            } 
             // 2. have the pattern, apply substitution rules
-            return myPattern.replace("(category)", myCategory.name)
-                            .replace("(entity)",   java2sql(t.name))
-                            .replace("(prefix)",   myPackage.dbPrefix)
-                            .replace("(owner)",    myPackage.schemaOwner)
-                            .replace("(package)",  myPackage.name.replace('.', '_'))
+            tablename = myPattern.replace("(category)", myCategory.name)
+                                 .replace("(entity)",   java2sql(t.name))
+                                 .replace("(prefix)",   myPackage.dbPrefix)
+                                 .replace("(owner)",    myPackage.schemaOwner)
+                                 .replace("(package)",  myPackage.name.replace('.', '_'))
+            // if the name ends in the suffix to drop, remove the suffix
+            if (dropSuffix != null) {
+                var suffixLength = dropSuffix.length
+                if (tablename.length > suffixLength && tablename.endsWith(dropSuffix))
+                    tablename = tablename.substring(0, tablename.length - suffixLength)
+            }
+            return tablename
         }
     }
 

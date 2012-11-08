@@ -35,12 +35,16 @@ import de.jpaw.bonaparte.dsl.generator.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import java.util.List
 import de.jpaw.persistence.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.bonScript.Visibility
 
 class JavaDDLGeneratorMain implements IGenerator {
     val String JAVA_OBJECT_TYPE = "BonaPortable";
-    val String calendar = "Calendar";  // "GregorianCalendar"
+    val String calendar = "Calendar";
     var FieldDefinition haveIntVersion = null
     var haveActive = false
+    var boolean useUserTypes = true;
+    var String fieldVisibility = "";
     
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
@@ -83,6 +87,19 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
     
+    // temporal types for Calendar (standard JPA types, conversion in getters / setters)
+    def private writeTemporal(FieldDefinition c, String type) '''
+        @Temporal(TemporalType.«type»)
+        «IF c.isArray != null»
+            «fieldVisibility»«calendar»[] «c.name»;
+        «ELSEIF c.isList != null»
+            «fieldVisibility»List <«calendar»> «c.name»;
+        «ELSE»
+            «fieldVisibility»«calendar» «c.name»;
+        «ENDIF»
+    '''
+    
+    // temporal types for UserType mappings (OR mapper specific extensions)
     def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType) '''
         @Temporal(TemporalType.«type»)
         «writeTemporalField(c, fieldType)»
@@ -90,11 +107,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     def private writeTemporalField(FieldDefinition c, String fieldType) '''
         «IF c.isArray != null»
-            «fieldType»[] «c.name»;
+            «fieldVisibility»«fieldType»[] «c.name»;
         «ELSEIF c.isList != null»
-            List <«fieldType»> «c.name»;
+            «fieldVisibility»List <«fieldType»> «c.name»;
         «ELSE»
-            «fieldType» «c.name»;
+            «fieldVisibility»«fieldType» «c.name»;
         «ENDIF»
     '''
     
@@ -102,26 +119,43 @@ class JavaDDLGeneratorMain implements IGenerator {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
-            switch (ref.javaType) {
-            case "GregorianCalendar":   writeTemporalFieldAndAnnotation(c, "TIMESTAMP", calendar)
-            case "DateTime":            writeTemporalFieldAndAnnotation(c, "DATE", calendar)
-            case "LocalDateTime":       writeTemporalField(c, ref.javaType)
-            case "LocalDate":           writeTemporalField(c, ref.javaType)
-            case "ByteArray":           '''
-                    ByteArray «c.name»;'''
-            case JAVA_OBJECT_TYPE:      '''
-                    // @Lob
-                    byte [] «c.name»;
-                '''
-            default:                   '''        
-                «JavaDataTypeNoName(c, false)» «c.name»;
-                '''
+            if (useUserTypes) {
+                switch (ref.javaType) {
+                case "Calendar":            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", calendar)
+                case "DateTime":            writeTemporalFieldAndAnnotation(c, "DATE", calendar)
+                case "LocalDateTime":       writeTemporalField(c, ref.javaType)
+                case "LocalDate":           writeTemporalField(c, ref.javaType)
+                case "ByteArray":           '''
+                        «fieldVisibility»ByteArray «c.name»;'''
+                case JAVA_OBJECT_TYPE:      '''
+                        // @Lob
+                        «fieldVisibility»byte [] «c.name»;
+                    '''
+                default:                   '''        
+                    «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
+                    '''
+                }
+            } else {
+                switch (ref.javaType) {
+                case "Calendar":            writeTemporal(c, "TIMESTAMP")
+                case "LocalDateTime":       writeTemporal(c, "TIMESTAMP")
+                case "DateTime":            writeTemporal(c, "DATE")
+                case "ByteArray":           '''
+                        «fieldVisibility»byte [] «c.name»;'''
+                case JAVA_OBJECT_TYPE:      '''
+                        // @Lob
+                        «fieldVisibility»byte [] «c.name»;
+                    '''
+                default:                   '''        
+                    «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
+                    '''
+                }
             }
         case DataTypeExtension::ENUM_NUMERIC: '''        
-                Integer «c.name»;
+                «fieldVisibility»Integer «c.name»;
             '''
         default: '''
-                «IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»;
+                «fieldVisibility»«IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»;
             '''
         }
     }
@@ -208,13 +242,13 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «i.name»;
+                        return «i.name»«IF !useUserTypes» == null ? null : LocalDate.fromCalendarFields(«i.name»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «i.name»;
+                        return «i.name»«IF !useUserTypes» == null ? null : LocalDateTime.fromCalendarFields(«i.name»)«ENDIF»;
+                    «ELSEIF ref.javaType.equals("ByteArray")»
+                        return «i.name»«IF !useUserTypes» == null ? null : new ByteArray(«i.name», 0, -1)«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«i.name»);       // deep copy
-                    «ELSEIF ref.javaType.equals("ByteArray")»
-                        return «i.name»;
                     «ELSE»
                         return «i.name»;
                     «ENDIF»
@@ -243,11 +277,11 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «IF ref.category == DataCategory::OBJECT»
                         this.«i.name» = «i.name»;
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
-                        this.«i.name» = «i.name»;
+                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»DayTime.toGregorianCalendar(«i.name»)«ENDIF»;
+                    «ELSEIF ref.javaType.equals("ByteArray")»
+                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»«i.name».getBytes()«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
-                    «ELSEIF ref.javaType.equals("ByteArray")»
-                        this.«i.name» = «i.name»;
                     «ELSE»
                         this.«i.name» = «i.name»;
                     «ENDIF»
@@ -469,16 +503,28 @@ class JavaDDLGeneratorMain implements IGenerator {
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
     }
     
+    def private static String makeVisibility(Visibility v) {
+        var XVisibility fieldScope
+        if (v != null && v.x != null)
+            fieldScope = v.x
+        if (fieldScope == null || fieldScope == XVisibility::DEFAULT)
+            ""
+        else
+            fieldScope.toString() + " " 
+    }
     
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
+        val myPackage = e.eContainer as PackageDefinition 
         e.tableCategory.trackingColumns?.collectImports(imports)
         e.pojoType.collectImports(imports)
         // reset tracking flags
         haveIntVersion = null
         haveActive = false
+        fieldVisibility = makeVisibility(if (e.visibility != null) e.visibility else myPackage.visibility)
+        useUserTypes = !myPackage.noUserTypes            
             
         imports.addImport(myPackageName, e.name)  // add myself as well
         imports.addImport(e.pojoType);
@@ -573,8 +619,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
-        //import org.eclipse.persistence.annotations.Convert;
-        //import org.eclipse.persistence.annotations.Converter;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;

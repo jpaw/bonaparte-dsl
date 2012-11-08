@@ -108,18 +108,18 @@ public class DataTypeExtension {
         dataTypeJava.put("char",      "Character");
         dataTypeJava.put("character", "Character");
         
-        dataTypeJava.put("raw",       "byte []");    // not recommended because mutable. Also weird for 2nd level of array index
+        dataTypeJava.put("raw",       "byte []");    	// not recommended because mutable. Also weird for 2nd level of array index
         dataTypeJava.put("binary",    "ByteArray");
         dataTypeJava.put("uuid",      "UUID");
-        dataTypeJava.put("calendar",  "GregorianCalendar");  // not recommended because mutable
-        dataTypeJava.put("timestamp", "LocalDateTime");  // temporary solution until JSR 310 has been implemented
-        dataTypeJava.put("day",       "LocalDate");      // temporary solution until JSR 310 has been implemented
+        dataTypeJava.put("calendar",  "Calendar");  	// not recommended because mutable
+        dataTypeJava.put("timestamp", "LocalDateTime"); // temporary solution until JSR 310 has been implemented
+        dataTypeJava.put("day",       "LocalDate");     // temporary solution until JSR 310 has been implemented
         
         dataTypeJava.put("uppercase", "String");
         dataTypeJava.put("lowercase", "String");
         dataTypeJava.put("ascii",     "String");
         dataTypeJava.put("unicode",   "String");
-        dataTypeJava.put("enum",      "@");  // artificial entry for enum
+        dataTypeJava.put("enum",      "@");  			// artificial entry for enum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
     
@@ -301,7 +301,7 @@ public class DataTypeExtension {
             // compatibility...
             if (!Util.useJoda()) {
                 if (r.javaType.equals("LocalDate") || r.javaType.equals("LocalDate"))
-                    r.javaType = "GregorianCalendar";
+                    r.javaType = "Calendar";
             }
             
             // special treatment for uppercase / lowercase shorthands

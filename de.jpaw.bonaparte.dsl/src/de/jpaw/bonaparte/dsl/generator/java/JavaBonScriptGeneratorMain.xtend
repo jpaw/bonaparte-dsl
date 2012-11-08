@@ -243,7 +243,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import java.util.ArrayList;
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
-        import java.util.GregorianCalendar;
+        import java.util.Calendar;
         import java.util.UUID;
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;

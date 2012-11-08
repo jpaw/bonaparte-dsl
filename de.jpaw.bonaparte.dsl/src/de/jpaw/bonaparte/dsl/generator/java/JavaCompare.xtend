@@ -26,10 +26,10 @@ class JavaCompare {
     
     def private static writeCompareSub(FieldDefinition i, String index) {
         switch (getJavaDataType(i.datatype)) {
-        case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "ByteArray":           '''«index».contentEquals(that.«index»)'''
-        case "GregorianCalendar":   '''«index».compareTo(that.«index») == 0'''
-        default:                    '''«index».equals(that.«index»)'''
+        case "byte []":     '''Arrays.equals(«index», that.«index»)'''
+        case "ByteArray":   '''«index».contentEquals(that.«index»)'''
+        case "Calendar":    '''«index».compareTo(that.«index») == 0'''
+        default:            '''«index».equals(that.«index»)'''
         }
     } 
     

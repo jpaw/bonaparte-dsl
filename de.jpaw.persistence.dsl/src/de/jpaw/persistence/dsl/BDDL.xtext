@@ -45,7 +45,7 @@ ImportDefinition:
 
 DefaultsDefinition:
     'default' {DefaultsDefinition}
-    ('tablenamepattern' namePattern=STRING)?
+    ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
     ';'
@@ -61,20 +61,20 @@ GrantList:
     roleOrUserName = ID ':' permissions = PermissionList ';';
     
 GrantCategoryDefinition:
-    'grants' name=ID '{' grants += GrantList* '}' ';';
+    'grants' name=ID '{' grants += GrantList* '}';
 
 
 TableCategoryDefinition:
-    'category' name=ID
+    'category' name=ID '{'
     ('trackinggroup' trackingColumns=[pojos::ClassDefinition])?  
-    ('tablenamepattern' namePattern=STRING)?
+    ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
     ('history' historyCategory=[TableCategoryDefinition])?
     ('historyColumn' historyColumn = ID)?  // TODO: currently unchecked  
     (requiresPk ?= 'requiresPK')?
     ('grants' grantGroup = [GrantCategoryDefinition])?
-    ';'
+    '}'
 ;
 
 PackageDefinition:
@@ -83,7 +83,9 @@ PackageDefinition:
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
         'owner'  schemaOwner = ID
         'prefix' dbPrefix = ID
+        (noUserTypes ?= 'noUserTypes')?     // do not use JodaTime and ByteArray in entity classes directly, but convert in getters/setters
     '{' 
+        ('fields' visibility=Visibility ';')?
         grantCategories += GrantCategoryDefinition* 
         tableCategories += TableCategoryDefinition*
         // xpojos += ClassDefinition*   // can fail because BonScript assumes that the parent of a ClassDefinition is a BonScript Package
@@ -111,6 +113,7 @@ EntityDefinition:
         )?
         ('implements' implementsInterface = QualifiedId )?
     '{'
+        ('fields' visibility=Visibility ';')?
         (cacheable ?= 'cacheable')?
         // EclipseLink specific caching: do not use
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?

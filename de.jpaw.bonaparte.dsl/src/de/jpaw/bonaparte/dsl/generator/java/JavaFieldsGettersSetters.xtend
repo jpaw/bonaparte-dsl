@@ -81,7 +81,7 @@ class JavaFieldsGettersSetters {
         '''
     }
    
-    // TODO: Setters might need to check string max length, and also clone for GregorianCalendar and byte arrays?
+    // TODO: Setters might need to check string max length, and also clone for (Gregorian)Calendar and byte arrays?
     def public static writeFields(ClassDefinition d, boolean doBeanVal) '''
         // fields as defined in DSL
         «FOR i:d.fields»

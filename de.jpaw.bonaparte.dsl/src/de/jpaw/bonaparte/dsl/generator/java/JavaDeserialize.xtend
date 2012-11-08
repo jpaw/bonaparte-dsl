@@ -56,15 +56,15 @@ class JavaDeserialize {
         case 'uuid':      '''p.readUUID      («ref.wasUpperCase»)'''
         case 'binary':    '''p.readByteArray («ref.wasUpperCase», «i.length»)'''
         case 'raw':       '''p.readRaw       («ref.wasUpperCase», «i.length»)'''
-        case 'calendar':  '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+        case 'calendar':  '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': if (Util::useJoda())
                              '''p.readDayTime(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
                           else
-                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+                             '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'day':       if (Util::useJoda())
                              '''p.readDay(«ref.wasUpperCase»)'''
                           else
-                             '''p.readGregorianCalendar(«ref.wasUpperCase», «i.doHHMMSS», -1)'''
+                             '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», -1)'''
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString(«ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger(«ref.wasUpperCase», false))«ENDIF»'''
         case 'object':    '''p.readObject(BonaPortable.class, «ref.wasUpperCase», true)'''

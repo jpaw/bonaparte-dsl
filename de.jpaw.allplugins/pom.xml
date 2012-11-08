@@ -166,9 +166,6 @@
     <profiles>
         <profile>
             <id>kreios</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
             <distributionManagement>
                 <repository>
                     <id>kreios-ast-snapshots</id>
@@ -180,6 +177,9 @@
         </profile>
         <profile>
             <id>jpaw</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <distributionManagement>
                 <snapshotRepository>
                     <id>repo-snapshots</id>

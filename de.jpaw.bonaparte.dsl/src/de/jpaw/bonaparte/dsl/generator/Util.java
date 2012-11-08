@@ -19,7 +19,7 @@ package de.jpaw.bonaparte.dsl.generator;
 import org.apache.commons.lang.StringEscapeUtils;
 
 public class Util {
-    static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Gregorian?
+    static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Calendar?
         return true;
     }
     

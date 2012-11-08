@@ -33,7 +33,7 @@ class EqualsHash {
         case "BonaPortable":        '''Arrays.equals(«index», that.«index»)''' // mapped to byte []
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
         case "ByteArray":           '''Arrays.equals(«index», that.«index»)''' // '''«index».contentEquals(that.«index»)''' is mapped to byte[]
-        case "GregorianCalendar":   '''«index».compareTo(that.«index») == 0'''
+        case "Calendar":            '''«index».compareTo(that.«index») == 0'''
         case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         default:                    '''«index».equals(that.«index»)'''
