@@ -40,6 +40,7 @@ import de.jpaw.bonaparte.dsl.generator.ImportCollector
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
+    val boolean codegenJava7 = false    // set to true to generate String switches for enum
     
     private String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
     var Map<String, String> requiredImports = new HashMap<String, String>()
@@ -114,15 +115,22 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     return _token;
                 }
                 
-                // static factory method. Requires Java 7
+                // static factory method.«IF codegenJava7» Requires Java 7«ENDIF»
                 public static «d.name» factory(String _token) throws EnumException {
-                    if (_token != null) { 
-                        switch (_token) {
-                        «FOR v:d.avalues»
-                            case "«v.token»": return «v.name»;  
-                        «ENDFOR»
-                        default: throw new EnumException(EnumException.INVALID_NUM, _token);
-                        }
+                    if (_token != null) {
+                        «IF codegenJava7»
+                            switch (_token) {
+                            «FOR v:d.avalues»
+                                case "«v.token»": return «v.name»;  
+                            «ENDFOR»
+                            default: throw new EnumException(EnumException.INVALID_NUM, _token);
+                            }
+                        «ELSE»
+                            «FOR v:d.avalues»
+                                if (_token.equals("«v.token»") return «v.name»;  
+                            «ENDFOR»
+                            throw new EnumException(EnumException.INVALID_NUM, _token);
+                        «ENDIF»
                     }
                     return null;
                 }

@@ -16,22 +16,24 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.JavaPackages
+import de.jpaw.bonaparte.dsl.generator.Util
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaMeta.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaMeta {
     
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
+        /*
         var ref = DataTypeExtension::get(i.datatype)
         var initDataForFieldDefinition = (if (ref.visibility == null) XVisibility::DEFAULT else ref.visibility)
             + ", " + i.isRequired
             + ", " + i.name
-            + ", " + (if (i.isArray != null) "true, " + i.isArray.maxcount else "false, null")
+            + ", " + (if (i.isArray != null) "true, " + i.isArray.maxcount else "false, null") */
         return "null"  // WIP
     }
     
@@ -41,7 +43,7 @@ class JavaMeta {
         var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
         return '''
             // property map
-            private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<>();
+            private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<String,String>();
 
             // initializer
             protected static void class$fillProperties(ConcurrentMap<String,String> map) {
