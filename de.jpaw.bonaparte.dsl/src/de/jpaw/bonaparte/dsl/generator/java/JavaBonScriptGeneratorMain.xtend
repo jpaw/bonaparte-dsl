@@ -127,7 +127,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                             }
                         «ELSE»
                             «FOR v:d.avalues»
-                                if (_token.equals("«v.token»") return «v.name»;  
+                                if (_token.equals("«v.token»")) return «v.name»;  
                             «ENDFOR»
                             throw new EnumException(EnumException.INVALID_NUM, _token);
                         «ENDIF»
