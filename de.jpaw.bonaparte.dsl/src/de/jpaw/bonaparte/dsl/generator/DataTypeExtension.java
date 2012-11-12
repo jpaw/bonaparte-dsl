@@ -149,6 +149,44 @@ public class DataTypeExtension {
         map.clear();
     }
     
+    static private void mergeFieldSpecsWithDefaultsForObjects(DataTypeExtension r, DataType key) throws Exception {
+        ElementaryDataType e = r.elementaryDataType;
+        // find the parent which is the relevant package definition. These are 2 or 3 steps
+        // (Package => Typedef => DataType key) or
+        // (Package => ClassDefinition => FieldDefinition => DataType key)
+        // Still, we keep this generic in order to support possible changes of the grammar
+        PackageDefinition p = null;
+        ClassDefinition cd = null;
+        FieldDefaultsDefinition classdefs = null;
+        
+        for (EObject i = key.eContainer(); ; i = i.eContainer()) {
+            if (i instanceof ClassDefinition) {
+                cd = (ClassDefinition)i;
+            } else if (i instanceof PackageDefinition) {
+                p = (PackageDefinition)i;
+                break;
+            }
+        }
+        // assert results: p must exist, cd only if inside class
+        if (p == null)
+            throw new Exception("no wrapping package found for " + e.getName());
+        if (cd != null)
+            classdefs = cd.getDefaults();
+
+        // for every field, prefer field level setting (if exists here), then fall back to class defaults,
+        // then to package defaults, and finally to hardcoded defaults
+        r.visibility = classdefs != null && classdefs.getVisibility() != null
+                        ? classdefs.getVisibility().getX()
+                        : p.getDefaults() != null && p.getDefaults().getVisibility() != null
+                            ? p.getDefaults().getVisibility().getX()
+                            : XVisibility.DEFAULT;
+        r.defaultRequired = classdefs != null && classdefs.getRequired() != null
+                          ? classdefs.getRequired().getX()
+                          : p.getDefaults() != null && p.getDefaults().getRequired() != null
+                              ? p.getDefaults().getRequired().getX()
+                              : null;
+    }
+
     static private void mergeFieldSpecsWithDefaults(DataTypeExtension r, DataType key) throws Exception {
         ElementaryDataType e = r.elementaryDataType;
         // find the parent which is the relevant package definition. These are 2 or 3 steps
@@ -255,6 +293,9 @@ public class DataTypeExtension {
         	if (key.getObjectDataType().getClassRef() != null)
         		r.objectDataType = key.getObjectDataType().getClassRef();
         	// TODO: how to fill objectDataType when we have generics...
+        	
+            // merge the defaults specifications
+            mergeFieldSpecsWithDefaultsForObjects(r, key);
         }
         
         if (r.elementaryDataType != null) {
