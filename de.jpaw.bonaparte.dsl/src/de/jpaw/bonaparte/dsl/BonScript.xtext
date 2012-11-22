@@ -173,6 +173,7 @@ ClassDefinition:
 ;*/
 
 EnumDefinition:
+    (javadoc = JAVADOC_COMMENT)?
     'enum' name = ID '{'
         ((values += ID (',' values += ID)+) |
          (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)+))

@@ -97,6 +97,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         package «getPackageName(d)»;
         
         import de.jpaw.util.EnumException;
+        
+        «IF d.javadoc != null»
+            «d.javadoc»
+        «ENDIF»        
 
         public enum «d.name» {
             «IF d.avalues == null || d.avalues.size() == 0»

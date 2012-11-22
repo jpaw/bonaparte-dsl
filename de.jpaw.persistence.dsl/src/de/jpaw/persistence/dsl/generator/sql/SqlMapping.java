@@ -1,19 +1,19 @@
- /*
-  * Copyright 2012 Michael Bischoff
-  *
-  * Licensed under the Apache License, Version 2.0 (the "License");
-  * you may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at
-  *
-  *   http://www.apache.org/licenses/LICENSE-2.0
-  *
-  * Unless required by applicable law or agreed to in writing, software
-  * distributed under the License is distributed on an "AS IS" BASIS,
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  */
-  
+/*
+ * Copyright 2012 Michael Bischoff
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package de.jpaw.persistence.dsl.generator.sql;
 
 import java.util.HashMap;
@@ -29,7 +29,7 @@ public class SqlMapping {
     // (LANGUAGE / DATABASE VENDOR SPECIFIC: SQL Oracle)
     static protected Map<String,String> dataTypeSqlOracle = new HashMap<String, String>(32);
     static {  // see http://docs.oracle.com/cd/E11882_01/server.112/e26088/sql_elements001.htm#i45441 for reference
-              // we avoid the ANSI data types for Oracle, because I think the native ones have better performance
+        // we avoid the ANSI data types for Oracle, because I think the native ones have better performance
         dataTypeSqlOracle.put("boolean",   "number(1)");                // Oracle has no boolean type
         dataTypeSqlOracle.put("int",       "number(10)");               // no specific type available for Oracle
         dataTypeSqlOracle.put("integer",   "number(10)");               // no specific type available for Oracle
@@ -42,14 +42,14 @@ public class SqlMapping {
         dataTypeSqlOracle.put("short",     "number(5)");
         dataTypeSqlOracle.put("char",      "varchar2(1 char)");
         dataTypeSqlOracle.put("character", "varchar2(1 char)");
-        
+
         dataTypeSqlOracle.put("uuid",      "raw(16)");                      // not yet supported by grammar!
         dataTypeSqlOracle.put("binary",    "raw(#length)");                 // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlOracle.put("raw",       "raw(#length)");                 // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlOracle.put("day",       "date");                         // Oracle has no day without a time field
         dataTypeSqlOracle.put("timestamp", "timestamp(#length)");           // timestamp(0) should become DATE
         dataTypeSqlOracle.put("calendar",  "timestamp(#length)");           // timestamp(0) should become DATE
-        
+
         dataTypeSqlOracle.put("uppercase", "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
         dataTypeSqlOracle.put("lowercase", "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
         dataTypeSqlOracle.put("ascii",     "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
@@ -71,49 +71,56 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("short",     "smallint");
         dataTypeSqlPostgres.put("char",      "char(1)");
         dataTypeSqlPostgres.put("character", "char(1)");
-        
+
         dataTypeSqlPostgres.put("uuid",      "uuid");
         dataTypeSqlPostgres.put("binary",    "bytea");
         dataTypeSqlPostgres.put("raw",       "bytea");
         dataTypeSqlPostgres.put("day",       "date");
         dataTypeSqlPostgres.put("timestamp", "timestamp(#length)");
         dataTypeSqlPostgres.put("calendar",  "timestamp(#length)");
-        
+
         dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
         dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
         dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
         dataTypeSqlPostgres.put("unicode",   "varchar(#length)");
         dataTypeSqlPostgres.put("enum",      "smallint");
-        dataTypeSqlPostgres.put("object",    "bytea");                      // mapping to numeric or varchar is done by entity class getter/setter 
+        dataTypeSqlPostgres.put("object",    "bytea");                      // mapping to numeric or varchar is done by entity class getter/setter
     }
-    
+
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
+        String datatype;
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
-        if (ref.objectDataType != null)
-            return "TODO! Object ref!";
-        String datatype = ref.elementaryDataType.getName().toLowerCase();
-        if (ref.enumMaxTokenLength >= 0)
+        if (ref.objectDataType != null) {
+            datatype = "long";  // assume artificial ID
+        } else {
+            datatype = ref.elementaryDataType.getName().toLowerCase();
+        }
+        if (ref.enumMaxTokenLength >= 0) {
             // alphanumeric enum! use other type!
             datatype = "unicode";
+        }
         switch (databaseFlavour) {
         case ORACLE:
             datatype = dataTypeSqlOracle.get(datatype);
             int length = ref.elementaryDataType.getLength();
             if (length > 2000) {
-                if (datatype.startsWith("raw"))
+                if (datatype.startsWith("raw")) {
                     datatype = "blob";
-                else if (length > 4000 && datatype.startsWith("varchar2"))
+                } else if ((length > 4000) && datatype.startsWith("varchar2")) {
                     datatype = "clob";
-            } else if (length == 0 && datatype.equals("timestamp(#length)")) {
+                }
+            } else if ((length == 0) && datatype.equals("timestamp(#length)")) {
                 datatype = "date";  // better performance, less memory consumption
             }
-            if (ref.allTokensAscii && ref.enumMaxTokenLength >= 0)  // alphanumeric enum
+            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
                 datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            }
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
-            if (ref.allTokensAscii && ref.enumMaxTokenLength >= 0)  // alphanumeric enum
+            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
                 datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            }
             break;
         }
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
@@ -124,7 +131,7 @@ public class SqlMapping {
             return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
         }
         return datatype.replace("#length",    Integer.valueOf(ref.elementaryDataType.getLength()).toString())
-                       .replace("#precision", Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
+                .replace("#precision", Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
     }
 
     static boolean supportsTablespaces(DatabaseFlavour databaseFlavour) {
@@ -136,7 +143,7 @@ public class SqlMapping {
         }
         return false;
     }
-    
+
     static public String getCurrentUser(DatabaseFlavour databaseFlavour) {
         switch (databaseFlavour) {
         case ORACLE:
@@ -146,7 +153,7 @@ public class SqlMapping {
         }
         return "";
     }
-    
+
     static public String getCurrentTimestamp(DatabaseFlavour databaseFlavour) {
         switch (databaseFlavour) {
         case ORACLE:
