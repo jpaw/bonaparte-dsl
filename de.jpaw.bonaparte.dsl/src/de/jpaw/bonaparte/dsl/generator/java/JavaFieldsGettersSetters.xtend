@@ -57,6 +57,9 @@ class JavaFieldsGettersSetters {
             «IF i.comment != null»
                 // «i.comment» !
             «ENDIF»
+            «IF i.javadoc != null»
+                «i.javadoc»
+            «ENDIF»        
             «IF doBeanVal»
                 «IF i.isRequired && !ref.isPrimitive»
                     @NotNull
