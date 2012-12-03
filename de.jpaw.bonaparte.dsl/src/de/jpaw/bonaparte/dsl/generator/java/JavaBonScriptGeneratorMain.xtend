@@ -37,6 +37,7 @@ import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -172,6 +173,17 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             if (d.extendsClass != null)
                 recurseMethods(d.extendsClass, false)
     }  */
+    
+    // collect imports required for a class reference and all potential generics parameters 
+    def recurseCollectClassRefs(ImportCollector imports, ClassReference r) {
+        if (r != null) {
+            imports.addImport(r.classRef)
+            if (r.classRefGenericParms != null)
+                for (p : r.classRefGenericParms)
+                    recurseCollectClassRefs(imports, p)
+        }
+    }
+    
     def collectRequiredImports(ImportCollector imports, ClassDefinition d) {
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
@@ -188,8 +200,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         }
         // return parameters of specific methods 
         //recurseMethods(d, true)
+        
         // finally, possibly the parent object (if it exists)
-        imports.addImport(d.getParent)
+        recurseCollectClassRefs(imports, d.extendsClass)
 
         // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
     }

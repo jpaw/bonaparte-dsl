@@ -194,6 +194,7 @@ TypeDefinition:
 // Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
 FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     // (annotations=FieldAnnotations)  // for extensions, for example additional JSR303 like validations. Mixed feelings about this, because it actually violates the "single responsibility" principle.
+    (javadoc = JAVADOC_COMMENT)?
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType
