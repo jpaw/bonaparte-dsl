@@ -492,7 +492,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         switch (i) {
         case Inheritance::SINGLE_TABLE: return "SINGLE_TABLE"
         case Inheritance::JOIN: return "JOINED"
-        case Inheritance::TABLE_PER_ENTITY: return "TABLE_PER_ENTITY"
+        case Inheritance::TABLE_PER_CLASS: return "TABLE_PER_CLASS"
         }
     }
     

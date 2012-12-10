@@ -94,7 +94,7 @@ PackageDefinition:
 ;
 
 enum Inheritance:
-    SINGLE_TABLE='singleTable' | TABLE_PER_ENTITY='tablePerEntity' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
+    SINGLE_TABLE='singleTable' | TABLE_PER_CLASS='tablePerClass' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
 
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?

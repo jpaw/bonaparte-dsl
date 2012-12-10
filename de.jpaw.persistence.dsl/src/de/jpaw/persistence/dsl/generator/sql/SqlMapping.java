@@ -90,10 +90,16 @@ public class SqlMapping {
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
+        int columnLength;
+        int columnDecimals;
         if (ref.objectDataType != null) {
             datatype = "long";  // assume artificial ID
+            columnLength = 18;
+            columnDecimals = 0;
         } else {
             datatype = ref.elementaryDataType.getName().toLowerCase();
+            columnLength = ref.elementaryDataType.getLength();
+            columnDecimals = ref.elementaryDataType.getDecimals();
         }
         if (ref.enumMaxTokenLength >= 0) {
             // alphanumeric enum! use other type!
@@ -102,14 +108,13 @@ public class SqlMapping {
         switch (databaseFlavour) {
         case ORACLE:
             datatype = dataTypeSqlOracle.get(datatype);
-            int length = ref.elementaryDataType.getLength();
-            if (length > 2000) {
+            if (columnLength > 2000) {
                 if (datatype.startsWith("raw")) {
                     datatype = "blob";
-                } else if ((length > 4000) && datatype.startsWith("varchar2")) {
+                } else if ((columnLength > 4000) && datatype.startsWith("varchar2")) {
                     datatype = "clob";
                 }
-            } else if ((length == 0) && datatype.equals("timestamp(#length)")) {
+            } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
                 datatype = "date";  // better performance, less memory consumption
             }
             if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
@@ -130,8 +135,7 @@ public class SqlMapping {
             // special case for alphanumeric enums, again!
             return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
         }
-        return datatype.replace("#length",    Integer.valueOf(ref.elementaryDataType.getLength()).toString())
-                .replace("#precision", Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
+        return datatype.replace("#length", Integer.valueOf(columnLength).toString()).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
 
     static boolean supportsTablespaces(DatabaseFlavour databaseFlavour) {
