@@ -6,6 +6,9 @@
    <feature url="features/de.jpaw.persistence.dsl.sdk_1.0.0.201212092115.jar" id="de.jpaw.persistence.dsl.sdk" version="1.0.0.201212092115">
       <category name="Bonaparte"/>
    </feature>
+   <feature url="features/de.jpaw.persistence.dsl.sdk_1.0.0.201301101927.jar" id="de.jpaw.persistence.dsl.sdk" version="1.0.0.201301101927">
+      <category name="Bonaparte"/>
+   </feature>
    <category-def name="Bonaparte" label="Software development tools related to object serialization">
       <description>
          A DSL to simplify the creation of seralizable objects.

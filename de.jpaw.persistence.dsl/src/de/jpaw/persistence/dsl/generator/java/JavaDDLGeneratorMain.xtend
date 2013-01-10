@@ -445,7 +445,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Override
         public void set$Tracking(«trackingType» _d) {
             «IF e.tableCategory.trackingColumns != null»
-                «recurseDataSetter(e.tableCategory.trackingColumns, null)»
+                «recurseDataSetter(e.tableCategory.trackingColumns, null, null)»
             «ENDIF»
         }
         «ENDIF»

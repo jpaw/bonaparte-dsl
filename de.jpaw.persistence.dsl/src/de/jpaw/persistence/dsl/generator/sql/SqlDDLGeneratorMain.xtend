@@ -85,7 +85,9 @@ class SqlDDLGeneratorMain implements IGenerator {
             «cl.extendsClass?.classRef?.recurseColumns(databaseFlavour, stopper)»
             -- table columns of java class «cl.name»
             «FOR c : cl.fields»
-                «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»
+                «IF c.isArray == null && c.isList == null»
+                    «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»
+                «ENDIF»
             «ENDFOR»
         «ENDIF»
     '''
@@ -96,7 +98,9 @@ class SqlDDLGeneratorMain implements IGenerator {
             -- comments for columns of java class «cl.name»
             «FOR c : cl.fields»
                 «IF c.comment != null»
-                    COMMENT ON COLUMN «tablename».«columnName(c)» IS '«quoteSQL(c.comment)»';
+                    «IF c.isArray == null && c.isList == null»
+                        COMMENT ON COLUMN «tablename».«columnName(c)» IS '«quoteSQL(c.comment)»';
+                    «ENDIF»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
