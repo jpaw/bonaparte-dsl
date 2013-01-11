@@ -19,6 +19,8 @@ package de.jpaw.persistence.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class ZUtil {
     
@@ -32,13 +34,23 @@ class ZUtil {
         «ENDIF»
     '''
     
-    def public static recurseDataSetter(ClassDefinition d, ClassDefinition stopper) '''
+    def public static recurseDataSetter(ClassDefinition d, ClassDefinition stopper, EntityDefinition avoidKeyOf) '''
         «IF d != stopper»
-            «d.extendsClass?.classRef?.recurseDataSetter(stopper)»
+            «d.extendsClass?.classRef?.recurseDataSetter(stopper, avoidKeyOf)»
             // auto-generated data setter for «d.name»
             «FOR i:d.fields»
-                set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
+                «IF avoidKeyOf == null || !isKeyField(avoidKeyOf, i)»
+                    set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
+                «ENDIF»
             «ENDFOR»
         «ENDIF»
     '''
+    
+    def public static isKeyField(EntityDefinition e, FieldDefinition f) {
+        for (FieldDefinition i: e.pk.columnName) {
+            if (i == f)
+                return true
+        }
+        return false
+    }
 }
