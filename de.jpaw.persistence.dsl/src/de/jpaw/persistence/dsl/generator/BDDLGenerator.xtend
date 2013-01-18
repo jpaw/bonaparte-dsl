@@ -33,12 +33,15 @@ class BDDLGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
     
         // code output: one xtend file per language, such that it can be easily extended to additional languages
-        logger.info("start code output: SQL DDL");
-        new SqlDDLGeneratorMain().doGenerate(resource, fsa)
-        
-        logger.info("start code output: Java");
-        new JavaDDLGeneratorMain().doGenerate(resource, fsa)
-        
-        logger.info("start cleanup");
+        if (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bddl")) {
+            logger.info("## Processing resource: " + resource.URI.toString)
+            logger.info("start code output: SQL DDL");
+            new SqlDDLGeneratorMain().doGenerate(resource, fsa)
+
+            logger.info("start code output: Java");
+            new JavaDDLGeneratorMain().doGenerate(resource, fsa)
+
+            logger.info("start cleanup");
+        }
     }
 }
