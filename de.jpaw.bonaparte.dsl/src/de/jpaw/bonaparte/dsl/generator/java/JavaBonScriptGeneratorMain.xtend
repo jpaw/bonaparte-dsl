@@ -320,7 +320,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»        
 
         «IF (xmlAccess != null && !d.isAbstract)»
-            @XmlRootElement(name="«d.name»")
+            @XmlRootElement
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.isDeprecated»
