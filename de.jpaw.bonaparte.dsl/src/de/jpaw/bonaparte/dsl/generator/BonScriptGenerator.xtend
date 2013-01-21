@@ -34,16 +34,23 @@ class BonScriptGenerator implements IGenerator {
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
+        // System::out.println("XXXX checking " + resource.URI.toString);
         // code output: one xtend file per language, such that it can be easily extended to additional languages
-        logger.info("start code output: Debug dump");
-        new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
+        // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
+        if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
+            || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bon")) // maven fornax plugin
+            ) {
+            
+            logger.info("start code output: Debug dump for " + resource.URI.toString);
+            new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
         
-        logger.info("start code output: Java");
-        new JavaBonScriptGeneratorMain().doGenerate(resource, fsa)
+            logger.info("start code output: Java output for " + resource.URI.toString);
+            new JavaBonScriptGeneratorMain().doGenerate(resource, fsa)
         
-        logger.info("start cleanup");
-        DataTypeExtension::clear()
+            logger.info("start cleanup");
+            DataTypeExtension::clear()
+        } else {
+            logger.info("Skipping code generation for " + resource.URI.toString);
+        }
     }
-    
- 
 }

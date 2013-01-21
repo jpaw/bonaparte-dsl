@@ -33,12 +33,17 @@ class BDDLGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
     
         // code output: one xtend file per language, such that it can be easily extended to additional languages
-        logger.info("start code output: SQL DDL");
-        new SqlDDLGeneratorMain().doGenerate(resource, fsa)
+        // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
+        if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
+            || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bddl")) // maven fornax plugin
+            ) {
+            logger.info("start code output: SQL DDL for " + resource.URI.toString);
+            new SqlDDLGeneratorMain().doGenerate(resource, fsa)
         
-        logger.info("start code output: Java");
-        new JavaDDLGeneratorMain().doGenerate(resource, fsa)
+            logger.info("start code output: Java output for " + resource.URI.toString);
+            new JavaDDLGeneratorMain().doGenerate(resource, fsa)
         
-        logger.info("start cleanup");
+            logger.info("start cleanup");
+        }
     }
 }
