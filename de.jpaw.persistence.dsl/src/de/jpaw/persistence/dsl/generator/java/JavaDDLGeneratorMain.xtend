@@ -566,9 +566,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isAbstract»
         import MappedSuperclass;
         «ENDIF»
-        «IF e.discname != null»
+        «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
         import javax.persistence.Inheritance;
         import javax.persistence.InheritanceType;
+        «ENDIF»
+        «IF e.discname != null»
         import javax.persistence.DiscriminatorType;
         import javax.persistence.DiscriminatorColumn;
         import javax.persistence.DiscriminatorValue;
@@ -643,8 +645,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Multitenant(/* SINGLE_TABLE */)
         «ENDIF»
         «ENDIF»
+        «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
+        @Inheritance(strategy=InheritanceType.«i2s(e.xinheritance)»)
+        «ENDIF»
         «IF e.discname != null»
-        @Inheritance(strategy=InheritanceType.«i2s(e.inheritance)»)
         @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSE»STRING«ENDIF»)
         @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
         «ELSEIF e.^extends != null»

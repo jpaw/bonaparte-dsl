@@ -128,7 +128,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         // System::out.println("      tablename is " + tablename);
-        if (t.^extends != null && t.inheritanceRoot.inheritance == Inheritance::JOIN) {
+        if (t.^extends != null && t.inheritanceRoot.xinheritance == Inheritance::JOIN) {
             stopper = t.^extends.pojoType       // stopper is set for JOIN type subclasses
         }            
             

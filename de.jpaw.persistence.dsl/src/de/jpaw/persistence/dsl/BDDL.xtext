@@ -94,7 +94,7 @@ PackageDefinition:
 ;
 
 enum Inheritance:
-    SINGLE_TABLE='singleTable' | TABLE_PER_CLASS='tablePerClass' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
+    NONE='none' | SINGLE_TABLE='singleTable' | TABLE_PER_CLASS='tablePerClass' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
 
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
@@ -107,7 +107,7 @@ EntityDefinition:
         'is' pojoType=[pojos::ClassDefinition]
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
-        (('inheritance' inheritance=Inheritance 'discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))
+        (('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?)
          | ('extends' extendsClass=[pojos::ClassDefinition])
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING))
         )?
