@@ -27,8 +27,8 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 
 class YUtil {
-    def public static quoteSQL(String text) {
-        text.replace("'", "''");
+    def public static String quoteSQL(String text) {
+        return text.replace("'", "''").replace("\\", "\\\\");
     }
     
     def public static java2sql(String javaname) {

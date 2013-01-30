@@ -19,6 +19,7 @@ package de.jpaw.persistence.dsl.generator.sql
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.persistence.dsl.generator.YUtil
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class SqlColumns {
     // TODO: check if column is in PK (then ssume implicit NOT NULL)
@@ -26,10 +27,13 @@ class SqlColumns {
         if (XUtil::isRequired(c)) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
+        val ref = DataTypeExtension::get(c.datatype)
         if (YUtil::hasProperty(c.properties, "currentUser"))
             SqlMapping::getCurrentUser(databaseFlavour)
         else if (YUtil::hasProperty(c.properties, "currentTimestamp"))
             SqlMapping::getCurrentTimestamp(databaseFlavour)
+        else if (c.defaultString != null)
+            SqlMapping::getDefault(c, databaseFlavour, c.defaultString)
         else
             ""
     }

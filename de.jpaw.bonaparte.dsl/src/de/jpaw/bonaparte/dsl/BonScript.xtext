@@ -200,6 +200,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     datatype    = DataType
     (isArray    = ArrayModifier | isList = ListModifier)?
     name        = ID
+    ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
     ';'
     (comment     = SL_COMMENT)?
@@ -231,7 +232,7 @@ ElementaryDataType:
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)
            "(" (minLength=INT '..')? length=INT ")"
            (trimming   = Trimming)?          
-           (truncating = Truncating)?          
+           (truncating = Truncating)?
            ('regexp' regexp=STRING)?                )          
       | (name=("unicode"|"Unicode")                            // any displayable Unicode character
            "(" (minLength=INT '..')? length=INT ")"
