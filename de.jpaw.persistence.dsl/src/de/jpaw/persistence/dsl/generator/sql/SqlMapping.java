@@ -21,6 +21,7 @@ import java.util.Map;
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.persistence.dsl.generator.YUtil;
 
 // mapping of database vendor specific information
 
@@ -166,5 +167,23 @@ public class SqlMapping {
             return " DEFAULT CURRENT_TIMESTAMP";
         }
         return "";
+    }
+
+    static public String getDefault(FieldDefinition c, DatabaseFlavour databaseFlavour, String value) throws Exception {
+        DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
+        if ((databaseFlavour == DatabaseFlavour.ORACLE) && "Boolean".equals(ref.javaType)) {
+            // Oracle does not know booleans, convert it to numeric!
+            if ("true".equals(value)) {
+                return " DEFAULT 1";
+            } else if ("false".equals(value)) {
+                return " DEFAULT 0";
+            } else {
+                return " DEFAULT " + value; // no mapping possible, maybe it just fits !? Otherwise it will generate an error!
+            }
+        } else if ("String".equals(ref.javaType)) {
+            return " DEFAULT '" + YUtil.quoteSQL(value) + "'";
+        } else {
+            return " DEFAULT " + value;
+        }
     }
 }

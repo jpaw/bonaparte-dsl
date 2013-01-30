@@ -50,6 +50,16 @@ class JavaFieldsGettersSetters {
             fieldScope.toString() + " " 
     } 
     
+    def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref) {
+        if (i.defaultString == null)
+            ''''''
+        else    
+            if (ref.javaType.equals("String"))
+                ''' = "«Util::escapeString2Java(i.defaultString)»"'''
+            else
+                ''' = «i.defaultString»'''
+    }
+    
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         
@@ -80,7 +90,7 @@ class JavaFieldsGettersSetters {
                     «ENDIF»
                 «ENDIF»
             «ENDIF»
-            «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»;
+            «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }
    
