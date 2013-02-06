@@ -576,7 +576,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.mappedSuperclass || e.isAbstract»
-        import javax.persistence.MappedSuperclass
+        import javax.persistence.MappedSuperclass;
         «ENDIF»
         import javax.persistence.EntityManager;
         import javax.persistence.Entity;
