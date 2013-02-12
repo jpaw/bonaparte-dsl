@@ -107,10 +107,10 @@ EntityDefinition:
         'is' pojoType=[pojos::ClassDefinition]
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
-        (('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?)
-         | ('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable?
+        ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
+         | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
+        (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable?
          | ('extendsJava' extendsJava=QualifiedId)
-         | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING))
         )?
         ('implements' implementsInterface = QualifiedId )?
     '{'

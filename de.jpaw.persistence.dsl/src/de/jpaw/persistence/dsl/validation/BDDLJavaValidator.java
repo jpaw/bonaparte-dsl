@@ -15,6 +15,11 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                 error("entities inherited from must define inheritance properties",
                         BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
             }
+
+            // verify that we do not use extends together with extendsClass or extendsJava
+            if ((e.getExtendsClass() != null) || (e.getExtendsJava() != null)) {
+                error("entities inherited from cannot use extendsJava or extends in additon", BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
+            }
         }
 
         String tablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, false);
