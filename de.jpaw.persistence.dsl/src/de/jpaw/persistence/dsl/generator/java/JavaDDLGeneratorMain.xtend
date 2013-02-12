@@ -657,7 +657,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
         @Deprecated
         «ENDIF»
-        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
+        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
             «IF stopper == null && compositeKey»
                 @EmbeddedId
                 «e.name»Key key;
