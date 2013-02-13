@@ -24,6 +24,7 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.java.JavaDDLGeneratorMain
+import de.jpaw.persistence.dsl.generator.res.ResourceGeneratorMain
 
 class BDDLGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
@@ -42,6 +43,9 @@ class BDDLGenerator implements IGenerator {
         
             logger.info("start code output: Java output for " + resource.URI.toString);
             new JavaDDLGeneratorMain().doGenerate(resource, fsa)
+        
+            logger.info("start code output: resource output for " + resource.URI.toString);
+            new ResourceGeneratorMain().doGenerate(resource, fsa)
         
             logger.info("start cleanup");
         }

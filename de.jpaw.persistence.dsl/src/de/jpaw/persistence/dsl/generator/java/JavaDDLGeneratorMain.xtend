@@ -563,9 +563,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.cacheable»
         import javax.persistence.Cacheable;
         «ENDIF»
-        «IF e.isAbstract»
-        import MappedSuperclass;
-        «ENDIF»
         «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
         import javax.persistence.Inheritance;
         import javax.persistence.InheritanceType;
@@ -577,6 +574,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «IF e.^extends != null»
         import javax.persistence.DiscriminatorValue;
+        «ENDIF»
+        «IF e.mappedSuperclass || e.isAbstract»
+        import javax.persistence.MappedSuperclass;
         «ENDIF»
         import javax.persistence.EntityManager;
         import javax.persistence.Entity;
@@ -630,7 +630,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.javadoc != null»
             «e.javadoc»
         «ENDIF»
-        «IF e.isAbstract»
+        «IF e.isAbstract || e.mappedSuperclass»
         @MappedSuperclass
         «ELSE»
         @Entity
@@ -644,7 +644,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.tenantId != null»
         @Multitenant(/* SINGLE_TABLE */)
         «ENDIF»
-        «ENDIF»
         «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
         @Inheritance(strategy=InheritanceType.«i2s(e.xinheritance)»)
         «ENDIF»
@@ -654,10 +653,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ELSEIF e.^extends != null»
         @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
         «ENDIF»
+        «ENDIF»
         «IF e.isDeprecated || e.pojoType.isDeprecated»
         @Deprecated
         «ENDIF»
-        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
+        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
             «IF stopper == null && compositeKey»
                 @EmbeddedId
                 «e.name»Key key;
