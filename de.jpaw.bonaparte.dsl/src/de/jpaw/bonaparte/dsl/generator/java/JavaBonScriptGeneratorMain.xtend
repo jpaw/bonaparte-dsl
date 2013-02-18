@@ -282,9 +282,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ELSE»
         import de.jpaw.util.DayTime;
         «ENDIF»
-        «IF d.isDeprecated»
-        import java.lang.annotation.Deprecated;
-        «ENDIF»
         «IF (xmlAccess != null && !d.isAbstract)»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;

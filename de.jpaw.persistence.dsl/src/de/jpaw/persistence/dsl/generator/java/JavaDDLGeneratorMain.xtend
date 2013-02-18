@@ -602,9 +602,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.util.UUID;
         import java.io.Serializable;
         import java.math.BigDecimal;
-        «IF e.isDeprecated || e.pojoType.isDeprecated»
-        import java.lang.annotation.Deprecated;
-        «ENDIF»
         
         «IF e.noMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
