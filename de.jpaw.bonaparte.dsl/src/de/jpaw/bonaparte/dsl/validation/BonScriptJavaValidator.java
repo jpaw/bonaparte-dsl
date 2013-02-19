@@ -183,7 +183,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                         BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
         }
         
-        // check for unique name within this class and possible subclasses
+        // check for unique name within this class and possible superclasses
         ClassDefinition cl = (ClassDefinition)fd.eContainer();  // Grammar dependency! FieldDefinition is only called from ClassDefinition right now 
         if (countSameName(cl, s) != 1)
             error("field name is not unique within this class",
@@ -191,7 +191,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         // check parent classes as well
         for (ClassDefinition parentClass = XUtil.getParent(cl); parentClass != null; parentClass = XUtil.getParent(parentClass))
             if (countSameName(parentClass, s) != 0)
-                error("field occurs in extended class "
+                error("field occurs in inherited class "
                         + ((PackageDefinition)parentClass.eContainer()).getName() + "."
                         + parentClass.getName() + " already (shadowing not allowed in bonaparte)",
                         BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
