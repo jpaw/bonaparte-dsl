@@ -671,6 +671,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(pkColumns, compositeKey, null)»«ENDIF»
             «e.pojoType.recurseColumns(pkColumns, compositeKey, stopper)»
+            «e.inheritanceRoot.tenantClass?.recurseColumns(pkColumns, false, null)»
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
