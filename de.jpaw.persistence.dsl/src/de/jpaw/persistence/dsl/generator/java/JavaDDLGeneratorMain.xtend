@@ -315,27 +315,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             return number
     }     
     
-    // same code as in JavaBonScriptGenerator...
-    def private collectImports(ClassDefinition d, ImportCollector imports) {
-        // collect all imports for this class (make sure we don't duplicate any)
-        for (i : d.fields) {
-            var ref = DataTypeExtension::get(i.datatype)
-            // referenced objects
-            if (ref.objectDataType != null)
-                imports.addImport(ref.objectDataType)
-            if (ref.genericsRef != null)
-                imports.addImport(ref.genericsRef)
-            // referenced enums
-            if (ref.category == DataCategory::ENUM)
-                imports.addImport(ref.elementaryDataType.enumType)
-        }
-        // return parameters of specific methods 
-        //recurseMethods(d, true)
-        // finally, possibly the parent object
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
-            imports.addImport(d.extendsClass.classRef)
-    }
-    
     
     def private writeStubs(EntityDefinition e) '''
         «IF e.^extends == null»
@@ -518,8 +497,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
         val myPackage = e.eContainer as PackageDefinition 
-        e.tableCategory.trackingColumns?.collectImports(imports)
-        e.pojoType.collectImports(imports)
+        imports.recurseImports(e.tableCategory.trackingColumns, true)
+        imports.recurseImports(e.pojoType, true)
         // reset tracking flags
         haveIntVersion = null
         haveActive = false
@@ -685,7 +664,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private javaKeyOut(EntityDefinition e) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
-        e.pojoType.collectImports(imports)
+        imports.recurseImports(e.pojoType, true)
             
         imports.addImport(myPackageName, e.name + "Key")  // add myself as well
             
