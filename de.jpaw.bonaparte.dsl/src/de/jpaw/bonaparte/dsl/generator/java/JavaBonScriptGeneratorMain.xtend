@@ -174,39 +174,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 recurseMethods(d.extendsClass, false)
     }  */
     
-    // collect imports required for a class reference and all potential generics parameters 
-    def recurseCollectClassRefs(ImportCollector imports, ClassReference r) {
-        if (r != null) {
-            imports.addImport(r.classRef)
-            if (r.classRefGenericParms != null)
-                for (p : r.classRefGenericParms)
-                    recurseCollectClassRefs(imports, p)
-        }
-    }
-    
-    def collectRequiredImports(ImportCollector imports, ClassDefinition d) {
-        // collect all imports for this class (make sure we don't duplicate any)
-        for (i : d.fields) {
-            var ref = DataTypeExtension::get(i.datatype)
-            // referenced objects
-            if (ref.objectDataType != null)
-                imports.addImport(ref.objectDataType)
-            // any referenced generics types 
-            if (ref.genericsRef != null)
-                imports.addImport(ref.genericsRef)
-            // referenced enums
-            if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                imports.addImport(ref.elementaryDataType.enumType)
-        }
-        // return parameters of specific methods 
-        //recurseMethods(d, true)
-        
-        // finally, possibly the parent object (if it exists)
-        recurseCollectClassRefs(imports, d.extendsClass)
-
-        // we should have all used classes in the map now. Need to import all of them with a package name differing from ours
-    }
-
     // decision classes for the package level settings
     def private static getXmlAccess(ClassDefinition d) {
         var XXmlAccess xmlAccess = if (d.xmlAccess != null)
@@ -246,7 +213,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     // using FQONs in case of conflict is not yet implemented
         val String myPackageName = getPackageName(d)
         val ImportCollector imports = new ImportCollector(myPackageName)
-        collectRequiredImports(imports, d)
+        imports.recurseImports(d, false)
         imports.addImport(d)  // add myself as well
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
@@ -281,9 +248,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import org.joda.time.LocalDateTime;
         «ELSE»
         import de.jpaw.util.DayTime;
-        «ENDIF»
-        «IF d.isDeprecated»
-        import java.lang.annotation.Deprecated;
         «ENDIF»
         «IF (xmlAccess != null && !d.isAbstract)»
             import javax.xml.bind.annotation.XmlAccessorType;

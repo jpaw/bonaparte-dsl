@@ -29,8 +29,32 @@ public class ImportCollector {
             addImport(JavaPackages::getPackageName(cl), cl.name)
     }
     
+    // same code as in JavaBonScriptGenerator...
+    def void recurseImports(ClassDefinition d, boolean recurseFields) {
+        if (d == null)
+            return;
+        // collect all imports for this class (make sure we don't duplicate any)
+        for (i : d.fields) {
+            var ref = DataTypeExtension::get(i.datatype)
+            // referenced objects
+            if (ref.objectDataType != null)
+                addImport(ref.objectDataType)
+            if (ref.genericsRef != null)
+                addImport(ref.genericsRef)
+            // referenced enums
+            // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
+            if (ref.category == DataCategory::ENUM)
+                addImport(ref.elementaryDataType.enumType)
+        }
+        // finally, possibly the parent object
+        addImport(d.extendsClass)
+        if (recurseFields && d.extendsClass != null && d.extendsClass.classRef != null)
+            recurseImports(d.extendsClass.classRef, true)
+    }
+    
+        
     def void addImport(ClassReference r) {
-        if (r.classRef != null) {
+        if (r != null && r.classRef != null) {
             addImport(r.classRef)
             if (r.classRefGenericParms != null)     // recursively add any args
                 for (args : r.classRefGenericParms)

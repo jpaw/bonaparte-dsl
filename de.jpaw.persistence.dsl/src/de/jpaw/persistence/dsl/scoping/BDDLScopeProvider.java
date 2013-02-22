@@ -31,6 +31,7 @@ import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.ListOfColumns;
 import de.jpaw.persistence.dsl.bDDL.SingleColumn;
+import de.jpaw.persistence.dsl.generator.YUtil;
 
 /**
  * This class contains custom scoping description.
@@ -77,6 +78,9 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
             // also add the fields of the entity category class (& parents)
             if (entity.getTableCategory() != null)
                 recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getTableCategory().getTrackingColumns(), ignoreCase);
+            // also add the fields in a potential tenant discriminator class
+            if (YUtil.getInheritanceRoot(entity).getTenantClass() != null)
+                recursivelyAddColumnsOfClassAndParents(preliminaryResult, YUtil.getInheritanceRoot(entity).getTenantClass(), ignoreCase);
         } else {
             preliminaryResult = super.internalGetImportedNamespaceResolvers(context, ignoreCase);
         }
