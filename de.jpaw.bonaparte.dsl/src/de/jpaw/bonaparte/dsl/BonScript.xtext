@@ -144,7 +144,9 @@ ClassDefinition:
     (javadoc = JAVADOC_COMMENT)?
     // (annotations=ClassAnnotations)  // for extensions
     (isDeprecated?='@Deprecated')?
-    (abstract?='abstract' | final?='final')? 'class'
+    (abstract?='abstract' | final?='final')?
+    (immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
+    'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     (isExternalizable = Externalizable)?      // decide if implements Externalizable

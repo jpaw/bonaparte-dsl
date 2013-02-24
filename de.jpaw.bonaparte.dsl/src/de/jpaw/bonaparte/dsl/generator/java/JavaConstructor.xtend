@@ -32,6 +32,13 @@ class JavaConstructor {
         «ENDFOR»
     '''
     
+    def private static int countAllFields(ClassDefinition d) {
+        var int sum = d.fields.size
+        if (d.extendsClass != null && d.extendsClass.classRef != null)
+            sum = sum + countAllFields(d.extendsClass.classRef)
+        return sum 
+    }
+    
     def public static writeConstructorCode(Separator s, ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
@@ -40,14 +47,16 @@ class JavaConstructor {
             «ENDIF»
         }
         
-        // default all-arguments constructor
-        public «d.name»(«s.setCurrent("")»«allFields(s, d, true)») {
-            «IF d.extendsClass != null && d.extendsClass.classRef != null»
-                super(«s.setCurrent("")»«allFields(s, d.extendsClass.classRef, false)»);
-            «ENDIF»
-            «FOR i : d.fields»
-                this.«i.name» = «i.name»;
-            «ENDFOR»
-        }
+        «IF countAllFields(d) > 0»
+            // default all-arguments constructor
+            public «d.name»(«s.setCurrent("")»«allFields(s, d, true)») {
+                «IF d.extendsClass != null && d.extendsClass.classRef != null»
+                    super(«s.setCurrent("")»«allFields(s, d.extendsClass.classRef, false)»);
+                «ENDIF»
+                «FOR i : d.fields»
+                    this.«i.name» = «i.name»;
+                «ENDFOR»
+            }
+        «ENDIF»
      '''
 }

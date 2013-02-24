@@ -42,10 +42,10 @@ class JavaTreeWalker {
          if (ref.category == DataCategory::STRING) {
              // String field, which must be processed. This still can be a List or an Array
              if (i.isArray != null)
-                return '''«i.name» = _cvt.convertArray(«i.name», «ref.elementaryDataType.length», «i.isArray.maxcount», «i.isRequired»);'''
+                return '''«i.name» = _cvt.convertArray(«i.name», meta$$«i.name»);'''
              if (i.isList != null)
-                return '''«i.name» = _cvt.convertList(«i.name», «ref.elementaryDataType.length», «i.isList.maxcount», «i.isRequired»);'''
-             return '''«i.name» = _cvt.convert(«i.name», «ref.elementaryDataType.length», «i.isRequired»);'''
+                return '''«i.name» = _cvt.convertList(«i.name», meta$$«i.name»);'''
+             return '''«i.name» = _cvt.convert(«i.name», meta$$«i.name»);'''
          }
          if (ref.category == DataCategory::OBJECT) {
              // subobjects. Here we run through the list or array, and invoke the method on any sub-object
