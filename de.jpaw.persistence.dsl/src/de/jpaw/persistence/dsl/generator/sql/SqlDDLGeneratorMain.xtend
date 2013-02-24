@@ -24,15 +24,21 @@ import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import java.util.Set
+import java.util.HashSet
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
     String separator
     var int indexCount
+    val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
     def setSeparator(String newval) {
         separator = newval
@@ -44,6 +50,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+        enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
             logger.info("start code output of main table for " + e.name)
@@ -55,9 +62,34 @@ class SqlDDLGeneratorMain implements IGenerator {
                 // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
                 makeTables(fsa, e, true)
             }
+            collectEnums(e)
+        }
+        // enum mapping functions
+        for (e : enumsRequired) {
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), postgresEnumFuncs(e))
         }
     }
 
+    // recurse through all 
+    def private void recurseEnumCollection(ClassDefinition c) {
+        var ClassDefinition citer = c
+        while (citer != null) {
+            for (i : citer.fields) {
+                val ref = DataTypeExtension::get(i.datatype)
+                if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+                    enumsRequired.add(ref.elementaryDataType.enumType)
+            }
+            if (citer.extendsClass != null)
+                citer = citer.extendsClass.classRef
+        }
+    }
+    
+    def private void collectEnums(EntityDefinition e) {
+        recurseEnumCollection(e.tableCategory.trackingColumns)
+        recurseEnumCollection(e.pojoType)
+        recurseEnumCollection(e.tenantClass)
+    }
+    
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
