@@ -91,6 +91,11 @@ class XUtil {
         if (f) "true" else "false"
     }
     
+    // convert a String to Java source token, keeping nulls
+    def public static s2A(String s) {
+        if (s == null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
+    }
+    
     def public static indexedName(FieldDefinition i) {
         if (i.isList != null) "_i" else i.name + (if (i.isArray != null) "[_i]" else "")
     }

@@ -20,24 +20,68 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.JavaPackages
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaMeta.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.generator.Separator
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaMeta {
     
-    def private static makeMeta(ClassDefinition d, FieldDefinition i) {
-        /*
-        var ref = DataTypeExtension::get(i.datatype)
-        var initDataForFieldDefinition = (if (ref.visibility == null) XVisibility::DEFAULT else ref.visibility)
-            + ", " + i.isRequired
-            + ", " + i.name
-            + ", " + (if (i.isArray != null) "true, " + i.isArray.maxcount else "false, null") */
-        return "null"  // WIP
+    def private static makeMeta(Separator s, ClassDefinition d, FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype)
+        val elem = ref.elementaryDataType
+        var String multi
+        var String classname
+        var String visibility = (if (ref.visibility == null) XVisibility::DEFAULT else ref.visibility).name
+        var String ext = ""  // category specific data
+        
+        if (i.isArray != null)
+            multi = "Multiplicity.ARRAY, " + i.isArray.maxcount
+        else if (i.isList != null)
+            multi = "Multiplicity.LIST, " + i.isList.maxcount
+        else
+            multi = "Multiplicity.SCALAR, 0"
+            
+        switch (ref.category) {
+        case DataCategory::NUMERIC: {
+            classname = "NumericElementaryDataItem"
+            ext = ''', «b2A(ref.effectiveSigned)», «elem.length», «elem.decimals»'''
+            }
+        case DataCategory::STRING: {
+            classname = "AlphanumericElementaryDataItem"
+            ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
+            }
+        case DataCategory::ENUM: {
+            // TODO
+            classname = "EnumDataItem"
+            ext = ''', "«elem.enumType.name»", null'''
+        }
+        case DataCategory::OBJECT: {
+            if (elem != null) {
+                  // just "Object
+                classname = "MiscElementaryDataItem"
+                ext = ''', 0'''
+            } else {
+                classname = "ObjectReference"
+                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»"'''
+            }
+        }
+        default: {
+            classname = "MiscElementaryDataItem"
+            ext = ''', «elem.length»'''
+            }
+        }
+        return '''
+            protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+                "«ref.javaType»", «b2A(ref.isPrimitive)»«ext»);
+            '''
     }
     
-    def public static writeMetaData(ClassDefinition d) {
+    def public static writeMetaData(Separator s, ClassDefinition d) {
         var int cnt2 = -1
         var myPackage = JavaPackages::getPackage(d)
         var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
@@ -85,6 +129,10 @@ class JavaMeta {
             private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»; 
             private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»; 
 
+            «FOR i : d.fields»
+                «makeMeta(s, d, i)» 
+            «ENDFOR»
+            
             // extended meta data (for the enhanced interface)
             private static final ClassDefinition my$MetaData = new ClassDefinition();
             static {
@@ -98,7 +146,7 @@ class JavaMeta {
                 my$MetaData.setNumberOfFields(«d.fields.size»);
                 FieldDefinition [] field$array = new FieldDefinition[«d.fields.size»];
                 «FOR i:d.fields»
-                    field$array[«(cnt2 = cnt2 + 1)»] = «makeMeta(d, i)»;
+                    field$array[«(cnt2 = cnt2 + 1)»] = meta$$«i.name»;
                 «ENDFOR»
                 my$MetaData.setFields(field$array);
                 my$MetaData.setPropertiesInherited(«propertiesInherited»);

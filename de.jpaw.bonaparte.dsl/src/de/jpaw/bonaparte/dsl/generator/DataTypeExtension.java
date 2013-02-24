@@ -128,6 +128,7 @@ public class DataTypeExtension {
     private boolean currentlyVisited = false;
     public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
     public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
+    public boolean orSuperClass;                    // if subclasses are allowed
     public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
     public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference
@@ -288,6 +289,7 @@ public class DataTypeExtension {
         r.genericsRef = key.getObjectDataType();
         if (key.getObjectDataType() != null) {
         	r.category = DataCategory.OBJECT;
+        	r.orSuperClass = key.isOrSuperClass();
         	// construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
         	r.javaType = XUtil.genericRef2String(key.getObjectDataType());
         	if (key.getObjectDataType().getClassRef() != null)
@@ -361,6 +363,7 @@ public class DataTypeExtension {
             DataTypeExtension resolvedReference = get(r.typedef.getDatatype());  // descend via DFS
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
+            r.orSuperClass = resolvedReference.orSuperClass;
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
