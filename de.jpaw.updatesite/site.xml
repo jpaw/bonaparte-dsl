@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature url="features/de.jpaw.bonaparte.dsl.sdk_1.0.0.201302241416.jar" id="de.jpaw.bonaparte.dsl.sdk" version="1.0.0.201302241416">
+   <feature url="features/de.jpaw.bonaparte.dsl.sdk_1.0.0.201302241541.jar" id="de.jpaw.bonaparte.dsl.sdk" version="1.0.0.201302241541">
       <category name="Bonaparte"/>
    </feature>
-   <feature url="features/de.jpaw.persistence.dsl.sdk_1.0.0.201302241416.jar" id="de.jpaw.persistence.dsl.sdk" version="1.0.0.201302241416">
+   <feature url="features/de.jpaw.persistence.dsl.sdk_1.0.0.201302241541.jar" id="de.jpaw.persistence.dsl.sdk" version="1.0.0.201302241541">
       <category name="Bonaparte"/>
    </feature>
    <category-def name="Bonaparte" label="Software development tools related to object serialization">

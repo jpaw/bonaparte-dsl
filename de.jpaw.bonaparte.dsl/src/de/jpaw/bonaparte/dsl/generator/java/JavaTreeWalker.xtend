@@ -44,7 +44,7 @@ class JavaTreeWalker {
              if (i.isArray != null)
                 return '''«i.name» = _cvt.convertArray(«i.name», «ref.elementaryDataType.length», «i.isArray.maxcount», «i.isRequired»);'''
              if (i.isList != null)
-                return '''«i.name» = _cvt.convertArray(«i.name», «ref.elementaryDataType.length», «i.isList.maxcount», «i.isRequired»);'''
+                return '''«i.name» = _cvt.convertList(«i.name», «ref.elementaryDataType.length», «i.isList.maxcount», «i.isRequired»);'''
              return '''«i.name» = _cvt.convert(«i.name», «ref.elementaryDataType.length», «i.isRequired»);'''
          }
          if (ref.category == DataCategory::OBJECT) {

@@ -306,8 +306,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «IF doExt»
             «JavaExternalize::writeExternalize(d)»
             «JavaDeexternalize::writeDeexternalize(d)»
-            «JavaTreeWalker::writeTreeWalkerCode(d)»
             «ENDIF»
+            «JavaTreeWalker::writeTreeWalkerCode(d)»
         }
     '''   
     }
