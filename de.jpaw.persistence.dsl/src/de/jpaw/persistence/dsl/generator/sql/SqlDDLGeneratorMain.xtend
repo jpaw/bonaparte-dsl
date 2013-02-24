@@ -30,6 +30,7 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
+import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import java.util.Set
 import java.util.HashSet
@@ -63,6 +64,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 makeTables(fsa, e, true)
             }
             collectEnums(e)
+            makeViews(fsa, e, false, "_nt")
+            makeViews(fsa, e, true, "_v")      // enums included, also create a view 
         }
         // enum mapping functions
         for (e : enumsRequired) {
@@ -81,6 +84,8 @@ class SqlDDLGeneratorMain implements IGenerator {
             }
             if (citer.extendsClass != null)
                 citer = citer.extendsClass.classRef
+            else
+                citer = null
         }
     }
     
@@ -90,6 +95,12 @@ class SqlDDLGeneratorMain implements IGenerator {
         recurseEnumCollection(e.tenantClass)
     }
     
+    def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {
+        var tablename = mkTablename(e, false) + suffix
+        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
+        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
+    }   
+           
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
