@@ -25,7 +25,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
@@ -37,7 +36,6 @@ import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -275,6 +273,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageComposer;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
+        import «bonaparteInterfacesPackage».StringConverter;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
         
@@ -307,6 +306,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «IF doExt»
             «JavaExternalize::writeExternalize(d)»
             «JavaDeexternalize::writeDeexternalize(d)»
+            «JavaTreeWalker::writeTreeWalkerCode(d)»
             «ENDIF»
         }
     '''   
