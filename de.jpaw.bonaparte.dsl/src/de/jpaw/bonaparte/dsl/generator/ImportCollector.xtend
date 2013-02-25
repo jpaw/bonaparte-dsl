@@ -46,6 +46,11 @@ public class ImportCollector {
             if (ref.category == DataCategory::ENUM)
                 addImport(ref.elementaryDataType.enumType)
         }
+        // generic parameters
+        if (d.genericParameters != null)
+            for (gp : d.genericParameters)
+                if (gp.^extends != null)
+                    addImport(gp.^extends)
         // finally, possibly the parent object
         addImport(d.extendsClass)
         if (recurseFields && d.extendsClass != null && d.extendsClass.classRef != null)

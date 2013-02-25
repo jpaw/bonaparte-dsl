@@ -212,7 +212,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     // using FQONs in case of conflict is not yet implemented
         val String myPackageName = getPackageName(d)
         val ImportCollector imports = new ImportCollector(myPackageName)
-        imports.recurseImports(d, false)
+        imports.recurseImports(d, true)
         imports.addImport(d)  // add myself as well
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
