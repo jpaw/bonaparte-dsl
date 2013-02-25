@@ -18,25 +18,28 @@ class Generics {
     public new(Generics myParent, ClassDefinition d) {
         var ClassDefinition superClass = XUtil::getParent(d)
         parent = myParent
+        // System::out.println("new generics created for " + d.name + " START");
         if (superClass != null) {
             var args = superClass.genericParameters     // the symbolic names of the generics parameters in the superclass
             var argValues = d.extendsClass.classRefGenericParms
-            if (argValues != null && args != null) {  // actual values supplied, hope both are of same cardinality
+            if (argValues != null && args != null && !argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
                 // get the names to be substituted
                 for (int i : 0 .. args.size-1)
                     current.put(args.get(i).name, argValues.get(i).classRef.name)
             }            
         }
+        // System::out.println("new generics created for " + d.name + " END");
     }
     
     // replace all occurrences of a generics parameter by its value.
     // TODO: perform a more stringent pattern separation (using regexp). A token is a sequence of letters only, no substrings allowed
     def public String replace(String pattern) {
         var String worker = pattern
-        /*
+        // System::out.println("replacing variable <" + pattern + ">");
         for (e : current.entrySet) {
             worker = worker.replaceAll(e.key, e.value)
-        }  */
+        }
+        // System::out.println("replaced to <" + worker + ">");
         if (parent != null)
             return parent.replace(worker)
         return worker
