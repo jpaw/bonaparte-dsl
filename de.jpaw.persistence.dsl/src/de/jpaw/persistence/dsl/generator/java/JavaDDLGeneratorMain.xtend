@@ -279,16 +279,16 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
                         this.«i.name» = «IF useUserTypes»«i.name»«ELSE»DayTime.toGregorianCalendar(«i.name»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»«i.name».getBytes()«ENDIF»;
+                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»«i.name» == null ? null : «i.name».getBytes()«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
                         this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
                     «ELSE»
                         this.«i.name» = «i.name»;
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                     this.«i.name» = «i.name».ordinal();
+                     this.«i.name» = «i.name» == null ? null : «i.name».ordinal();
                 «ELSE»
-                    this.«i.name» = «i.name».getToken();
+                    this.«i.name» = «i.name» == null ? null : «i.name».getToken();
                 «ENDIF»
             }
         '''

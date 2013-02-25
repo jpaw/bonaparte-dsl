@@ -21,6 +21,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.Util
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
@@ -30,7 +31,7 @@ class JavaValidate {
         // regexp patterns. TODO: add check for uniqueness
         «FOR i: d.fields»
             «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
-                private static final Pattern regexp$«i.name» = Pattern.compile("\\A«resolveElem(i.datatype).regexp»\\z");
+                private static final Pattern regexp$«i.name» = Pattern.compile("\\A«Util::escapeString2Java(resolveElem(i.datatype).regexp)»\\z");
             «ENDIF»
         «ENDFOR»
     '''

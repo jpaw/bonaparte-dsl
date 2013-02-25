@@ -25,7 +25,6 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
@@ -37,7 +36,7 @@ import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+import de.jpaw.bonaparte.dsl.generator.Separator
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -275,6 +274,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageComposer;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
+        import «bonaparteInterfacesPackage».StringConverter;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
         
@@ -294,7 +294,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         
-            «JavaMeta::writeMetaData(d)»
+            «JavaMeta::writeMetaData(new Separator(), d)»
             «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
@@ -308,6 +308,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaExternalize::writeExternalize(d)»
             «JavaDeexternalize::writeDeexternalize(d)»
             «ENDIF»
+            «JavaTreeWalker::writeTreeWalkerCode(d)»
+            «JavaConstructor::writeConstructorCode(new Separator(), d)»
         }
     '''   
     }

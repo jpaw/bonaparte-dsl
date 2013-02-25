@@ -32,6 +32,17 @@ class XUtil {
             return null;
         d.getExtendsClass.getClassRef
     }
+
+    def public static ClassDefinition getRoot(ClassDefinition d) {
+        var dd = d
+        while (getParent(dd) != null)
+            dd = getParent(dd)
+        return dd
+    }
+    
+    def public static boolean isImmutable(ClassDefinition d) {
+        return getRoot(d).immutable
+    }
     
     def public static genericRef2String(ClassReference r) {
         if (r.plainObject)
@@ -89,6 +100,11 @@ class XUtil {
     // convert an Xtend boolean to Java source token
     def public static b2A(boolean f) {
         if (f) "true" else "false"
+    }
+    
+    // convert a String to Java source token, keeping nulls
+    def public static s2A(String s) {
+        if (s == null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
     }
     
     def public static indexedName(FieldDefinition i) {

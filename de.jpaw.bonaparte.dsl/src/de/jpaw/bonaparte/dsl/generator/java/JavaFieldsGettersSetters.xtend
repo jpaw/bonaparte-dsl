@@ -25,7 +25,8 @@ import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaFieldsGettersSetters {
 
-    // this one does not work. Why not?
+    // this one does not work. Why not? Replaced by standard function anyway
+    /*
     def private static doubleEscapes(String in) {
         var StringBuilder out = new StringBuilder(2 * in.length)
         var int i = 0
@@ -38,7 +39,7 @@ class JavaFieldsGettersSetters {
             i = i+1
         }
         return out    
-    }
+    } */
     
     def private static makeVisbility(FieldDefinition i) {
         var XVisibility fieldScope = DataTypeExtension::get(i.datatype).visibility
@@ -62,6 +63,7 @@ class JavaFieldsGettersSetters {
     
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
+        // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
         
         return '''
             «IF i.comment != null»
@@ -85,7 +87,7 @@ class JavaFieldsGettersSetters {
                             @javax.validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
                         «ENDIF»
                         «IF ref.elementaryDataType.regexp != null»
-                            @javax.validation.constraints.Pattern(regexp="\\A«doubleEscapes(ref.elementaryDataType.regexp)»\\z")
+                            @javax.validation.constraints.Pattern(regexp="\\A«Util::escapeString2Java(ref.elementaryDataType.regexp)»\\z")
                         «ENDIF»
                     «ENDIF»
                 «ENDIF»
@@ -108,9 +110,11 @@ class JavaFieldsGettersSetters {
             public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
                 return «i.name»;
             }
-            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
-                this.«i.name» = «i.name»;
-            }
+            «IF !isImmutable(d)»
+                public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+                    this.«i.name» = «i.name»;
+                }
+            «ENDIF»
         «ENDFOR»
     '''
 }
