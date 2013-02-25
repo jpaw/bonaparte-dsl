@@ -37,6 +37,7 @@ import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.Separator
+import de.jpaw.bonaparte.dsl.generator.Generics
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {

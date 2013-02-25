@@ -19,16 +19,26 @@ package de.jpaw.bonaparte.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.Separator
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.Generics
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
 class JavaConstructor {
-    def private static allFields(Separator s, ClassDefinition d, boolean withTypes) '''
+    def private static typeWithGenericsReplacement(Generics g, ClassDefinition d, FieldDefinition i) {
+        // check if the type is a generics argument, in which case it is replaced
+        if (g == null)
+            return JavaDataTypeNoName(i, false)
+        else
+            return g.replace(JavaDataTypeNoName(i, false))
+    }
+    
+    def private static allFields(Separator s, Generics g, ClassDefinition d, boolean withTypes) '''
         «IF d.extendsClass != null && d.extendsClass.classRef != null»
-            «allFields(s, d.extendsClass.classRef, withTypes)»
+            «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
         «ENDIF»
         «FOR i : d.fields»
-            «s.current»«IF withTypes»«JavaDataTypeNoName(i, false)» «ENDIF»«i.name»«s.setCurrent(", ")»
+            «s.current»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»«s.setCurrent(", ")»
         «ENDFOR»
     '''
     
@@ -49,9 +59,9 @@ class JavaConstructor {
         
         «IF countAllFields(d) > 0»
             // default all-arguments constructor
-            public «d.name»(«s.setCurrent("")»«allFields(s, d, true)») {
+            public «d.name»(«s.setCurrent("")»«allFields(s, new Generics(), d, true)») {
                 «IF d.extendsClass != null && d.extendsClass.classRef != null»
-                    super(«s.setCurrent("")»«allFields(s, d.extendsClass.classRef, false)»);
+                    super(«s.setCurrent("")»«allFields(s, null, d.extendsClass.classRef, false)»);
                 «ENDIF»
                 «FOR i : d.fields»
                     this.«i.name» = «i.name»;
