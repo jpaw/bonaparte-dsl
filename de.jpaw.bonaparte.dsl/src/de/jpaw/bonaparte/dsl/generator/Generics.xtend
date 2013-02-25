@@ -33,9 +33,10 @@ class Generics {
     // TODO: perform a more stringent pattern separation (using regexp). A token is a sequence of letters only, no substrings allowed
     def public String replace(String pattern) {
         var String worker = pattern
+        /*
         for (e : current.entrySet) {
             worker = worker.replaceAll(e.key, e.value)
-        }
+        }  */
         if (parent != null)
             return parent.replace(worker)
         return worker
