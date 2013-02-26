@@ -8,6 +8,7 @@ import java.util.HashMap
 class Generics {
     private var Map<String,String> current = new HashMap<String,String>(20)
     private var Generics parent = null
+    private val WORD_BOUNDARY = "\\b"
     
     // no-argument constructor for the top level class (no substitution)
     public new() {
@@ -25,19 +26,18 @@ class Generics {
             if (argValues != null && args != null && !argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
                 // get the names to be substituted
                 for (int i : 0 .. args.size-1)
-                    current.put(args.get(i).name, argValues.get(i).classRef.name)
+                    current.put(args.get(i).name, XUtil::genericRef2String(argValues.get(i)))
             }            
         }
         // System::out.println("new generics created for " + d.name + " END");
     }
     
-    // replace all occurrences of a generics parameter by its value.
-    // TODO: perform a more stringent pattern separation (using regexp). A token is a sequence of letters only, no substrings allowed
+    // replace all occurrences of a generics parameter by its value. Only whole words will be replaced, ie. DATA in myDATAxy will be left as is.
     def public String replace(String pattern) {
         var String worker = pattern
         // System::out.println("replacing variable <" + pattern + ">");
         for (e : current.entrySet) {
-            worker = worker.replaceAll(e.key, e.value)
+            worker = worker.replaceAll(WORD_BOUNDARY + e.key + WORD_BOUNDARY, e.value)
         }
         // System::out.println("replaced to <" + worker + ">");
         if (parent != null)
