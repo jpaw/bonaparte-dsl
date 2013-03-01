@@ -175,7 +175,7 @@
         <profile>
             <id>kreios</id>
             <distributionManagement>
-                <snapShotRepository>
+                <snapshotRepository>
                     <id>kreios-ast-snapshots</id>
                     <name>Bonaparte Snapshots</name>
                     <url>
