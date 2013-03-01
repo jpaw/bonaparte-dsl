@@ -36,6 +36,7 @@ class BonScriptGenerator implements IGenerator {
         
         // System::out.println("XXXX checking " + resource.URI.toString);
         // code output: one xtend file per language, such that it can be easily extended to additional languages
+
         // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
         if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
             || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bon")) // maven fornax plugin
