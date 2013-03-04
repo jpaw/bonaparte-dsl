@@ -117,6 +117,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     def private writeColumnType(FieldDefinition c) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
+        if (ref.objectDataType != null && hasProperty(c.properties, "serialized")) {
+            // use byte[] Java type and assume same as Object
+            return '''
+                        «fieldVisibility»byte [] «c.name»;'''
+        }
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             if (useUserTypes) {
@@ -198,7 +203,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «IF pkColumns != null && pkColumns.size == 1 && c == pkColumns.get(0)»
                     @Id
                 «ENDIF»
-                «IF !excludePkColumns || !inList(pkColumns, c)»
+                «IF (!excludePkColumns || !inList(pkColumns, c)) && !hasProperty(c.properties, "noJava")»
                     «singleColumn(c)»
                     «writeGetter(c)»
                     «writeSetter(c)»
@@ -232,12 +237,12 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype))»{
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
+            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null)
                         return null;
                     ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
-                    return _bap.readObject(BonaPortable.class, true, true);
+                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject(«IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ELSE»BonaPortable«ENDIF».class, true, true);
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
@@ -265,7 +270,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
             public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType)»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null) {
                         this.«i.name» = null;
                     } else {
@@ -294,10 +299,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         '''
     }
     
-    def private writeException(DataTypeExtension ref) {
+    def private writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
-        else if (JAVA_OBJECT_TYPE.equals(ref.javaType)) {
+        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, "serialized"))) {
             return "throws MessageParserException "
         } else
             return ""

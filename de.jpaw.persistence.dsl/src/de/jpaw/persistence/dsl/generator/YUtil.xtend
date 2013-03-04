@@ -54,6 +54,14 @@ class YUtil {
                     return true
         return false
     }
+    
+    def public static String getProperty(List <PropertyUse> properties, String key) {
+        if (properties != null)
+            for (p : properties)
+                if (key.equals(p.key.name))
+                    return p.value
+        return null
+    }
         
     def public static Model getModel(EObject someReference) {
         var EObject ref = someReference

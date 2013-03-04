@@ -58,7 +58,9 @@ class MakeMapper {
                     «e.pojoType.name» _dd = («e.pojoType.name»)_d;
                     // auto-generated data setter for «e.pojoType.name»
                     «FOR i:e.pojoType.fields»
-                        set«Util::capInitial(i.name)»(_dd.get«Util::capInitial(i.name)»());
+                        «IF !hasProperty(i.properties, "noJava")»
+                            set«Util::capInitial(i.name)»(_dd.get«Util::capInitial(i.name)»());
+                        «ENDIF»
                     «ENDFOR»
                 }
             «ENDIF»

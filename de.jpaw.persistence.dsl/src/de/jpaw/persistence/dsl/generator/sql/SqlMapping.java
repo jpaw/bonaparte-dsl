@@ -94,9 +94,16 @@ public class SqlMapping {
         int columnLength;
         int columnDecimals;
         if (ref.objectDataType != null) {
-            datatype = "long";  // assume artificial ID
-            columnLength = 18;
-            columnDecimals = 0;
+            if (YUtil.hasProperty(c.getProperties(), "serialized")) {
+                String value = YUtil.getProperty(c.getProperties(), "serialized");
+                datatype = "raw";  // assume artificial ID
+                columnLength = value == null ? 2000 : Integer.valueOf(value);
+                columnDecimals = 0;
+            } else {
+                datatype = "long";  // assume artificial ID
+                columnLength = 18;
+                columnDecimals = 0;
+            }
         } else {
             datatype = ref.elementaryDataType.getName().toLowerCase();
             columnLength = ref.elementaryDataType.getLength();

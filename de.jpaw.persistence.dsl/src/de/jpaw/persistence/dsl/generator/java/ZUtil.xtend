@@ -19,6 +19,7 @@ package de.jpaw.persistence.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
@@ -29,7 +30,9 @@ class ZUtil {
             «d.extendsClass?.classRef?.recurseDataGetter(stopper)»
             // auto-generated data getter for «d.name»
             «FOR i:d.fields»
-                _r.set«Util::capInitial(i.name)»(get«Util::capInitial(i.name)»());
+                «IF !hasProperty(i.properties, "noJava")»
+                    _r.set«Util::capInitial(i.name)»(get«Util::capInitial(i.name)»());
+                «ENDIF»
             «ENDFOR»
         «ENDIF»
     '''
@@ -39,7 +42,7 @@ class ZUtil {
             «d.extendsClass?.classRef?.recurseDataSetter(stopper, avoidKeyOf)»
             // auto-generated data setter for «d.name»
             «FOR i:d.fields»
-                «IF avoidKeyOf == null || !isKeyField(avoidKeyOf, i)»
+                «IF (avoidKeyOf == null || !isKeyField(avoidKeyOf, i)) && !hasProperty(i.properties, "noJava")»
                     set«Util::capInitial(i.name)»(_d.get«Util::capInitial(i.name)»());
                 «ENDIF»
             «ENDFOR»
