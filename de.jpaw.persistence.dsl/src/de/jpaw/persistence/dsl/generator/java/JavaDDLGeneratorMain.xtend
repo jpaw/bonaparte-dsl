@@ -242,7 +242,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     if («i.name» == null)
                         return null;
                     ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
-                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject(«IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ELSE»BonaPortable«ENDIF».class, true, true);
+                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject(«IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «i.name»;
