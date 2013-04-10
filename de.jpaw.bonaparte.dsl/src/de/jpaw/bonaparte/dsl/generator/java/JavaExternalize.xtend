@@ -20,7 +20,6 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaExternalize {

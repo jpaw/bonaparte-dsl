@@ -23,8 +23,6 @@ import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
-import static de.jpaw.bonaparte.dsl.generator.java.JavaMeta.*
-
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.Separator
 import de.jpaw.bonaparte.dsl.generator.DataCategory

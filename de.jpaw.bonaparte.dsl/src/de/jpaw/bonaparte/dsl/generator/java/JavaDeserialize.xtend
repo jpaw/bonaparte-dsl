@@ -24,54 +24,53 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
 import static de.jpaw.bonaparte.dsl.generator.JavaPackages.*
-import static de.jpaw.bonaparte.dsl.generator.java.JavaDeserialize.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaDeserialize {
     private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
-    def private static makeRead(ElementaryDataType i, DataTypeExtension ref) {
+    def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
-        case 'byte':      '''p.readByte      («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'short':     '''p.readShort     («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'long':      '''p.readLong      («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'int':       '''p.readInteger   («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'integer':   '''p.readInteger   («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'number':    '''p.readNumber    («ref.wasUpperCase», «i.length», «ref.effectiveSigned»)'''
-        case 'decimal':   '''p.readBigDecimal(«ref.wasUpperCase», «i.length», «i.decimals», «ref.effectiveSigned»)'''
+        case 'byte':      '''p.readByte      ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'short':     '''p.readShort     ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'long':      '''p.readLong      ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'int':       '''p.readInteger   ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'integer':   '''p.readInteger   ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'number':    '''p.readNumber    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveSigned»)'''
+        case 'decimal':   '''p.readBigDecimal("«fieldname»", «ref.wasUpperCase», «i.length», «i.decimals», «ref.effectiveSigned»)'''
         // float/double, char and boolean    
-        case 'float':     '''p.readFloat     («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'double':    '''p.readDouble    («ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'boolean':   '''p.readBoolean   («ref.wasUpperCase»)'''
-        case 'char':      '''p.readCharacter («ref.wasUpperCase»)'''
-        case 'character': '''p.readCharacter («ref.wasUpperCase»)'''
+        case 'float':     '''p.readFloat     ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'double':    '''p.readDouble    ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
+        case 'boolean':   '''p.readBoolean   ("«fieldname»", «ref.wasUpperCase»)'''
+        case 'char':      '''p.readCharacter ("«fieldname»", «ref.wasUpperCase»)'''
+        case 'character': '''p.readCharacter ("«fieldname»", «ref.wasUpperCase»)'''
         // text
-        case 'uppercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'lowercase': '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'ascii':     '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'unicode':   '''p.readString    («ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
+        case 'uppercase': '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'lowercase': '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'ascii':     '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'unicode':   '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
         // special          
-        case 'uuid':      '''p.readUUID      («ref.wasUpperCase»)'''
-        case 'binary':    '''p.readByteArray («ref.wasUpperCase», «i.length»)'''
-        case 'raw':       '''p.readRaw       («ref.wasUpperCase», «i.length»)'''
-        case 'calendar':  '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+        case 'uuid':      '''p.readUUID      ("«fieldname»", «ref.wasUpperCase»)'''
+        case 'binary':    '''p.readByteArray ("«fieldname»", «ref.wasUpperCase», «i.length»)'''
+        case 'raw':       '''p.readRaw       ("«fieldname»", «ref.wasUpperCase», «i.length»)'''
+        case 'calendar':  '''p.readCalendar  ("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': if (Util::useJoda())
-                             '''p.readDayTime(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+                             '''p.readDayTime("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
                           else
-                             '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+                             '''p.readCalendar("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
         case 'day':       if (Util::useJoda())
-                             '''p.readDay(«ref.wasUpperCase»)'''
+                             '''p.readDay("«fieldname»", «ref.wasUpperCase»)'''
                           else
-                             '''p.readCalendar(«ref.wasUpperCase», «i.doHHMMSS», -1)'''
+                             '''p.readCalendar("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», -1)'''
         // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString(«ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger(«ref.wasUpperCase», false))«ENDIF»'''
-        case 'object':    '''p.readObject(BonaPortable.class, «ref.wasUpperCase», true)'''
+        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «ref.wasUpperCase», false))«ENDIF»'''
+        case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «ref.wasUpperCase», true)'''
         }
     }
 
-    def private static getKnownSupertype(ClassReference d) {
+    def private static String getKnownSupertype(ClassReference d) {
         if (d.plainObject)
             return "BonaPortable"
         if (d.classRef != null)
@@ -88,9 +87,9 @@ class JavaDeserialize {
     
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
         «IF resolveElem(i.datatype) != null»
-            «makeRead(resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
+            «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
         «ELSE»
-            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(«interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
+            («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
         «ENDIF»
     '''
             
@@ -109,7 +108,7 @@ class JavaDeserialize {
                         try {  // for possible EnumExceptions
                     «ENDIF»
                     «IF i.isArray != null || i.isList != null»
-                        arrayLength = p.parseArrayStart(«if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», 0);
+                        arrayLength = p.parseArrayStart("«i.name»", «if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», 0);
                         if (arrayLength < 0) {
                             «i.name» = null;
                         } else {

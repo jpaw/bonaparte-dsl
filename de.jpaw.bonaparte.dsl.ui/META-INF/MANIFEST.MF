@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dsl.ui
 Bundle-Vendor: My Company
-Bundle-Version: 1.3.1.qualifier
+Bundle-Version: 1.5.1.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.dsl;visibility:=reexport,
@@ -22,5 +22,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.dsl.ui,
  de.jpaw.bonaparte.dsl.ui.contentassist,
  de.jpaw.bonaparte.dsl.ui.contentassist.antlr,
- de.jpaw.bonaparte.dsl.ui.internal
+ de.jpaw.bonaparte.dsl.ui.internal,
+ de.jpaw.bonaparte.dsl.ui.quickfix
 Bundle-Activator: de.jpaw.bonaparte.dsl.ui.internal.BonScriptActivator

@@ -44,7 +44,7 @@ class XUtil {
         return getRoot(d).immutable
     }
     
-    def public static genericRef2String(ClassReference r) {
+    def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
         if (r.genericsParameterRef != null)
@@ -88,7 +88,7 @@ class XUtil {
         JavaPackages::getPackage(d).name + "." + d.name  
     }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
-    def public static getSerialUID(ClassDefinition d) {
+    def public static long getSerialUID(ClassDefinition d) {
         var long myUID = getPartiallyQualifiedClassName(d).hashCode()
         if (d.revision != null)
             myUID = 97L * myUID + d.revision.hashCode()
