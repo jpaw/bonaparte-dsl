@@ -30,43 +30,43 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 class JavaDeserialize {
     private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
-    def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref) {
+    def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref, boolean isRequired) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
-        case 'byte':      '''p.readByte      ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'short':     '''p.readShort     ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'long':      '''p.readLong      ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'int':       '''p.readInteger   ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'integer':   '''p.readInteger   ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'number':    '''p.readNumber    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveSigned»)'''
-        case 'decimal':   '''p.readBigDecimal("«fieldname»", «ref.wasUpperCase», «i.length», «i.decimals», «ref.effectiveSigned»)'''
+        case 'byte':      '''p.readByte      ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'short':     '''p.readShort     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'long':      '''p.readLong      ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'int':       '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'integer':   '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'number':    '''p.readNumber    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveSigned»)'''
+        case 'decimal':   '''p.readBigDecimal("«fieldname»", «!isRequired», «i.length», «i.decimals», «ref.effectiveSigned»)'''
         // float/double, char and boolean    
-        case 'float':     '''p.readFloat     ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'double':    '''p.readDouble    ("«fieldname»", «ref.wasUpperCase», «ref.effectiveSigned»)'''
-        case 'boolean':   '''p.readBoolean   ("«fieldname»", «ref.wasUpperCase»)'''
-        case 'char':      '''p.readCharacter ("«fieldname»", «ref.wasUpperCase»)'''
-        case 'character': '''p.readCharacter ("«fieldname»", «ref.wasUpperCase»)'''
+        case 'float':     '''p.readFloat     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'double':    '''p.readDouble    ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
+        case 'boolean':   '''p.readBoolean   ("«fieldname»", «!isRequired»)'''
+        case 'char':      '''p.readCharacter ("«fieldname»", «!isRequired»)'''
+        case 'character': '''p.readCharacter ("«fieldname»", «!isRequired»)'''
         // text
-        case 'uppercase': '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'lowercase': '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'ascii':     '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'unicode':   '''p.readString    ("«fieldname»", «ref.wasUpperCase», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
+        case 'uppercase': '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'lowercase': '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'ascii':     '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
+        case 'unicode':   '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
         // special          
-        case 'uuid':      '''p.readUUID      ("«fieldname»", «ref.wasUpperCase»)'''
-        case 'binary':    '''p.readByteArray ("«fieldname»", «ref.wasUpperCase», «i.length»)'''
-        case 'raw':       '''p.readRaw       ("«fieldname»", «ref.wasUpperCase», «i.length»)'''
-        case 'calendar':  '''p.readCalendar  ("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+        case 'uuid':      '''p.readUUID      ("«fieldname»", «!isRequired»)'''
+        case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
+        case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
+        case 'calendar':  '''p.readCalendar  ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': if (Util::useJoda())
-                             '''p.readDayTime("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+                             '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
                           else
-                             '''p.readCalendar("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», «i.length»)'''
+                             '''p.readCalendar("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'day':       if (Util::useJoda())
-                             '''p.readDay("«fieldname»", «ref.wasUpperCase»)'''
+                             '''p.readDay("«fieldname»", «!isRequired»)'''
                           else
-                             '''p.readCalendar("«fieldname»", «ref.wasUpperCase», «i.doHHMMSS», -1)'''
+                             '''p.readCalendar("«fieldname»", «!isRequired», «i.doHHMMSS», -1)'''
         // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «ref.wasUpperCase», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «ref.wasUpperCase», false))«ENDIF»'''
-        case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «ref.wasUpperCase», true)'''
+        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
+        case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «!isRequired», true)'''
         }
     }
 
@@ -87,7 +87,7 @@ class JavaDeserialize {
     
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
         «IF resolveElem(i.datatype) != null»
-            «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»«end»
+            «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
         «ELSE»
             («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
         «ENDIF»

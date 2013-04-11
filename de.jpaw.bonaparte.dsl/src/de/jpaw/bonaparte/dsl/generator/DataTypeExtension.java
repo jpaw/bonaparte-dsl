@@ -139,6 +139,7 @@ public class DataTypeExtension {
     public boolean effectiveTruncate = false;
     public boolean effectiveAllowCtrls = false;
     public boolean isPrimitive = false;
+    public boolean isRequired = false;
     public boolean wasUpperCase = false;
     public XVisibility visibility;
     public XRequired defaultRequired;
@@ -298,6 +299,8 @@ public class DataTypeExtension {
         	
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
+            if (r.defaultRequired == XRequired.REQUIRED)
+                r.isRequired = true;
         }
         
         if (r.elementaryDataType != null) {
@@ -321,6 +324,8 @@ public class DataTypeExtension {
             r.category = dataCategory.get(e.getName().toLowerCase());
             // merge the defaults specifications
             mergeFieldSpecsWithDefaults(r, key);
+            if (r.defaultRequired == XRequired.REQUIRED || !r.wasUpperCase)
+                r.isRequired = true;
             
             // special handling for enums
             if (r.javaType == null)
@@ -367,6 +372,7 @@ public class DataTypeExtension {
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
+            r.isRequired = resolvedReference.isRequired;
             r.effectiveSigned = resolvedReference.effectiveSigned;
             r.effectiveTrim = resolvedReference.effectiveTrim;
             r.effectiveTruncate = resolvedReference.effectiveTruncate;

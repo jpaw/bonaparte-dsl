@@ -25,8 +25,13 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
 import de.jpaw.bonaparte.dsl.bonScript.XRequired
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+// using JCL here, because it is already a project dependency, should switch to slf4j
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
 
 class XUtil {
+    private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
+    
     def public static ClassDefinition getParent(ClassDefinition d) {
         if (d == null || d.getExtendsClass == null)
             return null;
@@ -51,6 +56,8 @@ class XUtil {
             return r.genericsParameterRef.name
         if (r.classRef != null)
             return r.classRef.name + genericArgs2String(r.classRefGenericParms)
+            
+        logger.error("*** FIXME: class reference with all null fields ***")
         return "*** FIXME: class reference with all null fields ***"        
     }
     
@@ -149,9 +156,13 @@ class XUtil {
     
     def public static isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
-        if (ref.elementaryDataType != null && !ref.wasUpperCase)
+        if (ref.isRequired) {
+            // late plausi check:
+            if (i.required != null && i.required.x == XRequired::OPTIONAL) {
+                logger.error("required field " + i.name + " relabeled as optional. OPTIONAL indicator discarded")
+            }
             return true  // TODO: this could be a contradiction to an "optional" specification. Are the validators complete?
-
+        }
         // DEBUG
         //if (i.name.equals("fields"))
         //    System::out.println("fields.required = " + i.required + ", defaultreq = " + ref.defaultRequired)
