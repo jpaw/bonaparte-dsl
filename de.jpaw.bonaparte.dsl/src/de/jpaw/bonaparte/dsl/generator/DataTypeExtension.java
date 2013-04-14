@@ -138,11 +138,11 @@ public class DataTypeExtension {
     public boolean effectiveTrim = false;
     public boolean effectiveTruncate = false;
     public boolean effectiveAllowCtrls = false;
-    public boolean isPrimitive = false;
-    public boolean isRequired = false;
-    public boolean wasUpperCase = false;
+    public boolean isPrimitive = false;             // true if this refers to an atomic data type which in Java is a primitive (can never be null)
+    private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
     public XVisibility visibility;
-    public XRequired defaultRequired;
+    public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
+    public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
     public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
     public boolean allTokensAscii = true;
     public DataCategory category = DataCategory.MISC;
@@ -299,8 +299,6 @@ public class DataTypeExtension {
         	
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
-            if (r.defaultRequired == XRequired.REQUIRED)
-                r.isRequired = true;
         }
         
         if (r.elementaryDataType != null) {
@@ -324,8 +322,9 @@ public class DataTypeExtension {
             r.category = dataCategory.get(e.getName().toLowerCase());
             // merge the defaults specifications
             mergeFieldSpecsWithDefaults(r, key);
-            if (r.defaultRequired == XRequired.REQUIRED || !r.wasUpperCase)
-                r.isRequired = true;
+            
+            if (!r.wasUpperCase)
+                r.isRequired = XRequired.REQUIRED;              // field is set to required by specification
             
             // special handling for enums
             if (r.javaType == null)
@@ -372,18 +371,26 @@ public class DataTypeExtension {
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
-            r.isRequired = resolvedReference.isRequired;
+            
             r.effectiveSigned = resolvedReference.effectiveSigned;
             r.effectiveTrim = resolvedReference.effectiveTrim;
             r.effectiveTruncate = resolvedReference.effectiveTruncate;
             r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;
             r.javaType = resolvedReference.javaType;
             r.visibility = resolvedReference.visibility;
-            r.defaultRequired = resolvedReference.defaultRequired;
             r.isUpperCaseOrLowerCaseSpecialType = resolvedReference.isUpperCaseOrLowerCaseSpecialType;
             r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
             r.category = resolvedReference.category;
             r.currentlyVisited = false;
+            // computation of the "required" state
+            r.defaultRequired = null;
+            PackageDefinition pkg = (PackageDefinition)r.typedef.eContainer();
+            if (pkg.getDefaults() != null && pkg.getDefaults().getRequired() != null)
+                r.defaultRequired = pkg.getDefaults().getRequired().getX();     // defaults for the class containing this typedef
+            // we have an explicit assignment if the referenced package had a default
+            r.isRequired = resolvedReference.isRequired;
+            if (r.isRequired == null && resolvedReference.defaultRequired != null)
+                r.isRequired = resolvedReference.defaultRequired;  // either REQUIRED or OPTIONAL
         } else {
             // just simply store it (elementary data type or object reference)
             map.put(key, r);

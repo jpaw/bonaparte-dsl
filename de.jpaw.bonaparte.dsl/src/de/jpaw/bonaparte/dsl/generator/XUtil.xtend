@@ -154,14 +154,18 @@ class XUtil {
             dataClass
     }
     
-    def public static isRequired(FieldDefinition i) {
+    def public static boolean isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
-        if (ref.isRequired) {
-            // late plausi check:
-            if (i.required != null && i.required.x == XRequired::OPTIONAL) {
-                logger.error("required field " + i.name + " relabeled as optional. OPTIONAL indicator discarded")
+        if (ref.isRequired != null && i.required != null && i.required.x != null) {
+            // both are defined. Check for consistency
+            if (ref.isRequired != i.required.x) {
+                // late plausi check:
+                logger.error("requiredness of field " + i.name + " in class " + (i.eContainer as ClassDefinition).name
+                    + " relabeled from " + ref.isRequired + " to " + i.required.x
+                    + ". This is inconsistent."
+                )
             }
-            return true  // TODO: this could be a contradiction to an "optional" specification. Are the validators complete?
+            return ref.isRequired == XRequired::REQUIRED
         }
         // DEBUG
         //if (i.name.equals("fields"))
@@ -171,7 +175,7 @@ class XUtil {
         if (req != null)
             return req == XRequired::REQUIRED
         else
-            return false
+            return false  // no specification at all means optional
     }
 
     def public static condText(boolean flag, String text) {
