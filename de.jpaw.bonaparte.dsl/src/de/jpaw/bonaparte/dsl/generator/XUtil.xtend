@@ -156,24 +156,30 @@ class XUtil {
     
     def public static boolean isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
-        if (ref.isRequired != null && i.required != null && i.required.x != null) {
-            // both are defined. Check for consistency
-            if (ref.isRequired != i.required.x) {
-                // late plausi check:
-                logger.error("requiredness of field " + i.name + " in class " + (i.eContainer as ClassDefinition).name
-                    + " relabeled from " + ref.isRequired + " to " + i.required.x
-                    + ". This is inconsistent."
-                )
+        if (ref.isRequired != null) {
+            if (i.required != null && i.required.x != null) {
+                // both are defined. Check for consistency
+                if (ref.isRequired != i.required.x) {
+                    // late plausi check:
+                    logger.error("requiredness of field " + i.name + " in class " + (i.eContainer as ClassDefinition).name
+                        + " relabeled from " + ref.isRequired + " to " + i.required.x
+                        + ". This is inconsistent.")
+                }
             }
             return ref.isRequired == XRequired::REQUIRED
         }
+        // now check if an explicit specification has been made
+		if (i.required != null)
+            return i.required.x	== XRequired::REQUIRED
+			
+        // neither ref.isRequired is set nor an explicit specification made.  Fall back to defaults of the embedding class or package
+		
         // DEBUG
         //if (i.name.equals("fields"))
         //    System::out.println("fields.required = " + i.required + ", defaultreq = " + ref.defaultRequired)
         // if we have an object, it is nullable by default, unless some explicit or
-        var XRequired req = if (i.required != null) i.required.x else ref.defaultRequired
-        if (req != null)
-            return req == XRequired::REQUIRED
+        if (ref.defaultRequired != null)
+            return ref.defaultRequired == XRequired::REQUIRED
         else
             return false  // no specification at all means optional
     }
