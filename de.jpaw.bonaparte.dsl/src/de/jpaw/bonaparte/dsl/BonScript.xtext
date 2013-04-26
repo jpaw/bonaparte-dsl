@@ -26,7 +26,6 @@ generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
 Model:
     imports  += ImportDefinition*
     packages += PackageDefinition*
-    //(extensions = ModelExtensionDefinition)      // Extensions only
 ;
 
 //terminal ML_JAVADOC_COMMENT : '/#' -> '#/';
@@ -104,7 +103,6 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
-    //(annotations=PackageAnnotations)  // for extensions
     'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
         (isExternalizable = Externalizable)?      // decide if implements Externalizable
@@ -142,7 +140,6 @@ ClassReference:
 // a class corresponds to a Java class
 ClassDefinition:
     (javadoc = JAVADOC_COMMENT)?
-    // (annotations=ClassAnnotations)  // for extensions
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')?
     (immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
@@ -159,20 +156,9 @@ ClassDefinition:
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
         fields += FieldDefinition*   
-        //methods += MethodDefinition*
     '}'
 ;
 
-// method definition provides the ability to hook additional method implementations into a class
-// the code generators will forward them to (ClassName'Impl') classes and call the same method name there
-// TODO: check if dependency injection or aspect oriented programming would be a better way to implement this
-/*MethodDefinition:
-    (abstract?='abstract' | final?='final')?
-    'method' name = ID
-    ('(' parameters = STRING ')')?
-    ('returns' ('('returnObj = [ClassDefinition|QualifiedId]')') | returnStd = ID)?
-    ';'
-;*/
 
 EnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
@@ -195,12 +181,11 @@ TypeDefinition:
 
 // Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
 FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
-    // (annotations=FieldAnnotations)  // for extensions, for example additional JSR303 like validations. Mixed feelings about this, because it actually violates the "single responsibility" principle.
     (javadoc = JAVADOC_COMMENT)?
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType
-    (isArray    = ArrayModifier | isList = ListModifier)?
+    (isArray    = ArrayModifier | isList = ListModifier | isMap = MapModifier)?
     name        = ID
     ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
@@ -222,6 +207,10 @@ ArrayModifier:
 ListModifier:
     {ListModifier}
     'List' '<'(maxcount=INT)? '>'
+;
+MapModifier:
+    {MapModifier}
+    'Map' '<' indexType=('String' | 'Integer' | 'Long') '>'
 ;
  
 ElementaryDataType:
@@ -252,21 +241,3 @@ ElementaryDataType:
       | (name=("raw"|"Raw"|"binary"|"Binary")      "(" length=INT ")")  // byte array (raw = mutable, binary = immutable)
     )   
 ;
-
-// stubs for extensions (derived grammars) to overwrite without destroying anything in here
-/*
-ModelExtensionDefinition:
-    {ModelExtensionDefinition}
-;
-
-PackageAnnotations:
-    {PackageAnnotations}
-;
-
-ClassAnnotations:
-    {ClassAnnotations}
-;
-
-FieldAnnotations:
-    {FieldAnnotations}
-; */

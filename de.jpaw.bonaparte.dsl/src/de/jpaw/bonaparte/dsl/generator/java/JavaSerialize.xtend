@@ -87,6 +87,22 @@ class JavaSerialize {
                             w.terminateArray();
                         «ENDIF»
                     }
+                «ELSEIF i.isMap != null»
+                    if («i.name» == null) {
+                        w.writeNull();
+                    } else {
+                        w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)» _i : «i.name».entrySet()) {
+                            // write (key, value) tuples
+                            «IF i.isMap.indexType == "String"»
+                                w.addField(_i.getKey(), 256);
+                            «ELSE»
+                                w.addField(_i.getKey());
+                            «ENDIF»
+                            «makeWrite2(d, i, indexedName(i))»
+                        }
+                        w.terminateArray();
+                    }
                 «ELSE»
                     «makeWrite2(d, i, indexedName(i))»
                 «ENDIF»

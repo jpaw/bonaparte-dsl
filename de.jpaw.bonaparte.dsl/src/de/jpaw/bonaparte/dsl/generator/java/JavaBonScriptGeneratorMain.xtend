@@ -236,6 +236,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import java.util.regex.Matcher;
         import java.util.Calendar;
         import java.util.UUID;
+        import java.util.HashMap;
+        import java.util.Map;
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;
         import java.math.BigDecimal;

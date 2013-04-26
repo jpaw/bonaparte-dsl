@@ -51,9 +51,8 @@ class JavaCompare {
         if (ref.isPrimitive) {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
-            else if (i.isList != null)
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
             else {
+                // isMap and isList cannot be true, they don't work with primitives...
                 // a single primitive type....
                 switch (ref.javaType) {
                 case "Float":   '''(new Float(«i.name»).hashCode())'''
@@ -69,6 +68,8 @@ class JavaCompare {
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
             else if (i.isList != null)
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
+            else if (i.isMap != null)
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // Map has a good implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType != null && ref.javaType.equals("byte []"))
@@ -128,8 +129,8 @@ class JavaCompare {
                 return true
             «ENDIF»
             «FOR i:d.fields»
-                «IF i.isArray != null || i.isList != null»
-                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
+                «IF i.isArray != null || i.isList != null || i.isMap != null»
+                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && xCompareSub$«i.name»(that)))
                 «ELSE»
                     && «writeCompareStuff(i, i.name, "")»
                 «ENDIF»
@@ -138,7 +139,7 @@ class JavaCompare {
         }
         «FOR i:d.fields»
             «IF i.isArray != null»
-                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».length != that.«i.name».length)
                         return false;
@@ -149,7 +150,7 @@ class JavaCompare {
                 }
             «ENDIF»
             «IF i.isList != null»
-                private boolean arrayCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
                         return false;
@@ -157,6 +158,29 @@ class JavaCompare {
                     for (int _i = 0; _i < «i.name».size(); ++_i)
                         if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
                             return false;
+                    return true;
+                }
+            «ENDIF»
+            «IF i.isMap != null»
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
+                    // both «i.name» and that «i.name» are known to be not null
+                    if («i.name».size() != that.«i.name».size())
+                        return false;
+                    // method is to verify all entries are the same 
+                    for (Map.Entry<«i.isMap.indexType», «JavaDataTypeNoName(i, true)» _i : «i.name».entrySet()) {
+                        «JavaDataTypeNoName(i, true)» _t = _that.get(_i.getKey());
+                        if (_i.getValue() == null) {
+                            if (_t != null)
+                                return false;
+                            // both are null
+                        } else {
+                            if (_t == null)
+                                return false;
+                            // both are not null => compare further
+                            if (!(«writeCompareStuff(i, "_t", "))")»
+                                return false;
+                        }
+                    }
                     return true;
                 }
             «ENDIF»

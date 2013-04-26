@@ -28,6 +28,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import de.jpaw.bonaparte.dsl.bonScript.MapModifier
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -115,7 +116,17 @@ class XUtil {
     }
     
     def public static indexedName(FieldDefinition i) {
-        if (i.isList != null) "_i" else i.name + (if (i.isArray != null) "[_i]" else "")
+        if (i.isList != null) "_i" else if (i.isMap != null) "_i.getValue()" else i.name + (if (i.isArray != null) "[_i]" else "")
+    }
+    
+    def public static int mapIndexID(MapModifier i) {
+        if (i.indexType == "String")
+            return 1
+        if (i.indexType == "Integer")
+            return 2
+        if (i.indexType == "Long")
+            return 3
+        return 0  // should not happen
     }
     
     def public static loopStart(FieldDefinition i) '''
@@ -125,6 +136,9 @@ class XUtil {
         «ELSEIF i.isList != null»
             if («i.name» != null)
                 for («JavaDataTypeNoName(i, true)» _i : «i.name»)
+        «ELSEIF i.isMap != null»
+            if («i.name» != null)
+                for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)» _i : «i.name».entrySet())
         «ENDIF»
         '''
         
@@ -150,6 +164,8 @@ class XUtil {
             dataClass + "[]" 
         else if (i.isList != null)
             "List<" + dataClass + ">" 
+        else if (i.isMap != null)
+            "Map<" + i.isMap.indexType + "," + dataClass + ">" 
         else
             dataClass
     }

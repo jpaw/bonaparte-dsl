@@ -128,6 +128,22 @@ class JavaDeserialize {
                                 p.parseArrayEnd();
                             «ENDIF»
                         }
+                    «ELSEIF i.isMap != null»
+                        arrayLength = p.parseMapStart("«i.name»", «mapIndexID(i.isMap)»);
+                        if (arrayLength < 0) {
+                            «i.name» = null;
+                        } else {
+                            «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(arrayLength);
+                            for (int _i = 0; _i < arrayLength; ++_i) {
+                                «IF i.isMap.indexType == "String"»
+                                    «i.isMap.indexType» _key = p.readString("«i.name»", false, 256, false, false, true, true);
+                                «ELSE»
+                                    «i.isMap.indexType» _key = p.read«i.isMap.indexType»("«i.name»", false, true);
+                                «ENDIF»
+                                «i.name».put(_key, «makeRead2(d, i, ");")»
+                            }
+                            p.parseArrayEnd();
+                        }
                     «ELSE»
                         «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»

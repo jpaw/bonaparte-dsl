@@ -41,6 +41,8 @@ class JavaMeta {
             multi = "Multiplicity.ARRAY, " + i.isArray.maxcount
         else if (i.isList != null)
             multi = "Multiplicity.LIST, " + i.isList.maxcount
+        else if (i.isMap != null)
+            multi = "Multiplicity.MAP, 0"  // could misuse maxcount for the index type
         else
             multi = "Multiplicity.SCALAR, 0"
             

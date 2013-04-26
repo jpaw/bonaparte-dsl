@@ -76,7 +76,7 @@ class JavaFieldsGettersSetters {
                 «IF i.isRequired && !ref.isPrimitive»
                     @NotNull
                 «ENDIF»
-                «IF ref.elementaryDataType != null && i.isArray == null && i.isList == null»
+                «IF ref.elementaryDataType != null && i.isArray == null && i.isList == null && i.isMap == null»
                     «IF ref.elementaryDataType.name.toLowerCase().equals("number")»
                         @Digits(integer=«ref.elementaryDataType.length», fraction=0)
                     «ELSEIF ref.elementaryDataType.name.toLowerCase().equals("decimal")»
