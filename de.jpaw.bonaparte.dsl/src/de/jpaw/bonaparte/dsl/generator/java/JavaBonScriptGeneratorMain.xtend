@@ -242,6 +242,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.EnumException;
+        import de.jpaw.util.ToStringHelper;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
@@ -310,6 +311,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «ENDIF»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(new Separator(), d)»
+            
+            @Override
+            public String toString() {
+                return ToStringHelper.toStringSL(this);
+            }
         }
     '''   
     }
