@@ -24,25 +24,25 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaCompare {
     
-    def private static writeCompareSub(FieldDefinition i, String index) {
+    def private static writeCompareSub(FieldDefinition i, String index, String tindex) {
         switch (getJavaDataType(i.datatype)) {
-        case "byte []":     '''Arrays.equals(«index», that.«index»)'''
-        case "ByteArray":   '''«index».contentEquals(that.«index»)'''
-        case "Calendar":    '''«index».compareTo(that.«index») == 0'''
-        default:            '''«index».equals(that.«index»)'''
+        case "byte []":     '''Arrays.equals(«index», «tindex»)'''
+        case "ByteArray":   '''«index».contentEquals(«tindex»)'''
+        case "Calendar":    '''«index».compareTo(«tindex») == 0'''
+        default:            '''«index».equals(«tindex»)'''
         }
     } 
     
     
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
-    def private static writeCompareStuff(FieldDefinition i, String index, String end) ''' 
+    def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) ''' 
         «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
-            ((«index» == null && that.«index» == null) || («index» != null && «index».hasSameContentsAs(that.«index»)))«end»
+            ((«index» == null && «tindex» == null) || («index» != null && «index».hasSameContentsAs(«tindex»)))«end»
         «ELSE»
             «IF DataTypeExtension::get(i.datatype).isPrimitive»
-                «index» == that.«index»«end»
+                «index» == «tindex»«end»
             «ELSE»
-                ((«index» == null && that.«index» == null) || («index» != null && «writeCompareSub(i, index)»))«end»
+                ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, index, tindex)»))«end»
             «ENDIF»
         «ENDIF»
     '''
@@ -132,7 +132,7 @@ class JavaCompare {
                 «IF i.isArray != null || i.isList != null || i.isMap != null»
                     && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && xCompareSub$«i.name»(that)))
                 «ELSE»
-                    && «writeCompareStuff(i, i.name, "")»
+                    && «writeCompareStuff(i, i.name, "that." + i.name, "")»
                 «ENDIF»
             «ENDFOR»
             ;
@@ -144,7 +144,7 @@ class JavaCompare {
                     if («i.name».length != that.«i.name».length)
                         return false;
                     for (int _i = 0; _i < «i.name».length; ++_i)
-                        if (!(«writeCompareStuff(i, i.name + "[_i]", "))")»
+                        if (!(«writeCompareStuff(i, i.name + "[_i]", "that." + i.name + "[_i]", "))")»
                             return false;
                     return true;
                 }
@@ -156,7 +156,7 @@ class JavaCompare {
                         return false;
                     // indexed access is not optional, but sequential access will be left for later optimization 
                     for (int _i = 0; _i < «i.name».size(); ++_i)
-                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "))")»
+                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "that." + i.name + ".get(_i)", "))")»
                             return false;
                     return true;
                 }
@@ -167,19 +167,10 @@ class JavaCompare {
                     if («i.name».size() != that.«i.name».size())
                         return false;
                     // method is to verify all entries are the same 
-                    for (Map.Entry<«i.isMap.indexType», «JavaDataTypeNoName(i, true)» _i : «i.name».entrySet()) {
-                        «JavaDataTypeNoName(i, true)» _t = _that.get(_i.getKey());
-                        if (_i.getValue() == null) {
-                            if (_t != null)
-                                return false;
-                            // both are null
-                        } else {
-                            if (_t == null)
-                                return false;
-                            // both are not null => compare further
-                            if (!(«writeCompareStuff(i, "_t", "))")»
-                                return false;
-                        }
+                    for (Map.Entry<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
+                        «JavaDataTypeNoName(i, true)» _t = that.«i.name».get(_i.getKey());
+                        if (!(«writeCompareStuff(i, "_i.getValue()", "_t", "))")»
+                            return false;
                     }
                     return true;
                 }

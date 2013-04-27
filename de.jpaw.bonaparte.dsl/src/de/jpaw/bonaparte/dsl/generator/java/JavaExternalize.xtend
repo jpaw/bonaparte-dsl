@@ -89,7 +89,7 @@ class JavaExternalize {
                         _out.writeByte(ExternalizableConstants.NULL_FIELD);
                     } else {
                         ExternalizableComposer.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
-                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)» _i : «i.name».entrySet()) {
+                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                             // write (key, value) tuples
                             «IF i.isMap.indexType == "String"»
                                 ExternalizableComposer.writeString(_i.getKey());

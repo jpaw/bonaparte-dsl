@@ -92,10 +92,10 @@ class JavaSerialize {
                         w.writeNull();
                     } else {
                         w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
-                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)» _i : «i.name».entrySet()) {
+                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                             // write (key, value) tuples
                             «IF i.isMap.indexType == "String"»
-                                w.addField(_i.getKey(), 256);
+                                w.addField(_i.getKey(), 255);
                             «ELSE»
                                 w.addField(_i.getKey());
                             «ENDIF»

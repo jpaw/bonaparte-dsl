@@ -128,6 +128,15 @@ class XUtil {
             return 3
         return 0  // should not happen
     }
+    def public static int mapIndexLength(MapModifier i) {
+        if (i.indexType == "String")
+            return 255
+        if (i.indexType == "Integer")
+            return 9
+        if (i.indexType == "Long")
+            return 18
+        return 0  // should not happen
+    }
     
     def public static loopStart(FieldDefinition i) '''
         «IF i.isArray != null»
@@ -138,7 +147,7 @@ class XUtil {
                 for («JavaDataTypeNoName(i, true)» _i : «i.name»)
         «ELSEIF i.isMap != null»
             if («i.name» != null)
-                for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)» _i : «i.name».entrySet())
+                for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet())
         «ENDIF»
         '''
         

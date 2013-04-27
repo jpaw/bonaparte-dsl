@@ -136,7 +136,7 @@ class JavaDeserialize {
                             «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(arrayLength);
                             for (int _i = 0; _i < arrayLength; ++_i) {
                                 «IF i.isMap.indexType == "String"»
-                                    «i.isMap.indexType» _key = p.readString("«i.name»", false, 256, false, false, true, true);
+                                    «i.isMap.indexType» _key = p.readString("«i.name»", false, 255, false, false, true, true);
                                 «ELSE»
                                     «i.isMap.indexType» _key = p.read«i.isMap.indexType»("«i.name»", false, true);
                                 «ENDIF»
