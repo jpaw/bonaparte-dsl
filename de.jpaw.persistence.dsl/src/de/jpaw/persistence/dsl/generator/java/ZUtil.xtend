@@ -19,6 +19,7 @@ package de.jpaw.persistence.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*      // required for batch compile?
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
