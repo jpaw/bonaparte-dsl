@@ -123,7 +123,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def public recurseColumns(ClassDefinition cl, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
+    def public CharSequence recurseColumns(ClassDefinition cl, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
         «IF cl != stopper»
             «cl.extendsClass?.classRef?.recurseColumns(databaseFlavour, stopper)»
             -- table columns of java class «cl.name»
@@ -135,7 +135,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
     
-    def public recurseComments(ClassDefinition cl, EntityDefinition e, String tablename, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
+    def public CharSequence recurseComments(ClassDefinition cl, EntityDefinition e, String tablename, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
         «IF cl != stopper»
             «cl.extendsClass?.classRef?.recurseComments(e, tablename, databaseFlavour, stopper)»
             -- comments for columns of java class «cl.name»

@@ -3,7 +3,7 @@
  */
 package de.jpaw.persistence.dsl;
 
-import org.eclipse.xtext.scoping.impl.ImportUriGlobalScopeProvider;
+// import org.eclipse.xtext.scoping.impl.ImportUriGlobalScopeProvider;
 
 import de.jpaw.persistence.dsl.scoping.BDDLScopeProvider;
 

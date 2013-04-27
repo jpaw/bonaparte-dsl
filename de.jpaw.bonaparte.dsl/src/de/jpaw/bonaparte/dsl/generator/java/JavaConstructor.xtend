@@ -33,7 +33,7 @@ class JavaConstructor {
             return g.replace(JavaDataTypeNoName(i, false))
     }
     
-    def private static allFields(Separator s, Generics g, ClassDefinition d, boolean withTypes) '''
+    def private static CharSequence allFields(Separator s, Generics g, ClassDefinition d, boolean withTypes) '''
         «IF d.extendsClass != null && d.extendsClass.classRef != null»
             «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
         «ENDIF»

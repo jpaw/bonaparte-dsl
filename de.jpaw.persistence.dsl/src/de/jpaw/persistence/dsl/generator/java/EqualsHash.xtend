@@ -19,9 +19,6 @@ package de.jpaw.persistence.dsl.generator.java
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -94,7 +91,7 @@ class EqualsHash {
             «ENDFOR»
         «ENDIF»
     '''
-    def private static writeHashSub(ClassDefinition d) '''
+    def private static CharSequence writeHashSub(ClassDefinition d) '''
         «IF d.extendsClass != null»
             «writeHashSub(d.extendsClass.classRef)»
         «ENDIF»

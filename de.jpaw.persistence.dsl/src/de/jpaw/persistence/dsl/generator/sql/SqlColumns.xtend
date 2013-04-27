@@ -19,7 +19,6 @@ package de.jpaw.persistence.dsl.generator.sql
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.persistence.dsl.generator.YUtil
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
@@ -33,7 +32,6 @@ class SqlColumns {
         if (XUtil::isRequired(c)) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
-        val ref = DataTypeExtension::get(c.datatype)
         if (YUtil::hasProperty(c.properties, "currentUser"))
             SqlMapping::getCurrentUser(databaseFlavour)
         else if (YUtil::hasProperty(c.properties, "currentTimestamp"))

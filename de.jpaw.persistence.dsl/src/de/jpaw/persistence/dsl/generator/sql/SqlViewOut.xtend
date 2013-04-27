@@ -39,7 +39,7 @@ class SqlViewOut {
             '''«prefix».«cn» AS «cn»'''
     }
     
-    def private static createColumns(ClassDefinition c, String prefix) '''
+    def private static CharSequence createColumns(ClassDefinition c, String prefix) '''
         «IF c != null»
             «IF c.extendsClass != null»
                 «createColumns(c.extendsClass.classRef, prefix)»
@@ -53,7 +53,7 @@ class SqlViewOut {
         «ENDIF»
     '''
     
-    def private static recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level) '''
+    def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level) '''
         «IF e.^extends != null»
             «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level)»
             «createColumns(e.pojoType, "t" + level)»

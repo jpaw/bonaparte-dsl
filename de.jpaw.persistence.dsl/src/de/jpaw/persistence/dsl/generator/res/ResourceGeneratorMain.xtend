@@ -19,14 +19,9 @@ package de.jpaw.persistence.dsl.generator.res
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 
 class ResourceGeneratorMain implements IGenerator {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.ResourceGeneratorMain") // jcl
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition)))

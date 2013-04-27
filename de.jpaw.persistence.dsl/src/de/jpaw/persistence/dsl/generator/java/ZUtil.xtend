@@ -18,14 +18,13 @@ package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
-import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class ZUtil {
     
-    def public static recurseDataGetter(ClassDefinition d, ClassDefinition stopper) '''
+    def public static CharSequence recurseDataGetter(ClassDefinition d, ClassDefinition stopper) '''
         «IF d != stopper»
             «d.extendsClass?.classRef?.recurseDataGetter(stopper)»
             // auto-generated data getter for «d.name»
@@ -37,7 +36,7 @@ class ZUtil {
         «ENDIF»
     '''
     
-    def public static recurseDataSetter(ClassDefinition d, ClassDefinition stopper, EntityDefinition avoidKeyOf) '''
+    def public static CharSequence recurseDataSetter(ClassDefinition d, ClassDefinition stopper, EntityDefinition avoidKeyOf) '''
         «IF d != stopper»
             «d.extendsClass?.classRef?.recurseDataSetter(stopper, avoidKeyOf)»
             // auto-generated data setter for «d.name»

@@ -195,7 +195,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         return false    
     }
     
-    def public recurseColumns(ClassDefinition cl, List<FieldDefinition> pkColumns, boolean excludePkColumns, ClassDefinition stopper) '''
+    def public CharSequence recurseColumns(ClassDefinition cl, List<FieldDefinition> pkColumns, boolean excludePkColumns, ClassDefinition stopper) '''
         «IF cl != stopper»
             «cl.extendsClass?.classRef?.recurseColumns(pkColumns, excludePkColumns, stopper)»
             // table columns of java class «cl.name»
@@ -435,7 +435,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
 
-    def private writeStaticFindByMethods(ClassDefinition d, EntityDefinition e, ClassDefinition stopper) '''
+    def private CharSequence writeStaticFindByMethods(ClassDefinition d, EntityDefinition e, ClassDefinition stopper) '''
         «IF d != stopper»
             «d.extendsClass?.classRef?.writeStaticFindByMethods(e, stopper)»
             «FOR i:d.fields»
