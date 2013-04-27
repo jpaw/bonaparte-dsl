@@ -110,29 +110,29 @@ class EqualsHash {
         
         '''
         
-    def public static writeEquals(ClassDefinition d) '''
+    def private static writeEquals(EntityDefinition e) '''
         @Override
         public boolean equals(Object _that) {
             if (_that == null)
                 return false;
-            if (!(_that instanceof «d.name»))
+            if (!(_that instanceof «e.name»))
                 return false;
             if (this == _that)
                 return true;
             return equalsSub(_that);
         }
         
-        «IF d.extendsClass != null»
+        «IF e.pojoType.extendsClass != null»
         @Override
         «ENDIF»
         protected boolean equalsSub(Object _that) {
-            «d.name»«genericDef2StringAsParams(d.genericParameters)» that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)_that;
-            «IF d.extendsClass != null»
+            «e.name» that = («e.name»)_that;
+            «IF e.pojoType.extendsClass != null»
                 return super.equalsSub(_that)
             «ELSE»
-                return true
+                return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well 
             «ENDIF»
-            «FOR i:d.fields»
+            «FOR i:e.pojoType.fields»
                 «IF i.isArray != null || i.isList != null»
                     && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
                 «ELSE»
@@ -166,7 +166,7 @@ class EqualsHash {
             «writeSub(e, e.pk.columnName.get(0).name)»
         «ELSE»
             «writeHash(e.pojoType, null)»
-            «writeEquals(e.pojoType)»
+            «writeEquals(e)»
         «ENDIF»
     '''
 
