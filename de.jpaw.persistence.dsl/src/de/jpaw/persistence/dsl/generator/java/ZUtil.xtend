@@ -50,9 +50,11 @@ class ZUtil {
     '''
     
     def public static isKeyField(EntityDefinition e, FieldDefinition f) {
-        for (FieldDefinition i: e.pk.columnName) {
-            if (i == f)
-                return true
+        if (e.pk != null) {
+            for (FieldDefinition i: e.pk.columnName) {
+                if (i == f)
+                    return true
+            }
         }
         return false
     }

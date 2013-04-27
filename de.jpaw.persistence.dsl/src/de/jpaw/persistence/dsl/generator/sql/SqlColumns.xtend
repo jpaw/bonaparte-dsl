@@ -20,8 +20,14 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+// using JCL here, because it is already a project dependency, should switch to slf4j
+import org.apache.commons.logging.Log
+import org.apache.commons.logging.LogFactory
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class SqlColumns {
+    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
+    
     // TODO: check if column is in PK (then ssume implicit NOT NULL)
     def public static nullconstraint(FieldDefinition c) {
         if (XUtil::isRequired(c)) " NOT NULL" else ""
@@ -38,7 +44,12 @@ class SqlColumns {
             ""
     }
 
-    def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour) '''
-        «YUtil::columnName(c)» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«nullconstraint(c)»
-    '''
+    def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour) {
+        val String columnName = YUtil::columnName(c)
+        if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
+            logger.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
+        return '''
+            «columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«nullconstraint(c)»
+        '''
+    }
 }

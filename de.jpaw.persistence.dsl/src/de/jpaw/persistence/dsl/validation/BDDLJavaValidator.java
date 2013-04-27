@@ -24,8 +24,17 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
         String tablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, false);
         if (tablename.length() > 27) {
+            // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
             warning("The resulting SQL table name " + tablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
                     BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+        }
+        
+        // verify for missing primary key
+        if (e.getTableCategory().isRequiresPk()) {
+            // we need one by definition of the category
+            if (e.getPk() == null)
+                error("The table category requires specificaton of a primary key for this entity",
+                        BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
         }
 
         if (e.getXinheritance() != null) {
