@@ -21,6 +21,7 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
@@ -179,12 +180,25 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ""
     }
     
+    // write a @Size annotation for string based types
+    def private optionalSizeSpecForStrings(FieldDefinition c) {
+        val ref = DataTypeExtension::get(c.datatype);
+        if (ref.category == DataCategory::STRING)
+            return '''@Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
+            '''
+        return ''''''
+    }
+    
     // write the definition of a single column
     def private singleColumn(FieldDefinition c) '''
             @Column(name="«columnName(c)»"«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
             «optionalAnnotation(c.properties, "version", "@Version")»
             «optionalAnnotation(c.properties, "lob",     "@Lob")»
             «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
+            «IF XUtil::isRequired(c)»
+                @NotNull
+            «ENDIF»
+            «optionalSizeSpecForStrings(c)»
             «writeColumnType(c)»
     '''
     
@@ -576,6 +590,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
+        import javax.validation.constraints.NotNull;
+        import javax.validation.constraints.Size;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
