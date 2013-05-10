@@ -21,6 +21,7 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
@@ -179,12 +180,36 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ""
     }
     
+    // write a @Size annotation for string based types
+    def private optionalSizeSpecForStrings(FieldDefinition c) {
+        val ref = DataTypeExtension::get(c.datatype);
+        if (ref.category == DataCategory::STRING)
+            return '''@Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
+            '''
+        return ''''''
+    }
+    
+    // write a @Size annotation for string based types
+    def private sizeSpec(FieldDefinition c) {
+        val ref = DataTypeExtension::get(c.datatype);
+        if (ref.category == DataCategory::STRING)
+            return ''', length=«ref.elementaryDataType.length»'''
+        if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
+            return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
+        return ''''''
+    }
     // write the definition of a single column
-    def private singleColumn(FieldDefinition c) '''
-            @Column(name="«columnName(c)»"«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
+    def private singleColumn(FieldDefinition c, boolean withBeanVal) '''
+            @Column(name="«columnName(c)»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«sizeSpec(c)»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
             «optionalAnnotation(c.properties, "version", "@Version")»
             «optionalAnnotation(c.properties, "lob",     "@Lob")»
             «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
+            «IF withBeanVal»
+                «IF XUtil::isRequired(c)»
+                    @NotNull
+                «ENDIF»
+                «optionalSizeSpecForStrings(c)»
+            «ENDIF»
             «writeColumnType(c)»
     '''
     
@@ -204,7 +229,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     @Id
                 «ENDIF»
                 «IF (!excludePkColumns || !inList(pkColumns, c)) && !hasProperty(c.properties, "noJava")»
-                    «singleColumn(c)»
+                    «singleColumn(c, true)»
                     «writeGetter(c)»
                     «writeSetter(c)»
                     «IF hasProperty(c.properties, "version")»
@@ -576,6 +601,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
+        import javax.validation.constraints.NotNull;
+        import javax.validation.constraints.Size;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -685,6 +712,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.EmbeddedId;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
+        import javax.validation.constraints.NotNull;
+        import javax.validation.constraints.Size;
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -715,7 +744,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «e.name»Key implements Serializable {
             «FOR col : e.pk.columnName»
-                «singleColumn(col)»
+                «singleColumn(col, true)»
                 «writeGetter(col)»
                 «writeSetter(col)»
             «ENDFOR»
