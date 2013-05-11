@@ -61,37 +61,23 @@ class JavaFieldsGettersSetters {
                 ''' = «i.defaultString»'''
     }
     
+    // output regular as well as Javadoc style comments
+    def public static writeFieldComments(FieldDefinition i) '''
+        «IF i.comment != null»
+            // «i.comment» !
+        «ENDIF»
+        «IF i.javadoc != null»
+            «i.javadoc»
+        «ENDIF»        
+    '''
+    
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
         
         return '''
-            «IF i.comment != null»
-                // «i.comment» !
-            «ENDIF»
-            «IF i.javadoc != null»
-                «i.javadoc»
-            «ENDIF»        
-            «IF doBeanVal»
-                «IF i.isRequired && !ref.isPrimitive»
-                    @NotNull
-                «ENDIF»
-                «IF ref.elementaryDataType != null && i.isArray == null && i.isList == null && i.isMap == null»
-                    «IF ref.elementaryDataType.name.toLowerCase().equals("number")»
-                        @Digits(integer=«ref.elementaryDataType.length», fraction=0)
-                    «ELSEIF ref.elementaryDataType.name.toLowerCase().equals("decimal")»
-                        @Digits(integer=«ref.elementaryDataType.length - ref.elementaryDataType.decimals», fraction=«ref.elementaryDataType.decimals»)
-                    «ELSEIF ref.javaType.equals("String")»
-                        @Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
-                        «IF ref.isUpperCaseOrLowerCaseSpecialType»
-                            @javax.validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
-                        «ENDIF»
-                        «IF ref.elementaryDataType.regexp != null»
-                            @javax.validation.constraints.Pattern(regexp="\\A«Util::escapeString2Java(ref.elementaryDataType.regexp)»\\z")
-                        «ENDIF»
-                    «ENDIF»
-                «ENDIF»
-            «ENDIF»
+            «writeFieldComments(i)»
+            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»            
             «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }
@@ -102,6 +88,12 @@ class JavaFieldsGettersSetters {
         «FOR i:d.fields»
             «writeOneField(d, i, doBeanVal)»
         «ENDFOR»
+    '''
+   
+    // Unused. Test to see the generated code for Lambdas.
+    def public static writeFieldsWithLambda(ClassDefinition d, boolean doBeanVal) '''
+        // fields as defined in DSL
+        «d.fields.forEach [ writeOneField(d, it, doBeanVal) ]»
     '''
                 
     def public static writeGettersSetters(ClassDefinition d) '''

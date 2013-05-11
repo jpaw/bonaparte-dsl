@@ -129,7 +129,7 @@ class JavaCompare {
                 return true
             «ENDIF»
             «FOR i:d.fields»
-                «IF i.isArray != null || i.isList != null || i.isMap != null»
+                «IF i.aggregate»
                     && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && xCompareSub$«i.name»(that)))
                 «ELSE»
                     && «writeCompareStuff(i, i.name, "that." + i.name, "")»

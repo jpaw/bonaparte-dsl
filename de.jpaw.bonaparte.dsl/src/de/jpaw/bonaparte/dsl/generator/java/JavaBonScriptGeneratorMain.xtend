@@ -255,12 +255,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
         «ENDIF»
-        «IF doBeanVal»
-        import javax.validation.constraints.NotNull;
-        import javax.validation.constraints.Digits;
-        import javax.validation.constraints.Size;
-        //import javax.validation.constraints.Pattern;  // conflicts with java.util.regexp.Pattern, use FQON instead
-        «ENDIF»
+        «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
         import java.io.Externalizable;
         import java.io.IOException;
@@ -321,8 +316,5 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     '''   
     }
     def JavaDeexternalize(ClassDefinition definition) { }
-
-
-      
  
 }

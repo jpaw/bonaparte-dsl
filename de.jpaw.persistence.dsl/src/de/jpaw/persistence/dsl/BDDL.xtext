@@ -73,6 +73,7 @@ TableCategoryDefinition:
     ('history' historyCategory=[TableCategoryDefinition])?
     ('historyColumn' historyColumn = ID)?  // TODO: currently unchecked  
     (requiresPk ?= 'requiresPK')?
+    (doBeanVal ?= 'beanVal')?
     ('grants' grantGroup = [GrantCategoryDefinition])?
     '}'
 ;

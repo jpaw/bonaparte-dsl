@@ -37,6 +37,7 @@ import java.util.List
 import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
+import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
 
 class JavaDDLGeneratorMain implements IGenerator {
     val String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -180,15 +181,6 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     // write a @Size annotation for string based types
-    def private optionalSizeSpecForStrings(FieldDefinition c) {
-        val ref = DataTypeExtension::get(c.datatype);
-        if (ref.category == DataCategory::STRING)
-            return '''@Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
-            '''
-        return ''''''
-    }
-    
-    // write a @Size annotation for string based types
     def private sizeSpec(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype);
         if (ref.category == DataCategory::STRING)
@@ -203,12 +195,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «optionalAnnotation(c.properties, "version", "@Version")»
             «optionalAnnotation(c.properties, "lob",     "@Lob")»
             «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
-            «IF withBeanVal»
-                «IF XUtil::isRequired(c)»
-                    @NotNull
-                «ENDIF»
-                «optionalSizeSpecForStrings(c)»
-            «ENDIF»
+            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
             «writeColumnType(c)»
     '''
     
@@ -219,45 +206,45 @@ class JavaDDLGeneratorMain implements IGenerator {
         return false    
     }
     
-    def public CharSequence recurseColumns(ClassDefinition cl, List<FieldDefinition> pkColumns, boolean excludePkColumns, ClassDefinition stopper) '''
-        «IF cl != stopper»
-            «cl.extendsClass?.classRef?.recurseColumns(pkColumns, excludePkColumns, stopper)»
-            // table columns of java class «cl.name»
-            «FOR c : cl.fields»
-                «IF pkColumns != null && pkColumns.size == 1 && c == pkColumns.get(0)»
+    def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
+        List<FieldDefinition> pkColumns, boolean excludePkColumns
+    ) {
+        recurse(cl, stopAt, false, [ true ], [ '''// table columns of java class «it.name»
+            ''' ], [ ''' 
+                «IF pkColumns != null && pkColumns.size == 1 && it == pkColumns.get(0)»
                     @Id
                 «ENDIF»
-                «IF (!excludePkColumns || !inList(pkColumns, c)) && !hasProperty(c.properties, "noJava")»
-                    «singleColumn(c, true)»
-                    «writeGetter(c)»
-                    «writeSetter(c)»
-                    «IF hasProperty(c.properties, "version")»
-                        «IF JavaDataTypeNoName(c, false).equals("int") || JavaDataTypeNoName(c, false).equals("Integer")»
-                            «setIntVersion(c)»
+                «IF (!excludePkColumns || !inList(pkColumns, it)) && !hasProperty(it.properties, "noJava")»
+                    «singleColumn(it, e.tableCategory.doBeanVal)»
+                    «writeGetter(it)»
+                    «writeSetter(it)»
+                    «IF hasProperty(it.properties, "version")»
+                        «IF JavaDataTypeNoName(it, false).equals("int") || JavaDataTypeNoName(it, false).equals("Integer")»
+                            «setIntVersion(it)»
                         «ENDIF»
                         // specific getter/setters for the version field
-                        public void set$Version(«JavaDataTypeNoName(c, false)» _v) {
-                            set«Util::capInitial(c.name)»(_v);
+                        public void set$Version(«JavaDataTypeNoName(it, false)» _v) {
+                            set«Util::capInitial(it.name)»(_v);
                         }
-                        public «JavaDataTypeNoName(c, false)» get$Version() {
-                            return get«Util::capInitial(c.name)»();
+                        public «JavaDataTypeNoName(it, false)» get$Version() {
+                            return get«Util::capInitial(it.name)»();
                         }
                     «ENDIF»
-                    «IF hasProperty(c.properties, "active")»
+                    «IF hasProperty(it.properties, "active")»
                         «setHaveActive»
                         // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
                         public void set$Active(boolean _a) {
-                            set«Util::capInitial(c.name)»(_a);
+                            set«Util::capInitial(it.name)»(_a);
                         }
                         public boolean get$Active() {
-                            return get«Util::capInitial(c.name)»();
+                            return get«Util::capInitial(it.name)»();
                         }
                     «ENDIF»
                 «ENDIF»
-            «ENDFOR»
-        «ENDIF»
-    '''
-
+        ''']
+        )
+    }
+    
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
@@ -459,42 +446,40 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
 
-    def private CharSequence writeStaticFindByMethods(ClassDefinition d, EntityDefinition e, ClassDefinition stopper) '''
-        «IF d != stopper»
-            «d.extendsClass?.classRef?.writeStaticFindByMethods(e, stopper)»
-            «FOR i:d.fields»
-                «IF hasProperty(i.properties, "findBy")»
-                    public static «e.name» findBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+    def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
+        recurse(cl, stopAt, false, [ true ], [ '''''' ], [ ''' 
+                «IF hasProperty(it.properties, "findBy")»
+                    public static «e.name» findBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getSingleResult();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
-                «ELSEIF hasProperty(i.properties, "listBy")»
-                    public static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+                «ELSEIF hasProperty(it.properties, "listBy")»
+                    public static List<«e.name»> listBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
                 «ENDIF»
-                «IF hasProperty(i.properties, "listActiveBy")»
-                    public static List<«e.name»> listBy«Util::capInitial(i.name)»(EntityManager _em, «JavaDataTypeNoName(i, false)» _key) {
+                «IF hasProperty(it.properties, "listActiveBy")»
+                    public static List<«e.name»> listBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«i.name» = ?1 AND isActive = true", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1 AND isActive = true", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
                 «ENDIF»
-            «ENDFOR»
-        «ENDIF»
-    '''
+            ''']
+        )
+    }
     
     def private i2s(Inheritance i) {
         switch (i) {
@@ -526,6 +511,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
         val myPackage = e.eContainer as PackageDefinition 
+        
         imports.recurseImports(e.tableCategory.trackingColumns, true)
         imports.recurseImports(e.pojoType, true)
         // reset tracking flags
@@ -600,8 +586,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
-        import javax.validation.constraints.NotNull;
-        import javax.validation.constraints.Size;
+        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -679,16 +664,16 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
                 
             «ENDIF»
-            «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(pkColumns, compositeKey, null)»«ENDIF»
-            «e.pojoType.recurseColumns(pkColumns, compositeKey, stopper)»
-            «e.inheritanceRoot.tenantClass?.recurseColumns(pkColumns, false, null)»
+            «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, compositeKey)»«ENDIF»
+            «e.pojoType.recurseColumns(stopper, e, pkColumns, compositeKey)»
+            «e.inheritanceRoot.tenantClass?.recurseColumns(null, e, pkColumns, false)»
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
             «IF (!e.noMapper)»
                 «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
             «ENDIF»
-            «writeStaticFindByMethods(e.pojoType, e, stopper)»
+            «writeStaticFindByMethods(e.pojoType, stopper, e)»
         }
         '''
     }
@@ -711,8 +696,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.EmbeddedId;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
-        import javax.validation.constraints.NotNull;
-        import javax.validation.constraints.Size;
+        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         import java.util.Arrays;
         import java.util.List;
         import java.util.ArrayList;
@@ -743,7 +727,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «e.name»Key implements Serializable {
             «FOR col : e.pk.columnName»
-                «singleColumn(col, true)»
+                «singleColumn(col, e.tableCategory.doBeanVal)»
                 «writeGetter(col)»
                 «writeSetter(col)»
             «ENDFOR»
