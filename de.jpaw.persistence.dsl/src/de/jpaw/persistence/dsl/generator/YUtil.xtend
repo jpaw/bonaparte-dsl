@@ -192,7 +192,7 @@ class YUtil {
     def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
         recurse(cl, stopAt, false,
                 [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(it.properties, "noJava") ],
-                [ '''// auto-generated data getter for «it.name»
+                [ '''// auto-generated data setter for «it.name»
                   '''],
                 [ '''set«Util::capInitial(it.name)»(_d.get«Util::capInitial(it.name)»());
                   ''']

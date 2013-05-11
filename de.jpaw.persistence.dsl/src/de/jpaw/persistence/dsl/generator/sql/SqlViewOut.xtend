@@ -61,7 +61,7 @@ class SqlViewOut {
     // TODO FIXME: not yet implemented is JOIN inheritance
     def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
         CREATE OR REPLACE VIEW «mkTablename(e, false)»«suffix» AS SELECT
-            «recurseInheritance(e, databaseFlavour, includeTracking, 0, new Delimiter("", ","))»
+            «recurseInheritance(e, databaseFlavour, includeTracking, 0, new Delimiter("", ", "))»
         FROM «mkTablename(e, false)» t0;
     '''
 }
