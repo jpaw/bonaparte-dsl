@@ -27,7 +27,6 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import static extension de.jpaw.persistence.dsl.generator.java.ZUtil.*
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition

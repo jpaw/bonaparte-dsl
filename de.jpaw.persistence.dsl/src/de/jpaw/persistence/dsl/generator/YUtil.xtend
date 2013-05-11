@@ -23,8 +23,9 @@ import org.eclipse.emf.ecore.EObject
 import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import java.util.List
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.generator.Util
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class YUtil {
     def public static String quoteSQL(String text) {
@@ -47,22 +48,6 @@ class YUtil {
         return ee
     }
     
-    def public static boolean hasProperty(List <PropertyUse> properties, String key) {
-        if (properties != null)
-            for (p : properties)
-                if (key.equals(p.key.name))
-                    return true
-        return false
-    }
-    
-    def public static String getProperty(List <PropertyUse> properties, String key) {
-        if (properties != null)
-            for (p : properties)
-                if (key.equals(p.key.name))
-                    return p.value
-        return null
-    }
-        
     def public static Model getModel(EObject someReference) {
         var EObject ref = someReference
         while (!(ref instanceof Model))
@@ -182,6 +167,46 @@ class YUtil {
                             .replace("(DI)",       (if (forIndex) "I" else "D"))
                             .replace("(di)",       (if (forIndex) "i" else "d"))
         }
+    }
+    
+    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename) {
+        recurse(cl, stopAt, false,
+                [ it.comment != null ],
+                [ '''-- comments for columns of java class «it.name»
+                  '''],
+                [ '''COMMENT ON COLUMN «tablename».«columnName(it)» IS '«quoteSQL(it.comment)»';
+                  ''']
+        )
+    }
+    
+    def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt) {
+        recurse(cl, stopAt, true,
+                [ !hasProperty(it.properties, "noJava") ],
+                [ '''// auto-generated data getter for «it.name»
+                  '''],
+                [ '''_r.set«Util::capInitial(it.name)»(get«Util::capInitial(it.name)»());
+                  ''']
+        )
+    }
+    
+    def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
+        recurse(cl, stopAt, false,
+                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(it.properties, "noJava") ],
+                [ '''// auto-generated data setter for «it.name»
+                  '''],
+                [ '''set«Util::capInitial(it.name)»(_d.get«Util::capInitial(it.name)»());
+                  ''']
+        )
+    }
+    
+    def public static isKeyField(EntityDefinition e, FieldDefinition f) {
+        if (e.pk != null) {
+            for (FieldDefinition i: e.pk.columnName) {
+                if (i == f)
+                    return true
+            }
+        }
+        return false
     }
     
 }

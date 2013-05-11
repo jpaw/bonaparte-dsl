@@ -31,21 +31,17 @@ import org.apache.commons.logging.LogFactory
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.generator.Delimiter
 import java.util.Set
 import java.util.HashSet
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
-    String separator
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
-    def setSeparator(String newval) {
-        separator = newval
-        return ""  // do not output anything
-    }
-        
     def makeSqlFilename(EObject e, DatabaseFlavour databaseFlavour, String basename, String object) {
         return "sql/" + databaseFlavour.toString + "/" + object + "/" + basename + ".sql";
     }
@@ -72,6 +68,17 @@ class SqlDDLGeneratorMain implements IGenerator {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), postgresEnumFuncs(e))
         }
     }
+
+    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d) {
+        recurse(cl, stopAt, false,
+            [ true ],
+            [ '''-- table columns of java class «it.name»
+              '''],
+            [ '''«d.get»«SqlColumns::doColumn(it, databaseFlavour)»
+              ''']
+        )
+    }    
+    
 
     // recurse through all 
     def private void recurseEnumCollection(ClassDefinition c) {
@@ -123,32 +130,6 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
     
-    def public CharSequence recurseColumns(ClassDefinition cl, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
-        «IF cl != stopper»
-            «cl.extendsClass?.classRef?.recurseColumns(databaseFlavour, stopper)»
-            -- table columns of java class «cl.name»
-            «FOR c : cl.fields»
-                «IF c.isArray == null && c.isList == null»
-                    «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»
-                «ENDIF»
-            «ENDFOR»
-        «ENDIF»
-    '''
-    
-    def public CharSequence recurseComments(ClassDefinition cl, EntityDefinition e, String tablename, DatabaseFlavour databaseFlavour, ClassDefinition stopper) '''
-        «IF cl != stopper»
-            «cl.extendsClass?.classRef?.recurseComments(e, tablename, databaseFlavour, stopper)»
-            -- comments for columns of java class «cl.name»
-            «FOR c : cl.fields»
-                «IF c.comment != null»
-                    «IF c.isArray == null && c.isList == null»
-                        COMMENT ON COLUMN «tablename».«columnName(c)» IS '«quoteSQL(c.comment)»';
-                    «ENDIF»
-                «ENDIF»
-            «ENDFOR»
-        «ENDIF»
-    '''
-    
     def indexCounter() {
         return indexCount = indexCount + 1
     }
@@ -177,6 +158,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         }            
             
         var grantGroup = myCategory.grantGroup
+        val d = new Delimiter("  ", ", ")
         indexCount = 0
         return '''
         -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
@@ -184,20 +166,19 @@ class SqlDDLGeneratorMain implements IGenerator {
         -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         
         CREATE TABLE «tablename» (
-            «setSeparator("  ")»
             «IF stopper == null»
-                «t.tableCategory.trackingColumns?.recurseColumns(databaseFlavour, null)»
+                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d)»
             «ENDIF»
-            «baseEntity.tenantClass?.recurseColumns(databaseFlavour, null)»
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d)»
             «IF t.discname != null»
-                «separator»«doDiscriminator(t, databaseFlavour)»«setSeparator(", ")»
+                «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
             «IF baseEntity.pk != null && stopper != null»
                 «FOR c : baseEntity.pk.columnName»
-                    «separator»«SqlColumns::doColumn(c, databaseFlavour)»«setSeparator(", ")»
+                    «d.get»«SqlColumns::doColumn(c, databaseFlavour)»
                 «ENDFOR»
             «ENDIF»
-            «t.pojoType.recurseColumns(databaseFlavour, stopper)»
+            «t.pojoType.recurseColumns(stopper, databaseFlavour, d)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
         
         «IF baseEntity.pk != null»
@@ -207,8 +188,8 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
-                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» on «tablename»(
-                    «FOR c : i.columnName SEPARATOR ', '»«YUtil::columnName(c)»«ENDFOR»
+                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» ON «tablename»(
+                    «FOR c : i.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»
                 )«IF tablespaceIndex != null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
@@ -221,13 +202,13 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDIF»
         
         «IF stopper == null»
-        «t.tableCategory.trackingColumns?.recurseComments(t, tablename, databaseFlavour, null)»
+            «t.tableCategory.trackingColumns?.recurseComments(null, tablename)»
         «ENDIF»
-        «baseEntity.tenantClass?.recurseComments(t, tablename, databaseFlavour, null)»
+        «baseEntity.tenantClass?.recurseComments(null, tablename)»
         «IF t.discname != null»
             COMMENT ON COLUMN «tablename».«t.discname» IS 'autogenerated JPA discriminator column';
         «ENDIF»
-        «t.pojoType.recurseComments(t, tablename, databaseFlavour, stopper)»
+        «t.pojoType.recurseComments(stopper, tablename)»
     '''
     }  
 }

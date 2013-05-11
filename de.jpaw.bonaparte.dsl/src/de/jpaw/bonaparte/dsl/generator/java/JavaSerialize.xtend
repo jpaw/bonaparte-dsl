@@ -71,7 +71,7 @@ class JavaSerialize {
                 super.serializeSub(w);
             «ENDIF»
             «FOR i:d.fields»
-                «IF i.isArray != null || i.isList != null»
+                «IF i.isAggregate»
                     if («i.name» == null) {
                         w.writeNull();
                     } else {
@@ -80,28 +80,24 @@ class JavaSerialize {
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
-                        «ELSE»
+                        «ELSEIF i.isList != null»
                             w.startArray(«i.name».size(), «i.isList.maxcount», 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
+                        «ELSE»
+                            w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                            for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
+                                // write (key, value) tuples
+                                «IF i.isMap.indexType == "String"»
+                                    w.addField(_i.getKey(), 255);
+                                «ELSE»
+                                    w.addField(_i.getKey());
+                                «ENDIF»
+                                «makeWrite2(d, i, indexedName(i))»
+                            }
+                            w.terminateArray();
                         «ENDIF»
-                    }
-                «ELSEIF i.isMap != null»
-                    if («i.name» == null) {
-                        w.writeNull();
-                    } else {
-                        w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
-                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
-                            // write (key, value) tuples
-                            «IF i.isMap.indexType == "String"»
-                                w.addField(_i.getKey(), 255);
-                            «ELSE»
-                                w.addField(_i.getKey());
-                            «ENDIF»
-                            «makeWrite2(d, i, indexedName(i))»
-                        }
-                        w.terminateArray();
                     }
                 «ELSE»
                     «makeWrite2(d, i, indexedName(i))»

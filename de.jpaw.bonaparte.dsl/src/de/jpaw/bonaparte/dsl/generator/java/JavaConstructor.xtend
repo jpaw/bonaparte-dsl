@@ -18,9 +18,9 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.Separator
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.Generics
+import de.jpaw.bonaparte.dsl.generator.Delimiter
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
@@ -33,12 +33,12 @@ class JavaConstructor {
             return g.replace(JavaDataTypeNoName(i, false))
     }
     
-    def private static CharSequence allFields(Separator s, Generics g, ClassDefinition d, boolean withTypes) '''
+    def private static CharSequence allFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
         «IF d.extendsClass != null && d.extendsClass.classRef != null»
             «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
         «ENDIF»
         «FOR i : d.fields»
-            «s.current»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»«s.setCurrent(", ")»
+            «s.get»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»
         «ENDFOR»
     '''
     
@@ -49,7 +49,7 @@ class JavaConstructor {
         return sum 
     }
     
-    def public static writeConstructorCode(Separator s, ClassDefinition d) '''
+    def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
             «IF d.extendsClass != null && d.extendsClass.classRef != null»
@@ -59,9 +59,9 @@ class JavaConstructor {
         
         «IF countAllFields(d) > 0»
             // default all-arguments constructor
-            public «d.name»(«s.setCurrent("")»«allFields(s, new Generics(), d, true)») {
+            public «d.name»(«allFields(new Delimiter("", ", "), new Generics(), d, true)») {
                 «IF d.extendsClass != null && d.extendsClass.classRef != null»
-                    super(«s.setCurrent("")»«allFields(s, null, d.extendsClass.classRef, false)»);
+                    super(«allFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
                 «ENDIF»
                 «FOR i : d.fields»
                     this.«i.name» = «i.name»;

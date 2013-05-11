@@ -69,11 +69,24 @@ class JavaExternalize {
                 super.writeExternal(_out);
             «ENDIF»
             «FOR i:d.fields»
-                «IF i.isArray != null || i.isList != null»
+                «IF i.isAggregate»
                     if («i.name» == null) {
                         _out.writeByte(ExternalizableConstants.NULL_FIELD);
                     } else {
-                        «IF i.isArray != null»
+                        «IF i.isMap != null»
+                            ExternalizableComposer.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                            for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
+                                // write (key, value) tuples
+                                «IF i.isMap.indexType == "String"»
+                                    ExternalizableComposer.writeString(_i.getKey());
+                                «ELSEIF i.isMap.indexType == "Integer"»
+                                    ExternalizableComposer.writeVarInt(_i.getKey());
+                                «ELSE»
+                                    ExternalizableComposer.writeVarLong(_i.getKey());
+                                «ENDIF»
+                                «makeWrite2(d, i, indexedName(i))»
+                            }
+                        «ELSEIF i.isArray != null»
                             ExternalizableComposer.startArray(_out, «i.name».length);
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
@@ -82,24 +95,6 @@ class JavaExternalize {
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
                         «ENDIF»
-                        _out.writeByte(ExternalizableConstants.ARRAY_TERMINATOR);
-                    }
-                «ELSEIF i.isMap != null»
-                    if («i.name» == null) {
-                        _out.writeByte(ExternalizableConstants.NULL_FIELD);
-                    } else {
-                        ExternalizableComposer.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
-                        for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
-                            // write (key, value) tuples
-                            «IF i.isMap.indexType == "String"»
-                                ExternalizableComposer.writeString(_i.getKey());
-                            «ELSEIF i.isMap.indexType == "Integer"»
-                                ExternalizableComposer.writeVarInt(_i.getKey());
-                            «ELSE»
-                                ExternalizableComposer.writeVarLong(_i.getKey());
-                            «ENDIF»
-                            «makeWrite2(d, i, indexedName(i))»
-                        }
                         _out.writeByte(ExternalizableConstants.ARRAY_TERMINATOR);
                     }
                 «ELSE»
