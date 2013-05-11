@@ -21,6 +21,7 @@ import java.util.Map;
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
 // mapping of database vendor specific information
@@ -94,8 +95,8 @@ public class SqlMapping {
         int columnLength;
         int columnDecimals;
         if (ref.objectDataType != null) {
-            if (YUtil.hasProperty(c.getProperties(), "serialized")) {
-                String value = YUtil.getProperty(c.getProperties(), "serialized");
+            if (XUtil.hasProperty(c.getProperties(), "serialized")) {
+                String value = XUtil.getProperty(c.getProperties(), "serialized");
                 datatype = "raw";  // assume artificial ID
                 columnLength = value == null ? 2000 : Integer.valueOf(value);
                 columnDecimals = 0;

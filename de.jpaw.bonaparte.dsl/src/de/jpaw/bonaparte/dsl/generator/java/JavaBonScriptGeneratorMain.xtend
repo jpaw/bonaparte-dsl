@@ -36,7 +36,6 @@ import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
-import de.jpaw.bonaparte.dsl.generator.Separator
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -297,7 +296,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         
-            «JavaMeta::writeMetaData(new Separator(), d)»
+            «JavaMeta::writeMetaData(d)»
             «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
@@ -312,7 +311,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaDeexternalize::writeDeexternalize(d)»
             «ENDIF»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
-            «JavaConstructor::writeConstructorCode(new Separator(), d)»
+            «JavaConstructor::writeConstructorCode(d)»
             
             @Override
             public String toString() {

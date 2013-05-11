@@ -29,6 +29,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -222,4 +223,47 @@ class XUtil {
     def public static nnvl(String text1, String text2, String otherwise) {
         if (text1 != null) text1 else if (text2 != null) text2 else otherwise
     }
+    
+    // moved from persistence / YUtil:
+    def public static boolean hasProperty(List <PropertyUse> properties, String key) {
+        if (properties != null)
+            for (p : properties)
+                if (key.equals(p.key.name))
+                    return true
+        return false
+    }
+    
+    def public static String getProperty(List <PropertyUse> properties, String key) {
+        if (properties != null)
+            for (p : properties)
+                if (key.equals(p.key.name))
+                    return p.value
+        return null
+    }
+    
+    // determines if the field is an aggregate type (array / list / map and possibly later additional
+    def public static boolean isAggregate(FieldDefinition c) {
+        return c.isArray != null || c.isList != null || c.isMap != null       
+    }
+    
+    
+    // a generic iterator over the fields of a specific class, plus certain super classes.
+    // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
+    // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
+    // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
+    def public static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
+        (ClassDefinition)=> CharSequence groupSeparator, (FieldDefinition) => CharSequence fieldOutput) '''
+        «IF cl != stopAt»
+            «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, groupSeparator, fieldOutput)»
+            «groupSeparator?.apply(cl)»
+            «FOR c : cl.fields»
+                «IF includeAggregates || !isAggregate(c)»
+                    «IF filterCondition.apply(c)»
+                        «fieldOutput.apply(c)»
+                    «ENDIF»
+                «ENDIF»
+            «ENDFOR»
+        «ENDIF»
+    '''
+        
 }

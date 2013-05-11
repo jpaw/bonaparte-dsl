@@ -71,7 +71,7 @@ class EqualsHash {
         } else {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
-            else if (i.isList != null)
+            else if (i.isList != null || i.isMap != null)
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
@@ -182,7 +182,7 @@ class EqualsHash {
             «e.name»Key that = («e.name»Key)_that;
             return true
             «FOR i:l»
-                «IF i.isArray != null || i.isList != null»
+                «IF i.aggregate»
                     && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
                 «ELSE»
                     && «writeCompareStuff(i, i.name, "")»

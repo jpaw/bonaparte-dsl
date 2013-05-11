@@ -24,12 +24,11 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.Separator
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaMeta {
     
-    def private static makeMeta(Separator s, ClassDefinition d, FieldDefinition i) {
+    def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
         var String multi
@@ -81,7 +80,7 @@ class JavaMeta {
             '''
     }
     
-    def public static writeMetaData(Separator s, ClassDefinition d) {
+    def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
         var myPackage = JavaPackages::getPackage(d)
         var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
@@ -130,7 +129,7 @@ class JavaMeta {
             private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»; 
 
             «FOR i : d.fields»
-                «makeMeta(s, d, i)» 
+                «makeMeta(d, i)» 
             «ENDFOR»
             
             // extended meta data (for the enhanced interface)
