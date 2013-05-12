@@ -185,7 +185,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType
-    (isArray    = ArrayModifier | isList = ListModifier | isMap = MapModifier)?
+    (isArray    = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier)?
     name        = ID
     ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
@@ -208,9 +208,13 @@ ListModifier:
     {ListModifier}
     'List' '<'(maxcount=INT)? '>'
 ;
+SetModifier:
+    {SetModifier}
+    'Set' '<'(maxcount=INT)? '>'
+;
 MapModifier:
     {MapModifier}
-    'Map' '<' indexType=('String' | 'Integer' | 'Long') '>'
+    'Map' '<' indexType=('String' | 'Integer' | 'Long') (',' maxcount=INT)? '>'
 ;
  
 ElementaryDataType:

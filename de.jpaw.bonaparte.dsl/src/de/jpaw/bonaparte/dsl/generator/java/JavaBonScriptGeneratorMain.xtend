@@ -41,7 +41,6 @@ import de.jpaw.bonaparte.dsl.generator.ImportCollector
 class JavaBonScriptGeneratorMain implements IGenerator {
     val boolean codegenJava7 = false    // set to true to generate String switches for enum
     
-    private String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
     var Map<String, String> requiredImports = new HashMap<String, String>()
     
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
@@ -210,28 +209,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         package «getPackageName(d)»;
         
-        import java.util.Arrays;
-        import java.util.List;
-        import java.util.ArrayList;
-        import java.util.regex.Pattern;
-        import java.util.regex.Matcher;
-        import java.util.Calendar;
-        import java.util.UUID;
-        import java.util.HashMap;
-        import java.util.Map;
-        import java.util.concurrent.ConcurrentHashMap;
-        import java.util.concurrent.ConcurrentMap;
-        import java.math.BigDecimal;
-        import de.jpaw.util.ByteArray;
-        import de.jpaw.util.CharTestsASCII;
-        import de.jpaw.util.EnumException;
-        import de.jpaw.util.ToStringHelper;
-        «IF Util::useJoda()»
-        import org.joda.time.LocalDate;
-        import org.joda.time.LocalDateTime;
-        «ELSE»
-        import de.jpaw.util.DayTime;
-        «ENDIF»
+        «writeDefaultImports»
         «IF (xmlAccess != null && !d.isAbstract)»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;

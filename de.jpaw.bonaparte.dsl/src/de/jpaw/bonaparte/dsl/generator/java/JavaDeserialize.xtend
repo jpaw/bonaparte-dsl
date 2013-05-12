@@ -97,7 +97,7 @@ class JavaDeserialize {
             @Override
             public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
             //public void deserialize(MessageParser p) throws MessageParserException {
-                int arrayLength;
+                int _length;
                 // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
                 «IF d.extendsClass != null»
                     super.deserialize(p);
@@ -107,34 +107,47 @@ class JavaDeserialize {
                     «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
                         try {  // for possible EnumExceptions
                     «ENDIF»
-                    «IF i.isArray != null || i.isList != null»
-                        arrayLength = p.parseArrayStart("«i.name»", «if (i.isArray != null) i.isArray.maxcount else i.isList.maxcount», 0);
-                        if (arrayLength < 0) {
+                    «IF i.isArray != null»
+                        _length = p.parseArrayStart("«i.name»", «i.isArray.maxcount», 0);
+                        if (_length < 0) {
                             «i.name» = null;
                         } else {
-                            «IF i.isArray != null»
-                                «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
-                                    «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»][];  // Java weirdness: dimension swapped to first pair of brackets!
-                                «ELSE»
-                                    «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else DataTypeExtension::get(i.datatype).javaType»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "arrayLength"»];
-                                «ENDIF»
-                                for (int _i = 0; _i < arrayLength; ++_i)
-                                    «i.name»[_i] = «makeRead2(d, i, ";")»
-                                p.parseArrayEnd();
+                            «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
+                                «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»][];  // Java weirdness: dimension swapped to first pair of brackets!
                             «ELSE»
-                                «i.name» = new ArrayList<«JavaDataTypeNoName(i, true)»>(arrayLength);
-                                for (int _i = 0; _i < arrayLength; ++_i)
-                                    «i.name».add(«makeRead2(d, i, ");")»
-                                p.parseArrayEnd();
+                                «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else DataTypeExtension::get(i.datatype).javaType»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»];
                             «ENDIF»
+                            for (int _i = 0; _i < _length; ++_i)
+                                «i.name»[_i] = «makeRead2(d, i, ";")»
+                            p.parseArrayEnd();
+                        }
+                    «ELSEIF i.isList != null»
+                        _length = p.parseArrayStart("«i.name»", «i.isList.maxcount», 0);
+                        if (_length < 0) {
+                            «i.name» = null;
+                        } else {
+                            «i.name» = new ArrayList<«JavaDataTypeNoName(i, true)»>(_length);
+                            for (int _i = 0; _i < _length; ++_i)
+                                «i.name».add(«makeRead2(d, i, ");")»
+                            p.parseArrayEnd();
+                        }
+                    «ELSEIF i.isSet != null»
+                        _length = p.parseArrayStart("«i.name»", «i.isSet.maxcount», 0);
+                        if (_length < 0) {
+                            «i.name» = null;
+                        } else {
+                            «i.name» = new HashSet<«JavaDataTypeNoName(i, true)»>(_length);
+                            for (int _i = 0; _i < _length; ++_i)
+                                «i.name».add(«makeRead2(d, i, ");")»
+                            p.parseArrayEnd();
                         }
                     «ELSEIF i.isMap != null»
-                        arrayLength = p.parseMapStart("«i.name»", «mapIndexID(i.isMap)»);
-                        if (arrayLength < 0) {
+                        _length = p.parseMapStart("«i.name»", «mapIndexID(i.isMap)»);
+                        if (_length < 0) {
                             «i.name» = null;
                         } else {
-                            «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(arrayLength);
-                            for (int _i = 0; _i < arrayLength; ++_i) {
+                            «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(_length);
+                            for (int _i = 0; _i < _length; ++_i) {
                                 «IF i.isMap.indexType == "String"»
                                     «i.isMap.indexType» _key = p.readString("«i.name»", false, 255, false, false, true, true);
                                 «ELSE»

@@ -29,6 +29,7 @@ class JavaCompare {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
         case "ByteArray":   '''«index».contentEquals(«tindex»)'''
         case "Calendar":    '''«index».compareTo(«tindex») == 0'''
+        case "BigDecimal":  '''«index».compareTo(«tindex») == 0'''  // do not use equals!!!
         default:            '''«index».equals(«tindex»)'''
         }
     } 
@@ -52,7 +53,7 @@ class JavaCompare {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
             else {
-                // isMap and isList cannot be true, they don't work with primitives...
+                // isMap, isSet and isList cannot be true, they don't work with primitives...
                 // a single primitive type....
                 switch (ref.javaType) {
                 case "Float":   '''(new Float(«i.name»).hashCode())'''
@@ -66,10 +67,8 @@ class JavaCompare {
         } else {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
-            else if (i.isList != null)
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
-            else if (i.isMap != null)
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // Map has a good implementation
+            else if (i.isList != null || i.isSet != null || i.isMap != null)
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map and Set have a usable implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType != null && ref.javaType.equals("byte []"))
@@ -159,6 +158,14 @@ class JavaCompare {
                         if (!(«writeCompareStuff(i, i.name + ".get(_i)", "that." + i.name + ".get(_i)", "))")»
                             return false;
                     return true;
+                }
+            «ENDIF»
+            «IF i.isSet != null»
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
+                    // both «i.name» and that «i.name» are known to be not null
+                    if («i.name».size() != that.«i.name».size())
+                        return false;
+                    return «i.name».equals(that.«i.name»);
                 }
             «ENDIF»
             «IF i.isMap != null»

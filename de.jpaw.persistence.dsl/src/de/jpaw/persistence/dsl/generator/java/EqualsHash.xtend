@@ -55,8 +55,8 @@ class EqualsHash {
         if (ref.isPrimitive) {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
-            else if (i.isList != null)
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
+            else if (i.aggregate)  // List, Map, Set
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map, Set have a usable implementation
             else {
                 // a single primitive type....
                 switch (ref.javaType) {
@@ -71,8 +71,8 @@ class EqualsHash {
         } else {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
-            else if (i.isList != null || i.isMap != null)
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List has a good implementation
+            else if (i.aggregate)  // List, Map, Set
+                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map, Set have a usable implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType != null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
@@ -110,6 +110,18 @@ class EqualsHash {
         
         '''
         
+    def private static writeEqualsSub(EntityDefinition e, List<FieldDefinition> l) '''
+        «FOR i: l»
+            «IF i.isArray != null»
+                && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
+            «ELSEIF i.aggregate»
+                && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && «i.name».equals(that)))
+            «ELSE»
+                && «writeCompareStuff(i, i.name, "")»
+            «ENDIF»
+        «ENDFOR»
+    '''
+    
     def private static writeEquals(EntityDefinition e) '''
         @Override
         public boolean equals(Object _that) {
@@ -132,13 +144,7 @@ class EqualsHash {
             «ELSE»
                 return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well 
             «ENDIF»
-            «FOR i:e.pojoType.fields»
-                «IF i.isArray != null || i.isList != null»
-                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
-                «ELSE»
-                    && «writeCompareStuff(i, i.name, "")»
-                «ENDIF»
-            «ENDFOR»
+            «writeEqualsSub(e, e.pojoType.fields)»
             ;
         }
     '''
@@ -181,13 +187,7 @@ class EqualsHash {
                 return true;
             «e.name»Key that = («e.name»Key)_that;
             return true
-            «FOR i:l»
-                «IF i.aggregate»
-                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
-                «ELSE»
-                    && «writeCompareStuff(i, i.name, "")»
-                «ENDIF»
-            «ENDFOR»
+            «writeEqualsSub(e, l)»
             ;
         }
     '''

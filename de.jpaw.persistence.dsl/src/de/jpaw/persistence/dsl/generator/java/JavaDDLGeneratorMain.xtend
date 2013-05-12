@@ -587,36 +587,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
-        import java.util.Arrays;
-        import java.util.List;
-        import java.util.ArrayList;
-        import java.util.regex.Pattern;
-        import java.util.regex.Matcher;
-        import java.util.GregorianCalendar;
-        import java.util.Calendar;
-        import java.util.UUID;
+        «writeDefaultImports»
         import java.io.Serializable;
-        import java.math.BigDecimal;
         
         «IF e.noMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
         «ELSE»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
         «ENDIF»
-        import de.jpaw.bonaparte.core.BonaPortable;
-        import de.jpaw.bonaparte.core.ByteArrayComposer;
-        import de.jpaw.bonaparte.core.ByteArrayParser;
-        import de.jpaw.bonaparte.core.MessageParserException;
-        import de.jpaw.util.ByteArray;
-        import de.jpaw.util.CharTestsASCII;
-        import de.jpaw.util.EnumException;
-        import de.jpaw.util.ApplicationException;
-        import de.jpaw.util.DayTime;
-        import de.jpaw.util.ByteUtil;
-        «IF Util::useJoda()»
-        import org.joda.time.LocalDate;
-        import org.joda.time.LocalDateTime;
-        «ENDIF»
+        import «bonaparteInterfacesPackage».BonaPortable;
+        import «bonaparteInterfacesPackage».ByteArrayComposer;
+        import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
         
         «IF e.javadoc != null»
@@ -697,31 +679,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
-        import java.util.Arrays;
-        import java.util.List;
-        import java.util.ArrayList;
-        import java.util.regex.Pattern;
-        import java.util.regex.Matcher;
-        import java.util.GregorianCalendar;
-        import java.util.Calendar;
-        import java.util.UUID;
+        «writeDefaultImports»
         import java.io.Serializable;
-        import java.math.BigDecimal;
         
-        import de.jpaw.bonaparte.core.BonaPortable;
-        import de.jpaw.bonaparte.core.ByteArrayComposer;
-        import de.jpaw.bonaparte.core.ByteArrayParser;
-        import de.jpaw.bonaparte.core.MessageParserException;
-        import de.jpaw.util.ByteArray;
-        import de.jpaw.util.CharTestsASCII;
-        import de.jpaw.util.EnumException;
-        import de.jpaw.util.ApplicationException;
-        import de.jpaw.util.DayTime;
-        import de.jpaw.util.ByteUtil;
-        «IF Util::useJoda()»
-        import org.joda.time.LocalDate;
-        import org.joda.time.LocalDateTime;
-        «ENDIF»
+        import «bonaparteInterfacesPackage».BonaPortable;
+        import «bonaparteInterfacesPackage».ByteArrayComposer;
+        import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
         
         @Embeddable

@@ -40,6 +40,8 @@ class JavaMeta {
             multi = "Multiplicity.ARRAY, " + i.isArray.maxcount
         else if (i.isList != null)
             multi = "Multiplicity.LIST, " + i.isList.maxcount
+        else if (i.isSet != null)
+            multi = "Multiplicity.SET, " + i.isSet.maxcount
         else if (i.isMap != null)
             multi = "Multiplicity.MAP, " + mapIndexID(i.isMap)  // misusing it for the index length instead of max size...
         else

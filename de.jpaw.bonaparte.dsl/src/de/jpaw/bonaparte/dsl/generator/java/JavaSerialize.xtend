@@ -80,8 +80,8 @@ class JavaSerialize {
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
-                        «ELSEIF i.isList != null»
-                            w.startArray(«i.name».size(), «i.isList.maxcount», 0);
+                        «ELSEIF i.isList != null || i.isSet != null»
+                            w.startArray(«i.name».size(), «i.loopMaxCount», 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();

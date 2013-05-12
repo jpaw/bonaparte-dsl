@@ -23,7 +23,7 @@ import org.eclipse.emf.ecore.EObject
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
-    public static String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
+    public static final String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
 
     def public static getPackageName(PackageDefinition p) {
         (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name  

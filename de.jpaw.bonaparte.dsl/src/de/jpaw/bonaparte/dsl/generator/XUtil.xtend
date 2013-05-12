@@ -33,7 +33,8 @@ import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
-    
+    public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
+
     def public static ClassDefinition getParent(ClassDefinition d) {
         if (d == null || d.getExtendsClass == null)
             return null;
@@ -117,7 +118,7 @@ class XUtil {
     }
     
     def public static indexedName(FieldDefinition i) {
-        if (i.isList != null) "_i" else if (i.isMap != null) "_i.getValue()" else i.name + (if (i.isArray != null) "[_i]" else "")
+        if (i.isList != null || i.isSet != null) "_i" else if (i.isMap != null) "_i.getValue()" else i.name + (if (i.isArray != null) "[_i]" else "")
     }
     
     def public static int mapIndexID(MapModifier i) {
@@ -143,7 +144,7 @@ class XUtil {
         «IF i.isArray != null»
             if («i.name» != null)
                 for (int _i = 0; _i < «i.name».length; ++_i)
-        «ELSEIF i.isList != null»
+        «ELSEIF i.isList != null || i.isSet != null»
             if («i.name» != null)
                 for («JavaDataTypeNoName(i, true)» _i : «i.name»)
         «ELSEIF i.isMap != null»
@@ -151,6 +152,18 @@ class XUtil {
                 for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet())
         «ENDIF»
         '''
+        
+    def public static loopMaxCount(FieldDefinition i) {
+        if (i.isArray != null)
+            return i.isArray.maxcount
+        else if (i.isList != null)
+            return i.isList.maxcount
+        else if (i.isSet != null)
+            return i.isSet.maxcount
+        else if (i.isMap != null)
+            return i.isMap.maxcount  // currently not yet supported
+        return 0
+    }
         
     def public static String getJavaDataType(DataType d) {
         val ref = DataTypeExtension::get(d)
@@ -172,6 +185,8 @@ class XUtil {
             dataClass
         else if (i.isArray != null)
             dataClass + "[]" 
+        else if (i.isSet != null)
+            "Set<" + dataClass + ">" 
         else if (i.isList != null)
             "List<" + dataClass + ">" 
         else if (i.isMap != null)
@@ -243,7 +258,7 @@ class XUtil {
     
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static boolean isAggregate(FieldDefinition c) {
-        return c.isArray != null || c.isList != null || c.isMap != null       
+        return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null       
     }
     
     
@@ -263,6 +278,35 @@ class XUtil {
                     «ENDIF»
                 «ENDIF»
             «ENDFOR»
+        «ENDIF»
+    '''
+    
+    def public static writeDefaultImports() '''
+        import java.util.Arrays;
+        import java.util.List;
+        import java.util.ArrayList;
+        import java.util.regex.Pattern;
+        import java.util.regex.Matcher;
+        import java.util.GregorianCalendar;
+        import java.util.Calendar;
+        import java.util.UUID;
+        import java.util.HashSet;
+        import java.util.Set;
+        import java.util.HashMap;
+        import java.util.Map;
+        import java.util.concurrent.ConcurrentHashMap;
+        import java.util.concurrent.ConcurrentMap;
+        import java.math.BigDecimal;
+        import de.jpaw.util.ByteArray;
+        import de.jpaw.util.CharTestsASCII;
+        import de.jpaw.util.EnumException;
+        import de.jpaw.util.ToStringHelper;
+        import de.jpaw.util.ApplicationException;
+        import de.jpaw.util.DayTime;
+        import de.jpaw.util.ByteUtil;
+        «IF Util::useJoda()»
+        import org.joda.time.LocalDate;
+        import org.joda.time.LocalDateTime;
         «ENDIF»
     '''
         
