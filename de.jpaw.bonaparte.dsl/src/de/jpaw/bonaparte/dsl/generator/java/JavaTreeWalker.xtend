@@ -22,8 +22,6 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
-/* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
-
 class JavaTreeWalker {
     
     def public static writeTreeWalkerCode(ClassDefinition d) '''

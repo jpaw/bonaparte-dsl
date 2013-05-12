@@ -174,34 +174,16 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     
     // decision classes for the package level settings
     def private static getXmlAccess(ClassDefinition d) {
-        var XXmlAccess xmlAccess = if (d.xmlAccess != null)
-                                       d.xmlAccess.x
-                                   else if (getPackage(d).xmlAccess != null)
-                                       (getPackage(d)).xmlAccess.x
-                                   else
-                                       null
-        if (xmlAccess == XXmlAccess::NOXML) xmlAccess = null
-        return xmlAccess         
+        var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
+        return if (t == XXmlAccess::NOXML) null else t
     }
     def private static getExternalizable(ClassDefinition d) {
-        var XExternalizable isExternalizable = if (d.isExternalizable != null)
-                                                   d.isExternalizable.x
-                                               else if (getPackage(d).isExternalizable != null)
-                                                   getPackage(d).isExternalizable.x
-                                               else
-                                                   XExternalizable::EXT  // default to creation of externalization methods
-        if (isExternalizable == XExternalizable::NOEXT) isExternalizable = null
-        return (isExternalizable != null)         
+        val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: XExternalizable::EXT   // default to creation of externalization methods
+        return t != null && t != XExternalizable::NOEXT         
     }
     def private static getBeanValidation(ClassDefinition d) {
-        var XBeanValidation doBeanValidation = if (d.doBeanValidation != null)
-                                                   d.doBeanValidation.x
-                                               else if (getPackage(d).doBeanValidation != null)
-                                                   getPackage(d).doBeanValidation.x
-                                               else
-                                                   XBeanValidation::NOBEAN_VAL  // default to creation of externalization methods
-        if (doBeanValidation == XBeanValidation::NOBEAN_VAL) doBeanValidation = null
-        return (doBeanValidation != null)         
+        var XBeanValidation t = d.doBeanValidation?.x ?: getPackage(d).doBeanValidation?.x ?: XBeanValidation::NOBEAN_VAL  // default to creation of no bean validation annotations
+        return t != null && t != XBeanValidation::NOBEAN_VAL
     }
         
         
@@ -220,7 +202,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // determine XML annotation support
         val XXmlAccess xmlAccess = getXmlAccess(d)
         val doExt = getExternalizable(d)
-        val doBeanVal = getBeanValidation(d)        
+        val doBeanVal = getBeanValidation(d)
     return
     '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
