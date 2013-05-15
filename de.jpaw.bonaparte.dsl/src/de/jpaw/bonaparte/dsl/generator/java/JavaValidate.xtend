@@ -87,6 +87,11 @@ class JavaValidate {
                 super.validate();
             «ENDIF»
             «FOR i:d.fields»
+                «IF i.aggregate && i.isAggregateRequired»
+                    if («i.name» == null)   // initial check for aggregate type itself, it may not be NULL
+                        throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                                    "«i.name»", PARTIALLY_QUALIFIED_CLASS_NAME);
+                «ENDIF»
                 «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
                     «loopStart(i)»
                     if («indexedName(i)» == null)

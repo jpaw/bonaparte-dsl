@@ -185,7 +185,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType
-    (isArray    = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier)?
+    ((isAggregateRequired ?='required')? (isArray = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier))?
     name        = ID
     ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
