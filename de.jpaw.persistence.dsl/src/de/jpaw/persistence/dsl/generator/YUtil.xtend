@@ -190,7 +190,7 @@ class YUtil {
     }
     
     def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
-        recurse(cl, stopAt, false,
+        recurse(cl, stopAt, true,
                 [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(it.properties, "noJava") ],
                 [ '''// auto-generated data setter for «it.name»
                   '''],

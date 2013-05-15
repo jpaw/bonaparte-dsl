@@ -634,7 +634,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
             «IF stopper == null && compositeKey»
                 @EmbeddedId
-                «e.name»Key key;
+                «fieldVisibility»«e.name»Key key;
                 // forwarding getters and setters
                 «FOR i:e.pk.columnName»
                     public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» _x) {
