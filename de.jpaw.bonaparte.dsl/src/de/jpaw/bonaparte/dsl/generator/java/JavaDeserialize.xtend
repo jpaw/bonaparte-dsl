@@ -115,9 +115,9 @@ class JavaDeserialize {
                         try {  // for possible EnumExceptions
                     «ENDIF»
                     «IF i.isArray != null»
-                        _length = p.parseArrayStart("«i.name»", «i.isArray.maxcount», 0);
+                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isArray.maxcount», 0);
                         if (_length < 0) {
-                            «exceptionOrNull(d, i)»
+                            «i.name» = null;
                         } else {
                             «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
                                 «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»][];  // Java weirdness: dimension swapped to first pair of brackets!
@@ -129,9 +129,9 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isList != null»
-                        _length = p.parseArrayStart("«i.name»", «i.isList.maxcount», 0);
+                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isList.maxcount», 0);
                         if (_length < 0) {
-                            «exceptionOrNull(d, i)»
+                            «i.name» = null;
                         } else {
                             «i.name» = new ArrayList<«JavaDataTypeNoName(i, true)»>(_length);
                             for (int _i = 0; _i < _length; ++_i)
@@ -139,9 +139,9 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isSet != null»
-                        _length = p.parseArrayStart("«i.name»", «i.isSet.maxcount», 0);
+                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isSet.maxcount», 0);
                         if (_length < 0) {
-                            «exceptionOrNull(d, i)»
+                            «i.name» = null;
                         } else {
                             «i.name» = new HashSet<«JavaDataTypeNoName(i, true)»>(_length);
                             for (int _i = 0; _i < _length; ++_i)
@@ -149,9 +149,9 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isMap != null»
-                        _length = p.parseMapStart("«i.name»", «mapIndexID(i.isMap)»);
+                        _length = p.parseMapStart("«i.name»", «!i.isAggregateRequired», «mapIndexID(i.isMap)»);
                         if (_length < 0) {
-                            «exceptionOrNull(d, i)»
+                            «i.name» = null;
                         } else {
                             «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(_length);
                             for (int _i = 0; _i < _length; ++_i) {
