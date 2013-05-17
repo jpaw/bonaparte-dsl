@@ -121,12 +121,15 @@ EntityDefinition:
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?
         ('tenantClass' tenantClass = [pojos::ClassDefinition])?
         ('tenant' tenantId = SingleColumn)?
-        ('foreign' 'keys' '{'
-            foreignKeys += ForeignKeyDefinition*
-         '}')?
+        // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
         ('pk'     pk       = ListOfColumns)?
-        ('index'  index   += ListOfColumns)* 
+        ('index'  index   += ListOfColumns)*
+        ('collections' '{' collections += CollectionDefinition* '}')? 
     '}'       
+;
+
+CollectionDefinition:
+    map = [pojos::FieldDefinition] 'in' tablename = ID '.' '(' refcolumn = ID ',' keycolumn = ID ('(' size=INT ')')? ')'
 ;
 
 ForeignKeyDefinition:

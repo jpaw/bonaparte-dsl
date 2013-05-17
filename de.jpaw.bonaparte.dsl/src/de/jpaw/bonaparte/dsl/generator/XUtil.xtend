@@ -304,6 +304,7 @@ class XUtil {
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
+        import de.jpaw.util.BigDecimalTools;
         «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;

@@ -50,7 +50,7 @@ class JavaMeta {
         switch (ref.category) {
         case DataCategory::NUMERIC: {
             classname = "NumericElementaryDataItem"
-            ext = ''', «b2A(ref.effectiveSigned)», «elem.length», «elem.decimals»'''
+            ext = ''', «b2A(ref.effectiveSigned)», «elem.length», «elem.decimals», «b2A(ref.effectiveRounding)», «b2A(ref.effectiveAutoScale)»'''
             }
         case DataCategory::STRING: {
             classname = "AlphanumericElementaryDataItem"

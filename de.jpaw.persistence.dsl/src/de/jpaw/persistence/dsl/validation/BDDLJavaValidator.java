@@ -3,6 +3,7 @@ package de.jpaw.persistence.dsl.validation;
 import org.eclipse.xtext.validation.Check;
 
 import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
+import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
@@ -58,6 +59,21 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             default:
                 break;
             }
+        }
+        
+        if (e.getCollections() != null && e.getCollections().size() > 0) {
+            if (e.getPk() == null || e.getPk().getColumnName().size() != 1) {
+                error("Collections components only allowed for entities with a single column primary key", BDDLPackage.Literals.ENTITY_DEFINITION__COLLECTIONS);
+                return;
+            }
+        }
+    }
+    
+    @Check
+    public void checkCollection(CollectionDefinition c) {
+        if (c.getMap() != null && c.getMap().getIsMap() != null) {
+            error("Collections component only allowed to reference fields which are a Map<>", BDDLPackage.Literals.COLLECTION_DEFINITION__MAP);
+            return;
         }
     }
 }

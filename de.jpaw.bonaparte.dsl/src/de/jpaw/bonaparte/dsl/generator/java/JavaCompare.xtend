@@ -24,29 +24,32 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaCompare {
     
-    def private static writeCompareSub(FieldDefinition i, String index, String tindex) {
+    def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
         case "ByteArray":   '''«index».contentEquals(«tindex»)'''
         case "Calendar":    '''«index».compareTo(«tindex») == 0'''
-        case "BigDecimal":  '''«index».compareTo(«tindex») == 0'''  // do not use equals!!!
+        case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''  // do not use equals!!!
         default:            '''«index».equals(«tindex»)'''
         }
     } 
     
     
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
-    def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) ''' 
-        «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
-            ((«index» == null && «tindex» == null) || («index» != null && «index».hasSameContentsAs(«tindex»)))«end»
-        «ELSE»
-            «IF DataTypeExtension::get(i.datatype).isPrimitive»
-                «index» == «tindex»«end»
+    def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) {
+        val ref = DataTypeExtension::get(i.datatype)
+        return ''' 
+            «IF ref.category == DataCategory::OBJECT»
+                ((«index» == null && «tindex» == null) || («index» != null && «index».hasSameContentsAs(«tindex»)))«end»
             «ELSE»
-                ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, index, tindex)»))«end»
+                «IF DataTypeExtension::get(i.datatype).isPrimitive»
+                    «index» == «tindex»«end»
+                «ELSE»
+                    ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, ref, index, tindex)»))«end»
+                «ENDIF»
             «ENDIF»
-        «ENDIF»
-    '''
+        '''
+    }
 
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
@@ -67,15 +70,17 @@ class JavaCompare {
         } else {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
-            else if (i.isList != null || i.isSet != null || i.isMap != null)
+            else if (i.aggregate)
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map and Set have a usable implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType != null && ref.javaType.equals("byte []"))
                     // special treatment required, again!
-                    return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
+                    return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''     // straightforward recursion
+                else if ("BigDecimal".equals(ref.javaType))      
+                    return '''BigDecimalTools.hashCode(«i.name», «ref.elementaryDataType.decimals»)'''   // specific implementation with scaling
                 else       
-                    return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
+                    return '''(«i.name» == null ? 0 : «i.name».hashCode())'''           // standard implementation
             }
         }
     }                    

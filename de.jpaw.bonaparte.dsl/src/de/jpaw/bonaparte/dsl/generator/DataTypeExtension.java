@@ -37,6 +37,8 @@ import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
+import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
+import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
 import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility;
@@ -137,6 +139,8 @@ public class DataTypeExtension {
     public boolean effectiveSigned = true;
     public boolean effectiveTrim = false;
     public boolean effectiveTruncate = false;
+    public boolean effectiveRounding = false;
+    public boolean effectiveAutoScale = false;
     public boolean effectiveAllowCtrls = false;
     public boolean isPrimitive = false;             // true if this refers to an atomic data type which in Java is a primitive (can never be null)
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
@@ -257,6 +261,24 @@ public class DataTypeExtension {
                             : XTruncating.NOTRUNCATE;
         r.effectiveTruncate = trunc == XTruncating.TRUNCATE;
 
+        XRounding rnd = e.getRounding() != null
+                ? e.getRounding().getX()
+                : classdefs != null && classdefs.getRound() != null
+                        ? classdefs.getRound().getX()
+                        : p.getDefaults() != null && p.getDefaults().getRound() != null
+                            ? p.getDefaults().getRound().getX()
+                            : XRounding.NOROUND;
+        r.effectiveRounding = rnd == XRounding.ROUND;
+
+        XAutoScale autoScale = e.getAutoScale() != null
+                ? e.getAutoScale().getX()
+                : classdefs != null && classdefs.getAutoScale() != null
+                        ? classdefs.getAutoScale().getX()
+                        : p.getDefaults() != null && p.getDefaults().getAutoScale() != null
+                            ? p.getDefaults().getAutoScale().getX()
+                            : XAutoScale.AUTOSCALE;
+        r.effectiveAutoScale = autoScale == XAutoScale.NOAUTOSCALE;
+        
         XSpecialCharsSetting spc = e.getAllowCtrls() != null
                 ? e.getAllowCtrls().getX()
                 : classdefs != null && classdefs.getAllowCtrls() != null
@@ -373,6 +395,8 @@ public class DataTypeExtension {
             r.isPrimitive = resolvedReference.isPrimitive;
             
             r.effectiveSigned = resolvedReference.effectiveSigned;
+            r.effectiveRounding = resolvedReference.effectiveRounding;
+            r.effectiveAutoScale = resolvedReference.effectiveAutoScale;
             r.effectiveTrim = resolvedReference.effectiveTrim;
             r.effectiveTruncate = resolvedReference.effectiveTruncate;
             r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;

@@ -59,6 +59,10 @@ enum XTrimming:
     TRIM='trim' | NOTRIM='notrim';
 enum XTruncating:
     TRUNCATE='truncate' | NOTRUNCATE='failOnOversize';
+enum XRounding:
+    ROUND='round' | NOROUND='failOnExtraDecimals';
+enum XAutoScale:
+    AUTOSCALE='autoScale' | NOAUTOSCALE='noScale';
 enum XSpecialCharsSetting:
     ALLOW_CONTROL_CHARS = 'allowControlChars' | NO_CONTROL_CHARS = 'noControlChars';
 enum XUsePrimitives:
@@ -81,6 +85,8 @@ Trimming:            x = XTrimming;
 Truncating:          x = XTruncating;
 SpecialCharsSetting: x = XSpecialCharsSetting;
 UsePrimitives:       x = XUsePrimitives;
+Rounding:            x = XRounding;
+AutoScale:           x = XAutoScale;
 
 XmlAccess:           x = XXmlAccess;
 Externalizable:      x = XExternalizable;
@@ -93,6 +99,8 @@ FieldDefaultsDefinition:
         (required      = Required)? &             // default is required for lower case types
         (trim          = Trimming)? &             // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
         (truncate      = Truncating)? &           // Unicode & Ascii: default is fail on oversized input. This allows to just skip extra data
+        (round         = Rounding)? &             // BigDecimals: record an error if too many decimals are seen?
+        (autoScale     = AutoScale)? &            // BigDecimals: scale it to the specified number of digits in any case?
         (allowCtrls    = SpecialCharsSetting)? &  // Unicode fields: allow control characters: default: no
         (usePrimitives = UsePrimitives)?          // allow primitive types in objects, these can never be null
          // (rawFormat = ('hex' | 'base64'))?     // Raw data: how to serialize
@@ -237,7 +245,11 @@ ElementaryDataType:
         )
       | (
            (signed = Signedness)?
-           (  (name=("decimal"|"Decimal")      "(" length=INT ("," decimals=INT)? ")")
+           ((name=("decimal"|"Decimal")
+                 "(" length=INT ("," decimals=INT)? ")"
+                 (rounding = Rounding)?
+                 (autoScale = AutoScale)?
+            )
              | (name=("number"|"Number")       "(" length=INT ")")  // maps to int, long, BigInteger (currently only int)
              | name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long"|"float"|"Float"|"double"|"Double")  // numeric primitives with sign only
            )
