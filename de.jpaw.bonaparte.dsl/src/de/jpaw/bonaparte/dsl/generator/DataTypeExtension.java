@@ -276,8 +276,8 @@ public class DataTypeExtension {
                         ? classdefs.getAutoScale().getX()
                         : p.getDefaults() != null && p.getDefaults().getAutoScale() != null
                             ? p.getDefaults().getAutoScale().getX()
-                            : XAutoScale.AUTOSCALE;
-        r.effectiveAutoScale = autoScale == XAutoScale.NOAUTOSCALE;
+                            : XAutoScale.NOAUTOSCALE;
+        r.effectiveAutoScale = autoScale == XAutoScale.AUTOSCALE;
         
         XSpecialCharsSetting spc = e.getAllowCtrls() != null
                 ? e.getAllowCtrls().getX()
