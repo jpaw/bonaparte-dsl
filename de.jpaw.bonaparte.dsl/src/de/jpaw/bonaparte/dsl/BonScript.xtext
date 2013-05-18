@@ -159,7 +159,7 @@ ClassDefinition:
     ('RTTI' (addRtti ?= '+')? rtti = INT)?    // numeric runtime type information
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
-    ('implements' implementsInterface=QualifiedId /*JvmParameterizedTypeReference*/)?
+    ('implements' implementsInterfaceList = InterfaceListDefinition)?
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
@@ -167,6 +167,10 @@ ClassDefinition:
     '}'
 ;
 
+InterfaceListDefinition:
+    list += QualifiedId /*JvmParameterizedTypeReference*/
+    (',' list += QualifiedId)*  
+;
 
 EnumDefinition:
     (javadoc = JAVADOC_COMMENT)?

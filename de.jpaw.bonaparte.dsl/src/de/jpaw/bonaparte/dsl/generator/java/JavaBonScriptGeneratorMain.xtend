@@ -36,6 +36,7 @@ import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.generator.ImportCollector
+import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -185,6 +186,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         return t != null && t != XBeanValidation::NOBEAN_VAL
     }
         
+    def private static interfaceOut(InterfaceListDefinition l) {
+        '''«IF l != null»«FOR i : l.list», «i»«ENDFOR»«ENDIF»'''
+    }
         
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -248,7 +252,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         @Deprecated
         «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.extendsClass != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«IF d.implementsInterface != null», «d.implementsInterface»«ENDIF» {
+          implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
         
             «JavaMeta::writeMetaData(d)»
