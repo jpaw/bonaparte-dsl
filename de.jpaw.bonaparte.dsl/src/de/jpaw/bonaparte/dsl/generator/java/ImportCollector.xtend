@@ -1,10 +1,13 @@
-package de.jpaw.bonaparte.dsl.generator
+package de.jpaw.bonaparte.dsl.generator.java
 
 import java.util.Map
 import java.util.HashMap
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 public class ImportCollector {
     private Map<String, String> requiredImports 
@@ -21,12 +24,12 @@ public class ImportCollector {
     
     def void addImport(ClassDefinition cl) {
         if (cl != null)
-            addImport(JavaPackages::getPackageName(cl), cl.name)
+            addImport(getPackageName(cl), cl.name)
     }
     
     def void addImport(EnumDefinition cl) {
         if (cl != null)
-            addImport(JavaPackages::getPackageName(cl), cl.name)
+            addImport(getPackageName(cl), cl.name)
     }
     
     // same code as in JavaBonScriptGenerator...

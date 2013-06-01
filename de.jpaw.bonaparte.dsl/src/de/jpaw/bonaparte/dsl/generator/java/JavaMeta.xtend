@@ -18,12 +18,12 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.JavaPackages
 import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaMeta {
@@ -84,7 +84,7 @@ class JavaMeta {
     
     def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
-        var myPackage = JavaPackages::getPackage(d)
+        var myPackage = getPackage(d)
         var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
         return '''
             // property map

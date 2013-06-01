@@ -20,6 +20,7 @@ import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 

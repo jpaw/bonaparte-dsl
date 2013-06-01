@@ -29,7 +29,6 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
-import de.jpaw.bonaparte.dsl.generator.JavaPackages;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 
 public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
@@ -173,8 +172,8 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
             // the extended class must be in the same bundle or a superbundle
-            PackageDefinition myPackage = JavaPackages.getPackage(cd);
-            PackageDefinition extendedFromPackage = JavaPackages.getPackage(cd.getExtendsClass().getClassRef());
+            PackageDefinition myPackage = XUtil.getPackage(cd);
+            PackageDefinition extendedFromPackage = XUtil.getPackage(cd.getExtendsClass().getClassRef());
             if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
                 error("Parent classes must be in the same or a superbundle of the current package",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);

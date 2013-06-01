@@ -23,7 +23,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
-import static de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
@@ -92,14 +92,16 @@ class JavaDeserialize {
             («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
         «ENDIF»
     '''
-            
+
+/*            
     def private static exceptionOrNull(ClassDefinition d, FieldDefinition i) {
         if (i.isAggregateRequired)
             '''throw new MessageParserException(MessageParserException.ILLEGAL_EXPLICIT_NULL, "«i.name»", 0, "«d.name»");'''
         else
             '''«i.name» = null;'''      // just a regular assignment
     }
-    
+   */
+     
     def public static writeDeserialize(ClassDefinition d) '''
             @Override
             public <E extends Exception> void deserialize(MessageParser<E> p) throws E {

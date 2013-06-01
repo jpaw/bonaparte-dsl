@@ -25,22 +25,19 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
-import de.jpaw.bonaparte.dsl.generator.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
-    val boolean codegenJava7 = false    // set to true to generate String switches for enum
     
     var Map<String, String> requiredImports = new HashMap<String, String>()
     
@@ -56,7 +53,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeEnumDefinition);
+            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
@@ -87,79 +84,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }
     
-    def writeEnumDefinition(EnumDefinition d) {
-        var int counter = -1
-        return '''
-        // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
-        // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
-        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
-        package «getPackageName(d)»;
-        
-        import de.jpaw.util.EnumException;
-        
-        «IF d.javadoc != null»
-            «d.javadoc»
-        «ENDIF»        
-
-        public enum «d.name» {
-            «IF d.avalues == null || d.avalues.size() == 0»
-                «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
-            «ELSE»
-                «FOR v:d.avalues SEPARATOR ', '»«v.name»("«v.token»")«ENDFOR»;
-                
-                // constructor by token
-                private String _token; 
-                private «d.name»(String _token) {
-                    this._token = _token;
-                }
-
-                // token retrieval
-                public String getToken() {
-                    return _token;
-                }
-                
-                // static factory method.«IF codegenJava7» Requires Java 7«ENDIF»
-                public static «d.name» factory(String _token) throws EnumException {
-                    if (_token != null) {
-                        «IF codegenJava7»
-                            switch (_token) {
-                            «FOR v:d.avalues»
-                                case "«v.token»": return «v.name»;  
-                            «ENDFOR»
-                            default: throw new EnumException(EnumException.INVALID_NUM, _token);
-                            }
-                        «ELSE»
-                            «FOR v:d.avalues»
-                                if (_token.equals("«v.token»")) return «v.name»;  
-                            «ENDFOR»
-                            throw new EnumException(EnumException.INVALID_NUM, _token);
-                        «ENDIF»
-                    }
-                    return null;
-                }
-            «ENDIF»
-                
-            public static «d.name» valueOf(Integer ordinal) throws EnumException {
-                if (ordinal != null) { 
-                    switch (ordinal.intValue()) {
-                    «IF d.avalues == null || d.avalues.size() == 0»
-                        «FOR v:d.values»
-                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v»;  
-                        «ENDFOR»
-                    «ELSE»
-                        «FOR v:d.avalues»
-                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v.name»;  
-                        «ENDFOR»
-                    «ENDIF»
-                    default: throw new EnumException(EnumException.INVALID_NUM, ordinal.toString());
-                    }
-                }
-                return null;
-            }
-        }
-        '''
-    }
-
 
 /* currently unused
             «JavaMethods::writeMethods(d)» 

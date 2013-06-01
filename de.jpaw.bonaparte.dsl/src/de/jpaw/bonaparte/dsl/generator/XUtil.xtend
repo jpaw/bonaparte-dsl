@@ -30,6 +30,8 @@ import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import org.eclipse.emf.ecore.EObject
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -46,6 +48,16 @@ class XUtil {
         while (getParent(dd) != null)
             dd = getParent(dd)
         return dd
+    }
+    
+    def public static getPackage(EObject ee) {
+        var e = ee
+        while (e != null) {
+            if (e instanceof PackageDefinition)
+                return e as PackageDefinition
+            e = e.eContainer
+        }
+        return null
     }
     
     def public static boolean isImmutable(ClassDefinition d) {
@@ -92,19 +104,6 @@ class XUtil {
     // uses caching to keep overall running time at O(1) per call
     def public static ClassDefinition resolveObj(DataType d) {
         DataTypeExtension::get(d).objectDataType
-    }
-    // Utility methods
-    def public static getPartiallyQualifiedClassName(ClassDefinition d) {
-        JavaPackages::getPackage(d).name + "." + d.name  
-    }
-    // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
-    def public static long getSerialUID(ClassDefinition d) {
-        var long myUID = getPartiallyQualifiedClassName(d).hashCode()
-        if (d.revision != null)
-            myUID = 97L * myUID + d.revision.hashCode()
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
-            myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
-        return myUID
     }
     
     // convert an Xtend boolean to Java source token
