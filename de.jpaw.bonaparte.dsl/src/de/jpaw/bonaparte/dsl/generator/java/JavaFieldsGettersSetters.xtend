@@ -16,40 +16,15 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
-class JavaFieldsGettersSetters {
+import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
-    // this one does not work. Why not? Replaced by standard function anyway
-    /*
-    def private static doubleEscapes(String in) {
-        var StringBuilder out = new StringBuilder(2 * in.length)
-        var int i = 0
-        while (i < in.length) {
-            var c = in.charAt(i)
-            if (c == '\\')
-                out.append("\\\\")
-            else
-                out.append(c)
-            i = i+1
-        }
-        return out    
-    } */
-    
-    def private static makeVisbility(FieldDefinition i) {
-        var XVisibility fieldScope = DataTypeExtension::get(i.datatype).visibility
-        if (i.visibility != null && i.visibility.x != null)
-            fieldScope = i.visibility.x
-        if (fieldScope == null || fieldScope == XVisibility::DEFAULT)
-            ""
-        else
-            fieldScope.toString() + " " 
-    } 
+class JavaFieldsGettersSetters {
     
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref) {
         if (i.defaultString == null)
@@ -73,12 +48,13 @@ class JavaFieldsGettersSetters {
     
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
+        val v = getFieldVisibility(d, i)
         // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
         
         return '''
             «writeFieldComments(i)»
-            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»            
-            «makeVisbility(i)»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
+            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
+            «IF v != XVisibility::DEFAULT»«v»«ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }
    
@@ -88,8 +64,8 @@ class JavaFieldsGettersSetters {
         «FOR i:d.fields»
             «writeOneField(d, i, doBeanVal)»
         «ENDFOR»
-    '''
-   
+        '''
+    
     // Unused. Test to see the generated code for Lambdas.
     def public static writeFieldsWithLambda(ClassDefinition d, boolean doBeanVal) '''
         // fields as defined in DSL

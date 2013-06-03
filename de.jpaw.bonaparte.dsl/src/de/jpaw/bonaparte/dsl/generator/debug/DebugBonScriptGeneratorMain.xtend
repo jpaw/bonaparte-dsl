@@ -37,9 +37,7 @@ class DebugBonScriptGeneratorMain implements IGenerator {
         var ref = DataTypeExtension::get(i.datatype)
         if (ref == null)
            return "***** ERROR ***** ref is NULL for " + i.name
-        return "defaults: (v=" +
-            (if (ref.visibility != null) ref.visibility else "null") + ", req=" +
-            (if (ref.defaultRequired != null) ref.defaultRequired else "null") + ")"
+        return "defaults: req=" + (if (ref.defaultRequired != null) ref.defaultRequired else "null") + ")"
     }
     
     def dumpPackage(PackageDefinition p) '''

@@ -23,7 +23,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
+// import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
 
 class BonScriptGenerator implements IGenerator {
@@ -41,8 +41,8 @@ class BonScriptGenerator implements IGenerator {
             || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bon")) // maven fornax plugin
             ) {
             
-            logger.info("start code output: Debug dump for " + resource.URI.toString);
-            new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
+            // logger.info("start code output: Debug dump for " + resource.URI.toString);
+            // new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
         
             logger.info("start code output: Java output for " + resource.URI.toString);
             new JavaBonScriptGeneratorMain().doGenerate(resource, fsa)

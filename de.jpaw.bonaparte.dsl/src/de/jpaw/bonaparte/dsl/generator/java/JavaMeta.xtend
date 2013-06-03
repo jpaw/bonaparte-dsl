@@ -18,13 +18,13 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.generator.Util
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaMeta {
     
@@ -33,7 +33,7 @@ class JavaMeta {
         val elem = ref.elementaryDataType
         var String multi
         var String classname
-        var String visibility = (if (ref.visibility == null) XVisibility::DEFAULT else ref.visibility).name
+        var String visibility = getFieldVisibility(d, i).name
         var String ext = ""  // category specific data
         
         if (i.isArray != null)

@@ -16,25 +16,24 @@
   
 package de.jpaw.bonaparte.dsl.generator.java
 
-import java.util.Map
-import java.util.HashMap
-
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import java.util.List
 import java.util.ArrayList
-import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
-import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {

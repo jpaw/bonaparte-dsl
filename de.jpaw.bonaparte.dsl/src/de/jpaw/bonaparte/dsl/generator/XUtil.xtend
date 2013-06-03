@@ -32,6 +32,7 @@ import de.jpaw.bonaparte.dsl.bonScript.MapModifier
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -258,6 +259,10 @@ class XUtil {
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static boolean isAggregate(FieldDefinition c) {
         return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null       
+    }
+    
+    def public static getFieldVisibility(ClassDefinition d, FieldDefinition i) {
+        (i.visibility ?: d.defaults?.visibility ?: getPackage(d).defaults?.visibility)?.x ?: XVisibility::DEFAULT
     }
     
     

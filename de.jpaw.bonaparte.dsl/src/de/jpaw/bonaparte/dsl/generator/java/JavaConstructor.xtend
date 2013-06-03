@@ -17,10 +17,11 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.Generics
 import de.jpaw.bonaparte.dsl.generator.Delimiter
+import de.jpaw.bonaparte.dsl.generator.Generics
+
+import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 

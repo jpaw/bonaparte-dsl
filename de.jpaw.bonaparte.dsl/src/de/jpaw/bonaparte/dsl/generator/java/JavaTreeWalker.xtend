@@ -16,11 +16,12 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+
+import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaTreeWalker {
     

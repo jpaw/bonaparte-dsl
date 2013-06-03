@@ -41,7 +41,6 @@ import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
 import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
 import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import de.jpaw.bonaparte.dsl.bonScript.XSignedness;
 import de.jpaw.bonaparte.dsl.bonScript.XSpecialCharsSetting;
@@ -144,7 +143,6 @@ public class DataTypeExtension {
     public boolean effectiveAllowCtrls = false;
     public boolean isPrimitive = false;             // true if this refers to an atomic data type which in Java is a primitive (can never be null)
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
-    public XVisibility visibility;
     public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
     public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
     public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
@@ -181,11 +179,6 @@ public class DataTypeExtension {
 
         // for every field, prefer field level setting (if exists here), then fall back to class defaults,
         // then to package defaults, and finally to hardcoded defaults
-        r.visibility = classdefs != null && classdefs.getVisibility() != null
-                        ? classdefs.getVisibility().getX()
-                        : p.getDefaults() != null && p.getDefaults().getVisibility() != null
-                            ? p.getDefaults().getVisibility().getX()
-                            : XVisibility.DEFAULT;
         r.defaultRequired = classdefs != null && classdefs.getRequired() != null
                           ? classdefs.getRequired().getX()
                           : p.getDefaults() != null && p.getDefaults().getRequired() != null
@@ -219,11 +212,6 @@ public class DataTypeExtension {
 
         // for every field, prefer field level setting (if exists here), then fall back to class defaults,
         // then to package defaults, and finally to hardcoded defaults
-        r.visibility = classdefs != null && classdefs.getVisibility() != null
-                        ? classdefs.getVisibility().getX()
-                        : p.getDefaults() != null && p.getDefaults().getVisibility() != null
-                            ? p.getDefaults().getVisibility().getX()
-                            : XVisibility.DEFAULT;
                             
         XUsePrimitives up = classdefs != null && classdefs.getUsePrimitives() != null
                                     ? classdefs.getUsePrimitives().getX()
@@ -401,7 +389,6 @@ public class DataTypeExtension {
             r.effectiveTruncate = resolvedReference.effectiveTruncate;
             r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;
             r.javaType = resolvedReference.javaType;
-            r.visibility = resolvedReference.visibility;
             r.isUpperCaseOrLowerCaseSpecialType = resolvedReference.isUpperCaseOrLowerCaseSpecialType;
             r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
             r.category = resolvedReference.category;

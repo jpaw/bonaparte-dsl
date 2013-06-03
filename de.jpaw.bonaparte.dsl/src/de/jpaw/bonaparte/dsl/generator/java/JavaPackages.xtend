@@ -19,7 +19,8 @@ package de.jpaw.bonaparte.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+
+import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
