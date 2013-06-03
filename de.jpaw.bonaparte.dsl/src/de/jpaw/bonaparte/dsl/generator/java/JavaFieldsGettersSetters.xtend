@@ -54,7 +54,7 @@ class JavaFieldsGettersSetters {
         return '''
             «writeFieldComments(i)»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
-            «IF v != XVisibility::DEFAULT»«v»«ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
+            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }
    
