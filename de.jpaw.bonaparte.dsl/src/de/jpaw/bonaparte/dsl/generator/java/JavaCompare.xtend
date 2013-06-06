@@ -30,12 +30,12 @@ class JavaCompare {
         case "ByteArray":   '''«index».contentEquals(«tindex»)'''
         case "Calendar":    '''«index».compareTo(«tindex») == 0'''
         case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''  // do not use equals!!!
+        // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
+        // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         default:            '''«index».equals(«tindex»)'''
         }
     } 
     
-    
-    // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
     def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) {
         val ref = DataTypeExtension::get(i.datatype)
         return ''' 

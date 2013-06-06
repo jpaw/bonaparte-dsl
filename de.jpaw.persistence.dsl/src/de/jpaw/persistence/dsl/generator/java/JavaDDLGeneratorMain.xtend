@@ -409,7 +409,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 return null;  // FIXME! not yet implemented!
             «ELSE»
                 «IF e.pk.columnName.size > 1»
-                    return key; // FIXME! do deep copy & data type conversions
+                    return key.clone(); // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
                     return «e.pk.columnName.get(0).name»;
                 «ENDIF»
@@ -421,7 +421,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 // FIXME! not yet implemented!!!
             «ELSE»
                 «IF e.pk.columnName.size > 1»
-                    key = _k;   // FIXME! do deep copy & data type conversions
+                    key = _k.clone();   // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
                     set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
                 «ENDIF»
@@ -689,7 +689,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «imports.createImports»
         
         @Embeddable
-        public class «e.name»Key implements Serializable {
+        public class «e.name»Key implements Serializable, Cloneable {
             «FOR col : e.pk.columnName»
                 «singleColumn(col, e.tableCategory.doBeanVal)»
                 «writeGetter(col)»

@@ -28,7 +28,6 @@ import de.jpaw.bonaparte.dsl.generator.Util
 class JavaValidate {
     
     def public static writePatterns(ClassDefinition d) '''
-        // regexp patterns. TODO: add check for uniqueness
         «FOR i: d.fields»
             «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
                 private static final Pattern regexp$«i.name» = Pattern.compile("\\A«Util::escapeString2Java(resolveElem(i.datatype).regexp)»\\z");
@@ -79,7 +78,6 @@ class JavaValidate {
     '''
     
     def public static writeValidationCode(ClassDefinition d) '''
-        // TODO: validation is still work in progress and must be extensively redesigned
         @Override
         public void validate() throws ObjectValidationException {
             // perform checks for required fields
