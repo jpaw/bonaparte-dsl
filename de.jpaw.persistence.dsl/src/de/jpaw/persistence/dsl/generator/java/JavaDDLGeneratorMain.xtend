@@ -697,6 +697,15 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(e, e.pk.columnName)»
+            
+            @Override
+            public «e.name»Key clone() {
+                try {
+                    return («e.name»Key)super.clone();
+                } catch (CloneNotSupportedException e) {
+                    return this;  // fallback
+                }
+            }
         }
         '''
     }
