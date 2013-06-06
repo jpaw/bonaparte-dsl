@@ -224,20 +224,20 @@ class JavaDDLGeneratorMain implements IGenerator {
                         «ENDIF»
                         // specific getter/setters for the version field
                         public void set$Version(«JavaDataTypeNoName(it, false)» _v) {
-                            set«Util::capInitial(it.name)»(_v);
+                            set«name.toFirstUpper»(_v);
                         }
                         public «JavaDataTypeNoName(it, false)» get$Version() {
-                            return get«Util::capInitial(it.name)»();
+                            return get«name.toFirstUpper»();
                         }
                     «ENDIF»
                     «IF hasProperty(it.properties, "active")»
                         «setHaveActive»
-                        // specific getter/setters for the active flag (TODO: verify that this is a boolean!)
+                        // specific getter/setters for the active flag
                         public void set$Active(boolean _a) {
-                            set«Util::capInitial(it.name)»(_a);
+                            set«name.toFirstUpper»(_a);
                         }
                         public boolean get$Active() {
-                            return get«Util::capInitial(it.name)»();
+                            return get«name.toFirstUpper»();
                         }
                     «ENDIF»
                 «ENDIF»
@@ -248,7 +248,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+            public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null)
                         return null;
@@ -280,7 +280,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+            public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» «i.name») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null) {
                         this.«i.name» = null;
@@ -355,10 +355,10 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ELSE»        
                 // version column of type int or Integer exists, write proxy
                 public void set$IntVersion(int _v) {
-                    set«Util::capInitial(haveIntVersion.name)»(_v);
+                    set«haveIntVersion.name.toFirstUpper»(_v);
                 }
                 public int get$IntVersion() {
-                    return get«Util::capInitial(haveIntVersion.name)»();
+                    return get«haveIntVersion.name.toFirstUpper»();
                 }
             «ENDIF»
         «ENDIF»
@@ -423,7 +423,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «IF e.pk.columnName.size > 1»
                     key = _k;   // FIXME! do deep copy & data type conversions
                 «ELSE»
-                    set«Util::capInitial(e.pk.columnName.get(0).name)»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
+                    set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
                 «ENDIF»
             «ENDIF»
         }
@@ -448,29 +448,29 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
         recurse(cl, stopAt, false, [ true ], [ '''''' ], [ ''' 
-                «IF hasProperty(it.properties, "findBy")»
-                    public static «e.name» findBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
+                «IF hasProperty(properties, "findBy")»
+                    public static «e.name» findBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getSingleResult();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
-                «ELSEIF hasProperty(it.properties, "listBy")»
-                    public static List<«e.name»> listBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
+                «ELSEIF hasProperty(properties, "listBy")»
+                    public static List<«e.name»> listBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
                 «ENDIF»
-                «IF hasProperty(it.properties, "listActiveBy")»
-                    public static List<«e.name»> listBy«Util::capInitial(it.name)»(EntityManager _em, «JavaDataTypeNoName(it, false)» _key) {
+                «IF hasProperty(properties, "listActiveBy")»
+                    public static List<«e.name»> listBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«it.name» = ?1 AND isActive = true", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1 AND isActive = true", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
@@ -637,11 +637,11 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «fieldVisibility»«e.name»Key key;
                 // forwarding getters and setters
                 «FOR i:e.pk.columnName»
-                    public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» _x) {
-                        key.set«Util::capInitial(i.name)»(_x);
+                    public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» _x) {
+                        key.set«i.name.toFirstUpper»(_x);
                     }
-                    public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
-                        return key.get«Util::capInitial(i.name)»();
+                    public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() {
+                        return key.get«i.name.toFirstUpper»();
                     }
                 «ENDFOR»
                 

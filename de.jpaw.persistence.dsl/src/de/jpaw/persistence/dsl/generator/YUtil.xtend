@@ -24,7 +24,6 @@ import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition
 import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class YUtil {
@@ -181,20 +180,20 @@ class YUtil {
     
     def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt) {
         recurse(cl, stopAt, true,
-                [ !hasProperty(it.properties, "noJava") ],
+                [ !hasProperty(properties, "noJava") ],
                 [ '''// auto-generated data getter for «it.name»
                   '''],
-                [ '''_r.set«Util::capInitial(it.name)»(get«Util::capInitial(it.name)»());
+                [ '''_r.set«name.toFirstUpper»(get«name.toFirstUpper»());
                   ''']
         )
     }
     
     def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
         recurse(cl, stopAt, true,
-                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(it.properties, "noJava") ],
-                [ '''// auto-generated data setter for «it.name»
+                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(properties, "noJava") ],
+                [ '''// auto-generated data setter for «name»
                   '''],
-                [ '''set«Util::capInitial(it.name)»(_d.get«Util::capInitial(it.name)»());
+                [ '''set«name.toFirstUpper»(_d.get«name.toFirstUpper»());
                   ''']
         )
     }

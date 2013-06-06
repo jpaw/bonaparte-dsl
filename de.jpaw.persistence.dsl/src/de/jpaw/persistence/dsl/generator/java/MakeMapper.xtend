@@ -16,7 +16,6 @@
 
 package de.jpaw.persistence.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
@@ -59,7 +58,7 @@ class MakeMapper {
                     // auto-generated data setter for «e.pojoType.name»
                     «FOR i:e.pojoType.fields»
                         «IF !hasProperty(i.properties, "noJava")»
-                            set«Util::capInitial(i.name)»(_dd.get«Util::capInitial(i.name)»());
+                            set«i.name.toFirstUpper»(_dd.get«i.name.toFirstUpper»());
                         «ENDIF»
                     «ENDFOR»
                 }

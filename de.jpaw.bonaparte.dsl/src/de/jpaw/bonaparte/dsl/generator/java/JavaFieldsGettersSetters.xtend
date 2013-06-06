@@ -75,11 +75,11 @@ class JavaFieldsGettersSetters {
     def public static writeGettersSetters(ClassDefinition d) '''
         // auto-generated getters and setters 
         «FOR i:d.fields»
-            public «JavaDataTypeNoName(i, false)» get«Util::capInitial(i.name)»() {
+            public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() {
                 return «i.name»;
             }
             «IF !isImmutable(d)»
-                public void set«Util::capInitial(i.name)»(«JavaDataTypeNoName(i, false)» «i.name») {
+                public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» «i.name») {
                     this.«i.name» = «i.name»;
                 }
             «ENDIF»
