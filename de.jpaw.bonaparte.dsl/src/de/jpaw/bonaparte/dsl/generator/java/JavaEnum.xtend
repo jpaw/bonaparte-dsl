@@ -27,20 +27,22 @@ class JavaEnum {
     
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
+        val isAlphaEnum = d.avalues != null && d.avalues.size() != 0
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
         package «getPackageName(d)»;
         
-        import de.jpaw.util.EnumException;
+        import de.jpaw.util.EnumException;  // TODO change as soon as bonaparte-java-1.5.3 has been rolled out
+        import de.jpaw.enums.TokenizableEnum;
         
         «IF d.javadoc != null»
             «d.javadoc»
         «ENDIF»        
 
-        public enum «d.name» {
-            «IF d.avalues == null || d.avalues.size() == 0»
+        public enum «d.name» «IF isAlphaEnum»implements TokenizableEnum «ENDIF»{
+            «IF !isAlphaEnum»
                 «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
             «ELSE»
                 «FOR v:d.avalues SEPARATOR ', '»«v.name»("«v.token»")«ENDFOR»;
@@ -52,6 +54,7 @@ class JavaEnum {
                 }
 
                 // token retrieval
+                @Override
                 public String getToken() {
                     return _token;
                 }

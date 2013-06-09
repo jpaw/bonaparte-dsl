@@ -301,9 +301,9 @@ class XUtil {
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;
         import java.math.BigDecimal;
+        import de.jpaw.util.EnumException;  // TODO change as soon as bonaparte-java-1.5.3 has been rolled out
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
-        import de.jpaw.util.EnumException;
         import de.jpaw.util.ToStringHelper;
         import de.jpaw.util.ApplicationException;
         import de.jpaw.util.DayTime;
