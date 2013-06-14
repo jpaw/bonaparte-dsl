@@ -27,6 +27,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class YUtil {
+    /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
     def public static String quoteSQL(String text) {
         return text.replace("'", "''").replace("\\", "\\\\");
     }
@@ -170,10 +171,10 @@ class YUtil {
     
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename) {
         recurse(cl, stopAt, false,
-                [ it.comment != null ],
-                [ '''-- comments for columns of java class «it.name»
+                [ comment != null ],
+                [ '''-- comments for columns of java class «name»
                   '''],
-                [ '''COMMENT ON COLUMN «tablename».«columnName(it)» IS '«quoteSQL(it.comment)»';
+                [ '''COMMENT ON COLUMN «tablename».«columnName» IS '«comment.quoteSQL»';
                   ''']
         )
     }
@@ -181,7 +182,7 @@ class YUtil {
     def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt) {
         recurse(cl, stopAt, true,
                 [ !hasProperty(properties, "noJava") ],
-                [ '''// auto-generated data getter for «it.name»
+                [ '''// auto-generated data getter for «name»
                   '''],
                 [ '''_r.set«name.toFirstUpper»(get«name.toFirstUpper»());
                   ''']

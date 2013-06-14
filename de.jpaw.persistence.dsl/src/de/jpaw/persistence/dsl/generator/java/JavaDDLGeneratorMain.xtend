@@ -118,10 +118,28 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     def private writeColumnType(FieldDefinition c) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
-        if (ref.objectDataType != null && hasProperty(c.properties, "serialized")) {
-            // use byte[] Java type and assume same as Object
-            return '''
-                        «fieldVisibility»byte [] «c.name»;'''
+        if (ref.objectDataType != null) {
+            if (c.properties.hasProperty("serialized")) {
+                // use byte[] Java type and assume same as Object
+                return '''
+                    «fieldVisibility»byte [] «c.name»;'''
+            } else if (c.properties.hasProperty("ref")) {
+                // plain old Long as an artificial key / referencing is done by application
+                // can optionally have a ManyToOne object mapping in a Java superclass, with insertable=false, updatable=false
+                return '''
+                    «fieldVisibility»Long «c.name»;'''
+            } else if (c.properties.hasProperty("ManyToOne")) {
+                // child object, create single-sided many to one annotations as well
+                val params = c.properties.getProperty("ManyToOne")
+                return '''
+                    @ManyToOne«IF params != null»(«params»)«ENDIF»
+                    «IF c.properties.getProperty("JoinColumn") != null»
+                        @JoinColumn(«c.properties.getProperty("JoinColumn")»)
+                    «ELSEIF c.properties.getProperty("JoinColumnRO") != null»
+                        @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
+                    «ENDIF»
+                    «fieldVisibility»«c.JavaDataTypeNoName(false)» «c.name»;'''
+            }
         }
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
@@ -192,9 +210,9 @@ class JavaDDLGeneratorMain implements IGenerator {
     // write the definition of a single column
     def private singleColumn(FieldDefinition c, boolean withBeanVal) '''
             @Column(name="«columnName(c)»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«sizeSpec(c)»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
-            «optionalAnnotation(c.properties, "version", "@Version")»
-            «optionalAnnotation(c.properties, "lob",     "@Lob")»
-            «optionalAnnotation(c.properties, "lazy",    "@Basic(fetch=LAZY)")»
+            «c.properties.optionalAnnotation("version", "@Version")»
+            «c.properties.optionalAnnotation("lob",     "@Lob")»
+            «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
             «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
             «writeColumnType(c)»
     '''
@@ -209,28 +227,28 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
-        recurse(cl, stopAt, false, [ true ], [ '''// table columns of java class «it.name»
+        recurse(cl, stopAt, false, [ true ], [ '''// table columns of java class «name»
             ''' ], [ ''' 
                 «IF pkColumns != null && pkColumns.size == 1 && it == pkColumns.get(0)»
                     @Id
                 «ENDIF»
-                «IF (!excludePkColumns || !inList(pkColumns, it)) && !hasProperty(it.properties, "noJava")»
-                    «singleColumn(it, e.tableCategory.doBeanVal)»
-                    «writeGetter(it)»
-                    «writeSetter(it)»
-                    «IF hasProperty(it.properties, "version")»
-                        «IF JavaDataTypeNoName(it, false).equals("int") || JavaDataTypeNoName(it, false).equals("Integer")»
-                            «setIntVersion(it)»
+                «IF (!excludePkColumns || !inList(pkColumns, it)) && !hasProperty(properties, "noJava")»
+                    «singleColumn(e.tableCategory.doBeanVal)»
+                    «writeGetter»
+                    «writeSetter»
+                    «IF hasProperty(properties, "version")»
+                        «IF JavaDataTypeNoName(false).equals("int") || JavaDataTypeNoName(false).equals("Integer")»
+                            «setIntVersion»
                         «ENDIF»
                         // specific getter/setters for the version field
-                        public void set$Version(«JavaDataTypeNoName(it, false)» _v) {
+                        public void set$Version(«JavaDataTypeNoName(false)» _v) {
                             set«name.toFirstUpper»(_v);
                         }
-                        public «JavaDataTypeNoName(it, false)» get$Version() {
+                        public «JavaDataTypeNoName(false)» get$Version() {
                             return get«name.toFirstUpper»();
                         }
                     «ENDIF»
-                    «IF hasProperty(it.properties, "active")»
+                    «IF hasProperty(properties, "active")»
                         «setHaveActive»
                         // specific getter/setters for the active flag
                         public void set$Active(boolean _a) {
@@ -245,10 +263,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         )
     }
     
+    def private static substitutedJavaTypeScalar(FieldDefinition i, DataTypeExtension ref) {
+        if (ref.objectDataType != null) {
+            if (i.properties.hasProperty("ref"))
+                return "Long"
+        }
+        return i.JavaDataTypeNoName(false)    
+    }
+    
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+            public «i.substitutedJavaTypeScalar(ref)» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null)
                         return null;
@@ -280,7 +306,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» «i.name») {
+            public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar(ref)» «i.name») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null) {
                         this.«i.name» = null;
@@ -580,12 +606,15 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.Lob;
         import javax.persistence.Basic;
         import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
         import javax.persistence.Id;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -678,6 +707,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.EmbeddedId;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
