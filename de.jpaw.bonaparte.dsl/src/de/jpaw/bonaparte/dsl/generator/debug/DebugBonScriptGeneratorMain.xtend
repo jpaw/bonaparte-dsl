@@ -28,7 +28,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 class DebugBonScriptGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition)))
-            fsa.generateFile("debug/" + d.name + ".dump", d.dumpPackage);
+            fsa.generateFile("debug/" + d.name + ".info", d.dumpPackage);
     }
     
     def writeDefaults(FieldDefinition i) {

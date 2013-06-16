@@ -53,7 +53,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
-        for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)))
+        for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag

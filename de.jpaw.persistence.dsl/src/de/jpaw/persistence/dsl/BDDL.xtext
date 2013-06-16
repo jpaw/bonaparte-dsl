@@ -66,7 +66,7 @@ GrantCategoryDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition])?  
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition] ('autoSetter' autoSetter=QualifiedId)? )?  
     ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?

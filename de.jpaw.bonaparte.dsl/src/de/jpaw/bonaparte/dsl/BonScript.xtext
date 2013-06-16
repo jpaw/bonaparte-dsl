@@ -153,6 +153,7 @@ ClassDefinition:
     (immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
+     (noJava ?= 'noJava')?                      // suppress code generation (if only used for other purposes) 
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     (isExternalizable = Externalizable)?      // decide if implements Externalizable
     (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated

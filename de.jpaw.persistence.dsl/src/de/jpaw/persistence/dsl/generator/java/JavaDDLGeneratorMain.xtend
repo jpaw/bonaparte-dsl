@@ -615,6 +615,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.EmbeddedId;
         import javax.persistence.ManyToOne;
         import javax.persistence.JoinColumn;
+        import javax.persistence.EntityListeners;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -634,31 +635,34 @@ class JavaDDLGeneratorMain implements IGenerator {
             «e.javadoc»
         «ENDIF»
         «IF e.isAbstract || e.mappedSuperclass»
-        @MappedSuperclass
+            @MappedSuperclass
         «ELSE»
-        @Entity
-        «IF e.cacheable»
-        @Cacheable(true)
-        «ENDIF»
-        «IF e.cacheSize != 0»
-        @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
-        «ENDIF»
-        @Table(name="«mkTablename(e, false)»")
-        «IF e.tenantId != null»
-        @Multitenant(/* SINGLE_TABLE */)
-        «ENDIF»
-        «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
-        @Inheritance(strategy=InheritanceType.«i2s(e.xinheritance)»)
-        «ENDIF»
-        «IF e.discname != null»
-        @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSE»STRING«ENDIF»)
-        @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
-        «ELSEIF e.^extends != null»
-        @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
-        «ENDIF»
+            @Entity
+            «IF e.tableCategory.autoSetter != null»
+                @EntityListeners({«e.tableCategory.autoSetter».class})
+            «ENDIF»
+            «IF e.cacheable»
+                @Cacheable(true)
+            «ENDIF»
+            «IF e.cacheSize != 0»
+                @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
+            «ENDIF»
+            @Table(name="«mkTablename(e, false)»")
+            «IF e.tenantId != null»
+                @Multitenant(/* SINGLE_TABLE */)
+            «ENDIF»
+            «IF e.xinheritance != null && e.xinheritance != Inheritance::NONE»
+                @Inheritance(strategy=InheritanceType.«i2s(e.xinheritance)»)
+            «ENDIF»
+            «IF e.discname != null»
+                @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSE»STRING«ENDIF»)
+                @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
+            «ELSEIF e.^extends != null»
+                @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
+            «ENDIF»
         «ENDIF»
         «IF e.isDeprecated || e.pojoType.isDeprecated»
-        @Deprecated
+            @Deprecated
         «ENDIF»
         public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
             «IF stopper == null && compositeKey»
