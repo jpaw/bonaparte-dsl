@@ -552,7 +552,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         if (e.^extends != null) {
             imports.addImport(getPackageName(e.^extends), e.^extends.name)
             stopper = e.^extends.pojoType
-        }            
+        }
+        // imports for ManyToOne
+        for (r : e.manyToOnes)
+            imports.addImport(r.childObject.getPackageName, r.childObject.name)
             
         var List<FieldDefinition> pkColumns = null
         var String pkType = "Serializable"
@@ -691,7 +694,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
-            «MakeRelationships::writeRelationships(e)»
+            «MakeRelationships::writeRelationships(e, fieldVisibility)»
         }
         '''
     }
