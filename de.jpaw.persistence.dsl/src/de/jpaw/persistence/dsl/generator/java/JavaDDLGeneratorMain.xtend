@@ -614,7 +614,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
         import javax.persistence.ManyToOne;
+        import javax.persistence.FetchType;
         import javax.persistence.JoinColumn;
+        import javax.persistence.JoinColumns;
         import javax.persistence.EntityListeners;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
@@ -689,6 +691,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
+            «MakeRelationships::writeRelationships(e)»
         }
         '''
     }

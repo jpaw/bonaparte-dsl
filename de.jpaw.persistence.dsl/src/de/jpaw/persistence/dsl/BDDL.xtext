@@ -124,8 +124,15 @@ EntityDefinition:
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
         ('pk'     pk       = ListOfColumns)?
         ('index'  index   += ListOfColumns)*
-        ('collections' '{' collections += CollectionDefinition* '}')? 
+        ('collections' '{' collections += CollectionDefinition* '}')?
+        ('@ManyToOne' manyToOnes += ManyToOneRelationship )* 
     '}'       
+;
+
+ManyToOneRelationship:
+    childObject = [EntityDefinition] name = ID 
+    (fetchType = ('LAZY' | 'EAGER'))?
+    ('for' referencedFields = ListOfColumns )  // later: add alternative for local field 
 ;
 
 CollectionDefinition:

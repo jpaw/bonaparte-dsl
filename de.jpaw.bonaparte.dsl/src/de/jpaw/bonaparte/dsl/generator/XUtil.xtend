@@ -51,6 +51,9 @@ class XUtil {
         return dd
     }
     
+    /** Returns the package in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
+     * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
+     */
     def public static getPackage(EObject ee) {
         var e = ee
         while (e != null) {
@@ -58,7 +61,10 @@ class XUtil {
                 return e as PackageDefinition
             e = e.eContainer
         }
-        return null
+        if (ee == null)
+            throw new Exception("getPackage() called for NULL")
+        else
+            throw new Exception("getPackage() called for " + ee.toString())
     }
     
     def public static boolean isImmutable(ClassDefinition d) {

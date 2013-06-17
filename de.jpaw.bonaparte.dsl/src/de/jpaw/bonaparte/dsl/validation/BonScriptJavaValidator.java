@@ -202,7 +202,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     }
 
     // helper function for checkFieldDefinition
-    private int countSameName(ClassDefinition cl,  String name) {
+    public static int countSameName(ClassDefinition cl,  String name) {
         int count = 0;
         for (FieldDefinition field: cl.getFields()) {
             if (name.equals(field.getName())) {
