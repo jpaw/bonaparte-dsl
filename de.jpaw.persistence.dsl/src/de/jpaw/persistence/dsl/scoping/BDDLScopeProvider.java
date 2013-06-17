@@ -84,7 +84,6 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
         return preliminaryResult;
     }
     
-    
     @Override
     protected
     List<ImportNormalizer> internalGetImportedNamespaceResolvers(EObject context, boolean ignoreCase) {
@@ -94,7 +93,7 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
              context instanceof ForeignKeyDefinition ||
              context instanceof CollectionDefinition) && context.eContainer() != null) {
             // the only valid reference in a list of columns is a column of the entity referenced.
-            preliminaryResult = getColumnsSub((EntityDefinition)context.eContainer(), ignoreCase);
+            preliminaryResult = getColumnsSub(YUtil.getBaseEntity(context.eContainer()), ignoreCase);
             
         } else {
             preliminaryResult = super.internalGetImportedNamespaceResolvers(context, ignoreCase);

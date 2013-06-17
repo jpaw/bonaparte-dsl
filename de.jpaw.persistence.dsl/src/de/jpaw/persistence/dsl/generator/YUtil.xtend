@@ -56,6 +56,22 @@ class YUtil {
         return ref as Model
     }
 
+    /** Returns the Entity in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
+     * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
+     */
+    def public static getBaseEntity(EObject ee) {
+        var e = ee
+        while (e != null) {
+            if (e instanceof EntityDefinition)
+                return e as EntityDefinition
+            e = e.eContainer
+        }
+        if (ee == null)
+            throw new Exception("getBaseEntity() called for NULL")
+        else
+            throw new Exception("getBaseEntity() called for " + ee.toString())
+    }
+
 /*
     def public static TableCategoryDefinition getCategory(Model myModel, EntityDefinition t) {
         t.tableCategory 
