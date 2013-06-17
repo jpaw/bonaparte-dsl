@@ -133,9 +133,17 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
         }
     }
-        
+    
+    private static boolean isSame(Object a, Object b) {
+        if (a == null && b == null)
+            return true;
+        if (a == null || b == null)
+            return false;
+        return a.equals(b);
+    }
+    
     private static boolean checkSameType(DataType a, DataType b) {
-        if (a.getReferenceDataType() != b.getReferenceDataType())  // typedefs must be exactly the same
+        if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
             return false;
         ElementaryDataType adt = a.getElementaryDataType();
         ElementaryDataType bdt = b.getElementaryDataType();
@@ -144,11 +152,11 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             if (bdt == null)
                 return false;
             // a and b both not null, compare!
-            if (adt.getEnumType() != bdt.getEnumType())
+            if (!isSame(adt.getEnumType(), bdt.getEnumType()))
+                return false;
+            if (!isSame(adt.getName(), bdt.getName()))
                 return false;
             if (adt.getLength() != bdt.getLength())
-                return false;
-            if (adt.getName() != bdt.getName())
                 return false;
         } else if (bdt != null) {
             // a is null, b not
