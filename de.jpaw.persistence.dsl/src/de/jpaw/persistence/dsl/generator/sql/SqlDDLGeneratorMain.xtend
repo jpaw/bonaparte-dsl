@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator.sql
 
 import org.eclipse.emf.ecore.resource.Resource
@@ -61,7 +61,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             }
             collectEnums(e)
             makeViews(fsa, e, false, "_nt")
-            makeViews(fsa, e, true, "_v")      // enums included, also create a view 
+            makeViews(fsa, e, true, "_v")      // enums included, also create a view
         }
         // enum mapping functions
         for (e : enumsRequired) {
@@ -77,10 +77,10 @@ class SqlDDLGeneratorMain implements IGenerator {
             [ '''«d.get»«SqlColumns::doColumn(it, databaseFlavour)»
               ''']
         )
-    }    
-    
+    }
 
-    // recurse through all 
+
+    // recurse through all
     def private void recurseEnumCollection(ClassDefinition c) {
         var ClassDefinition citer = c
         while (citer != null) {
@@ -95,20 +95,20 @@ class SqlDDLGeneratorMain implements IGenerator {
                 citer = null
         }
     }
-    
+
     def private void collectEnums(EntityDefinition e) {
         recurseEnumCollection(e.tableCategory.trackingColumns)
         recurseEnumCollection(e.pojoType)
         recurseEnumCollection(e.tenantClass)
     }
-    
+
     def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {
         var tablename = mkTablename(e, false) + suffix
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
-    }   
-           
-    def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {          
+    }
+
+    def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
@@ -129,19 +129,19 @@ class SqlDDLGeneratorMain implements IGenerator {
             }
         }
     }
-    
+
     def indexCounter() {
         return indexCount = indexCount + 1
     }
-    
+
     def sqlSynonymOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
         '''CREATE OR REPLACE PUBLIC SYNONYM «tablename» FOR «tablename»;'''
     }
-    
+
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
-        val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table 
+        val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table
         var myCategory = t.tableCategory
         if (doHistory)
             myCategory = myCategory.historyCategory
@@ -153,15 +153,15 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         // System::out.println("      tablename is " + tablename);
-            
+
         var grantGroup = myCategory.grantGroup
         val d = new Delimiter("  ", ", ")
         indexCount = 0
         return '''
         -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
         -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
-        -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
-        
+        -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+
         CREATE TABLE «tablename» (
             «IF stopAt == null»
                 «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d)»
@@ -177,7 +177,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
-        
+
         «IF baseEntity.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»
@@ -197,7 +197,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
-        
+
         «IF stopAt == null»
             «t.tableCategory.trackingColumns?.recurseComments(null, tablename)»
         «ENDIF»
@@ -207,5 +207,5 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «t.pojoType.recurseComments(stopAt, tablename)»
     '''
-    }  
+    }
 }

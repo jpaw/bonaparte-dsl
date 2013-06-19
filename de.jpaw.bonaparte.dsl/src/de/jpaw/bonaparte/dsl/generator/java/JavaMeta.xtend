@@ -27,7 +27,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaMeta {
-    
+
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -35,7 +35,7 @@ class JavaMeta {
         var String classname
         var String visibility = getFieldVisibility(d, i).name
         var String ext = ""  // category specific data
-        
+
         if (i.isArray != null)
             multi = "Multiplicity.ARRAY, " + i.isArray.maxcount
         else if (i.isList != null)
@@ -46,7 +46,7 @@ class JavaMeta {
             multi = "Multiplicity.MAP, " + mapIndexID(i.isMap)  // misusing it for the index length instead of max size...
         else
             multi = "Multiplicity.SCALAR, 0"
-            
+
         switch (ref.category) {
         case DataCategory::NUMERIC: {
             classname = "NumericElementaryDataItem"
@@ -81,11 +81,11 @@ class JavaMeta {
                 "«ref.javaType»", «b2A(ref.isPrimitive)»«ext»);
             '''
     }
-    
+
     def public static writeMetaData(ClassDefinition d) {
         var int cnt2 = -1
         var myPackage = getPackage(d)
-        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null 
+        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null
         return '''
             // property map
             private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<String,String>();
@@ -127,23 +127,23 @@ class JavaMeta {
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
-            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»; 
-            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»; 
+            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
+            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
 
             «FOR i : d.fields»
-                «makeMeta(d, i)» 
+                «makeMeta(d, i)»
             «ENDFOR»
-            
+
             // extended meta data (for the enhanced interface)
             private static final ClassDefinition my$MetaData = new ClassDefinition();
             static {
-                my$MetaData.setIsAbstract(«d.isAbstract»); 
+                my$MetaData.setIsAbstract(«d.isAbstract»);
                 my$MetaData.setIsFinal(«d.isFinal»);
-                my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME); 
-                my$MetaData.setRevision(REVISION); 
+                my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME);
+                my$MetaData.setRevision(REVISION);
                 my$MetaData.setParent(PARENT);
                 my$MetaData.setBundle(BUNDLE);
-                my$MetaData.setSerialUID(serialVersionUID); 
+                my$MetaData.setSerialUID(serialVersionUID);
                 my$MetaData.setNumberOfFields(«d.fields.size»);
                 FieldDefinition [] field$array = new FieldDefinition[«d.fields.size»];
                 «FOR i:d.fields»
@@ -161,7 +161,7 @@ class JavaMeta {
 
             // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect
             // no namespace conflicts here
-            // must be repeated as a member method to make it available in the (extended) interface 
+            // must be repeated as a member method to make it available in the (extended) interface
             // feature of extended BonaPortable, not in the core interface
             @Override
             public ClassDefinition get$MetaData() {

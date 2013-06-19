@@ -33,7 +33,7 @@ class JavaConstructor {
         else
             return g.replace(JavaDataTypeNoName(i, false))
     }
-    
+
     def private static CharSequence allFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
         «IF d.extendsClass != null && d.extendsClass.classRef != null»
             «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
@@ -42,14 +42,14 @@ class JavaConstructor {
             «s.get»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»
         «ENDFOR»
     '''
-    
+
     def private static int countAllFields(ClassDefinition d) {
         var int sum = d.fields.size
         if (d.extendsClass != null && d.extendsClass.classRef != null)
             sum = sum + countAllFields(d.extendsClass.classRef)
-        return sum 
+        return sum
     }
-    
+
     def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
@@ -57,7 +57,7 @@ class JavaConstructor {
                 super();
             «ENDIF»
         }
-        
+
         «IF countAllFields(d) > 0»
             // default all-arguments constructor
             public «d.name»(«allFields(new Delimiter("", ", "), new Generics(), d, true)») {

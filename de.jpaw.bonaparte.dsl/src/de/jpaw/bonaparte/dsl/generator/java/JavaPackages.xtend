@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -27,9 +27,9 @@ class JavaPackages {
     public static final String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
 
     def public static getPackageName(PackageDefinition p) {
-        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name  
+        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
-    
+
     // create the package name for a class definition object
     def public static getPackageName(ClassDefinition d) {
         getPackageName(getPackage(d))
@@ -38,10 +38,10 @@ class JavaPackages {
     def public static getPackageName(EnumDefinition d) {
         getPackageName(getPackage(d))
     }
-    
+
     // Utility methods
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
-        getPackage(d).name + "." + d.name  
+        getPackage(d).name + "." + d.name
     }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
     def public static long getSerialUID(ClassDefinition d) {
@@ -52,14 +52,14 @@ class JavaPackages {
             myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
         return myUID
     }
-    
+
     // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class
-    // TODO: do this in dependence of the import list 
+    // TODO: do this in dependence of the import list
     def public static xxxxxpossiblyFQClassName(ClassDefinition current, ClassDefinition target) {
         if (getPackageName(current) == getPackageName(target))
             target.name
         else
             getPackageName(target) + "." +target.name
     }
-    
+
 }

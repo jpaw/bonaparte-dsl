@@ -22,11 +22,11 @@ public class Util {
     static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Calendar?
         return true;
     }
-    
+
     static public String escapeString2Java(String s) {
         return StringEscapeUtils.escapeJava(s);
     }
-    
+
     // return false if the string contains a non-ASCII printable character, else true
     public static boolean isAsciiString(String s) {
         if (s != null) {

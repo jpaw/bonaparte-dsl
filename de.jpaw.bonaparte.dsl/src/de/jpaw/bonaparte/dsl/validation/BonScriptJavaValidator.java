@@ -41,7 +41,7 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
      * Unresolved compilation problem:
      * Cannot switch on a value of type String for source level below 1.7.
      * Only convertible int values or enum variables are permitted
-     * 
+     *
      */
 
     @Check

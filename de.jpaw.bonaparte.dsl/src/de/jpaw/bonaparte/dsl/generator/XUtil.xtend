@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.bonaparte.dsl.generator
 
 import java.util.List
@@ -50,7 +50,7 @@ class XUtil {
             dd = getParent(dd)
         return dd
     }
-    
+
     /** Returns the package in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
      * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
      */
@@ -66,11 +66,11 @@ class XUtil {
         else
             throw new Exception("getPackage() called for " + ee.toString())
     }
-    
+
     def public static boolean isImmutable(ClassDefinition d) {
         return getRoot(d).immutable
     }
-    
+
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
@@ -78,55 +78,55 @@ class XUtil {
             return r.genericsParameterRef.name
         if (r.classRef != null)
             return r.classRef.name + genericArgs2String(r.classRefGenericParms)
-            
+
         logger.error("*** FIXME: class reference with all null fields ***")
-        return "*** FIXME: class reference with all null fields ***"        
+        return "*** FIXME: class reference with all null fields ***"
     }
-    
+
     def public static genericArgs2String(List<ClassReference> args) {
         if (args == null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«genericRef2String(a)»«ENDFOR»'''        
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«genericRef2String(a)»«ENDFOR»'''
     }
-    
+
     def public static genericDef2String(List<GenericsDef> args) {
         if (args == null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''        
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''
     }
-    
+
     def public static genericDef2StringAsParams(List<GenericsDef> args) {
         if (args == null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«ENDFOR»'''        
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«ENDFOR»'''
     }
-    
+
     // get the elementary data object after resolving typedefs
     // uses caching to keep overall running time at O(1) per call
     def public static ElementaryDataType resolveElem(DataType d) {
         DataTypeExtension::get(d).elementaryDataType
     }
-    
+
     // get the class / object reference after resolving typedefs
     // uses caching to keep overall running time at O(1) per call
     def public static ClassDefinition resolveObj(DataType d) {
         DataTypeExtension::get(d).objectDataType
     }
-    
+
     // convert an Xtend boolean to Java source token
     def public static b2A(boolean f) {
         if (f) "true" else "false"
     }
-    
+
     // convert a String to Java source token, keeping nulls
     def public static s2A(String s) {
         if (s == null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
     }
-    
+
     def public static indexedName(FieldDefinition i) {
         if (i.isList != null || i.isSet != null) "_i" else if (i.isMap != null) "_i.getValue()" else i.name + (if (i.isArray != null) "[_i]" else "")
     }
-    
+
     def public static int mapIndexID(MapModifier i) {
         if (i.indexType == "String")
             return 1
@@ -145,7 +145,7 @@ class XUtil {
             return 18
         return 0  // should not happen
     }
-    
+
     def public static loopStart(FieldDefinition i) '''
         «IF i.isArray != null»
             if («i.name» != null)
@@ -158,7 +158,7 @@ class XUtil {
                 for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet())
         «ENDIF»
         '''
-        
+
     def public static loopMaxCount(FieldDefinition i) {
         if (i.isArray != null)
             return i.isArray.maxcount
@@ -170,7 +170,7 @@ class XUtil {
             return i.isMap.maxcount  // currently not yet supported
         return 0
     }
-        
+
     def public static String getJavaDataType(DataType d) {
         val ref = DataTypeExtension::get(d)
         if (ref.isPrimitive)
@@ -190,17 +190,17 @@ class XUtil {
         if (skipIndex)
             dataClass
         else if (i.isArray != null)
-            dataClass + "[]" 
+            dataClass + "[]"
         else if (i.isSet != null)
-            "Set<" + dataClass + ">" 
+            "Set<" + dataClass + ">"
         else if (i.isList != null)
-            "List<" + dataClass + ">" 
+            "List<" + dataClass + ">"
         else if (i.isMap != null)
-            "Map<" + i.isMap.indexType + "," + dataClass + ">" 
+            "Map<" + i.isMap.indexType + "," + dataClass + ">"
         else
             dataClass
     }
-    
+
     def public static boolean isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
         if (ref.isRequired != null) {
@@ -232,9 +232,9 @@ class XUtil {
     }
 
     def public static condText(boolean flag, String text) {
-        if (flag) text else "" 
+        if (flag) text else ""
     }
-    
+
     def public static vlr(String text1, String l, String r, String otherwise) {
         if (text1 != null) l + text1 + r else otherwise
     }
@@ -244,7 +244,7 @@ class XUtil {
     def public static nnvl(String text1, String text2, String otherwise) {
         if (text1 != null) text1 else if (text2 != null) text2 else otherwise
     }
-    
+
     // moved from persistence / YUtil:
     def public static boolean hasProperty(List <PropertyUse> properties, String key) {
         if (properties != null)
@@ -253,7 +253,7 @@ class XUtil {
                     return true
         return false
     }
-    
+
     def public static String getProperty(List <PropertyUse> properties, String key) {
         if (properties != null)
             for (p : properties)
@@ -261,17 +261,17 @@ class XUtil {
                     return p.value
         return null
     }
-    
+
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static boolean isAggregate(FieldDefinition c) {
-        return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null       
+        return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null
     }
-    
+
     def public static getFieldVisibility(ClassDefinition d, FieldDefinition i) {
         (i.visibility ?: d.defaults?.visibility ?: getPackage(d).defaults?.visibility)?.x ?: XVisibility::DEFAULT
     }
-    
-    
+
+
     // a generic iterator over the fields of a specific class, plus certain super classes.
     // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
@@ -290,7 +290,8 @@ class XUtil {
             «ENDFOR»
         «ENDIF»
     '''
-    
+
+    // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def public static writeDefaultImports() '''
         import java.util.Arrays;
         import java.util.List;
@@ -307,7 +308,7 @@ class XUtil {
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;
         import java.math.BigDecimal;
-        import de.jpaw.util.EnumException;  // TODO change as soon as bonaparte-java-1.5.3 has been rolled out
+        import de.jpaw.util.EnumException;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.ToStringHelper;
@@ -320,5 +321,5 @@ class XUtil {
         import org.joda.time.LocalDateTime;
         «ENDIF»
     '''
-        
+
 }

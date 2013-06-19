@@ -15,7 +15,7 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
     public BonScriptUiModule(AbstractUIPlugin plugin) {
         super(plugin);
     }
-    
+
 	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
 		return Highlighter.class;
 	}

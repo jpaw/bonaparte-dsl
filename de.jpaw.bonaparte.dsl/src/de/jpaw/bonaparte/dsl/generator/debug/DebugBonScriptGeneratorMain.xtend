@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.bonaparte.dsl.generator.debug
 
 import org.eclipse.emf.ecore.resource.Resource
@@ -30,7 +30,7 @@ class DebugBonScriptGeneratorMain implements IGenerator {
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition)))
             fsa.generateFile("debug/" + d.name + ".info", d.dumpPackage);
     }
-    
+
     def writeDefaults(FieldDefinition i) {
         if (i.datatype == null)
            return "***** ERROR ***** datatype is NULL for " + i.name
@@ -39,16 +39,16 @@ class DebugBonScriptGeneratorMain implements IGenerator {
            return "***** ERROR ***** ref is NULL for " + i.name
         return "defaults: req=" + (if (ref.defaultRequired != null) ref.defaultRequired else "null") + ")"
     }
-    
+
     def dumpPackage(PackageDefinition p) '''
-       === PACKAGE «p.name» («IF p.bundle != null»BUNDLE «p.bundle»«ELSE»ROOT«ENDIF») === 
+       === PACKAGE «p.name» («IF p.bundle != null»BUNDLE «p.bundle»«ELSE»ROOT«ENDIF») ===
        «FOR c:p.classes»
            CLASS «c.name»: «IF c.getParent != null»EXTENDS «c.getParent.name»«ENDIF» abstract=«c.isAbstract» final=«c.isFinal»
                //
                «FOR i:c.fields»
                    FIELD «i.name»: «IF i.required != null»local required = «i.required.x», «ENDIF»«IF i.visibility != null»local visibility = «i.visibility.x», «ENDIF»«writeDefaults(i)»
                «ENDFOR»
-           
+
        «ENDFOR»
     '''
 }

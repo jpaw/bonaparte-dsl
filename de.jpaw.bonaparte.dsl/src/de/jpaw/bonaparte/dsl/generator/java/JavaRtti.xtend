@@ -20,7 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaRtti {
-    
+
     def public static getRtti(ClassDefinition d) {
         var rtti = d.rtti
         if (d.addRtti) {
@@ -34,7 +34,7 @@ class JavaRtti {
         }
         return rtti;
     }
-    
+
     def public static writeRtti(ClassDefinition d) {
         return '''
             private static final int MY_RTTI = «getRtti(d)»;

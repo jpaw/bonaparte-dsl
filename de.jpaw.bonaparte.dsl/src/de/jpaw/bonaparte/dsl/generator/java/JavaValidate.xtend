@@ -26,7 +26,7 @@ import de.jpaw.bonaparte.dsl.generator.Util
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
 class JavaValidate {
-    
+
     def public static writePatterns(ClassDefinition d) '''
         «FOR i: d.fields»
             «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
@@ -51,10 +51,10 @@ class JavaValidate {
             «ENDIF»
         }
     '''
-            
+
     def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
         «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
-            «IF ref.elementaryDataType.regexp != null» 
+            «IF ref.elementaryDataType.regexp != null»
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
@@ -76,7 +76,7 @@ class JavaValidate {
                 «index».validate();  // check object
         «ENDIF»
     '''
-    
+
     def public static writeValidationCode(ClassDefinition d) '''
         @Override
         public void validate() throws ObjectValidationException {

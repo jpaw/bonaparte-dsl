@@ -35,11 +35,11 @@ class EqualsHash {
         case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         default:                    '''«index».equals(that.«index»)'''
         }
-    } 
-    
-    
+    }
+
+
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
-    def private static writeCompareStuff(FieldDefinition i, String index, String end) ''' 
+    def private static writeCompareStuff(FieldDefinition i, String index, String end) '''
         «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
             ((«index» == null && that.«index» == null) || «index».hasSameContentsAs(that.«index»))«end»
         «ELSE»
@@ -50,7 +50,7 @@ class EqualsHash {
             «ENDIF»
         «ENDIF»
     '''
-    
+
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray != null)
@@ -78,12 +78,12 @@ class EqualsHash {
                 if (ref.javaType != null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
                     // special treatment required, again!
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
-                else       
+                else
                     return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
             }
         }
-    }                    
-    
+    }
+
     def private static writeHashSub2(List<FieldDefinition> l) '''
         «IF l != null»
             «FOR i:l»
@@ -105,11 +105,11 @@ class EqualsHash {
                 «writeHashSub(d)»
             «ENDIF»
             «writeHashSub2(l)»
-            return _hash;              
+            return _hash;
         }
-        
+
         '''
-        
+
     def private static writeEqualsSub(EntityDefinition e, List<FieldDefinition> l) '''
         «FOR i: l»
             «IF i.isArray != null»
@@ -121,7 +121,7 @@ class EqualsHash {
             «ENDIF»
         «ENDFOR»
     '''
-    
+
     def private static writeEquals(EntityDefinition e) '''
         @Override
         public boolean equals(Object _that) {
@@ -133,7 +133,7 @@ class EqualsHash {
                 return true;
             return equalsSub(_that);
         }
-        
+
         «IF e.pojoType.extendsClass != null»
         @Override
         «ENDIF»
@@ -142,13 +142,13 @@ class EqualsHash {
             «IF e.pojoType.extendsClass != null»
                 return super.equalsSub(_that)
             «ELSE»
-                return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well 
+                return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well
             «ENDIF»
             «writeEqualsSub(e, e.pojoType.fields)»
             ;
         }
     '''
-    
+
     def private static writeSub(EntityDefinition e, String name) '''
             @Override
             public int hashCode() {
@@ -191,5 +191,5 @@ class EqualsHash {
             ;
         }
     '''
-    
+
 }

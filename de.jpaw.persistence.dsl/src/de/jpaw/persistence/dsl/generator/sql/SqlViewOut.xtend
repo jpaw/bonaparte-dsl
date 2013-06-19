@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator.sql
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -25,7 +25,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlViewOut {
-    
+
     def private static createColumn(FieldDefinition i, String prefix) {
         val ref = DataTypeExtension::get(i.datatype)
         val cn = columnName(i)
@@ -34,7 +34,7 @@ class SqlViewOut {
         else
             '''«prefix».«cn» AS «cn»'''
     }
-    
+
     def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d) {
         recurse(cl, null, false,
             [ true ],
@@ -43,8 +43,8 @@ class SqlViewOut {
             [ '''«d.get»«createColumn(it, prefix)»
               ''']
         )
-    }    
-    
+    }
+
     def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level, Delimiter d) '''
         «IF e.^extends != null»
             «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level, d)»
@@ -57,7 +57,7 @@ class SqlViewOut {
             «createColumns(e.pojoType, "t" + level, d)»
         «ENDIF»
     '''
-    
+
     // TODO FIXME: not yet implemented is JOIN inheritance
     def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
         CREATE OR REPLACE VIEW «mkTablename(e, false)»«suffix» AS SELECT

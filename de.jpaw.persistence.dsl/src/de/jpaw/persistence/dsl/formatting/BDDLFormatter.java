@@ -12,18 +12,18 @@ import de.jpaw.persistence.dsl.services.BDDLGrammarAccess;
 
 /**
  * This class contains custom formatting description.
- * 
+ *
  * see : http://www.eclipse.org/Xtext/documentation/latest/xtext.html#formatting
- * on how and when to use it 
- * 
+ * on how and when to use it
+ *
  * Also see {@link org.eclipse.xtext.xtext.XtextFormattingTokenSerializer} as an example
  */
 public class BDDLFormatter extends AbstractDeclarativeFormatter {
-    
+
     @Override
     protected void configureFormatting(FormattingConfig c) {
         BDDLGrammarAccess grammar = (BDDLGrammarAccess) getGrammarAccess();
-        
+
         c.setAutoLinewrap(128);
 
         // semicolon formatting
@@ -52,7 +52,7 @@ public class BDDLFormatter extends AbstractDeclarativeFormatter {
                 c.setLinewrap(1,1,1).before(rightCurlyBracket);
                 c.setLinewrap(1,1,2).after (rightCurlyBracket);
         }
-        
+
         c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getSL_COMMENTRule());
         c.setLinewrap(0, 1, 2).before(((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());
         c.setLinewrap(0, 1, 1).after (((BDDLGrammarAccess)getGrammarAccess()).getML_COMMENTRule());

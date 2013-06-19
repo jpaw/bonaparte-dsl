@@ -37,7 +37,7 @@ class MakeRelationships {
                 })
             «ENDIF»
             «fieldVisibility»«m.childObject.name» «m.name»;
-            
+
             public «m.childObject.name» get«m.name.toFirstUpper»() {
                 return «m.name»;
             }

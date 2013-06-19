@@ -52,7 +52,7 @@ class JavaExternalize {
                 }
         }
     }
-    
+
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
         «IF resolveElem(i.datatype) != null»
             «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
@@ -60,7 +60,7 @@ class JavaExternalize {
             ExternalizableComposer.writeObject(_out, (BonaPortable)«index»);
         «ENDIF»
     '''
-    
+
     def public static writeExternalizeOld(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {
@@ -105,7 +105,7 @@ class JavaExternalize {
         }
 
     '''
-    
+
     def public static writeExternalize(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {
@@ -113,6 +113,5 @@ class JavaExternalize {
         }
 
     '''
-        
+
 }
-  

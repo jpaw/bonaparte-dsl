@@ -10,28 +10,28 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 public class ImportCollector {
-    private Map<String, String> requiredImports 
+    private Map<String, String> requiredImports
     private String myPackageName
-     
+
     new(String myPackage) {
         requiredImports = new HashMap<String, String>()
         myPackageName = myPackage
     }
-    
+
     def void clear() {
         requiredImports.clear()
     }
-    
+
     def void addImport(ClassDefinition cl) {
         if (cl != null)
             addImport(getPackageName(cl), cl.name)
     }
-    
+
     def void addImport(EnumDefinition cl) {
         if (cl != null)
             addImport(getPackageName(cl), cl.name)
     }
-    
+
     // same code as in JavaBonScriptGenerator...
     def void recurseImports(ClassDefinition d, boolean recurseFields) {
         if (d == null)
@@ -59,8 +59,8 @@ public class ImportCollector {
         if (recurseFields && d.extendsClass != null && d.extendsClass.classRef != null)
             recurseImports(d.extendsClass.classRef, true)
     }
-    
-        
+
+
     def void addImport(ClassReference r) {
         if (r != null && r.classRef != null) {
             addImport(r.classRef)
@@ -69,7 +69,7 @@ public class ImportCollector {
                     addImport(args)
         }
     }
-    
+
     def void addImport(String packageName, String objectName) {
         val String currentEntry = requiredImports.get(objectName)
         if (currentEntry == null) // not yet in, fine, add it!
@@ -78,7 +78,7 @@ public class ImportCollector {
             if (!currentEntry.equals(packageName))  // not good, more than one entry!
                 requiredImports.put(objectName, "-")  // this will cause am intentional compile error of the generated code
     }
-    
+
     def createImports() '''
         «FOR o : requiredImports.keySet»
             «IF !requiredImports.get(o).equals(myPackageName)»

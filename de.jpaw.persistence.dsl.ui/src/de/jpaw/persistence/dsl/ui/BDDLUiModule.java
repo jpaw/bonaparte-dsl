@@ -17,7 +17,7 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
     public BDDLUiModule(AbstractUIPlugin plugin) {
         super(plugin);
     }
-    
+
 	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
 		return Highlighter.class;
 	}

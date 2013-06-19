@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -37,9 +37,9 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
-    
+
     var Map<String, String> requiredImports = new HashMap<String, String>()
-    
+
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
@@ -48,7 +48,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getJaxbResourceFilename(String pkg) {
         return "resources/" + pkg.replaceAll("\\.", "/") + "/jaxb.index"
     }
-    
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
@@ -67,25 +67,25 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     «cl.name»
                 «ENDFOR»
                 ''')
-            
+
             // also, write a package-info.java file, if javadoc on package level exists
             if (d.javadoc != null) {
                 fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
                     // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-                    
-                    «d.javadoc» 
+
+                    «d.javadoc»
                     package «getPackageName(d)»;
                 ''')
             }
         }
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }
-    
+
 
 /* currently unused
-            «JavaMethods::writeMethods(d)» 
+            «JavaMethods::writeMethods(d)»
     def private recurseMethods(ClassDefinition d, boolean isRoot) {
         for (m : d.methods)
             if (m.returnObj != null)
@@ -94,7 +94,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             if (d.extendsClass != null)
                 recurseMethods(d.extendsClass, false)
     }  */
-    
+
     // decision classes for the package level settings
     def private static getXmlAccess(ClassDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
@@ -102,17 +102,17 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }
     def private static getExternalizable(ClassDefinition d) {
         val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: XExternalizable::EXT   // default to creation of externalization methods
-        return t != null && t != XExternalizable::NOEXT         
+        return t != null && t != XExternalizable::NOEXT
     }
     def private static getBeanValidation(ClassDefinition d) {
         var XBeanValidation t = d.doBeanValidation?.x ?: getPackage(d).doBeanValidation?.x ?: XBeanValidation::NOBEAN_VAL  // default to creation of no bean validation annotations
         return t != null && t != XBeanValidation::NOBEAN_VAL
     }
-        
+
     def private static interfaceOut(InterfaceListDefinition l) {
         '''«IF l != null»«FOR i : l.list», «i»«ENDFOR»«ENDIF»'''
     }
-        
+
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
@@ -133,9 +133,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
-        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(d)»;
-        
+
         «writeDefaultImports»
         «IF (xmlAccess != null && !d.isAbstract)»
             import javax.xml.bind.annotation.XmlAccessorType;
@@ -161,11 +161,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».StringConverter;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
-        
-        
+
+
         «IF d.javadoc != null»
             «d.javadoc»
-        «ENDIF»        
+        «ENDIF»
 
         «IF (xmlAccess != null && !d.isAbstract)»
             @XmlRootElement
@@ -177,7 +177,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.extendsClass != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
-        
+
             «JavaMeta::writeMetaData(d)»
             «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
@@ -194,14 +194,14 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «ENDIF»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(d)»
-            
+
             @Override
             public String toString() {
                 return ToStringHelper.toStringSL(this);
             }
         }
-    '''   
+    '''
     }
     def JavaDeexternalize(ClassDefinition definition) { }
- 
+
 }

@@ -2,7 +2,7 @@
 package de.jpaw.bonaparte.dsl;
 
 /**
- * Initialization support for running Xtext languages 
+ * Initialization support for running Xtext languages
  * without equinox extension registry
  */
 public class BonScriptStandaloneSetup extends BonScriptStandaloneSetupGenerated{

@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator.sql
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
@@ -52,7 +52,7 @@ class SqlEnumOut {
         END;
         $$ LANGUAGE plpgsql;
         '''
-        
+
     def private static postgresEnumFuncsAlpha(EnumDefinition e) '''
         -- convert a token (as stored in DB tables) of enum «(e.eContainer as PackageDefinition).name».«e.name» into the more readable symbolic constant string
         CREATE OR REPLACE FUNCTION «e.name»2s(token VARCHAR) RETURNS VARCHAR
@@ -84,7 +84,7 @@ class SqlEnumOut {
         END;
         $$ LANGUAGE plpgsql;
         '''
-    
+
     def public static postgresEnumFuncs(EnumDefinition e) {
         if (e.avalues != null && !e.avalues.empty)
             postgresEnumFuncsAlpha(e)

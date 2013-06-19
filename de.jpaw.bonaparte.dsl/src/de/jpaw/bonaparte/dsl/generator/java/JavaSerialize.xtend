@@ -24,7 +24,7 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
 class JavaSerialize {
-   
+
     def private static makeWrite(String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         val String grammarName = e.name.toLowerCase;
         if (grammarName.equals("unicode"))  // special treatment if Unicode and / or escaped characters must be checked for
@@ -61,7 +61,7 @@ class JavaSerialize {
             w.addField((BonaPortable)«index»);
         «ENDIF»
     '''
-    
+
     def public static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
@@ -106,5 +106,5 @@ class JavaSerialize {
             w.writeSuperclassSeparator();
         }
 
-   '''    
+   '''
 }

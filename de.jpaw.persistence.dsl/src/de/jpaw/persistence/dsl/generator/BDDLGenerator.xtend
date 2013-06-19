@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator
 
 import org.eclipse.emf.ecore.resource.Resource
@@ -30,9 +30,9 @@ class BDDLGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
     //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.BDDLGenerator") // jcl
-    
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-    
+
         // code output: one xtend file per language, such that it can be easily extended to additional languages
         // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
         if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
@@ -40,13 +40,13 @@ class BDDLGenerator implements IGenerator {
             ) {
             logger.info("start code output: SQL DDL for " + resource.URI.toString);
             new SqlDDLGeneratorMain().doGenerate(resource, fsa)
-        
+
             logger.info("start code output: Java output for " + resource.URI.toString);
             new JavaDDLGeneratorMain().doGenerate(resource, fsa)
-        
+
             logger.info("start code output: resource output for " + resource.URI.toString);
             new ResourceGeneratorMain().doGenerate(resource, fsa)
-        
+
             logger.info("start cleanup");
         }
     }

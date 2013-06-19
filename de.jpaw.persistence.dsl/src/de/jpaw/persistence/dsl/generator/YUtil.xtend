@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator
 
 import com.google.common.base.CaseFormat
@@ -31,7 +31,7 @@ class YUtil {
     def public static String quoteSQL(String text) {
         return text.replace("'", "''").replace("\\", "\\\\");
     }
-    
+
     def public static java2sql(String javaname) {
         CaseFormat::LOWER_CAMEL.to(CaseFormat::LOWER_UNDERSCORE, javaname);
     }
@@ -40,14 +40,14 @@ class YUtil {
         return java2sql(c.name)  // allow to add column data type prefixes here... (systems Hungarian notation: http://en.wikipedia.org/wiki/Hungarian_notation)
     }
 
-                
+
     def public static getInheritanceRoot(EntityDefinition e) {
         var EntityDefinition ee = e
         while (ee.^extends != null)
             ee = ee.^extends
         return ee
     }
-    
+
     def public static Model getModel(EObject someReference) {
         var EObject ref = someReference
         while (!(ref instanceof Model))
@@ -74,16 +74,16 @@ class YUtil {
 
 /*
     def public static TableCategoryDefinition getCategory(Model myModel, EntityDefinition t) {
-        t.tableCategory 
-        
+        t.tableCategory
+
         val String category = t.tableCategory.name
         for (c : myModel.tableCategories)
             if (c.name.equals(category))
                 return c
         throw new RuntimeException("could not find category <" + category + "> for Entity " + t.name)
-        
+
     } */
-    
+
     def public static String mkTablename(EntityDefinition t, boolean forHistory) {
         if (!forHistory && t.tablename != null)
             t.tablename
@@ -99,11 +99,11 @@ class YUtil {
             if (forHistory)
                  myCategory = myCategory.historyCategory
             var theOtherModel = getModel(myCategory)
-                 
+
             // precedence rules for table name
             // 1. pattern of referenced category
             // 2. pattern of defaults of my model
-            // 3. pattern of defaults of model which owns the category 
+            // 3. pattern of defaults of model which owns the category
             if (myCategory.namePattern != null) {
                 myPattern = myCategory.namePattern
                 dropSuffix = myCategory.dropSuffix
@@ -116,7 +116,7 @@ class YUtil {
             } else {
                 myPattern = "(category)_(entity)"  // last fallback
                 dropSuffix = null
-            } 
+            }
             // 2. have the pattern, apply substitution rules
             tablename = myPattern.replace("(category)", myCategory.name)
                                  .replace("(entity)",   java2sql(t.name))
@@ -143,11 +143,11 @@ class YUtil {
             var myModel = getModel(myPackage.eContainer)
             var theOtherModel = getModel(myCategory)
             var String myPattern
-                 
+
             // precedence rules for tablespace names (same as above)
             // 1. pattern of referenced category
             // 2. pattern of defaults of my model
-            // 3. pattern of defaults of model which owns the category 
+            // 3. pattern of defaults of model which owns the category
             if (myCategory.tablespacePattern != null) {
                 myPattern = myCategory.tablespacePattern
                 // fall through
@@ -184,7 +184,7 @@ class YUtil {
                             .replace("(di)",       (if (forIndex) "i" else "d"))
         }
     }
-    
+
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename) {
         recurse(cl, stopAt, false,
                 [ comment != null ],
@@ -194,7 +194,7 @@ class YUtil {
                   ''']
         )
     }
-    
+
     def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt) {
         recurse(cl, stopAt, true,
                 [ !hasProperty(properties, "noJava") ],
@@ -204,7 +204,7 @@ class YUtil {
                   ''']
         )
     }
-    
+
     def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
         recurse(cl, stopAt, true,
                 [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(properties, "noJava") ],
@@ -214,7 +214,7 @@ class YUtil {
                   ''']
         )
     }
-    
+
     def public static isKeyField(EntityDefinition e, FieldDefinition f) {
         if (e.pk != null) {
             for (FieldDefinition i: e.pk.columnName) {
@@ -224,5 +224,5 @@ class YUtil {
         }
         return false
     }
-    
+
 }

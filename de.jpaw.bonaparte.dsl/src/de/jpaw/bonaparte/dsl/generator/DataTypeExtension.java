@@ -50,7 +50,7 @@ public class DataTypeExtension {
     // constants for enumMaxTokenLength field
     public static final int NO_ENUM = -2;
     public static final int ENUM_NUMERIC = -1;
-    
+
     // a lookup to determine if a data type can (should) be implemented as a Java primitive.
     // (LANGUAGE SPECIFIC: JAVA)
     private static final Set<String> JAVA_PRIMITIVES = new HashSet<String>(Arrays.asList(new String[] {
@@ -76,14 +76,14 @@ public class DataTypeExtension {
         dataCategory.put("short",     DataCategory.NUMERIC);
         dataCategory.put("char",      DataCategory.MISC);
         dataCategory.put("character", DataCategory.MISC);
-        
+
         dataCategory.put("raw",       DataCategory.MISC);    // not recommended because mutable. Also weird for 2nd level of array index
         dataCategory.put("binary",    DataCategory.MISC);
         dataCategory.put("uuid",      DataCategory.MISC);
         dataCategory.put("calendar",  DataCategory.TEMPORAL);  // not recommended because mutable
         dataCategory.put("timestamp", DataCategory.TEMPORAL);  // temporary solution until JSR 310 has been implemented
         dataCategory.put("day",       DataCategory.TEMPORAL);      // temporary solution until JSR 310 has been implemented
-        
+
         dataCategory.put("uppercase", DataCategory.STRING);
         dataCategory.put("lowercase", DataCategory.STRING);
         dataCategory.put("ascii",     DataCategory.STRING);
@@ -91,7 +91,7 @@ public class DataTypeExtension {
         dataCategory.put("enum",      DataCategory.ENUM);  // artificial entry for enum
         dataCategory.put("object",    DataCategory.OBJECT);  // which is really an object reference instead of an elementary item...
     }
-    
+
     // a lookup to determine the Java data type to use for a given grammar type.
     // (LANGUAGE SPECIFIC: JAVA)
     static protected Map<String,String> dataTypeJava = new HashMap<String, String>(32);
@@ -108,14 +108,14 @@ public class DataTypeExtension {
         dataTypeJava.put("short",     "Short");
         dataTypeJava.put("char",      "Character");
         dataTypeJava.put("character", "Character");
-        
+
         dataTypeJava.put("raw",       "byte []");    	// not recommended because mutable. Also weird for 2nd level of array index
         dataTypeJava.put("binary",    "ByteArray");
         dataTypeJava.put("uuid",      "UUID");
         dataTypeJava.put("calendar",  "Calendar");  	// not recommended because mutable
         dataTypeJava.put("timestamp", "LocalDateTime"); // temporary solution until JSR 310 has been implemented
         dataTypeJava.put("day",       "LocalDate");     // temporary solution until JSR 310 has been implemented
-        
+
         dataTypeJava.put("uppercase", "String");
         dataTypeJava.put("lowercase", "String");
         dataTypeJava.put("ascii",     "String");
@@ -123,8 +123,8 @@ public class DataTypeExtension {
         dataTypeJava.put("enum",      "@");  			// artificial entry for enum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
-    
-    
+
+
     // member variables
     private boolean currentlyVisited = false;
     public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
@@ -148,11 +148,11 @@ public class DataTypeExtension {
     public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
     public boolean allTokensAscii = true;
     public DataCategory category = DataCategory.MISC;
-    
+
     static public void clear() {
         map.clear();
     }
-    
+
     static private void mergeFieldSpecsWithDefaultsForObjects(DataTypeExtension r, DataType key) throws Exception {
         ElementaryDataType e = r.elementaryDataType;
         // find the parent which is the relevant package definition. These are 2 or 3 steps
@@ -162,7 +162,7 @@ public class DataTypeExtension {
         PackageDefinition p = null;
         ClassDefinition cd = null;
         FieldDefaultsDefinition classdefs = null;
-        
+
         for (EObject i = key.eContainer(); ; i = i.eContainer()) {
             if (i instanceof ClassDefinition) {
                 cd = (ClassDefinition)i;
@@ -195,7 +195,7 @@ public class DataTypeExtension {
         PackageDefinition p = null;
         ClassDefinition cd = null;
         FieldDefaultsDefinition classdefs = null;
-        
+
         for (EObject i = key.eContainer(); ; i = i.eContainer()) {
             if (i instanceof ClassDefinition) {
                 cd = (ClassDefinition)i;
@@ -212,7 +212,7 @@ public class DataTypeExtension {
 
         // for every field, prefer field level setting (if exists here), then fall back to class defaults,
         // then to package defaults, and finally to hardcoded defaults
-                            
+
         XUsePrimitives up = classdefs != null && classdefs.getUsePrimitives() != null
                                     ? classdefs.getUsePrimitives().getX()
                                     : p.getDefaults() != null && p.getDefaults().getUsePrimitives() != null
@@ -221,7 +221,7 @@ public class DataTypeExtension {
         if (up == XUsePrimitives.USE_PRIMITIVES && JAVA_PRIMITIVES.contains(e.getName()))
             r.isPrimitive = true;
         // TODO: else: map back types: char => Character, int => Integer
-        
+
         XSignedness s = e.getSigned() != null
                         ? e.getSigned().getX()
                         : classdefs != null && classdefs.getSigned() != null
@@ -230,7 +230,7 @@ public class DataTypeExtension {
                                     ? p.getDefaults().getSigned().getX()
                                     : XSignedness.SIGNED;
         r.effectiveSigned = s == XSignedness.SIGNED;
-        
+
         XTrimming trim = e.getTrimming() != null
                 ? e.getTrimming().getX()
                 : classdefs != null && classdefs.getTrim() != null
@@ -266,7 +266,7 @@ public class DataTypeExtension {
                             ? p.getDefaults().getAutoScale().getX()
                             : XAutoScale.NOAUTOSCALE;
         r.effectiveAutoScale = autoScale == XAutoScale.AUTOSCALE;
-        
+
         XSpecialCharsSetting spc = e.getAllowCtrls() != null
                 ? e.getAllowCtrls().getX()
                 : classdefs != null && classdefs.getAllowCtrls() != null
@@ -275,7 +275,7 @@ public class DataTypeExtension {
                             ? p.getDefaults().getAllowCtrls().getX()
                             : XSpecialCharsSetting.ALLOW_CONTROL_CHARS;
         r.effectiveAllowCtrls = spc == XSpecialCharsSetting.ALLOW_CONTROL_CHARS;
-        
+
         r.defaultRequired = classdefs != null && classdefs.getRequired() != null
                              ? classdefs.getRequired().getX()
                              : p.getDefaults() != null && p.getDefaults().getRequired() != null
@@ -310,12 +310,12 @@ public class DataTypeExtension {
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
         }
-        
+
         if (r.elementaryDataType != null) {
             // immediate data: perform postprocessing. transfer defaults of embedding package to this instance
             ElementaryDataType e = r.elementaryDataType;
 
-            // map extra (convenience) data types to their standard java names 
+            // map extra (convenience) data types to their standard java names
             if (Character.isUpperCase(e.getName().charAt(0))) {
                 r.wasUpperCase = true;
                 if (e.getName().equals("Int"))
@@ -332,10 +332,10 @@ public class DataTypeExtension {
             r.category = dataCategory.get(e.getName().toLowerCase());
             // merge the defaults specifications
             mergeFieldSpecsWithDefaults(r, key);
-            
+
             if (!r.wasUpperCase)
                 r.isRequired = XRequired.REQUIRED;              // field is set to required by specification
-            
+
             // special handling for enums
             if (r.javaType == null)
                 throw new Exception("unmapped Java data type for " + e.getName());
@@ -360,12 +360,12 @@ public class DataTypeExtension {
                 if (r.javaType.equals("LocalDate") || r.javaType.equals("LocalDate"))
                     r.javaType = "Calendar";
             }
-            
+
             // special treatment for uppercase / lowercase shorthands
             if (r.javaType.equals("String"))
                 if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
                     r.isUpperCaseOrLowerCaseSpecialType = true;
-            
+
             //System.out.println("setting elem data type: " + e.getName() + String.format(": wasUpper=%b, primitive=%b, length=%d, key=",
             //      r.wasUpperCase, r.isPrimitive, e.getLength()) + key);
         }
@@ -381,7 +381,7 @@ public class DataTypeExtension {
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
-            
+
             r.effectiveSigned = resolvedReference.effectiveSigned;
             r.effectiveRounding = resolvedReference.effectiveRounding;
             r.effectiveAutoScale = resolvedReference.effectiveAutoScale;

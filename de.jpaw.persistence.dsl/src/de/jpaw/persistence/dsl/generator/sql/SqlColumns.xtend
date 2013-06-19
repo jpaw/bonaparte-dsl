@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.persistence.dsl.generator.sql
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -26,7 +26,7 @@ import org.apache.commons.logging.LogFactory
 
 class SqlColumns {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
-    
+
     // TODO: check if column is in PK (then assume implicit NOT NULL)
     def public static notNullConstraint(FieldDefinition c) {
         if (isRequired(c)) " NOT NULL" else ""

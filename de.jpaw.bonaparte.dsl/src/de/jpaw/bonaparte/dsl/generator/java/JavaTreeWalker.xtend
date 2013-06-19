@@ -24,7 +24,7 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaTreeWalker {
-    
+
     def public static writeTreeWalkerCode(ClassDefinition d) '''
         @Override
         public void treeWalkString(StringConverter _cvt) {
@@ -36,7 +36,7 @@ class JavaTreeWalker {
             «ENDFOR»
         }
      '''
-     
+
      def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref) {
          if (ref.category == DataCategory::STRING) {
              // String field, which must be processed. This still can be a List or an Array

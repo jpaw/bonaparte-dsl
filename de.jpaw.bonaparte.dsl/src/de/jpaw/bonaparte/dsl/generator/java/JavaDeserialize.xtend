@@ -40,7 +40,7 @@ class JavaDeserialize {
         case 'integer':   '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
         case 'number':    '''p.readNumber    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveSigned»)'''
         case 'decimal':   '''p.readBigDecimal("«fieldname»", «!isRequired», «i.length», «i.decimals», «ref.effectiveSigned», «ref.effectiveRounding», «ref.effectiveAutoScale»)'''
-        // float/double, char and boolean    
+        // float/double, char and boolean
         case 'float':     '''p.readFloat     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
         case 'double':    '''p.readDouble    ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
         case 'boolean':   '''p.readBoolean   ("«fieldname»", «!isRequired»)'''
@@ -51,7 +51,7 @@ class JavaDeserialize {
         case 'lowercase': '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
         case 'ascii':     '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
         case 'unicode':   '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
-        // special          
+        // special
         case 'uuid':      '''p.readUUID      ("«fieldname»", «!isRequired»)'''
         case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
         case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
@@ -84,7 +84,7 @@ class JavaDeserialize {
         }
         return "FIXME! no supertype resolved!"
     }
-    
+
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
         «IF resolveElem(i.datatype) != null»
             «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
@@ -93,7 +93,7 @@ class JavaDeserialize {
         «ENDIF»
     '''
 
-/*            
+/*
     def private static exceptionOrNull(ClassDefinition d, FieldDefinition i) {
         if (i.isAggregateRequired)
             '''throw new MessageParserException(MessageParserException.ILLEGAL_EXPLICIT_NULL, "«i.name»", 0, "«d.name»");'''
@@ -101,7 +101,7 @@ class JavaDeserialize {
             '''«i.name» = null;'''      // just a regular assignment
     }
    */
-     
+
     def public static writeDeserialize(ClassDefinition d) '''
             @Override
             public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
@@ -180,5 +180,5 @@ class JavaDeserialize {
                 // p.setCurrentClass(embeddingObject); // ignore result
             }
     '''
-    
+
 }

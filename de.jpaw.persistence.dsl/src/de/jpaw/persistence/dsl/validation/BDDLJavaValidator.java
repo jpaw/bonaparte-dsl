@@ -45,7 +45,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             warning("The resulting SQL table name " + tablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
                     BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
         }
-        
+
         // verify for missing primary key
         if (e.getTableCategory().isRequiresPk()) {
             // we need one by definition of the category
@@ -76,7 +76,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                 break;
             }
         }
-        
+
         if (e.getCollections() != null && e.getCollections().size() > 0) {
             if (e.getPk() == null || e.getPk().getColumnName().size() != 1) {
                 error("Collections components only allowed for entities with a single column primary key", BDDLPackage.Literals.ENTITY_DEFINITION__COLLECTIONS);
@@ -84,7 +84,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
         }
     }
-    
+
     @Check
     public void checkCollection(CollectionDefinition c) {
         if (c.getMap() != null && c.getMap().getIsMap() != null) {
@@ -92,7 +92,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             return;
         }
     }
-    
+
     @Check
     public void checkManyToOneRelationship(ManyToOneRelationship m2o) {
         String s = m2o.getName();
@@ -133,7 +133,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
         }
     }
-    
+
     private static boolean isSame(Object a, Object b) {
         if (a == null && b == null)
             return true;
@@ -141,13 +141,13 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             return false;
         return a.equals(b);
     }
-    
+
     private static boolean checkSameType(DataType a, DataType b) {
         if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
             return false;
         ElementaryDataType adt = a.getElementaryDataType();
         ElementaryDataType bdt = b.getElementaryDataType();
-        
+
         if (adt != null) {
             if (bdt == null)
                 return false;
@@ -163,6 +163,6 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             return false;
         }
         return true;
-        
+
     }
 }

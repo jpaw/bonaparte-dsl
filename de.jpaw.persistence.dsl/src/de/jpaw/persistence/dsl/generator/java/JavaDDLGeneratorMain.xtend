@@ -46,15 +46,15 @@ class JavaDDLGeneratorMain implements IGenerator {
     var haveActive = false
     var boolean useUserTypes = true;
     var String fieldVisibility = "";
-    
+
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def private static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
     }
     def public static getPackageName(PackageDefinition p) {
-        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name  
+        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
-    
+
     // create the package name for a class definition object
     def public static getPackageName(EntityDefinition d) {
         getPackageName(d.eContainer as PackageDefinition)
@@ -80,14 +80,14 @@ class JavaDDLGeneratorMain implements IGenerator {
                     // This source has been automatically created by the bonaparte persistence DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-                    
-                    «d.javadoc» 
+
+                    «d.javadoc»
                     package «getPackageName(d)»;
                 ''')
             }
         }
     }
-    
+
     // temporal types for Calendar (standard JPA types, conversion in getters / setters)
     def private writeTemporal(FieldDefinition c, String type) '''
         @Temporal(TemporalType.«type»)
@@ -99,13 +99,13 @@ class JavaDDLGeneratorMain implements IGenerator {
             «fieldVisibility»«calendar» «c.name»;
         «ENDIF»
     '''
-    
+
     // temporal types for UserType mappings (OR mapper specific extensions)
     def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType) '''
         @Temporal(TemporalType.«type»)
         «writeTemporalField(c, fieldType)»
     '''
-    
+
     def private writeTemporalField(FieldDefinition c, String fieldType) '''
         «IF c.isArray != null»
             «fieldVisibility»«fieldType»[] «c.name»;
@@ -115,7 +115,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «fieldVisibility»«fieldType» «c.name»;
         «ENDIF»
     '''
-    
+
     def private writeColumnType(FieldDefinition c) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType != null) {
@@ -155,7 +155,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         // @Lob
                         «fieldVisibility»byte [] «c.name»;
                     '''
-                default:                   '''        
+                default:                   '''
                     «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
                     '''
                 }
@@ -170,12 +170,12 @@ class JavaDDLGeneratorMain implements IGenerator {
                         // @Lob
                         «fieldVisibility»byte [] «c.name»;
                     '''
-                default:                   '''        
+                default:                   '''
                     «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
                     '''
                 }
             }
-        case DataTypeExtension::ENUM_NUMERIC: '''        
+        case DataTypeExtension::ENUM_NUMERIC: '''
                 «fieldVisibility»Integer «c.name»;
             '''
         default: '''
@@ -183,12 +183,12 @@ class JavaDDLGeneratorMain implements IGenerator {
             '''
         }
     }
-    
-  
+
+
     def private optionalAnnotation(List <PropertyUse> properties, String key, String annotation) {
         '''«IF hasProperty(properties, key)»«annotation»«ENDIF»'''
     }
-    
+
     def private setIntVersion(FieldDefinition c) {
         haveIntVersion = c
         return ""
@@ -197,7 +197,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         haveActive = true
         return ""
     }
-    
+
     // write a @Size annotation for string based types
     def private sizeSpec(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype);
@@ -216,19 +216,19 @@ class JavaDDLGeneratorMain implements IGenerator {
             «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
             «writeColumnType(c)»
     '''
-    
+
     def private boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
         for (i : pkColumns)
             if (i == c)
                 return true
-        return false    
+        return false
     }
-    
+
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
         recurse(cl, stopAt, false, [ true ], [ '''// table columns of java class «name»
-            ''' ], [ ''' 
+            ''' ], [ '''
                 «IF pkColumns != null && pkColumns.size == 1 && it == pkColumns.get(0)»
                     @Id
                 «ENDIF»
@@ -262,15 +262,15 @@ class JavaDDLGeneratorMain implements IGenerator {
         ''']
         )
     }
-    
+
     def private static substitutedJavaTypeScalar(FieldDefinition i, DataTypeExtension ref) {
         if (ref.objectDataType != null) {
             if (i.properties.hasProperty("ref"))
                 return "Long"
         }
-        return i.JavaDataTypeNoName(false)    
+        return i.JavaDataTypeNoName(false)
     }
-    
+
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
@@ -302,7 +302,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             }
         '''
     }
-    
+
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
@@ -335,7 +335,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             }
         '''
     }
-    
+
     def private writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
@@ -344,8 +344,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         } else
             return ""
     }
-    
-       
+
+
     def private scaledExpiry(int number, String unit) {
         if (unit.startsWith("minute"))
             return number * 60
@@ -355,14 +355,14 @@ class JavaDDLGeneratorMain implements IGenerator {
             return number * 86400
         else
             return number
-    }     
-    
-    
+    }
+
+
     def private writeStubs(EntityDefinition e) '''
         «IF e.^extends == null»
             «writeRtti(e.pojoType)»
             «IF !haveActive»
-                // no isActive column in this entity, create stubs to satisfy interface 
+                // no isActive column in this entity, create stubs to satisfy interface
                 public void set$Active(boolean _a) {
                     throw new RuntimeException("Entity «e.name» does not have an isActive field");
                 }
@@ -378,7 +378,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 public int get$IntVersion() {
                     return -1;
                 }
-            «ELSE»        
+            «ELSE»
                 // version column of type int or Integer exists, write proxy
                 public void set$IntVersion(int _v) {
                     set«haveIntVersion.name.toFirstUpper»(_v);
@@ -389,7 +389,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         «ENDIF»
     '''
-     
+
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
         «IF e.^extends == null»
         // static methods
@@ -406,8 +406,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 return «trackingType».class;
             «ENDIF»
         }
-        
-                
+
+
         @Override
         public Class<«pkType»> get$KeyClass() {
             return «pkType».class;
@@ -428,7 +428,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 return «trackingType».class;
             «ENDIF»
         }
-        
+
         @Override
         public «pkType» get$Key() throws ApplicationException {
             «IF pkType.equals("Serializable")»
@@ -449,7 +449,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «IF e.pk.columnName.size > 1»
                     key = _k.clone();   // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
-                    set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions 
+                    set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions
                 «ENDIF»
             «ENDIF»
         }
@@ -473,7 +473,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     '''
 
     def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
-        recurse(cl, stopAt, false, [ true ], [ '''''' ], [ ''' 
+        recurse(cl, stopAt, false, [ true ], [ '''''' ], [ '''
                 «IF hasProperty(properties, "findBy")»
                     public static «e.name» findBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
                         try {
@@ -506,7 +506,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             ''']
         )
     }
-    
+
     def private i2s(Inheritance i) {
         switch (i) {
         case Inheritance::SINGLE_TABLE: return "SINGLE_TABLE"
@@ -514,14 +514,14 @@ class JavaDDLGeneratorMain implements IGenerator {
         case Inheritance::TABLE_PER_CLASS: return "TABLE_PER_CLASS"
         }
     }
-    
+
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
         if (e.noMapper)
             '''BonaPersistableNoData<«pkType», «trackingType»>'''
         else
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
     }
-    
+
     def private static String makeVisibility(Visibility v) {
         var XVisibility fieldScope
         if (v != null && v.x != null)
@@ -529,23 +529,23 @@ class JavaDDLGeneratorMain implements IGenerator {
         if (fieldScope == null || fieldScope == XVisibility::DEFAULT)
             ""
         else
-            fieldScope.toString() + " " 
+            fieldScope.toString() + " "
     }
-    
+
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
-        val myPackage = e.eContainer as PackageDefinition 
-        
+        val myPackage = e.eContainer as PackageDefinition
+
         imports.recurseImports(e.tableCategory.trackingColumns, true)
         imports.recurseImports(e.pojoType, true)
         // reset tracking flags
         haveIntVersion = null
         haveActive = false
         fieldVisibility = makeVisibility(if (e.visibility != null) e.visibility else myPackage.visibility)
-        useUserTypes = !myPackage.noUserTypes            
-            
+        useUserTypes = !myPackage.noUserTypes
+
         imports.addImport(myPackageName, e.name)  // add myself as well
         imports.addImport(e.pojoType);
         imports.addImport(e.tableCategory.trackingColumns);
@@ -556,7 +556,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // imports for ManyToOne
         for (r : e.manyToOnes)
             imports.addImport(r.childObject.getPackageName, r.childObject.name)
-            
+
         var List<FieldDefinition> pkColumns = null
         var String pkType = "Serializable"
         var String trackingType = "BonaPortable"
@@ -565,7 +565,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             if (pkColumns.size > 1)
                 pkType = e.name + "Key"
             else
-                pkType = pkColumns.get(0).JavaDataTypeNoName(true) 
+                pkType = pkColumns.get(0).JavaDataTypeNoName(true)
         }
         if (e.tableCategory.trackingColumns != null) {
             trackingType = e.tableCategory.trackingColumns.name
@@ -573,9 +573,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
-        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(e)»;
-        
+
         «IF e.tenantId != null»
         //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
         import org.eclipse.persistence.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
@@ -624,7 +624,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
-        
+
         «IF e.noMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
         «ELSE»
@@ -635,7 +635,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».ByteArrayParser;
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
-        
+
         «IF e.javadoc != null»
             «e.javadoc»
         «ENDIF»
@@ -682,11 +682,11 @@ class JavaDDLGeneratorMain implements IGenerator {
                         return key.get«i.name.toFirstUpper»();
                     }
                 «ENDFOR»
-                
+
             «ENDIF»
             «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, compositeKey)»«ENDIF»
             «e.pojoType.recurseColumns(stopper, e, pkColumns, compositeKey)»
-            «e.inheritanceRoot.tenantClass?.recurseColumns(null, e, pkColumns, false)»
+            «e.tenantClass?.recurseColumns(null, e, pkColumns, false)»
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
@@ -702,15 +702,15 @@ class JavaDDLGeneratorMain implements IGenerator {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.recurseImports(e.pojoType, true)
-            
+
         imports.addImport(myPackageName, e.name + "Key")  // add myself as well
-            
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
-        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git 
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(e)»;
-        
+
         import javax.persistence.EntityManager;
         import javax.persistence.Embeddable;
         import javax.persistence.Column;
@@ -724,13 +724,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
-        
+
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
-        
+
         @Embeddable
         public class «e.name»Key implements Serializable, Cloneable {
             «FOR col : e.pk.columnName»
@@ -740,7 +740,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(e, e.pk.columnName)»
-            
+
             @Override
             public «e.name»Key clone() {
                 try {

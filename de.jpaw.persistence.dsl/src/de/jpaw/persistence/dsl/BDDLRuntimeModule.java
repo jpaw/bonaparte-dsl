@@ -17,7 +17,7 @@ public class BDDLRuntimeModule extends de.jpaw.persistence.dsl.AbstractBDDLRunti
     public Class<? extends org.eclipse.xtext.scoping.IScopeProvider> bindIScopeProvider() {
         return BDDLScopeProvider.class;
     }
-    
+
     // bind global scope provider for importURI
     /*
     @Override

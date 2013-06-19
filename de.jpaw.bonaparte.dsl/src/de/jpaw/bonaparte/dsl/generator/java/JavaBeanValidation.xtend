@@ -24,7 +24,7 @@ import de.jpaw.bonaparte.dsl.generator.Util
 /* DISCLAIMER: Bean Validation is work in progress. Neither JSR 303 nor JSR 349 annotations are complete. */
 
 class JavaBeanValidation {
-    
+
     def public static writeImports(boolean beanValidation) '''
         «IF beanValidation»
             import javax.validation.constraints.NotNull;
@@ -58,4 +58,3 @@ class JavaBeanValidation {
     '''
 
 }
-  

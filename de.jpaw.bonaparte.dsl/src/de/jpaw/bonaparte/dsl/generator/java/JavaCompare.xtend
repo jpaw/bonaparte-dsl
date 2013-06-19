@@ -23,7 +23,7 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaCompare {
-    
+
     def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
@@ -34,11 +34,11 @@ class JavaCompare {
         // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         default:            '''«index».equals(«tindex»)'''
         }
-    } 
-    
+    }
+
     def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) {
         val ref = DataTypeExtension::get(i.datatype)
-        return ''' 
+        return '''
             «IF ref.category == DataCategory::OBJECT»
                 ((«index» == null && «tindex» == null) || («index» != null && «index».hasSameContentsAs(«tindex»)))«end»
             «ELSE»
@@ -77,14 +77,14 @@ class JavaCompare {
                 if (ref.javaType != null && ref.javaType.equals("byte []"))
                     // special treatment required, again!
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''     // straightforward recursion
-                else if ("BigDecimal".equals(ref.javaType))      
+                else if ("BigDecimal".equals(ref.javaType))
                     return '''BigDecimalTools.hashCode(«i.name», «ref.elementaryDataType.decimals»)'''   // specific implementation with scaling
-                else       
+                else
                     return '''(«i.name» == null ? 0 : «i.name».hashCode())'''           // standard implementation
             }
         }
-    }                    
-    
+    }
+
     def public static writeHash(ClassDefinition d) '''
         @Override
         public int hashCode() {
@@ -92,11 +92,11 @@ class JavaCompare {
             «FOR i:d.fields»
                 _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
             «ENDFOR»
-            return _hash;              
+            return _hash;
         }
-        
+
         '''
-        
+
     def public static writeComparisonCode(ClassDefinition d) '''
         // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
         @Override
@@ -109,7 +109,7 @@ class JavaCompare {
                 return true;
             return equalsSub((BonaPortable)_that);
         }
-        
+
         // same function, but with second argument of (almost) known type
         @Override
         public boolean hasSameContentsAs(BonaPortable _that) {
@@ -158,7 +158,7 @@ class JavaCompare {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
                         return false;
-                    // indexed access is not optional, but sequential access will be left for later optimization 
+                    // indexed access is not optional, but sequential access will be left for later optimization
                     for (int _i = 0; _i < «i.name».size(); ++_i)
                         if (!(«writeCompareStuff(i, i.name + ".get(_i)", "that." + i.name + ".get(_i)", "))")»
                             return false;
@@ -178,7 +178,7 @@ class JavaCompare {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
                         return false;
-                    // method is to verify all entries are the same 
+                    // method is to verify all entries are the same
                     for (Map.Entry<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                         «JavaDataTypeNoName(i, true)» _t = that.«i.name».get(_i.getKey());
                         if (!(«writeCompareStuff(i, "_i.getValue()", "_t", "))")»
