@@ -172,11 +172,16 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
             // the extended class must be in the same bundle or a superbundle
-            PackageDefinition myPackage = XUtil.getPackage(cd);
-            PackageDefinition extendedFromPackage = XUtil.getPackage(cd.getExtendsClass().getClassRef());
-            if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
-                error("Parent classes must be in the same or a superbundle of the current package",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+            PackageDefinition myPackage = XUtil.getPackageOrNull(cd);
+            PackageDefinition extendedFromPackage = XUtil.getPackageOrNull(cd.getExtendsClass().getClassRef());
+            if (myPackage != null && extendedFromPackage != null) {
+                if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
+                    error("Parent classes must be in the same or a superbundle of the current package",
+                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+                } else {
+                    warning("Cannot determine package of " + (myPackage == null ? cd.getName() : cd.getExtendsClass().getClassRef().getName()),
+                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+                }
             }
             // check for cyclic dependencies
             int depth = 0;

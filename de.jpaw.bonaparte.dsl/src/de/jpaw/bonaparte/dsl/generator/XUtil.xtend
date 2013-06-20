@@ -46,29 +46,32 @@ class XUtil {
 
     def public static ClassDefinition getRoot(ClassDefinition d) {
         var dd = d
-        while (getParent(dd) != null)
-            dd = getParent(dd)
+        while (dd.parent != null)
+            dd = dd.parent
         return dd
     }
 
-    /** Returns the package in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
-     * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
-     */
-    def public static getPackage(EObject ee) {
+    def public static getPackageOrNull(EObject ee) {
         var e = ee
         while (e != null) {
             if (e instanceof PackageDefinition)
                 return e as PackageDefinition
             e = e.eContainer
         }
-        if (ee == null)
-            throw new Exception("getPackage() called for NULL")
-        else
-            throw new Exception("getPackage() called for " + ee.toString())
+        return null
+    }
+    /** Returns the package in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
+     * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
+     */
+    def public static getPackage(EObject ee) {
+        val e = ee.packageOrNull
+        if (e != null)
+            return e
+        throw new Exception("getPackage() called for " + (ee?.toString() ?: "NULL"))
     }
 
     def public static boolean isImmutable(ClassDefinition d) {
-        return getRoot(d).immutable
+        return d.getRoot.immutable
     }
 
     def public static String genericRef2String(ClassReference r) {
