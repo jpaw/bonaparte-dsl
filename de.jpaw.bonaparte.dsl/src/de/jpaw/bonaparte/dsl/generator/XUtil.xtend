@@ -54,8 +54,18 @@ class XUtil {
     def public static getPackageOrNull(EObject ee) {
         var e = ee
         while (e != null) {
+            if (e.eIsProxy)
+                logger.warn("Is a proxy only: " + e.eClass.name)
             if (e instanceof PackageDefinition)
                 return e as PackageDefinition
+            if (e.eClass.name == "PackageDefinition") {
+                if (e instanceof PackageDefinition) {
+                    logger.warn("*** RESOLVED *** ")
+                    return e as PackageDefinition
+                }
+                logger.warn("*** NOT RESOLVED *** ")
+                // what now?
+            }
             e = e.eContainer
         }
         return null
