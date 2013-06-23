@@ -24,33 +24,56 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
-import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
+import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport java.util.concurrent.atomic.AtomicInteger
+import javax.inject.Inject
 
 class BonScriptGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
     //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.BonScriptGenerator") // jcl
+    private static boolean doFilter = false;
+    private static final AtomicInteger globalId = new AtomicInteger(0)
+    private final int localId = globalId.incrementAndGet
     
+    @Inject DebugBonScriptGeneratorMain generatorDebug
+    @Inject JavaBonScriptGeneratorMain generatorJava
     
+    def public static void activateFilter() {
+        doFilter = true;
+        logger.info("### BON STANDALONE MODE: filter is ON ### for Id " + globalId.addAndGet(100));
+    }
+    def private String filterInfo() {
+        "@" + localId + ": " + if (doFilter) "Filter ON : " else "Filter OFF: "   
+    }
+    
+    public new() {
+        logger.info("BonScriptGenerator constructed. " + filterInfo)
+        /* still causes the build run to break - why? It's just a debug output!  
+        try {
+            val Exception e = new Exception("BonScriptGenerator constructed. " + filterInfo)
+            e.printStackTrace
+        } catch (Exception e) {
+        } */
+    }
+        
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
-        // System::out.println("XXXX checking " + resource.URI.toString);
-        // code output: one xtend file per language, such that it can be easily extended to additional languages
         // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
-        if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
+        if (!doFilter   // !doFilter = Eclipse mode
+            || resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
             || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bon")) // maven fornax plugin
             ) {
             
-            logger.info("start code output: Debug dump for " + resource.URI.toString);
-            new DebugBonScriptGeneratorMain().doGenerate(resource, fsa)
+            logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+            generatorDebug.doGenerate(resource, fsa)
         
-            logger.info("start code output: Java output for " + resource.URI.toString);
-            new JavaBonScriptGeneratorMain().doGenerate(resource, fsa)
+            logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+            generatorJava.doGenerate(resource, fsa)
         
-            logger.info("start cleanup");
+            logger.info(filterInfo + "start cleanup");
             DataTypeExtension::clear()
         } else {
-            logger.info("Skipping code generation for " + resource.URI.toString);
+            logger.info(filterInfo + "Skipping code generation for " + resource.URI.toString);
         }
     }
 }

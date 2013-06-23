@@ -25,29 +25,58 @@ import org.apache.commons.logging.LogFactory
 import de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.java.JavaDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.res.ResourceGeneratorMain
+import java.util.concurrent.atomic.AtomicInteger
+import javax.inject.Inject
 
 class BDDLGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
     //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.BDDLGenerator") // jcl
-
+    private static boolean doFilter = false;
+    private static final AtomicInteger globalId = new AtomicInteger(0)
+    private final int localId = globalId.incrementAndGet
+    
+    @Inject SqlDDLGeneratorMain generatorSql
+    @Inject JavaDDLGeneratorMain generatorJava
+    @Inject ResourceGeneratorMain generatorResource
+    
+    def public static void activateFilter() {
+        doFilter = true;
+        logger.info("### BDDL STANDALONE MODE: filter is ON ### for Id " + globalId.addAndGet(100));
+    }
+    def private String filterInfo() {
+        "#" + localId + ": " + if (doFilter) "Filter ON : " else "Filter OFF: "   
+    }
+    
+    public new() {
+        logger.info("BDDLGenerator constructed. " + filterInfo)
+        /* still causes the build run to break - why? It's just a debug output!  
+        try {
+            val Exception e = new Exception("BDDLGenerator constructed. " + filterInfo)
+            e.printStackTrace
+        } catch (Exception e) {
+        } */
+    }
+    
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-
-        // code output: one xtend file per language, such that it can be easily extended to additional languages
+        
         // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
-        if (resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
+        if (!doFilter   // !doFilter = Eclipse mode
+            || resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
             || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bddl")) // maven fornax plugin
             ) {
-            logger.info("start code output: SQL DDL for " + resource.URI.toString);
-            new SqlDDLGeneratorMain().doGenerate(resource, fsa)
+            logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
+            generatorSql.doGenerate(resource, fsa)
 
-            logger.info("start code output: Java output for " + resource.URI.toString);
-            new JavaDDLGeneratorMain().doGenerate(resource, fsa)
+            logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+            generatorJava.doGenerate(resource, fsa)
 
-            logger.info("start code output: resource output for " + resource.URI.toString);
-            new ResourceGeneratorMain().doGenerate(resource, fsa)
+            logger.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
+            generatorResource.doGenerate(resource, fsa)
 
-            logger.info("start cleanup");
+            logger.info(filterInfo + "start cleanup");
+        } else {
+            logger.info(filterInfo + "Skipping code generation for " + resource.URI.toString);
         }
     }
 }

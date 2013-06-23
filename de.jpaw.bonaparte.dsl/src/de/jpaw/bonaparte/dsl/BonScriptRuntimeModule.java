@@ -3,13 +3,24 @@
  */
 package de.jpaw.bonaparte.dsl;
 
+//using JCL here, because it is already a project dependency, should switch to slf4j
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import de.jpaw.bonaparte.dsl.generator.CommentConverter;
 
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class BonScriptRuntimeModule extends de.jpaw.bonaparte.dsl.AbstractBonScriptRuntimeModule {
+    private static Log logger = LogFactory.getLog("de.jpaw.bonaparte.dsl.BonScriptRuntimeModule"); // jcl
+    public BonScriptRuntimeModule() {
+        logger.info("BON Runtime module constructed");
+    }
+    
+    
 	public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
+        logger.info("BON Value converter bound");
 		return CommentConverter.class;
 	}
 }

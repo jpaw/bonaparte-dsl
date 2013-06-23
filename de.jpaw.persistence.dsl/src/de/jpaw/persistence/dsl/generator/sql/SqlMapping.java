@@ -91,7 +91,12 @@ public class SqlMapping {
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
-        DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
+        DataTypeExtension ref;
+        try {
+            ref = DataTypeExtension.get(c.getDatatype());
+        } catch (Exception ee) {
+            throw new Exception("Cannot get datatype extension for fieldDefinition " + c.getName(), ee);
+        }
         int columnLength;
         int columnDecimals;
         if (ref.objectDataType != null) {
