@@ -23,6 +23,10 @@ public class Util {
         return true;
     }
 
+    static public boolean autodetectMavenRun() {
+        return true;
+    }
+    
     static public String escapeString2Java(String s) {
         return StringEscapeUtils.escapeJava(s);
     }

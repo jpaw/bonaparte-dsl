@@ -27,12 +27,13 @@ import de.jpaw.persistence.dsl.generator.java.JavaDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.res.ResourceGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
+import de.jpaw.bonaparte.dsl.generator.Util
 
 class BDDLGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
     //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.BDDLGenerator") // jcl
-    private static boolean doFilter = false;
+    private static boolean doFilter = Util::autodetectMavenRun;
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
     
