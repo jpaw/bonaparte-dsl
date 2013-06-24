@@ -17,14 +17,32 @@
 package de.jpaw.bonaparte.dsl.generator;
 
 import org.apache.commons.lang.StringEscapeUtils;
+//using JCL here, because it is already a project dependency, should switch to slf4j
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Util {
+    private static Log logger = LogFactory.getLog("de.jpaw.bonaparte.dsl.generator.Util"); // jcl
+    static private Boolean runningInEclipse = null; 
+    
     static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Calendar?
         return true;
     }
 
     static public boolean autodetectMavenRun() {
-        return true;
+        if (runningInEclipse == null) {
+            // allocate a Boolean and set it to true, if we detect an Eclipse environment variable
+            if (System.getProperty("eclipse.vm") != null ||
+                System.getProperty("eclipse.launcher") != null ||
+                System.getProperty("eclipse.vmargs") != null) {
+                runningInEclipse = Boolean.TRUE;
+                logger.info("Found an eclipse system property - assuming we're within Eclipse");
+            } else {
+                runningInEclipse = Boolean.FALSE;
+                logger.info("Found NO eclipse system property - assuming we're running from maven");
+            }
+        }
+        return !runningInEclipse;
     }
     
     static public String escapeString2Java(String s) {

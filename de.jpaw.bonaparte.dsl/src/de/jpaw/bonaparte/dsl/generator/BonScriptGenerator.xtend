@@ -39,7 +39,7 @@ class BonScriptGenerator implements IGenerator {
     @Inject JavaBonScriptGeneratorMain generatorJava
     
     def public static void activateFilter() {
-        doFilter = true;
+        //doFilter = true;  // not setting it, we rely on the Eclipse detection now
         logger.info("### BON STANDALONE MODE: filter is ON ### for Id " + globalId.addAndGet(100));
     }
     def private String filterInfo() {

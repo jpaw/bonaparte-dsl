@@ -42,7 +42,7 @@ class BDDLGenerator implements IGenerator {
     @Inject ResourceGeneratorMain generatorResource
     
     def public static void activateFilter() {
-        doFilter = true;
+        //doFilter = true;  // not setting it, we rely on the Eclipse detection now
         logger.info("### BDDL STANDALONE MODE: filter is ON ### for Id " + globalId.addAndGet(100));
     }
     def private String filterInfo() {

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dsl.ui
 Bundle-Vendor: My Company
-Bundle-Version: 1.5.5.qualifier
+Bundle-Version: 1.5.6.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.dsl;visibility:=reexport,
