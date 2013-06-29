@@ -86,7 +86,7 @@ class MakeRelationships {
                 if (m.cascade) 'cascade=CascadeType.ALL' 
             )»
             «m.relationship.writeJoinColumns(!m.cascade)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", false)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", m.cascade)»
         «ENDFOR»
         
         «FOR m : e.oneToManys»
