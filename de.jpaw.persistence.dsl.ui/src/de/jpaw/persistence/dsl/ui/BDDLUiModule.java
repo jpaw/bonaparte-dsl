@@ -4,11 +4,15 @@
 package de.jpaw.persistence.dsl.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.xtext.documentation.IEObjectDocumentationProvider;
+import org.eclipse.xtext.ui.editor.hover.IEObjectHoverProvider;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
 
 import de.jpaw.bonaparte.dsl.ui.BonAntlrTokenToAttributeIdMapper;
 import de.jpaw.bonaparte.dsl.ui.Highlighter;
+import de.jpaw.persistence.dsl.ui.help.BDDLEObjectDocumentationProvider;
+import de.jpaw.persistence.dsl.ui.help.BDDLEObjectHoverProvider;
 
 /**
  * Use this class to register components to be used within the IDE.
@@ -22,6 +26,14 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
 		return Highlighter.class;
 	}
 
+    public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
+        return BDDLEObjectHoverProvider.class;
+    }
+ 
+    public Class<? extends IEObjectDocumentationProvider> bindIEObjectDocumentationProviderr() {
+        return BDDLEObjectDocumentationProvider.class;
+    }
+    
 /*	// contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
 	public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
 		return AbstractTokenScanner.class;

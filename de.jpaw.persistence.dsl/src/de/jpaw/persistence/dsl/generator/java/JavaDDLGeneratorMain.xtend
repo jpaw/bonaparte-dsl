@@ -404,10 +404,6 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
         «IF e.^extends == null»
-        // static methods
-        //public static int class$rtti() {
-        //    return «e.pojoType.name».class$rtti();
-        //}
         public static Class<«pkType»> class$KeyClass() {
             return «pkType».class;
         }
@@ -645,7 +641,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeDefaultImports»
         import java.io.Serializable;
 
-        «IF e.noMapper»
+        «IF e.noMapper || (e.eContainer as PackageDefinition).noMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
         «ELSE»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
