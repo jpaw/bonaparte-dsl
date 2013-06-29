@@ -630,6 +630,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.EmbeddedId;
         import javax.persistence.ManyToOne;
         import javax.persistence.OneToMany;
+        import javax.persistence.OneToOne;
         import javax.persistence.FetchType;
         import javax.persistence.CascadeType;
         import javax.persistence.MapKey;

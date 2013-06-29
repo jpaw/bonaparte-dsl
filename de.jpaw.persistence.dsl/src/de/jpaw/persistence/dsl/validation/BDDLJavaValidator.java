@@ -133,8 +133,8 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                         return;
                     }
                 }
-                // both lists have same size, now check object types
-                for (int j = 0; j < pk.size(); ++j) {
+                // both lists have same size or refc is smaller, now check object types
+                for (int j = 0; j < refc.size(); ++j) {
                     // perform type checking. Issue warnings only for non-matches, because differences could be due to typedefs used / vs not used
                     if (checkSameType(pk.get(j).getDatatype(), refc.get(j).getDatatype())) {
                         warning("Possible data type mismatch for column " + (j+1), BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
