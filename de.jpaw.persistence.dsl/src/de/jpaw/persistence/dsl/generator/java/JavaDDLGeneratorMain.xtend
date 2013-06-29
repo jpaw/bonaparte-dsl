@@ -228,7 +228,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private hasECin(FieldDefinition c, EntityDefinition e) {
-        e.elementCollections != null && e.elementCollections.contains(c)        
+        e.elementCollections != null && e.elementCollections.map[name].contains(c)
+        /*        
+        val result = e.elementCollections != null && e.elementCollections.map[name].contains(c)
+        System::out.println('''Testing for «c.name» in «e.name» gives «result»''')
+        return result  */        
     }
     
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,

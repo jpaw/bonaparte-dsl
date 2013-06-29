@@ -34,9 +34,9 @@ class ElementCollections {
         
     def private static writeJoinColumns(ElementCollectionRelationship ec, FieldDefinition c, EntityDefinition e) {
         if (ec.keyColumns.size == 1) {
-            '''@JoinColumn(name="«ec.makeJoin(0)»")'''
+            '''«ec.makeJoin(0)»'''
         } else {
-            '''@JoinColumns({«(0 .. ec.keyColumns.size-1).map[ec.makeJoin(it)].join(', ')»})'''
+            '''{«(0 .. ec.keyColumns.size-1).map[ec.makeJoin(it)].join(', ')»}'''
         }
     }
     
@@ -45,7 +45,7 @@ class ElementCollections {
             return ''''''
         e.elementCollections.filter[name == c].map[ '''
             @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
-            @CollectionTable(name="«tablename»" joinColumns=«writeJoinColumns(c, e)»)
+            @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c, e)»)
             «IF mapKey != null»
                 @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
             «ENDIF»
