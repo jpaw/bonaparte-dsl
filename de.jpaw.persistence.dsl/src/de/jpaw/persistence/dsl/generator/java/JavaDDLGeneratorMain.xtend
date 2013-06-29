@@ -523,8 +523,12 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
 
+    def private noDataMapper(EntityDefinition e) {
+        e.noMapper || (e.eContainer as PackageDefinition).noMapper
+    }
+    
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
-        if (e.noMapper || (e.eContainer as PackageDefinition).noMapper)
+        if (e.noDataMapper)
             '''BonaPersistableNoData<«pkType», «trackingType»>'''
         else
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
@@ -641,7 +645,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeDefaultImports»
         import java.io.Serializable;
 
-        «IF e.noMapper || (e.eContainer as PackageDefinition).noMapper»
+        «IF e.noDataMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
         «ELSE»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
@@ -706,7 +710,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
-            «IF (!e.noMapper)»
+            «IF (!e.noDataMapper)»
                 «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
