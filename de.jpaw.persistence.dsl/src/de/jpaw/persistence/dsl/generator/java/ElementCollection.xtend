@@ -16,18 +16,11 @@
 
 package de.jpaw.persistence.dsl.generator.java
 
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.persistence.dsl.bDDL.ManyToOneRelationship
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
-
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 
 class ElementCollections {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.ElementCollections") // jcl
     
     def static private makeJoin(ElementCollectionRelationship ec, int i)
         '''@JoinColumn(name="«ec.keyColumns.get(i)»")'''

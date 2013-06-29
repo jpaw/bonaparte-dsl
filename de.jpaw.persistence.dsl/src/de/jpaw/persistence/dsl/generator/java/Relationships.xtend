@@ -17,21 +17,22 @@
 package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.persistence.dsl.bDDL.ManyToOneRelationship
+import de.jpaw.persistence.dsl.bDDL.Relationship
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
+import de.jpaw.persistence.dsl.bDDL.OneToMany
 
 class MakeRelationships {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.MakeRelationships") // jcl
     
-    def static private makeJoin(ManyToOneRelationship m, int i) '''
+    def static private makeJoin(Relationship m, int i) '''
         @JoinColumn(name="«m.referencedFields.columnName.get(i).columnName»", referencedColumnName="«m.childObject.pk.columnName.get(i).columnName»", insertable=false, updatable=false)
     '''
 
-    def private static boolean nonOptional(ManyToOneRelationship m, EntityDefinition e) {
+    def private static boolean nonOptional(Relationship m, EntityDefinition e) {
         var oneOptional = false
         for (c : m.referencedFields.columnName)
             if (!XUtil::isRequired(c)) {
@@ -53,21 +54,54 @@ class MakeRelationships {
             return '''(«arg2»)'''
     }
     
+    def private static writeJoinColumns(Relationship m) '''
+        «IF m.referencedFields.columnName.size == 1»
+            «m.makeJoin(0)»
+        «ELSE»
+            @JoinColumns({
+               «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it)].join(', ')»
+            })
+        «ENDIF»
+    '''
+    
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(if (m.fetchType != null) '''fetch=FetchType.«m.fetchType»''', if (m.nonOptional(e)) '''optional=false''')»
-            «IF m.referencedFields.columnName.size == 1»
-                «m.makeJoin(0)»
-            «ELSE»
-                @JoinColumns({
-                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it)].join(', ')»
-                })
+            «m.writeJoinColumns»
+            «m.writeFGS(fieldVisibility, m.childObject.name, "", false)»
+        «ENDFOR»
+        
+        «FOR m : e.oneToManys»
+            @OneToMany(orphanRemoval=true, cascade=CascadeType.ALL«IF m.relationship.fetchType != null», fetch=FetchType.«m.relationship.fetchType»«ENDIF»)
+            «m.relationship.writeJoinColumns»
+            «IF m.collectionType == 'Map'»
+                @MapKey(name="«m.mapKey»")
             «ENDIF»
-            «fieldVisibility»«m.childObject.name» «m.name»;
-
-            public «m.childObject.name» get«m.name.toFirstUpper»() {
-                return «m.name»;
-            }
+            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true)»
         «ENDFOR»
     '''
+    
+    def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter) '''
+        «fieldVisibility»«type» «m.name»«initializer»;
+
+        public «type» get«m.name.toFirstUpper»() {
+            return «m.name»;
+        }
+        «IF doSetter»
+            public void set«m.name.toFirstUpper»(«type» «m.name») {
+                this.«m.name» = «m.name»;
+            }
+        «ENDIF»
+    '''
+    
+    def private static o2mTypeName(OneToMany m)
+        '''«m.collectionType»<«IF m.collectionType == 'Map'»«m.mapKey», «ENDIF»«m.relationship.childObject.name»>'''
+        
+    def private static getInitializer(OneToMany m) {
+        switch (m.collectionType) {
+            case 'List': '''Array«m.o2mTypeName»'''
+            case 'Set':  '''Hash«m.o2mTypeName»'''
+            case 'Map':  '''Hash«m.o2mTypeName»'''
+        }
+    }
 }

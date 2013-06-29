@@ -63,7 +63,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            if (!e.noJava) {
+            if (!e.noJava && !(e.eContainer as PackageDefinition).noJava) {
                 var boolean compositeKey = false;
                 if (e.pk != null && e.pk.columnName.size > 1) {
                     // write a separate class for the composite key
@@ -528,7 +528,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
-        if (e.noMapper)
+        if (e.noMapper || (e.eContainer as PackageDefinition).noMapper)
             '''BonaPersistableNoData<«pkType», «trackingType»>'''
         else
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
@@ -629,7 +629,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
         import javax.persistence.ManyToOne;
+        import javax.persistence.OneToMany;
         import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
+        import javax.persistence.MapKey;
+        import javax.persistence.MapKeyJoinColumn;
         import javax.persistence.JoinColumn;
         import javax.persistence.JoinColumns;
         import javax.persistence.ElementCollection;

@@ -2,6 +2,7 @@ package de.jpaw.persistence.dsl.validation;
 
 import java.util.List;
 
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.xtext.validation.Check;
 
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
@@ -11,7 +12,8 @@ import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
 import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
-import de.jpaw.persistence.dsl.bDDL.ManyToOneRelationship;
+import de.jpaw.persistence.dsl.bDDL.OneToMany;
+import de.jpaw.persistence.dsl.bDDL.Relationship;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
@@ -92,12 +94,12 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     }
 
     @Check
-    public void checkManyToOneRelationship(ManyToOneRelationship m2o) {
+    public void checkManyToOneRelationship(Relationship m2o) {
         String s = m2o.getName();
         if (s != null) {
             if (!Character.isLowerCase(s.charAt(0))) {
                 error("relationship (field) names should start with a lower case letter",
-                        BDDLPackage.Literals.MANY_TO_ONE_RELATIONSHIP__NAME);
+                        BDDLPackage.Literals.RELATIONSHIP__NAME);
             }
         }
         EntityDefinition child = m2o.getChildObject();
@@ -105,27 +107,27 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             // child must have a PK, and that must have the same number of fields as the referenced field list
             if (child.getPk() == null) {
                 error("Referenced entity must have a primary key defined",
-                        BDDLPackage.Literals.MANY_TO_ONE_RELATIONSHIP__CHILD_OBJECT);
+                        BDDLPackage.Literals.RELATIONSHIP__CHILD_OBJECT);
                 return;
             }
             if (m2o.getReferencedFields() != null) {
                 // pk is defined and referenced fields as well
                 if (m2o.getReferencedFields().isIsUnique()) {
-                    error("'unique' keyword does not make sense for ManyToOne relationships",
-                            BDDLPackage.Literals.MANY_TO_ONE_RELATIONSHIP__REFERENCED_FIELDS);
+                    error("'unique' keyword does not make sense for ManyToOne/OneToMany relationships",
+                            BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
                 }
                 List<FieldDefinition> refc = m2o.getReferencedFields().getColumnName();
                 List<FieldDefinition> pk = child.getPk().getColumnName();
                 if (refc.size() != pk.size()) {
                     error("List of referenced columns must have same cardinality as primary key of child entity (" + pk.size() + ")",
-                            BDDLPackage.Literals.MANY_TO_ONE_RELATIONSHIP__REFERENCED_FIELDS);
+                            BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
                     return;
                 }
                 // both lists have same size, now check object types
                 for (int j = 0; j < pk.size(); ++j) {
                     // perform type checking. Issue warnings only for non-matches, because differences could be due to typedefs used / vs not used
                     if (checkSameType(pk.get(j).getDatatype(), refc.get(j).getDatatype())) {
-                        warning("Possible data type mismatch for column " + (j+1), BDDLPackage.Literals.MANY_TO_ONE_RELATIONSHIP__REFERENCED_FIELDS);
+                        warning("Possible data type mismatch for column " + (j+1), BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
                     }
                 }
             }
@@ -200,7 +202,11 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                     BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
         }
         
-        EntityDefinition e = (EntityDefinition) ec.eContainer();
+        EntityDefinition e = getEntity(ec);
+        if (e == null) {
+            error("Cannot determine containing Entity", BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
+            return;
+        }
         if (e.getPk() == null || e.getPk().getColumnName() == null) {
             error("EntityCollections only possible for entities with a primary key",
                     BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
@@ -217,6 +223,27 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                         warning("Length of key column " + kc + " exceeds 30 characters length and will not work for some database brands (Oracle)",
                                 BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
                 }
+            }
+        }
+    }
+    
+    private static EntityDefinition getEntity(EObject e) {
+        while (e != null) {
+            if (e instanceof EntityDefinition)
+                return (EntityDefinition)e;
+            e = e.eContainer();
+        }
+        return null;
+    }
+    
+    @Check
+    public void checkOneToMany(OneToMany ec) {
+        
+        if (ec.getMapKey() != null) {
+
+            if (ec.getMapKey().length() > 30) {
+                warning("The name exceeds 30 characters length and will not work for some database brands (Oracle)",
+                        BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
             }
         }
     }

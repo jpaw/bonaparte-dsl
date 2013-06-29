@@ -126,15 +126,24 @@ EntityDefinition:
         ('pk'     pk       = ListOfColumns)?
         ('index'  index   += ListOfColumns)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
-        ('@ManyToOne' manyToOnes += ManyToOneRelationship )*
-        ('@ElementCollection' elementCollections += ElementCollectionRelationship )* 
+        (('@ManyToOne' manyToOnes += Relationship ) |
+        ('@OneToMany' oneToManys += OneToMany ) |
+        ('@ElementCollection' elementCollections += ElementCollectionRelationship ))* 
     '}'       
 ;
 
-ManyToOneRelationship:
+Relationship:
     childObject = [EntityDefinition] name = ID 
     (fetchType = ('LAZY' | 'EAGER'))?
     ('for' referencedFields = ListOfColumns )  // later: add alternative for local field 
+;
+
+OneToMany:
+    (collectionType = 'List' |
+     collectionType = 'Set' |
+    (collectionType = 'Map' '<' indexType=('String' | 'Integer' | 'Long') '>' 'mapKey' mapKey = ID // (':' mapKeySize = INT)?
+    ))
+    relationship = Relationship
 ;
 
 ElementCollectionRelationship:
