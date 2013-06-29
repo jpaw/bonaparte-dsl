@@ -227,10 +227,15 @@ class JavaDDLGeneratorMain implements IGenerator {
         return false
     }
 
+    def private hasECin(FieldDefinition c, EntityDefinition e) {
+        e.elementCollections != null && e.elementCollections.contains(c)        
+    }
+    
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
-        recurse(cl, stopAt, false, [ true ], [ '''// table columns of java class «name»
+        // include aggregates if there is an @ElementCollection defined for them
+        recurse(cl, stopAt, true, [ !isAggregate || hasECin(e) ], [ '''// table columns of java class «name»
             ''' ], [ '''
                 «IF pkColumns != null && pkColumns.size == 1 && it == pkColumns.get(0)»
                     @Id
@@ -691,8 +696,8 @@ class JavaDDLGeneratorMain implements IGenerator {
 
             «ENDIF»
             «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, compositeKey)»«ENDIF»
-            «e.pojoType.recurseColumns(stopper, e, pkColumns, compositeKey)»
             «e.tenantClass?.recurseColumns(null, e, pkColumns, false)»
+            «e.pojoType.recurseColumns(stopper, e, pkColumns, compositeKey)»
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
