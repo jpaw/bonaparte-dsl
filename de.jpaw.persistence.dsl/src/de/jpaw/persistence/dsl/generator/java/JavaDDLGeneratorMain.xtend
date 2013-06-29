@@ -208,7 +208,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ''''''
     }
     // write the definition of a single column
-    def private singleColumn(FieldDefinition c, boolean withBeanVal) '''
+    def private singleColumn(FieldDefinition c, EntityDefinition e, boolean withBeanVal) '''
+            «IF c.aggregate»
+                «ElementCollections::writePossibleCollectionOrRelation(c, e)»
+            «ENDIF»
             @Column(name="«columnName(c)»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«sizeSpec(c)»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
             «c.properties.optionalAnnotation("version", "@Version")»
             «c.properties.optionalAnnotation("lob",     "@Lob")»
@@ -233,7 +236,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     @Id
                 «ENDIF»
                 «IF (!excludePkColumns || !inList(pkColumns, it)) && !hasProperty(properties, "noJava")»
-                    «singleColumn(e.tableCategory.doBeanVal)»
+                    «singleColumn(e, e.tableCategory.doBeanVal)»
                     «writeGetter»
                     «writeSetter»
                     «IF hasProperty(properties, "version")»
@@ -620,6 +623,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.FetchType;
         import javax.persistence.JoinColumn;
         import javax.persistence.JoinColumns;
+        import javax.persistence.ElementCollection;
+        import javax.persistence.MapKeyColumn;
+        import javax.persistence.CollectionTable;
         import javax.persistence.EntityListeners;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
@@ -734,7 +740,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «e.name»Key implements Serializable, Cloneable {
             «FOR col : e.pk.columnName»
-                «singleColumn(col, e.tableCategory.doBeanVal)»
+                «singleColumn(col, e, e.tableCategory.doBeanVal)»
                 «writeGetter(col)»
                 «writeSetter(col)»
             «ENDFOR»

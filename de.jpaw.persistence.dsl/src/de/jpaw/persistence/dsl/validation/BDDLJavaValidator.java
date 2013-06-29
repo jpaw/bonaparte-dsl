@@ -4,15 +4,13 @@ import java.util.List;
 
 import org.eclipse.xtext.validation.Check;
 
-import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
-import de.jpaw.bonaparte.dsl.validation.BonScriptJavaValidator;
 import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
 import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
-import de.jpaw.persistence.dsl.bDDL.ListOfColumns;
 import de.jpaw.persistence.dsl.bDDL.ManyToOneRelationship;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
@@ -165,4 +163,62 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         return true;
 
     }
+    
+    @Check
+    public void checkElementCollectionRelationship(ElementCollectionRelationship ec) {
+        FieldDefinition f = ec.getName();
+        
+        if (f == null)  // not yet complete
+            return;
+        
+        if (ec.getMapKey() != null) {
+            // the referenced field must be of type map
+            if (f.getIsMap() == null) {
+                error("The referenced field must be a map if mapKey is used",
+                        BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__MAP_KEY);
+            }
+
+            if (ec.getMapKey().length() > 30) {
+                warning("The name exceeds 30 characters length and will not work for some database brands (Oracle)",
+                        BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__MAP_KEY);
+            }
+        } else {
+            // the referenced field must be of type list of set
+            if (f.getIsSet() == null || f.getIsList() == null) {
+                if (f.getIsMap() != null) {
+                    error("Specify a mapKey for Map type collections",
+                        BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
+                } else {
+                    error("The referenced field must be a List or Set",
+                        BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
+                }
+            }
+        }
+
+        if (ec.getTablename() != null && ec.getTablename().length() > 30) {
+            warning("The resulting SQL table name exceeds 30 characters length and will not work for some database brands (Oracle)",
+                    BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
+        }
+        
+        EntityDefinition e = (EntityDefinition) ec.eContainer();
+        if (e.getPk() == null || e.getPk().getColumnName() != null) {
+            error("EntityCollections only possible for entities with a primary key",
+                    BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
+        } else {
+            // compare number of fields and field length
+            if (ec.getKeyColumns() != null) {
+                if (ec.getKeyColumns().size() != e.getPk().getColumnName().size()) {
+                    error("EntityCollections join columns (found " + ec.getKeyColumns().size()
+                            + ") must be the same number as the primary key size of the entity (" + e.getPk().getColumnName().size() + ")",
+                            BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
+                }
+                for (String kc : ec.getKeyColumns()) {
+                    if (kc.length() > 30)
+                        warning("Length of key column " + kc + " exceeds 30 characters length and will not work for some database brands (Oracle)",
+                                BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
+                }
+            }
+        }
+    }
+    
 }
