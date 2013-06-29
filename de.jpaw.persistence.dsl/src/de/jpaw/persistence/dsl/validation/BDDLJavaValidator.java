@@ -201,7 +201,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         }
         
         EntityDefinition e = (EntityDefinition) ec.eContainer();
-        if (e.getPk() == null || e.getPk().getColumnName() != null) {
+        if (e.getPk() == null || e.getPk().getColumnName() == null) {
             error("EntityCollections only possible for entities with a primary key",
                     BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
         } else {

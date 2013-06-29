@@ -142,7 +142,7 @@ ElementCollectionRelationship:
     (fetchType = ('LAZY' | 'EAGER'))?
     'in' tablename = ID
     '(' keyColumns += ID (',' keyColumns += ID )* ')'
-    ('mapKey' mapKey = ID)? 
+    ('mapKey' mapKey = ID (':' mapKeySize = INT)? )? 
 ;
 
 CollectionDefinition:

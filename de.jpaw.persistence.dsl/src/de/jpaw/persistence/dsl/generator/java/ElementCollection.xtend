@@ -47,7 +47,7 @@ class ElementCollections {
             @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
             @CollectionTable(name="«tablename»" joinColumns=«writeJoinColumns(c, e)»)
             «IF mapKey != null»
-                @MapKeyColumn(name="«mapKey»")
+                @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
             «ENDIF»
         ''' ].join
     }
