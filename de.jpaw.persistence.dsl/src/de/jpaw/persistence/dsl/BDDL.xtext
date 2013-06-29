@@ -127,6 +127,7 @@ EntityDefinition:
         ('index'  index   += ListOfColumns)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
         (('@ManyToOne' manyToOnes += Relationship ) |
+        ('@OneToOne' oneToOnes += OneToOne ) |
         ('@OneToMany' oneToManys += OneToMany ) |
         ('@ElementCollection' elementCollections += ElementCollectionRelationship ))* 
     '}'       
@@ -144,6 +145,11 @@ OneToMany:
     (collectionType = 'Map' '<' indexType=('String' | 'Integer' | 'Long') '>' 'mapKey' mapKey = ID // (':' mapKeySize = INT)?
     ))
     relationship = Relationship
+;
+
+OneToOne:
+    relationship = Relationship
+    (cascade ?= 'cascade')?    
 ;
 
 ElementCollectionRelationship:

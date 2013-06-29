@@ -94,7 +94,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     }
 
     @Check
-    public void checkManyToOneRelationship(Relationship m2o) {
+    public void checkRelationship(Relationship m2o) {
         String s = m2o.getName();
         if (s != null) {
             if (!Character.isLowerCase(s.charAt(0))) {
@@ -118,10 +118,20 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                 }
                 List<FieldDefinition> refc = m2o.getReferencedFields().getColumnName();
                 List<FieldDefinition> pk = child.getPk().getColumnName();
-                if (refc.size() != pk.size()) {
-                    error("List of referenced columns must have same cardinality as primary key of child entity (" + pk.size() + ")",
-                            BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
-                    return;
+                if (m2o.eContainer() instanceof OneToMany) {
+                    // we are a ManyToOne relationship here....
+                    if (refc.size() > pk.size()) {
+                        error("List of referenced columns cannot exceed the cardinality of the primary key of child entity (" + pk.size() + ")",
+                                BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
+                        return;
+                    }
+                } else {
+                    // we are a ManyToOne relationship here.... or possibly OneToOne...
+                    if (refc.size() != pk.size()) {
+                        error("List of referenced columns must have same cardinality as primary key of child entity (" + pk.size() + ")",
+                                BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
+                        return;
+                    }
                 }
                 // both lists have same size, now check object types
                 for (int j = 0; j < pk.size(); ++j) {

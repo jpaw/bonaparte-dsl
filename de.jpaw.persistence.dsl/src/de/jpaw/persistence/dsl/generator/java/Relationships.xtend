@@ -28,8 +28,8 @@ import de.jpaw.persistence.dsl.bDDL.OneToMany
 class MakeRelationships {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.MakeRelationships") // jcl
     
-    def static private makeJoin(Relationship m, int i) '''
-        @JoinColumn(name="«m.referencedFields.columnName.get(i).columnName»", referencedColumnName="«m.childObject.pk.columnName.get(i).columnName»", insertable=false, updatable=false)
+    def static private makeJoin(Relationship m, int i, boolean readonly) '''
+        @JoinColumn(name="«m.referencedFields.columnName.get(i).columnName»", referencedColumnName="«m.childObject.pk.columnName.get(i).columnName»"«IF readonly», insertable=false, updatable=false«ENDIF»)
     '''
 
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
@@ -43,6 +43,11 @@ class MakeRelationships {
         return !oneOptional
     }
     
+    def public static optArgs(String ... args) {
+        args.filterNull.join('(',', ', ')', [it])
+    }
+    
+    /*
     def public static optArgs(String arg1, String arg2) {
         if (arg1 == null && arg2 == null)
             return ''''''
@@ -52,28 +57,45 @@ class MakeRelationships {
             return '''(«arg1»)'''
         else        
             return '''(«arg2»)'''
-    }
+    }  */
     
-    def private static writeJoinColumns(Relationship m) '''
+    def private static writeJoinColumns(Relationship m, boolean readOnly) '''
         «IF m.referencedFields.columnName.size == 1»
-            «m.makeJoin(0)»
+            «m.makeJoin(0, readOnly)»
         «ELSE»
             @JoinColumns({
-               «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it)].join(', ')»
+               «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly)].join(', ')»
             })
         «ENDIF»
     '''
     
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
-            @ManyToOne«optArgs(if (m.fetchType != null) '''fetch=FetchType.«m.fetchType»''', if (m.nonOptional(e)) '''optional=false''')»
-            «m.writeJoinColumns»
+            @ManyToOne«optArgs(
+                if (m.fetchType != null) '''fetch=FetchType.«m.fetchType»''',
+                if (m.nonOptional(e)) '''optional=false'''
+            )»
+            «m.writeJoinColumns(true)»
             «m.writeFGS(fieldVisibility, m.childObject.name, "", false)»
         «ENDFOR»
         
+        «FOR m : e.oneToOnes»
+            @OneToOne«optArgs(
+                if (m.relationship.fetchType != null) '''fetch=FetchType.«m.relationship.fetchType»''',
+                if (m.relationship.nonOptional(e)) 'optional=false',
+                if (m.cascade) 'cascade=CascadeType.ALL' 
+            )»
+            «m.relationship.writeJoinColumns(!m.cascade)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", false)»
+        «ENDFOR»
+        
         «FOR m : e.oneToManys»
-            @OneToMany(orphanRemoval=true, cascade=CascadeType.ALL«IF m.relationship.fetchType != null», fetch=FetchType.«m.relationship.fetchType»«ENDIF»)
-            «m.relationship.writeJoinColumns»
+            @OneToMany«optArgs(
+                'orphanRemoval=true',
+                'cascade=CascadeType.ALL',
+                if (m.relationship.fetchType != null) '''fetch=FetchType.«m.relationship.fetchType»'''
+            )»
+            «m.relationship.writeJoinColumns(false)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»

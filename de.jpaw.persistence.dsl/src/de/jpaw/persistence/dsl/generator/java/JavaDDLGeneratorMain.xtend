@@ -369,14 +369,14 @@ class JavaDDLGeneratorMain implements IGenerator {
             return number
     }
 
-
+    // provide getter / setter for version and active for all entities. Reason is that we can then use them in generic methods without checking
     def private writeStubs(EntityDefinition e) '''
         «IF e.^extends == null»
             «writeRtti(e.pojoType)»
             «IF !haveActive»
                 // no isActive column in this entity, create stubs to satisfy interface
                 public void set$Active(boolean _a) {
-                    throw new RuntimeException("Entity «e.name» does not have an isActive field");
+                    // throw new RuntimeException("Entity «e.name» does not have an isActive field");
                 }
                 public boolean get$Active() {
                     return true;  // no isActive column => all rows are active by default
@@ -385,7 +385,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF haveIntVersion == null»
                 // no version column of type int or Integer, write stub
                 public void set$IntVersion(int _v) {
-                    throw new RuntimeException("Entity «e.name» does not have an integer type version field");
+                    // throw new RuntimeException("Entity «e.name» does not have an integer type version field");
                 }
                 public int get$IntVersion() {
                     return -1;
