@@ -22,6 +22,7 @@ import java.util.Map;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
 // mapping of database vendor specific information
@@ -58,6 +59,7 @@ public class SqlMapping {
         dataTypeSqlOracle.put("unicode",   "varchar2(#length char)");       // only up to 4000 characters, use CLOB if more!
         dataTypeSqlOracle.put("enum",      "number(4)");                    // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlOracle.put("object",    "blob");                         // serialized form of an object
+        dataTypeSqlOracle.put("string",    "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
     }
     static protected Map<String,String> dataTypeSqlPostgres = new HashMap<String, String>(32);
     static { // see http://www.postgresql.org/docs/9.1/static/datatype.html for reference
@@ -87,6 +89,7 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("unicode",   "varchar(#length)");
         dataTypeSqlPostgres.put("enum",      "smallint");
         dataTypeSqlPostgres.put("object",    "bytea");                      // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlPostgres.put("string",    "varchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
@@ -198,5 +201,21 @@ public class SqlMapping {
         } else {
             return " DEFAULT " + value;
         }
+    }
+    
+    // for ElementCollections
+    static public String sqlType(ElementCollectionRelationship ec, DatabaseFlavour databaseFlavour) {
+        if (ec.getName().getIsMap() == null)
+            return "*** NO MAP ***";
+        String datatype = ec.getName().getIsMap().getIndexType().toLowerCase();
+        switch (databaseFlavour) {
+        case ORACLE:
+            datatype = dataTypeSqlOracle.get(datatype);
+            break;
+        case POSTGRES:
+            datatype = dataTypeSqlPostgres.get(datatype);
+            break;
+        }
+        return datatype.replace("#length", Integer.valueOf(ec.getMapKeySize() > 0 ? ec.getMapKeySize() : 255).toString());
     }
 }

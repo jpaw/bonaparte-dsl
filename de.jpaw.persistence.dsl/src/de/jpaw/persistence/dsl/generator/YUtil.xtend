@@ -87,6 +87,8 @@ class YUtil {
     def public static String mkTablename(EntityDefinition t, boolean forHistory) {
         if (!forHistory && t.tablename != null)
             t.tablename
+        else if (forHistory && t.historytablename != null)
+            t.historytablename
         else {
             // build the table name according to the template in the table category or the default
             // 1. get a suitable pattern

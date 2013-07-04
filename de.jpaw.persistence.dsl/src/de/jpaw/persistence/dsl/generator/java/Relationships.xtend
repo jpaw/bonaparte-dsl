@@ -122,7 +122,7 @@ class MakeRelationships {
     def private static getInitializer(OneToMany m) {
         switch (m.collectionType) {
             case 'List': '''Array«m.o2mTypeName»'''
-            case 'Set':  '''Hash«m.o2mTypeName»'''
+            case 'Set':  '''LinkedHash«m.o2mTypeName»'''   // LinkedHashSet preferred over HashSet due to certain ordering guarantee
             case 'Map':  '''Hash«m.o2mTypeName»'''
         }
     }

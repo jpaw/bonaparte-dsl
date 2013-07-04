@@ -95,8 +95,13 @@ class JavaMeta {
                 «FOR p : d.properties»
                     map.putIfAbsent("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
                 «ENDFOR»
+                «FOR f : d.fields»
+                    «FOR p : f.properties»
+                        map.putIfAbsent("«d.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
+                    «ENDFOR»
+                «ENDFOR»
                 «IF propertiesInherited»
-                    «d.getParent.name».class$fillProperties(map);
+                    // «d.getParent.name».class$fillProperties(map); // done anyway by static initializer of parent
                 «ENDIF»
             }
             static {
@@ -108,16 +113,44 @@ class JavaMeta {
             public ConcurrentMap<String,String> get$PropertyMap() {
                 return property$Map;
             }
+            static public String get$Property(String propertyname, String fieldname) {
+                return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
+            } 
 
             static public String class$Property(String id) {
                 «IF propertiesInherited»
-                    String result = property$Map.get(id);
-                    if (result != null)
-                        return result;
+                    if (property$Map.containsKey(id))
+                        return property$Map.get(id);
                     else
                         return «d.getParent.name».class$Property(id);
                 «ELSE»
                     return property$Map.get(id);
+                «ENDIF»
+            }
+            static public String field$Property(String fieldname, String propertyname) {
+                String id = fieldname + "." + propertyname;
+                «IF propertiesInherited»
+                    if (property$Map.containsKey(id))
+                        return property$Map.get(id);
+                    else
+                        return «d.getParent.name».class$Property(id);
+                «ELSE»
+                    return property$Map.get(id);
+                «ENDIF»
+            }
+            static public boolean class$hasProperty(String id) {
+                «IF propertiesInherited»
+                    return property$Map.containsKey(id) || «d.getParent.name».class$Property(id);
+                «ELSE»
+                    return property$Map.containsKey(id);
+                «ENDIF»
+            }
+            static public boolean field$hasProperty(String fieldname, String propertyname) {
+                String id = fieldname + "." + propertyname;
+                «IF propertiesInherited»
+                    return property$Map.containsKey(id) || «d.getParent.name».class$Property(id);
+                «ELSE»
+                    return property$Map.containsKey(id);
                 «ENDIF»
             }
             public String get$Property(String id) {

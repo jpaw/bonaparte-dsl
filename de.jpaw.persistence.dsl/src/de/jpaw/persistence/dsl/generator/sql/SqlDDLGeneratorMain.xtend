@@ -36,6 +36,7 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import java.util.Set
 import java.util.HashSet
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
@@ -62,6 +63,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             collectEnums(e)
             makeViews(fsa, e, false, "_nt")
             makeViews(fsa, e, true, "_v")      // enums included, also create a view
+            makeElementCollectionTables(fsa, e, false)
         }
         // enum mapping functions
         for (e : enumsRequired) {
@@ -96,6 +98,20 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
+    def private void makeElementCollectionTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
+        for (ec : e.elementCollections) {
+            if (doHistory && ec.historytablename == null) {
+                // no history here
+            } else {
+                val tablename = if (doHistory) ec.historytablename else ec.tablename
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory))
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+            }
+        }
+    }
+
+
     def private void collectEnums(EntityDefinition e) {
         recurseEnumCollection(e.tableCategory.trackingColumns)
         recurseEnumCollection(e.pojoType)
@@ -113,7 +129,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         // System::out.println("    tablename is " + tablename);
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), e.sqlSynonymOut(DatabaseFlavour::ORACLE, doHistory))
+        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
     }
 
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
@@ -134,11 +150,51 @@ class SqlDDLGeneratorMain implements IGenerator {
         return indexCount = indexCount + 1
     }
 
-    def sqlSynonymOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
-        val String tablename = YUtil::mkTablename(t, doHistory)
+    def static sqlSynonymOut(String tablename)
         '''CREATE OR REPLACE PUBLIC SYNONYM «tablename» FOR «tablename»;'''
-    }
 
+    def sqlEcOut(EntityDefinition t, ElementCollectionRelationship ec, String tablename, DatabaseFlavour databaseFlavour, boolean doHistory) {
+        val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table
+        var myCategory = t.tableCategory
+        if (doHistory)
+            myCategory = myCategory.historyCategory
+        var String tablespaceData = null
+        var String tablespaceIndex = null
+        if (SqlMapping::supportsTablespaces(databaseFlavour)) {
+            tablespaceData  = mkTablespaceName(t, false, myCategory)
+            tablespaceIndex = mkTablespaceName(t, true,  myCategory)
+        }
+        val d = new Delimiter("  ", ", ")
+        return '''
+        -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
+        -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+        -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+
+        CREATE TABLE «tablename» (
+            -- tenant
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d)»
+            -- base table PK
+            «IF baseEntity.pk != null»
+                «FOR c : baseEntity.pk.columnName»
+                    «d.get»«SqlColumns::doColumn(c, databaseFlavour)»
+                «ENDFOR»
+            «ENDIF»
+            «IF ec.mapKey != null»
+                -- element collection key
+                , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL,
+            «ENDIF»
+            -- contents field
+            , «SqlColumns::doColumn(ec.name, databaseFlavour)»
+        )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
+
+        «IF baseEntity.pk != null»
+            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
+                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
+            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ENDIF»
+        '''
+    }
+    
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
         val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table

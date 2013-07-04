@@ -26,13 +26,14 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
 		return Highlighter.class;
 	}
 
+	/* online help possibly causing issues, commenting out...
     public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
         return BDDLEObjectHoverProvider.class;
     }
  
     public Class<? extends IEObjectDocumentationProvider> bindIEObjectDocumentationProviderr() {
         return BDDLEObjectDocumentationProvider.class;
-    }
+    } */
     
 /*	// contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
 	public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {

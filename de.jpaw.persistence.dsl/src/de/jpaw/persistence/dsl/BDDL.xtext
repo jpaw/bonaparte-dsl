@@ -108,6 +108,7 @@ EntityDefinition:
         'category' tableCategory=[TableCategoryDefinition]
         'is' pojoType=[pojos::ClassDefinition]
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
+        ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
@@ -158,6 +159,7 @@ ElementCollectionRelationship:
     'in' tablename = ID
     '(' keyColumns += ID (',' keyColumns += ID )* ')'
     ('mapKey' mapKey = ID (':' mapKeySize = INT)? )? 
+    ('historytablename' historytablename = ID)? 
 ;
 
 CollectionDefinition:

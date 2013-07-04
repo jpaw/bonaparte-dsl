@@ -43,7 +43,18 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         if (tablename.length() > 27) {
             // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
             warning("The resulting SQL table name " + tablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
-                    BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+                    e.getTablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__TABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+        }
+        if (e.getTableCategory().getHistoryCategory() != null) {
+            String historytablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, true);
+            if (tablename.length() > 27) {
+                // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
+                warning("The resulting SQL history table name " + historytablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
+                        e.getHistorytablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+            }
+        } else if (e.getHistorytablename() != null) {
+            error("History tablename provided, but table category does not specify use of history",
+                  BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME);
         }
 
         // verify for missing primary key
