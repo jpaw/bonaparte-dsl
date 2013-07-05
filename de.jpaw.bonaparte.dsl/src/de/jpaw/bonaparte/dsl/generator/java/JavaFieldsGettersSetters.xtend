@@ -72,16 +72,41 @@ class JavaFieldsGettersSetters {
         «d.fields.forEach [ writeOneField(d, it, doBeanVal) ]»
     '''
 
+    // write the standard getter plus maybe some indexed one
+    def private static writeOneGetter(FieldDefinition i, String getterName) '''
+        public «JavaDataTypeNoName(i, false)» «getterName»() {
+            return «i.name»;
+        }
+        «IF i.isArray != null»
+            public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
+                return «i.name»[_i];
+            }
+        «ENDIF»
+    '''
+    // write the standard setter plus maybe some indexed one
+    def private static writeOneSetter(FieldDefinition i, String setterName) '''
+        public void «setterName»(«JavaDataTypeNoName(i, false)» «i.name») {
+            this.«i.name» = «i.name»;
+        }
+        «IF i.isArray != null»
+            public void «setterName»(int _i, «JavaDataTypeNoName(i, true)» «i.name») {
+                this.«i.name»[_i] = «i.name»;
+            }
+        «ENDIF»
+    '''
+    
     def public static writeGettersSetters(ClassDefinition d) '''
         // auto-generated getters and setters
         «FOR i:d.fields»
-            public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() {
-                return «i.name»;
-            }
+            «i.writeOneGetter("get«i.name.toFirstUpper»")»
+            «IF i.getter != null»
+                «i.writeOneGetter(i.getter)»
+            «ENDIF»
             «IF !isImmutable(d)»
-                public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» «i.name») {
-                    this.«i.name» = «i.name»;
-                }
+                «i.writeOneSetter("set«i.name.toFirstUpper»")»
+                «IF i.setter != null»
+                    «i.writeOneGetter(i.setter)»
+                «ENDIF»
             «ENDIF»
         «ENDFOR»
     '''

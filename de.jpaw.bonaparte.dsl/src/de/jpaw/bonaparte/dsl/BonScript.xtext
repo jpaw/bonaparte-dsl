@@ -199,7 +199,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (required   = Required)?
     datatype    = DataType
     ((isAggregateRequired ?='required')? (isArray = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier))?
-    name        = ID
+    name        = ID ('altGetter' getter = ID)? ('altSetter' setter = ID)?  // specify alternate getter / setters, for cornercases like mTimestamp
     ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
     ';'

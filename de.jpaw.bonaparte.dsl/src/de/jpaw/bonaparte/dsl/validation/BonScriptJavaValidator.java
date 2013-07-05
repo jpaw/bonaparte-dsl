@@ -20,6 +20,7 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.validation.Check;
+import org.eclipse.xtext.xbase.lib.StringExtensions;
 
 import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
@@ -226,6 +227,16 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("field names should start with a lower case letter",
                         BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
             }
+        }
+        if (s.length() > 1 && Character.isUpperCase(s.charAt(1)) && fd.getGetter() == null && fd.getSetter() == null) {
+            warning("Java beans specification for getter / setter name differs from standard get/setCapsFirst approach. Consider specifying alt names",
+                    BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
+        }
+        if (fd.getGetter() != null && s.equals("get" + StringExtensions.toFirstUpper(fd.getGetter()))) {
+            error("alternate name matches the default name", BonScriptPackage.Literals.FIELD_DEFINITION__GETTER);
+        }
+        if (fd.getSetter() != null && s.equals("set" + StringExtensions.toFirstUpper(fd.getSetter()))) {
+            error("alternate name matches the default name", BonScriptPackage.Literals.FIELD_DEFINITION__SETTER);
         }
 
         // check for unique name within this class and possible superclasses
