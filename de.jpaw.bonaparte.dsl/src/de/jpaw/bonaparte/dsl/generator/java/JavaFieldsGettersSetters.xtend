@@ -98,12 +98,12 @@ class JavaFieldsGettersSetters {
     def public static writeGettersSetters(ClassDefinition d) '''
         // auto-generated getters and setters
         «FOR i:d.fields»
-            «i.writeOneGetter("get«i.name.toFirstUpper»")»
+            «i.writeOneGetter("get" + i.name.toFirstUpper)»
             «IF i.getter != null»
                 «i.writeOneGetter(i.getter)»
             «ENDIF»
             «IF !isImmutable(d)»
-                «i.writeOneSetter("set«i.name.toFirstUpper»")»
+                «i.writeOneSetter("set" + i.name.toFirstUpper)»
                 «IF i.setter != null»
                     «i.writeOneGetter(i.setter)»
                 «ENDIF»
