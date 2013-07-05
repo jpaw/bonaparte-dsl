@@ -140,7 +140,7 @@ class JavaMeta {
             }
             static public boolean class$hasProperty(String id) {
                 «IF propertiesInherited»
-                    return property$Map.containsKey(id) || «d.getParent.name».class$Property(id);
+                    return property$Map.containsKey(id) || «d.getParent.name».class$hasProperty(id);
                 «ELSE»
                     return property$Map.containsKey(id);
                 «ENDIF»
