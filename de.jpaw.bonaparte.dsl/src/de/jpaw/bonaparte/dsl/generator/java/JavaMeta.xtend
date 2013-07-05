@@ -148,7 +148,7 @@ class JavaMeta {
             static public boolean field$hasProperty(String fieldname, String propertyname) {
                 String id = fieldname + "." + propertyname;
                 «IF propertiesInherited»
-                    return property$Map.containsKey(id) || «d.getParent.name».class$Property(id);
+                    return property$Map.containsKey(id) || «d.getParent.name».class$hasProperty(id);
                 «ELSE»
                     return property$Map.containsKey(id);
                 «ENDIF»
