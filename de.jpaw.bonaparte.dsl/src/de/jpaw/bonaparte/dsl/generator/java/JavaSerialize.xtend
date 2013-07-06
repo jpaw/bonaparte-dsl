@@ -168,7 +168,6 @@ class JavaSerialize {
                                 «ELSE»
                                     if (pfc.index < 0) {
                                 «ENDIF»
-                                if (pfc.alphaIndex == null) {
                                     w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
