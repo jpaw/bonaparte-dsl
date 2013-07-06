@@ -149,7 +149,7 @@ class JavaSerialize {
                                         «makeFoldedWrite2(d, i, i.name + "[pfc.index]")»
                                     }
                                 }
-                            «ELSEIF i.isList != null || i.isSet != null»
+                            «ELSEIF i.isList != null»
                                 if (pfc.index < 0) {
                                     w.startArray(«i.name».size(), «i.loopMaxCount», 0);
                                     for («JavaDataTypeNoName(i, true)» _i : «i.name») {
@@ -162,6 +162,12 @@ class JavaSerialize {
                                         «makeFoldedWrite2(d, i, i.name + ".get(pfc.index)")»
                                     }
                                 }
+                            «ELSEIF i.isSet != null»
+                                w.startArray(«i.name».size(), «i.loopMaxCount», 0);
+                                for («JavaDataTypeNoName(i, true)» _i : «i.name») {
+                                    «makeFoldedWrite2(d, i, indexedName(i))»
+                                }
+                                w.terminateArray();
                             «ELSE»
                                 «IF i.isMap.indexType == "String"»
                                     if (pfc.alphaIndex == null) {
