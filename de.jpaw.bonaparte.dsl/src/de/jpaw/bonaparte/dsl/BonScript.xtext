@@ -74,6 +74,8 @@ enum XExternalizable:
     NOEXT = 'noExt' | EXT = 'Ext';
 enum XBeanValidation:
     NOBEAN_VAL = 'noBeanVal' | BEAN_VAL = 'BeanVal';
+enum XBeanNames:
+    NO_BEAN_NAMES = 'noJavaBeanNames' | BEAN_AND_SIMPLE_NAMES = 'JavaBeanNames' | ONLY_BEAN_NAMES = 'onlyJavaBeanNames';
     
 // We need a special "undefined" setting for enums. According to the XText documentation (2.3, section 6.2.7),
 // ECore does not support this currently. Therefore extra artificial types are required to represent null values.
@@ -91,6 +93,7 @@ AutoScale:           x = XAutoScale;
 XmlAccess:           x = XXmlAccess;
 Externalizable:      x = XExternalizable;
 BeanValidation:      x = XBeanValidation;
+BeanNames:           x = XBeanNames;
 
 FieldDefaultsDefinition:
     'default' {FieldDefaultsDefinition}
@@ -115,6 +118,7 @@ PackageDefinition:
         ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
         (isExternalizable = Externalizable)?      // decide if implements Externalizable
         (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
+        (doBeanNames = BeanNames)?                // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
     '{'  
         (defaults = FieldDefaultsDefinition)?
@@ -157,6 +161,7 @@ ClassDefinition:
     ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
     (isExternalizable = Externalizable)?      // decide if implements Externalizable
     (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
+    (doBeanNames = BeanNames)?                // create JavaBean compliant names, or plain firstUpperCase, or both (default)
     ('RTTI' (addRtti ?= '+')? rtti = INT)?    // numeric runtime type information
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!

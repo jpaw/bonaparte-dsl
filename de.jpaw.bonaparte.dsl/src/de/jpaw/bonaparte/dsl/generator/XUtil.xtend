@@ -33,6 +33,7 @@ import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -137,7 +138,7 @@ class XUtil {
     }
 
     def public static indexedName(FieldDefinition i) {
-        if (i.isList != null || i.isSet != null) "_i" else if (i.isMap != null) "_i.getValue()" else i.name + (if (i.isArray != null) "[_i]" else "")
+        if (i.isList != null || i.isSet != null) "_i" else if (i.isMap != null) "_i.getValue()" else if (i.isArray != null) i.name + "[_i]" else i.name
     }
 
     def public static int mapIndexID(MapModifier i) {
@@ -191,6 +192,19 @@ class XUtil {
         else
             ref.javaType
     }
+    
+    def public static String getBeanName(String fieldname) {
+        if (fieldname.length >= 2) {
+            if (Character::isLowerCase(fieldname.charAt(0)) && Character.isUpperCase(fieldname.charAt(1)))
+                return fieldname
+        }            
+        return fieldname.toFirstUpper
+    }
+    
+    def public static getBeanNames(ClassDefinition d) {
+        d.doBeanNames?.x ?: getPackage(d).doBeanNames?.x ?: XBeanNames::BEAN_AND_SIMPLE_NAMES  // default to creation of no bean validation annotations
+    }
+    
     // the same, more complex scenario
     def public static JavaDataTypeNoName(FieldDefinition i, boolean skipIndex) {
         var String dataClass

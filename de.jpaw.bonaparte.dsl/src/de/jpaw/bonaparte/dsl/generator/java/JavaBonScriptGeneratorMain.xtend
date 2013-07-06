@@ -34,6 +34,7 @@ import org.eclipse.xtext.generator.IGenerator
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -184,6 +185,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
             «JavaValidate::writePatterns(d)»
             «JavaSerialize::writeSerialize(d)»
+            «JavaSerialize::writeFoldedSerialize(d)»
             «JavaDeserialize::writeDeserialize(d)»
             «JavaValidate::writeValidationCode(d)»
             «JavaCompare::writeHash(d)»

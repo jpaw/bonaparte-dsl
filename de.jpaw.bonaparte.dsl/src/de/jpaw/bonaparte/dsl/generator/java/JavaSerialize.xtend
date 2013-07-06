@@ -62,6 +62,21 @@ class JavaSerialize {
         «ENDIF»
     '''
 
+    def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index) '''
+        «IF resolveElem(i.datatype) != null»
+            «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+        «ELSE»
+            if («index» == null) {
+                w.writeNull();
+            } else if (pfc.getComponent() == null) {
+                w.addField((BonaPortable)«index»);             // full / rescursive object output
+            } else {
+                // write a specific subcomponent
+                «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+            }
+        «ENDIF»
+    '''
+
     def public static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
@@ -104,6 +119,86 @@ class JavaSerialize {
                 «ENDIF»
             «ENDFOR»
             w.writeSuperclassSeparator();
+        }
+
+    '''
+
+    def public static writeFoldedSerialize(ClassDefinition d) '''
+        /* serialize selected fields of the object. */
+        @Override
+        public <E extends Exception> void foldedOutput(MessageComposer<E> w, ParsedFoldingComponent pfc) throws E {
+            String _n = pfc.getFieldname();
+            «FOR i:d.fields»
+                if (_n.equals("«i.name»")) {
+                    «IF !i.isAggregate»
+                        «makeFoldedWrite2(d, i, indexedName(i))»
+                    «ELSE»
+                        if («i.name» == null) {
+                            w.writeNull();
+                        } else {
+                            «IF i.isArray != null»
+                                if (pfc.index < 0) {
+                                    w.startArray(«i.name».length, «i.isArray.maxcount», 0);
+                                    for (int _i = 0; _i < «i.name».length; ++_i) {
+                                        «makeFoldedWrite2(d, i, indexedName(i))»
+                                    }
+                                    w.terminateArray();
+                                } else {
+                                    if (pfc.index < «i.name».length) {
+                                        // output single element
+                                        «makeFoldedWrite2(d, i, i.name + "[pfc.index]")»
+                                    }
+                                }
+                            «ELSEIF i.isList != null || i.isSet != null»
+                                if (pfc.index < 0) {
+                                    w.startArray(«i.name».size(), «i.loopMaxCount», 0);
+                                    for («JavaDataTypeNoName(i, true)» _i : «i.name») {
+                                        «makeFoldedWrite2(d, i, indexedName(i))»
+                                    }
+                                    w.terminateArray();
+                                } else {
+                                    if (pfc.index < «i.name».size()) {
+                                        // output single element
+                                        «makeFoldedWrite2(d, i, i.name + ".get(pfc.index)")»
+                                    }
+                                }
+                            «ELSE»
+                                «IF i.isMap.indexType == "String"»
+                                    if (pfc.alphaIndex == null) {
+                                «ELSE»
+                                    if (pfc.index < 0) {
+                                «ENDIF»
+                                if (pfc.alphaIndex == null) {
+                                    w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                                    for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
+                                        // write (key, value) tuples
+                                        «IF i.isMap.indexType == "String"»
+                                            w.addField(_i.getKey(), 255);
+                                        «ELSE»
+                                            w.addField(_i.getKey());
+                                        «ENDIF»
+                                        «makeFoldedWrite2(d, i, indexedName(i))»
+                                    }
+                                    w.terminateArray();
+                                } else {
+                                    «IF i.isMap.indexType == "String"»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(pfc.alphaIndex)")»
+                                    «ELSEIF i.isMap.indexType == "Integer"»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(Integer.valueOf(pfc.index))")»
+                                    «ELSE»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(Long.valueOf((long)pfc.index))")»
+                                    «ENDIF»
+                                }
+                            «ENDIF»
+                        }
+                    «ENDIF»
+                    return;
+                }
+            «ENDFOR»
+            // not found
+            «IF d.extendsClass != null»
+                super.foldedOutput(w, pfc);
+            «ENDIF»
         }
 
    '''

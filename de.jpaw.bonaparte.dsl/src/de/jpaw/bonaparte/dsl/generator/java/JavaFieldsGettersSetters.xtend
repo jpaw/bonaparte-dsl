@@ -22,7 +22,8 @@ import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
-import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 
 class JavaFieldsGettersSetters {
 
@@ -95,19 +96,32 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
     
-    def public static writeGettersSetters(ClassDefinition d) '''
+    def public static writeGettersSetters(ClassDefinition d) {
+        val doNames = d.beanNames
+    '''
         // auto-generated getters and setters
         «FOR i:d.fields»
-            «i.writeOneGetter("get" + i.name.toFirstUpper)»
+            «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
+                «i.writeOneGetter("get" + i.name.toFirstUpper)»
+            «ENDIF»
+            «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
+                «i.writeOneGetter("get" + i.name.beanName)»
+            «ENDIF»
             «IF i.getter != null»
                 «i.writeOneGetter(i.getter)»
             «ENDIF»
             «IF !isImmutable(d)»
-                «i.writeOneSetter("set" + i.name.toFirstUpper)»
+                «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
+                    «i.writeOneSetter("set" + i.name.toFirstUpper)»
+                «ENDIF»
+                «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
+                    «i.writeOneSetter("set" + i.name.beanName)»
+                «ENDIF»
                 «IF i.setter != null»
-                    «i.writeOneGetter(i.setter)»
+                    «i.writeOneSetter(i.setter)»
                 «ENDIF»
             «ENDIF»
         «ENDFOR»
     '''
+    }
 }
