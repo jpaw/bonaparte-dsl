@@ -93,33 +93,33 @@ public class SqlMapping {
     }
     static protected Map<String,String> dataTypeSqlMsSQLServer = new HashMap<String, String>(32);
     static { // see http://www.w3schools.com/sql/sql_datatypes.asp for reference
-        dataTypeSqlPostgres.put("boolean",   "bit");
-        dataTypeSqlPostgres.put("int",       "int");
-        dataTypeSqlPostgres.put("integer",   "int");
-        dataTypeSqlPostgres.put("long",      "bigint");
-        dataTypeSqlPostgres.put("float",     "float");
-        dataTypeSqlPostgres.put("double",    "double");
-        dataTypeSqlPostgres.put("number",    "int(#length)");
-        dataTypeSqlPostgres.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
-        dataTypeSqlPostgres.put("byte",      "tinyint");
-        dataTypeSqlPostgres.put("short",     "smallint");
-        dataTypeSqlPostgres.put("char",      "char(1)");
-        dataTypeSqlPostgres.put("character", "char(1)");
+        dataTypeSqlMsSQLServer.put("boolean",   "bit");
+        dataTypeSqlMsSQLServer.put("int",       "int");
+        dataTypeSqlMsSQLServer.put("integer",   "int");
+        dataTypeSqlMsSQLServer.put("long",      "bigint");
+        dataTypeSqlMsSQLServer.put("float",     "float");
+        dataTypeSqlMsSQLServer.put("double",    "double");
+        dataTypeSqlMsSQLServer.put("number",    "int(#length)");
+        dataTypeSqlMsSQLServer.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
+        dataTypeSqlMsSQLServer.put("byte",      "tinyint");
+        dataTypeSqlMsSQLServer.put("short",     "smallint");
+        dataTypeSqlMsSQLServer.put("char",      "char(1)");
+        dataTypeSqlMsSQLServer.put("character", "char(1)");
 
-        dataTypeSqlPostgres.put("uuid",      "varbinary(16)");
-        dataTypeSqlPostgres.put("binary",    "varbinary(#length)");
-        dataTypeSqlPostgres.put("raw",       "varbinary(#length)");
-        dataTypeSqlPostgres.put("day",       "date");
-        dataTypeSqlPostgres.put("timestamp", "datetime2(#length)");
-        dataTypeSqlPostgres.put("calendar",  "datetime2(#length)");
+        dataTypeSqlMsSQLServer.put("uuid",      "varbinary(16)");
+        dataTypeSqlMsSQLServer.put("binary",    "varbinary(#length)");
+        dataTypeSqlMsSQLServer.put("raw",       "varbinary(#length)");
+        dataTypeSqlMsSQLServer.put("day",       "date");
+        dataTypeSqlMsSQLServer.put("timestamp", "datetime2(#length)");
+        dataTypeSqlMsSQLServer.put("calendar",  "datetime2(#length)");
 
-        dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
-        dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
-        dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
-        dataTypeSqlPostgres.put("unicode",   "nvarchar(#length)");
-        dataTypeSqlPostgres.put("enum",      "smallint");
-        dataTypeSqlPostgres.put("object",    "varbinary(16777200)");
-        dataTypeSqlPostgres.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
+        dataTypeSqlMsSQLServer.put("uppercase", "varchar(#length)");
+        dataTypeSqlMsSQLServer.put("lowercase", "varchar(#length)");
+        dataTypeSqlMsSQLServer.put("ascii",     "varchar(#length)");
+        dataTypeSqlMsSQLServer.put("unicode",   "nvarchar(#length)");
+        dataTypeSqlMsSQLServer.put("enum",      "smallint");
+        dataTypeSqlMsSQLServer.put("object",    "varbinary(16777200)");
+        dataTypeSqlMsSQLServer.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
@@ -181,6 +181,9 @@ public class SqlMapping {
             }
             break;
         }
+        if (datatype == null)
+            return "*** UNMAPPED data type for " + c.getName() + " in dialect " + databaseFlavour.toString() + " ***";
+        
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
         //System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
         //System.out.println("DEBUG: precision = " + Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
