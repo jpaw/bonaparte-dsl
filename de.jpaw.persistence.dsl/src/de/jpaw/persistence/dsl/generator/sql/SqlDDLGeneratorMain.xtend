@@ -104,9 +104,9 @@ class SqlDDLGeneratorMain implements IGenerator {
                 // no history here
             } else {
                 val tablename = if (doHistory) ec.historytablename else ec.tablename
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory))
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+                for (dbf: DatabaseFlavour.values)
+                    fsa.generateFile(makeSqlFilename(e, dbf, tablename, "Table"), e.sqlEcOut(ec, tablename, dbf, doHistory))
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
             }
         }
     }
@@ -127,21 +127,23 @@ class SqlDDLGeneratorMain implements IGenerator {
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
+        for (dbf: DatabaseFlavour.values)
+            fsa.generateFile(makeSqlFilename(e, dbf,   tablename, "Table"), e.sqlDdlOut(dbf, doHistory))
         fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
     }
 
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
-            case DatabaseFlavour::ORACLE:    return '''«t.discname» NUMBER(9) DEFAULT 0 NOT NULL'''
-            case DatabaseFlavour::POSTGRES:  return '''«t.discname» integer DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::ORACLE:       return '''«t.discname» number(9) DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::POSTGRES:     return '''«t.discname» integer DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» int DEFAULT 0 NOT NULL'''
             }
         } else {
             switch (databaseFlavour) {
-            case DatabaseFlavour::ORACLE:    return '''«t.discname» VARCHAR2(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
-            case DatabaseFlavour::POSTGRES:  return '''«t.discname» VARCHAR(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::ORACLE:       return '''«t.discname» varchar2(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::POSTGRES:     return '''«t.discname» varchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» nvarchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             }
         }
     }

@@ -91,6 +91,36 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("object",    "bytea");                      // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlPostgres.put("string",    "varchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
+    static protected Map<String,String> dataTypeSqlMsSQLServer = new HashMap<String, String>(32);
+    static { // see http://www.w3schools.com/sql/sql_datatypes.asp for reference
+        dataTypeSqlPostgres.put("boolean",   "bit");
+        dataTypeSqlPostgres.put("int",       "int");
+        dataTypeSqlPostgres.put("integer",   "int");
+        dataTypeSqlPostgres.put("long",      "bigint");
+        dataTypeSqlPostgres.put("float",     "float");
+        dataTypeSqlPostgres.put("double",    "double");
+        dataTypeSqlPostgres.put("number",    "int(#length)");
+        dataTypeSqlPostgres.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
+        dataTypeSqlPostgres.put("byte",      "tinyint");
+        dataTypeSqlPostgres.put("short",     "smallint");
+        dataTypeSqlPostgres.put("char",      "char(1)");
+        dataTypeSqlPostgres.put("character", "char(1)");
+
+        dataTypeSqlPostgres.put("uuid",      "varbinary(16)");
+        dataTypeSqlPostgres.put("binary",    "varbinary(#length)");
+        dataTypeSqlPostgres.put("raw",       "varbinary(#length)");
+        dataTypeSqlPostgres.put("day",       "date");
+        dataTypeSqlPostgres.put("timestamp", "datetime2(#length)");
+        dataTypeSqlPostgres.put("calendar",  "datetime2(#length)");
+
+        dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
+        dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
+        dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
+        dataTypeSqlPostgres.put("unicode",   "nvarchar(#length)");
+        dataTypeSqlPostgres.put("enum",      "smallint");
+        dataTypeSqlPostgres.put("object",    "varbinary(16777200)");
+        dataTypeSqlPostgres.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
+    }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
@@ -144,6 +174,12 @@ public class SqlMapping {
                 datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             break;
+        case MSSQLSERVER:
+            datatype = dataTypeSqlMsSQLServer.get(datatype);
+            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+                datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            }
+            break;
         }
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
         //System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
@@ -161,6 +197,8 @@ public class SqlMapping {
             return true;
         case POSTGRES:
             return false;
+        case MSSQLSERVER:
+            return false;
         }
         return false;
     }
@@ -170,6 +208,8 @@ public class SqlMapping {
         case ORACLE:
             return " DEFAULT SUBSTR(USER, 1, 8)";
         case POSTGRES:
+            return " DEFAULT CURRENT_USER";
+        case MSSQLSERVER:
             return " DEFAULT CURRENT_USER";
         }
         return "";
@@ -181,14 +221,17 @@ public class SqlMapping {
             return " DEFAULT SYSDATE";
         case POSTGRES:
             return " DEFAULT CURRENT_TIMESTAMP";
+        case MSSQLSERVER:
+            return " DEFAULT SYSUTCDATETIME()";
         }
         return "";
     }
 
     static public String getDefault(FieldDefinition c, DatabaseFlavour databaseFlavour, String value) throws Exception {
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
-        if ((databaseFlavour == DatabaseFlavour.ORACLE) && "Boolean".equals(ref.javaType)) {
+        if ((databaseFlavour == DatabaseFlavour.ORACLE  || databaseFlavour == DatabaseFlavour.MSSQLSERVER) && "Boolean".equals(ref.javaType)) {
             // Oracle does not know booleans, convert it to numeric!
+            // MS SQL server uses BIT, which also takes 0 and 1
             if ("true".equals(value)) {
                 return " DEFAULT 1";
             } else if ("false".equals(value)) {
@@ -214,6 +257,9 @@ public class SqlMapping {
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
+            break;
+        case MSSQLSERVER:
+            datatype = dataTypeSqlMsSQLServer.get(datatype);
             break;
         }
         return datatype.replace("#length", Integer.valueOf(ec.getMapKeySize() > 0 ? ec.getMapKeySize() : 255).toString());
