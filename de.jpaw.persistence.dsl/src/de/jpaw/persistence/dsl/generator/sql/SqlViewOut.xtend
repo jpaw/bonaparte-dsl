@@ -23,6 +23,7 @@ import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import de.jpaw.persistence.dsl.bDDL.Inheritance
 
 class SqlViewOut {
 
@@ -38,30 +39,50 @@ class SqlViewOut {
     def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d) {
         recurse(cl, null, false,
             [ true ],
-            [ '''-- columns of java class «it.name»
+            [ '''-- columns of java class «name»
               '''],
-            [ '''«d.get»«createColumn(it, prefix)»
+            [ '''«d.get»«createColumn(prefix)»
               ''']
         )
     }
 
     def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level, Delimiter d) '''
-        «IF e.^extends != null»
-            «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level, d)»
-            «createColumns(e.pojoType, "t" + level, d)»
-        «ELSE»
+        «IF e.extends == null || !e.usesJoinInheritance»
             «IF includeTracking»
                 «createColumns(e.tableCategory.trackingColumns, "t" + level, d)»
             «ENDIF»
             «createColumns(e.tenantClass, "t" + level, d)»
             «createColumns(e.pojoType, "t" + level, d)»
+        «ELSE»
+            «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level+1, d)»
+            -- columns of joined java class «e.pojoType.name»
+            «FOR i: e.pojoType.fields»
+                «d.get»«i.createColumn("t"+level)»
+            «ENDFOR»
         «ENDIF»
     '''
 
-    // TODO FIXME: not yet implemented is JOIN inheritance
+    def private static boolean usesJoinInheritance(EntityDefinition e) {
+        if (e.xinheritance != null && e.xinheritance == Inheritance::JOIN)
+            return true
+        return (e.extends != null) && e.extends.usesJoinInheritance
+    }
+    
+    def private static CharSequence joinedTables(EntityDefinition e, int level) {
+        if (e.extends == null || !e.usesJoinInheritance)
+            return ''''''
+        return ''', «mkTablename(e.extends, false)» t«level+1»«joinedTables(e.extends, level+1)»'''
+    }
+    
+    def private static CharSequence joinConditions(EntityDefinition e, int level) {
+        if (e.extends == null || !e.usesJoinInheritance)
+            return ''''''
+        return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.objectRef = t«level+1».objectRef«joinConditions(e.extends, level+1)»'''
+    }
+    
     def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
         CREATE OR REPLACE VIEW «mkTablename(e, false)»«suffix» AS SELECT
             «recurseInheritance(e, databaseFlavour, includeTracking, 0, new Delimiter("", ", "))»
-        FROM «mkTablename(e, false)» t0;
+        FROM «mkTablename(e, false)» t0«e.joinedTables(0)»«e.joinConditions(0)»;
     '''
 }
