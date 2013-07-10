@@ -543,6 +543,12 @@ class JavaDDLGeneratorMain implements IGenerator {
         else
             fieldScope.toString() + " "
     }
+    
+    def private static createUniqueConstraints(EntityDefinition e) '''
+        «IF !e.index.filter[isUnique].empty»
+            , uniqueConstraints={
+            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columnName.map['''"«columnName»"'''].join(', ')»})'''].join(',\n')»
+            }«ENDIF»'''
 
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
         val String myPackageName = getPackageName(e)
@@ -641,6 +647,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.MapKeyColumn;
         import javax.persistence.CollectionTable;
         import javax.persistence.EntityListeners;
+        import javax.persistence.UniqueConstraint;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -672,7 +679,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.cacheSize != 0»
                 @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
             «ENDIF»
-            @Table(name="«mkTablename(e, false)»")
+            @Table(name="«mkTablename(e, false)»"«e.createUniqueConstraints»)
             «IF e.tenantId != null»
                 @Multitenant(/* SINGLE_TABLE */)
             «ENDIF»
