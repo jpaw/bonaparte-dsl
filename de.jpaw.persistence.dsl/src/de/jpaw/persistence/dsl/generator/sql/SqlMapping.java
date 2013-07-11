@@ -177,7 +177,7 @@ public class SqlMapping {
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
             if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
-                datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+                datatype = "nvarchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             break;
         }

@@ -28,8 +28,8 @@ class SqlColumns {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
 
     // TODO: check if column is in PK (then assume implicit NOT NULL)
-    def public static notNullConstraint(FieldDefinition c) {
-        if (isRequired(c)) " NOT NULL" else ""
+    def public static notNullConstraint(FieldDefinition c, boolean forceNotNull) {
+        if (forceNotNull || isRequired(c)) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
         if (hasProperty(c.properties, "currentUser"))
@@ -42,12 +42,12 @@ class SqlColumns {
             ""
     }
 
-    def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour) {
+    def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, boolean forceNotNull) {
         val String columnName = columnName(c)
         if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
             logger.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
         return '''
-            «columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c)»
+            «columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, forceNotNull)»
         '''
     }
 }
