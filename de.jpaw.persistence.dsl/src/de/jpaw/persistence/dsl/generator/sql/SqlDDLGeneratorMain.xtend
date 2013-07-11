@@ -37,6 +37,8 @@ import de.jpaw.bonaparte.dsl.generator.Delimiter
 import java.util.Set
 import java.util.HashSet
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
+import java.util.List
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
@@ -71,12 +73,12 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d) {
+    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d, List<FieldDefinition> pkCols) {
         recurse(cl, stopAt, false,
             [ true ],
-            [ '''-- table columns of java class «it.name»
+            [ '''-- table columns of java class «name»
               '''],
-            [ '''«d.get»«SqlColumns::doColumn(it, databaseFlavour, false)»
+            [ '''«d.get»«SqlColumns::doColumn(it, databaseFlavour, pkCols != null && pkCols.contains(it))»
               ''']
         )
     }
@@ -174,7 +176,7 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             -- tenant
-            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d)»
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
             -- base table PK
             «IF baseEntity.pk != null»
                 «FOR c : baseEntity.pk.columnName»
@@ -222,9 +224,9 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             «IF stopAt == null»
-                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d)»
+                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
             «ENDIF»
-            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d)»
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
             «IF t.discname != null»
                 «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
@@ -233,7 +235,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                     «d.get»«SqlColumns::doColumn(c, databaseFlavour, true)»
                 «ENDFOR»
             «ENDIF»
-            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d)»
+            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
         «IF baseEntity.pk != null»
