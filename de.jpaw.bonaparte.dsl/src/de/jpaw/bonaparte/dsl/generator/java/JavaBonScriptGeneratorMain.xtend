@@ -33,8 +33,8 @@ import org.eclipse.xtext.generator.IGenerator
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
+import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -175,6 +175,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
+        «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.extendsClass != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;

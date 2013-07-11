@@ -130,7 +130,7 @@ PackageDefinition:
 ;
 
 PropertyDefinition:
-    name = ID
+    name = ID ('is' annotationName=QualifiedId (withArg ?= '(' ')')? )?
 ;
 
 PropertyUse:

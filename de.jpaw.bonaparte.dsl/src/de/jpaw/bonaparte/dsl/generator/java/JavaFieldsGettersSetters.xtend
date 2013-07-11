@@ -19,11 +19,10 @@ package de.jpaw.bonaparte.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.Util
-
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import static extension de.jpaw.bonaparte.dsl.generator.Util.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaFieldsGettersSetters {
 
@@ -32,7 +31,7 @@ class JavaFieldsGettersSetters {
             ''''''
         else
             if (ref.javaType.equals("String"))
-                ''' = "«Util::escapeString2Java(i.defaultString)»"'''
+                ''' = "«i.defaultString.escapeString2Java»"'''
             else
                 ''' = «i.defaultString»'''
     }
@@ -47,6 +46,10 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
 
+    def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
+        i.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
+    }
+        
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
@@ -55,6 +58,7 @@ class JavaFieldsGettersSetters {
         return '''
             «writeFieldComments(i)»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
+            «i.writeAnnotationProperties(d)»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }

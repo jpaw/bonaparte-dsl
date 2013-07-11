@@ -29,6 +29,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 
@@ -310,4 +311,19 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
     }
+    
+
+    @Check
+    public void checkPropertyUse(PropertyUse pu) {
+        if (pu.getKey().isWithArg()) {
+            if (pu.getValue() == null)
+                error("the property " + pu.getKey().getName() + " has been defined to require a value",
+                        BonScriptPackage.Literals.PROPERTY_USE__KEY);
+        } else {
+            if (pu.getValue() != null)
+                error("the property " + pu.getKey().getName() + " has been defined to not accept a value",
+                        BonScriptPackage.Literals.PROPERTY_USE__VALUE);
+        }
+    }
+
 }
