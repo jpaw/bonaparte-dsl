@@ -315,6 +315,8 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     public void checkPropertyUse(PropertyUse pu) {
+        if (pu.getKey().getAnnotationName() == null)
+            return; // no check for standard properties
         if (pu.getKey().isWithArg()) {
             if (pu.getValue() == null)
                 error("the property " + pu.getKey().getName() + " has been defined to require a value",
