@@ -15,5 +15,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: New feature: by default create getters/setters for "toFirstUpper" as well as Java-Bean-Name complying names (latter was not done before).
             Allow to fall back to old behaviour through "noJavaBeanNames" (at package or class level). Allow to specify "onlyBeanNames" as well,
             and also "JavaBeanNames" (default behaviour, to override package defaults at class level)
+- BON: New feature: can now generate annotations on class and field level for "properties", if specified so at the package level
 - BDDL: New feature: create @UniqueConstraint information from "index unique" specifications
 - BDDL: New feature: Support for MS SQL server
+- BDDL: bugfix: PK getter / setters used incorrect data type when the field was derived from a ref
