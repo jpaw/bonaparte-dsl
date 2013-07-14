@@ -275,7 +275,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         )
     }
 
-    def private static substitutedJavaTypeScalar(FieldDefinition i, DataTypeExtension ref) {
+    def private static substitutedJavaTypeScalar(FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype);
         if (ref.objectDataType != null) {
             if (i.properties.hasProperty("ref"))
                 return "Long"
@@ -286,7 +287,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeGetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «i.substitutedJavaTypeScalar(ref)» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+            public «i.substitutedJavaTypeScalar» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null)
                         return null;
@@ -318,7 +319,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private writeSetter(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar(ref)» «i.name») {
+            public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar» «i.name») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («i.name» == null) {
                         this.«i.name» = null;
@@ -702,10 +703,10 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «fieldVisibility»«e.name»Key key;
                 // forwarding getters and setters
                 «FOR i:e.pk.columnName»
-                    public void set«i.name.toFirstUpper»(«JavaDataTypeNoName(i, false)» _x) {
+                    public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
                         key.set«i.name.toFirstUpper»(_x);
                     }
-                    public «JavaDataTypeNoName(i, false)» get«i.name.toFirstUpper»() {
+                    public «i.substitutedJavaTypeScalar» get«i.name.toFirstUpper»() {
                         return key.get«i.name.toFirstUpper»();
                     }
                 «ENDFOR»
