@@ -99,7 +99,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("long",      "bigint");
         dataTypeSqlMsSQLServer.put("float",     "float");
         dataTypeSqlMsSQLServer.put("double",    "double");
-        dataTypeSqlMsSQLServer.put("number",    "int(#length)");
+        dataTypeSqlMsSQLServer.put("number",    "decimal(#length)");
         dataTypeSqlMsSQLServer.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
         dataTypeSqlMsSQLServer.put("byte",      "tinyint");
         dataTypeSqlMsSQLServer.put("short",     "smallint");
@@ -152,6 +152,9 @@ public class SqlMapping {
             // alphanumeric enum! use other type!
             datatype = "unicode";
         }
+        
+        String columnLengthString = Integer.valueOf(columnLength).toString();
+        
         switch (databaseFlavour) {
         case ORACLE:
             datatype = dataTypeSqlOracle.get(datatype);
@@ -179,6 +182,9 @@ public class SqlMapping {
             if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
                 datatype = "nvarchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
+            if (columnLength > 8000) {
+                columnLengthString = "MAX";
+            }
             break;
         }
         if (datatype == null)
@@ -191,7 +197,7 @@ public class SqlMapping {
             // special case for alphanumeric enums, again!
             return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
         }
-        return datatype.replace("#length", Integer.valueOf(columnLength).toString()).replace("#precision", Integer.valueOf(columnDecimals).toString());
+        return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
 
     static boolean supportsTablespaces(DatabaseFlavour databaseFlavour) {
