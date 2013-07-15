@@ -118,7 +118,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("ascii",     "varchar(#length)");
         dataTypeSqlMsSQLServer.put("unicode",   "nvarchar(#length)");
         dataTypeSqlMsSQLServer.put("enum",      "smallint");
-        dataTypeSqlMsSQLServer.put("object",    "varbinary(16777200)");
+        dataTypeSqlMsSQLServer.put("object",    "varbinary(MAX)");
         dataTypeSqlMsSQLServer.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
 
@@ -154,6 +154,7 @@ public class SqlMapping {
         }
         
         String columnLengthString = Integer.valueOf(columnLength).toString();
+        // System.out.println(databaseFlavour.toString() + ": Length of " + c.getName() + " is " + columnLengthString);
         
         switch (databaseFlavour) {
         case ORACLE:
@@ -184,6 +185,7 @@ public class SqlMapping {
             }
             if (columnLength > 8000) {
                 columnLengthString = "MAX";
+                // System.out.println("*** using MAX ***");
             }
             break;
         }
