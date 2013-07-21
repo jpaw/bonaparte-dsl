@@ -264,6 +264,12 @@ class YUtil {
         else
             '''«prefix»«myName.toFirstUpper»«suffix»'''
     }
+    
+    def public static indexPattern(FieldDefinition f) {
+        val userPattern = f.properties.getProperty(PROP_UNROLL)
+        val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
+        if (p >= 0) userPattern else "%02d"        
+    }
         
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
@@ -271,9 +277,7 @@ class YUtil {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
-            val userPattern = f.properties.getProperty(PROP_UNROLL)
-            val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
-            val indexPattern = if (p >= 0) userPattern else "%02d"
+            val indexPattern = f.indexPattern;
             (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)
         } else {
             // see if we need embeddables expansion

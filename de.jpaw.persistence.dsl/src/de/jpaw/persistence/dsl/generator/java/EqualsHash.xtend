@@ -19,6 +19,7 @@ package de.jpaw.persistence.dsl.generator.java
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
@@ -51,12 +52,20 @@ class EqualsHash {
         «ENDIF»
     '''
 
+    def private static hashSub33(FieldDefinition i) '''
+        «IF i.isList != null && i.properties.hasProperty(PROP_UNROLL)»
+            «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n')»
+        «ELSE»
+            («i.name» == null ? 0 : «i.name».hashCode())
+        «ENDIF»
+    '''
+    
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
             else if (i.aggregate)  // List, Map, Set
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map, Set have a usable implementation
+                return i.hashSub33
             else {
                 // a single primitive type....
                 switch (ref.javaType) {
@@ -72,7 +81,7 @@ class EqualsHash {
             if (i.isArray != null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
             else if (i.aggregate)  // List, Map, Set
-                return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map, Set have a usable implementation
+                return i.hashSub33
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType != null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
@@ -115,7 +124,11 @@ class EqualsHash {
             «IF i.isArray != null»
                 && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
             «ELSEIF i.aggregate»
-                && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && «i.name».equals(that)))
+                «IF i.isList != null && i.properties.hasProperty(PROP_UNROLL)»
+                    «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''&& ((«it» == null && that.«it» == null) || («it» != null && «it».equals(that)))'''].join('\n')»
+                «ELSE»
+                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && «i.name».equals(that)))
+                «ENDIF»
             «ELSE»
                 && «writeCompareStuff(i, i.name, "")»
             «ENDIF»

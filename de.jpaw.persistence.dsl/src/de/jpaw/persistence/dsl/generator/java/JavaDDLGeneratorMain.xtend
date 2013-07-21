@@ -235,9 +235,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
-            val userPattern = f.properties.getProperty(PROP_UNROLL)
-            val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
-            val indexPattern = if (p >= 0) userPattern else "%02d"
+            val indexPattern = f.indexPattern;
             return '''
                 «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)»
                 public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
