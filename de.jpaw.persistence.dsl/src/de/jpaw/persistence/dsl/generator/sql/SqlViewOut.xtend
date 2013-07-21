@@ -27,37 +27,39 @@ import de.jpaw.persistence.dsl.bDDL.Inheritance
 
 class SqlViewOut {
 
-    def private static createColumn(FieldDefinition i, String prefix) {
+    def private static createColumn(FieldDefinition i, String prefix, String myName) {
         val ref = DataTypeExtension::get(i.datatype)
-        val cn = columnName(i)
+        val cn = myName.java2sql
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             '''«ref.elementaryDataType.enumType.name»2s(«prefix».«cn») AS «cn»'''
         else
             '''«prefix».«cn» AS «cn»'''
     }
 
-    def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d) {
+    def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d, EntityDefinition e) {
         recurse(cl, null, false,
             [ true ],
+            e.embeddables,
             [ '''-- columns of java class «name»
               '''],
-            [ '''«d.get»«createColumn(prefix)»
+            [ fld, myName | '''«d.get»«fld.createColumn(prefix, myName)»
               ''']
         )
     }
 
+    // TODO: lower part to be fixed to allow embeddables in joined parts
     def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level, Delimiter d) '''
         «IF e.extends == null || !e.usesJoinInheritance»
             «IF includeTracking»
-                «createColumns(e.tableCategory.trackingColumns, "t" + level, d)»
+                «createColumns(e.tableCategory.trackingColumns, "t" + level, d, e)»
             «ENDIF»
-            «createColumns(e.tenantClass, "t" + level, d)»
-            «createColumns(e.pojoType, "t" + level, d)»
+            «createColumns(e.tenantClass, "t" + level, d, e)»
+            «createColumns(e.pojoType, "t" + level, d, e)»
         «ELSE»
             «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level+1, d)»
             -- columns of joined java class «e.pojoType.name»
             «FOR i: e.pojoType.fields»
-                «d.get»«i.createColumn("t"+level)»
+                «d.get»«i.createColumn("t"+level, i.name)»
             «ENDFOR»
         «ENDIF»
     '''

@@ -44,13 +44,13 @@ class MakeMapper {
         @Override
         public «e.pojoType.name» get$Data() throws ApplicationException {
             «e.pojoType.name» _r = new «e.pojoType.name»();
-            «recurseDataGetter(e.pojoType, null)»
+            «recurseDataGetter(e.pojoType, null, e.embeddables)»
             return _r;
         }
         @Override
         public void set$Data(«e.getInheritanceRoot.pojoType.name» _d) {
             «IF e.^extends == null»
-                «recurseDataSetter(e.pojoType, null, e)»
+                «recurseDataSetter(e.pojoType, null, e, e.embeddables)»
             «ELSE»
                 super.set$Data(_d);
                 if (_d instanceof «e.pojoType.name») {

@@ -30,6 +30,8 @@ import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
+import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition;
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.ForeignKeyDefinition;
 import de.jpaw.persistence.dsl.bDDL.ListOfColumns;
@@ -96,7 +98,17 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
              context instanceof CollectionDefinition) && context.eContainer() != null) {
             // the only valid reference in a list of columns is a column of the entity referenced.
             preliminaryResult = getColumnsSub(YUtil.getBaseEntity(context.eContainer()), ignoreCase);
-
+        } else if (context instanceof EmbeddableUse && context.eContainer() != null) {
+            // EmbeddableUse can have different parent types
+            if (context.eContainer() instanceof EntityDefinition) {
+                preliminaryResult = getColumnsSub(YUtil.getBaseEntity(context.eContainer()), ignoreCase);
+            } else if (context.eContainer() instanceof EmbeddableDefinition) {
+                EmbeddableDefinition emb = (EmbeddableDefinition)context.eContainer();
+                preliminaryResult = new ArrayList<ImportNormalizer>(50);
+                recursivelyAddColumnsOfClassAndParents(preliminaryResult, emb.getPojoType(), ignoreCase);
+            } else {
+                preliminaryResult = super.internalGetImportedNamespaceResolvers(context, ignoreCase);
+            }
         } else {
             preliminaryResult = super.internalGetImportedNamespaceResolvers(context, ignoreCase);
         }

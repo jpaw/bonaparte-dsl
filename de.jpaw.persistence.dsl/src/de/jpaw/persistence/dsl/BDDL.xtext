@@ -88,15 +88,25 @@ PackageDefinition:
         (noUserTypes ?= 'noUserTypes')?     // do not use JodaTime and ByteArray in entity classes directly, but convert in getters/setters
     '{' 
         ('fields' visibility=Visibility ';')?
-        grantCategories += GrantCategoryDefinition* 
-        tableCategories += TableCategoryDefinition*
-        // xpojos += ClassDefinition*   // can fail because BonScript assumes that the parent of a ClassDefinition is a BonScript Package
-        entities += EntityDefinition*
+        (grantCategories += GrantCategoryDefinition  
+        | tableCategories += TableCategoryDefinition
+        | entities += EntityDefinition
+        | embeddables += EmbeddableDefinition
+        )*
     '}'
 ;
 
 enum Inheritance:
     NONE='none' | SINGLE_TABLE='singleTable' | TABLE_PER_CLASS='tablePerClass' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
+
+EmbeddableDefinition:
+    'embeddable' name = ID 'is' pojoType=[pojos::ClassDefinition]
+    (doBeanVal ?= 'beanVal')?
+    '{'
+        ('@Embeddable' embeddables += EmbeddableUse)*
+    '}'
+;
+
 
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
@@ -130,6 +140,7 @@ EntityDefinition:
         (('@ManyToOne' manyToOnes += Relationship ) |
         ('@OneToOne' oneToOnes += OneToOne ) |
         ('@OneToMany' oneToManys += OneToMany ) |
+        ('@Embeddable' embeddables += EmbeddableUse) |
         ('@ElementCollection' elementCollections += ElementCollectionRelationship ))* 
     '}'       
 ;
@@ -164,6 +175,10 @@ ElementCollectionRelationship:
 
 CollectionDefinition:
     map = [pojos::FieldDefinition] 'in' tablename = ID '.' '(' refcolumn = ID ',' keycolumn = ID ('(' size=INT ')')? ')'
+;
+
+EmbeddableUse:
+    name = [EmbeddableDefinition] 'for' field=[pojos::FieldDefinition] ('prefix' prefix=ID)? ('suffix' suffix=ID)?
 ;
 
 ForeignKeyDefinition:

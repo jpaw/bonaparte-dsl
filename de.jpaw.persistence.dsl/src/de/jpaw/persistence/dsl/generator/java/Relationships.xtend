@@ -29,7 +29,7 @@ class MakeRelationships {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.MakeRelationships") // jcl
     
     def static private makeJoin(Relationship m, int i, boolean readonly) '''
-        @JoinColumn(name="«m.referencedFields.columnName.get(i).columnName»", referencedColumnName="«m.childObject.pk.columnName.get(i).columnName»"«IF readonly», insertable=false, updatable=false«ENDIF»)
+        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«m.childObject.pk.columnName.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
     '''
 
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {

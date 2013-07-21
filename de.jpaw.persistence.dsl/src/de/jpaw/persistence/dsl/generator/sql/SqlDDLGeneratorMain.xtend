@@ -39,6 +39,7 @@ import java.util.HashSet
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
@@ -73,12 +74,15 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d, List<FieldDefinition> pkCols) {
+    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
+        List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
             [ true ],
+              embeddables,
             [ '''-- table columns of java class «name»
               '''],
-            [ '''«d.get»«SqlColumns::doColumn(it, databaseFlavour, pkCols != null && pkCols.contains(it))»
+            [ fld, myName | 
+            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, pkCols != null && pkCols.contains(fld), d, myName)»
               ''']
         )
     }
@@ -176,11 +180,11 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             -- tenant
-            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
             -- base table PK
             «IF baseEntity.pk != null»
                 «FOR c : baseEntity.pk.columnName»
-                    «d.get»«SqlColumns::doColumn(c, databaseFlavour, true)»
+                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, true, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
             «IF ec.mapKey != null»
@@ -188,12 +192,12 @@ class SqlDDLGeneratorMain implements IGenerator {
                 , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL,
             «ENDIF»
             -- contents field
-            , «SqlColumns::doColumn(ec.name, databaseFlavour, false)»
+            «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, false, d, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
         «IF baseEntity.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
+                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         '''
@@ -224,29 +228,29 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             «IF stopAt == null»
-                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
+                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
             «ENDIF»
-            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName)»
+            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
             «IF t.discname != null»
                 «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
             «IF baseEntity.pk != null && stopAt != null»
                 «FOR c : baseEntity.pk.columnName»
-                    «d.get»«SqlColumns::doColumn(c, databaseFlavour, true)»
+                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, true, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
-            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName)»
+            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
         «IF baseEntity.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»
+                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» ON «tablename»(
-                    «FOR c : i.columnName SEPARATOR ', '»«columnName(c)»«ENDFOR»
+                    «FOR c : i.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
                 )«IF tablespaceIndex != null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
@@ -260,13 +264,13 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER»
             «IF stopAt == null»
-                «t.tableCategory.trackingColumns?.recurseComments(null, tablename)»
+                «t.tableCategory.trackingColumns?.recurseComments(null, tablename, t.embeddables)»
             «ENDIF»
-            «baseEntity.tenantClass?.recurseComments(null, tablename)»
+            «baseEntity.tenantClass?.recurseComments(null, tablename, t.embeddables)»
             «IF t.discname != null»
                 COMMENT ON COLUMN «tablename».«t.discname» IS 'autogenerated JPA discriminator column';
             «ENDIF»
-            «t.pojoType.recurseComments(stopAt, tablename)»
+            «t.pojoType.recurseComments(stopAt, tablename, t.embeddables)»
         «ENDIF»
     '''
     }

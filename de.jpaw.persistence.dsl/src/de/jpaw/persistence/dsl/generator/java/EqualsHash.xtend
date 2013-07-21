@@ -110,7 +110,7 @@ class EqualsHash {
 
         '''
 
-    def private static writeEqualsSub(EntityDefinition e, List<FieldDefinition> l) '''
+    def private static writeEqualsSub(List<FieldDefinition> l) '''
         «FOR i: l»
             «IF i.isArray != null»
                 && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
@@ -144,7 +144,7 @@ class EqualsHash {
             «ELSE»
                 return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well
             «ENDIF»
-            «writeEqualsSub(e, e.pojoType.fields)»
+            «writeEqualsSub(e.pojoType.fields)»
             ;
         }
     '''
@@ -176,18 +176,18 @@ class EqualsHash {
         «ENDIF»
     '''
 
-    def public static writeKeyEquals(EntityDefinition e, List<FieldDefinition> l) '''
+    def public static writeKeyEquals(String name, List<FieldDefinition> l) '''
         @Override
         public boolean equals(Object _that) {
             if (_that == null)
                 return false;
-            if (!(_that instanceof «e.name»Key))
+            if (!(_that instanceof «name»))
                 return false;
             if (this == _that)
                 return true;
-            «e.name»Key that = («e.name»Key)_that;
+            «name» that = («name»)_that;
             return true
-            «writeEqualsSub(e, l)»
+            «l.writeEqualsSub»
             ;
         }
     '''

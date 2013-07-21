@@ -23,6 +23,11 @@ import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 // using JCL here, because it is already a project dependency, should switch to slf4j
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import java.util.List
+import de.jpaw.bonaparte.dsl.generator.Delimiter
+import de.jpaw.persistence.dsl.generator.YUtil
+import org.eclipse.xtext.generator.builder.BuilderIntegrationFragment
 
 class SqlColumns {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
@@ -42,12 +47,17 @@ class SqlColumns {
             ""
     }
 
-    def public static doColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, boolean forceNotNull) {
-        val String columnName = columnName(c)
+    def public static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, boolean forceNotNull, Delimiter d, String myName) {
+        val String columnName = myName.java2sql
         if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
             logger.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
         return '''
-            «columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, forceNotNull)»
+            «d.get»«columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, forceNotNull)»
         '''
+    }
+
+    // external entry
+    def public static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, boolean forceNotNull, Delimiter d, List<EmbeddableUse> embeddables) {
+        writeFieldWithEmbeddedAndList(f, embeddables, null, null, false, "", [ fld, myName | fld.doDdlColumn(databaseFlavour, forceNotNull, d, myName) ])
     }
 }

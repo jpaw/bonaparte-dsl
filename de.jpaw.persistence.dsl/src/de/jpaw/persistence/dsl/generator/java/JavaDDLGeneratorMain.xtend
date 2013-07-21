@@ -38,10 +38,12 @@ import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 
 class JavaDDLGeneratorMain implements IGenerator {
-    val String JAVA_OBJECT_TYPE = "BonaPortable";
-    val String calendar = "Calendar";
+    val static final String JAVA_OBJECT_TYPE = "BonaPortable";
+    val static final String CALENDAR = "Calendar";
     var FieldDefinition haveIntVersion = null
     var haveActive = false
     var boolean useUserTypes = true;
@@ -55,8 +57,12 @@ class JavaDDLGeneratorMain implements IGenerator {
         (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
 
-    // create the package name for a class definition object
+    // create the package name for an entity
     def public static getPackageName(EntityDefinition d) {
+        getPackageName(d.eContainer as PackageDefinition)
+    }
+    // create the package name for an embeddable object
+    def public static getPackageName(EmbeddableDefinition d) {
         getPackageName(d.eContainer as PackageDefinition)
     }
 
@@ -73,6 +79,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
             }
         }
+        for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
+            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEmbeddableOut)
+        }
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists
             if (d.javadoc != null) {
@@ -88,46 +97,44 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
 
-    // temporal types for Calendar (standard JPA types, conversion in getters / setters)
-    def private writeTemporal(FieldDefinition c, String type) '''
-        @Temporal(TemporalType.«type»)
-        «IF c.isArray != null»
-            «fieldVisibility»«calendar»[] «c.name»;
-        «ELSEIF c.isList != null»
-            «fieldVisibility»List <«calendar»> «c.name»;
-        «ELSE»
-            «fieldVisibility»«calendar» «c.name»;
-        «ENDIF»
-    '''
+    // the same, more complex scenario
+    def public static JavaDataType2NoName(FieldDefinition i, boolean skipIndex, String dataClass) {
+        if (skipIndex || i.properties.hasProperty(PROP_UNROLL))
+            dataClass
+        else if (i.isArray != null)
+            dataClass + "[]"
+        else if (i.isSet != null)
+            "Set<" + dataClass + ">"
+        else if (i.isList != null)
+            "List<" + dataClass + ">"
+        else if (i.isMap != null)
+            "Map<" + i.isMap.indexType + "," + dataClass + ">"
+        else
+            dataClass
+    }
 
     // temporal types for UserType mappings (OR mapper specific extensions)
-    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType) '''
+    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType, String myName) '''
         @Temporal(TemporalType.«type»)
-        «writeTemporalField(c, fieldType)»
+        «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»;
+    '''
+    // temporal types for UserType mappings (OR mapper specific extensions)
+    def private writeField(FieldDefinition c, String fieldType, String myName) '''
+        «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»;
     '''
 
-    def private writeTemporalField(FieldDefinition c, String fieldType) '''
-        «IF c.isArray != null»
-            «fieldVisibility»«fieldType»[] «c.name»;
-        «ELSEIF c.isList != null»
-            «fieldVisibility»List <«fieldType»> «c.name»;
-        «ELSE»
-            «fieldVisibility»«fieldType» «c.name»;
-        «ENDIF»
-    '''
-
-    def private writeColumnType(FieldDefinition c) {
+    def private writeColumnType(FieldDefinition c, String myName) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType != null) {
             if (c.properties.hasProperty("serialized")) {
                 // use byte[] Java type and assume same as Object
                 return '''
-                    «fieldVisibility»byte [] «c.name»;'''
-            } else if (c.properties.hasProperty("ref")) {
+                    «fieldVisibility»byte [] «myName»;'''
+            } else if (c.properties.hasProperty(PROP_REF)) {
                 // plain old Long as an artificial key / referencing is done by application
                 // can optionally have a ManyToOne object mapping in a Java superclass, with insertable=false, updatable=false
                 return '''
-                    «fieldVisibility»Long «c.name»;'''
+                    «fieldVisibility»Long «myName»;'''
             } else if (c.properties.hasProperty("ManyToOne")) {
                 // child object, create single-sided many to one annotations as well
                 val params = c.properties.getProperty("ManyToOne")
@@ -138,55 +145,39 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ELSEIF c.properties.getProperty("JoinColumnRO") != null»
                         @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
                     «ENDIF»
-                    «fieldVisibility»«c.JavaDataTypeNoName(false)» «c.name»;'''
+                    «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
             }
         }
         switch (ref.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
-            if (useUserTypes) {
-                switch (ref.javaType) {
-                case "Calendar":            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", calendar)
-                case "DateTime":            writeTemporalFieldAndAnnotation(c, "DATE", calendar)
-                case "LocalDateTime":       writeTemporalField(c, ref.javaType)
-                case "LocalDate":           writeTemporalField(c, ref.javaType)
-                case "ByteArray":           '''
-                        «fieldVisibility»ByteArray «c.name»;'''
-                case JAVA_OBJECT_TYPE:      '''
-                        // @Lob
-                        «fieldVisibility»byte [] «c.name»;
-                    '''
-                default:                   '''
-                    «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
-                    '''
-                }
-            } else {
-                switch (ref.javaType) {
-                case "Calendar":            writeTemporal(c, "TIMESTAMP")
-                case "LocalDateTime":       writeTemporal(c, "TIMESTAMP")
-                case "DateTime":            writeTemporal(c, "DATE")
-                case "ByteArray":           '''
-                        «fieldVisibility»byte [] «c.name»;'''
-                case JAVA_OBJECT_TYPE:      '''
-                        // @Lob
-                        «fieldVisibility»byte [] «c.name»;
-                    '''
-                default:                   '''
-                    «fieldVisibility»«JavaDataTypeNoName(c, false)» «c.name»;
-                    '''
-                }
+            switch (ref.javaType) {
+            case "Calendar":        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
+            case "DateTime":        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+            case "LocalDateTime":   if (useUserTypes)
+                                        writeField(c, ref.javaType, myName)
+                                    else
+                                        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
+            case "LocalDate":       if (useUserTypes)
+                                        writeField(c, ref.javaType, myName)
+                                    else
+                                        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+            case "ByteArray":       writeField(c, if (useUserTypes) "ByteArray" else "byte []", myName)
+            case JAVA_OBJECT_TYPE:  '''
+                                        // @Lob
+                                        «writeField(c, "byte []", myName)»
+                                    '''
+            default:                '''
+                                        «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
+                                    '''
             }
-        case DataTypeExtension::ENUM_NUMERIC: '''
-                «fieldVisibility»Integer «c.name»;
-            '''
-        default: '''
-                «fieldVisibility»«IF ref.allTokensAscii»String«ELSE»Integer«ENDIF» «c.name»;
-            '''
+        case DataTypeExtension::ENUM_NUMERIC:   writeField(c, "Integer", myName)
+        default:                                writeField(c, if (ref.allTokensAscii) "String" else "Integer", myName)
         }
     }
 
 
     def private optionalAnnotation(List <PropertyUse> properties, String key, String annotation) {
-        '''«IF hasProperty(properties, key)»«annotation»«ENDIF»'''
+        '''«IF properties.hasProperty(key)»«annotation»«ENDIF»'''
     }
 
     def private setIntVersion(FieldDefinition c) {
@@ -207,17 +198,18 @@ class JavaDDLGeneratorMain implements IGenerator {
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         return ''''''
     }
-    // write the definition of a single column
-    def private singleColumn(FieldDefinition c, EntityDefinition e, boolean withBeanVal) '''
-            «IF c.aggregate»
-                «ElementCollections::writePossibleCollectionOrRelation(c, e)»
-            «ENDIF»
-            @Column(name="«columnName(c)»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«sizeSpec(c)»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
-            «c.properties.optionalAnnotation("version", "@Version")»
-            «c.properties.optionalAnnotation("lob",     "@Lob")»
-            «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
-            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
-            «writeColumnType(c)»
+    
+    // write the definition of a single column (entities or Embeddables)
+    def private singleColumn(FieldDefinition c, EntityDefinition optionalEntity, boolean withBeanVal, String myName) '''
+        «IF optionalEntity != null && c.aggregate»
+            «ElementCollections::writePossibleCollectionOrRelation(c, optionalEntity)»
+        «ENDIF»
+        @Column(name="«myName.java2sql»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
+        «c.properties.optionalAnnotation("version", "@Version")»
+        «c.properties.optionalAnnotation("lob",     "@Lob")»
+        «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
+        «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
+        «c.writeColumnType(myName)»
     '''
 
     def private boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
@@ -235,39 +227,125 @@ class JavaDDLGeneratorMain implements IGenerator {
         return result  */        
     }
     
+    // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
+    def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix, boolean noListAtThisPoint, String separator, (FieldDefinition, String) => CharSequence func) {
+        // expand Lists first
+        val myName = f.name.asEmbeddedName(prefix, suffix)
+        if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
+            val userPattern = f.properties.getProperty(PROP_UNROLL)
+            val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
+            val indexPattern = if (p >= 0) userPattern else "%02d"
+            return '''
+                «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)»
+                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
+                    «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
+                    «(1 .. f.isList.maxcount).map['''_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
+                    return _a;
+                }
+                public void set«myName.toFirstUpper()»(«f.JavaDataTypeNoName(false)» _a) {
+                    «(1 .. f.isList.maxcount).map['''set«myName.toFirstUpper»«String::format(indexPattern, it)»(null);'''].join('\n')»
+                    if (_a == null)
+                        return;
+                    «(1 .. f.isList.maxcount).map['''if (_a.size() >= «it») set«myName.toFirstUpper»«String::format(indexPattern, it)»(_a.get(«it-1»));'''].join('\n')»
+                }
+                '''
+        } else {
+            // see if we need embeddables expansion
+            val emb = embeddables.findFirst[field == f]
+            if (emb != null) {
+                // expand embeddable, output it instead of the original column
+                val objectName = emb.name.pojoType.name
+                val nameLengthDiff = f.name.length - objectName.length
+                val tryDefaults = emb.prefix == null && emb.suffix == null && nameLengthDiff > 0
+                val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
+                val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
+                val newPrefix = '''«prefix»«finalPrefix»'''
+                val newSuffix = '''«finalSuffix»«suffix»'''
+                val fields = emb.name.pojoType.allFields  // shorthand...
+                //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
+                //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
+                
+                return '''
+                    @AttributeOverrides({
+                    «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, false, ',\n',
+                        [ fld, myName2 | '''    @AttributeOverride(name="«fld.name»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
+                    })
+                    @Embedded
+                    private «emb.name.name» «myName»;
+                    public «emb.name.pojoType.name» get«myName.toFirstUpper()»() {
+                        if («myName» == null)
+                            return null;
+                        return new «emb.name.pojoType.name»(«fields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»);
+                    }
+                    public void set«myName.toFirstUpper()»(«emb.name.pojoType.name» _x) {
+                        if (_x == null) {
+                            «myName» = null;
+                        } else {
+                            «f.name» = new «emb.name.name»();
+                            «fields.map['''«myName».set«name.toFirstUpper»(_x.get«name.toFirstUpper»());'''].join('\n')»
+                        }
+                    }
+                '''
+            } else {
+                // regular field
+                func.apply(f, myName)
+            }
+        }
+    }
+    
+    // a generic iterator over the fields of a specific class, plus certain super classes.
+    // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
+    // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
+    // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
+    def private static CharSequence recurseJ(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
+        List<EmbeddableUse> embeddables,
+        (ClassDefinition)=> CharSequence groupSeparator,
+        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        «IF cl != stopAt»
+            «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
+            «groupSeparator?.apply(cl)»
+            «FOR c : cl.fields»
+                «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
+                    «c.writeFieldWithEmbeddedAndListJ(embeddables, null, null, false, "", fieldOutput)»
+                «ENDIF»
+            «ENDFOR»
+        «ENDIF»
+    '''
+        
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
         // include aggregates if there is an @ElementCollection defined for them
-        recurse(cl, stopAt, true, [ !isAggregate || hasECin(e) ], [ '''// table columns of java class «name»
-            ''' ], [ '''
-                «IF pkColumns != null && pkColumns.size == 1 && it == pkColumns.get(0)»
+        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(e) || properties.hasProperty(PROP_UNROLL) ], e.embeddables,
+            [ '''// table columns of java class «name»
+            ''' ], [ fld, myName | '''
+                «IF pkColumns != null && pkColumns.size == 1 && fld == pkColumns.get(0)»
                     @Id
                 «ENDIF»
-                «IF (!excludePkColumns || !inList(pkColumns, it)) && !hasProperty(properties, "noJava")»
-                    «singleColumn(e, e.tableCategory.doBeanVal)»
-                    «writeGetter»
-                    «writeSetter»
-                    «IF hasProperty(properties, "version")»
-                        «IF JavaDataTypeNoName(false).equals("int") || JavaDataTypeNoName(false).equals("Integer")»
-                            «setIntVersion»
+                «IF (!excludePkColumns || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
+                    «fld.singleColumn(e, e.tableCategory.doBeanVal, myName)»
+                    «fld.writeGetter(myName)»
+                    «fld.writeSetter(myName)»
+                    «IF fld.properties.hasProperty(PROP_VERSION)»
+                        «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
+                            «fld.setIntVersion»
                         «ENDIF»
                         // specific getter/setters for the version field
-                        public void set$Version(«JavaDataTypeNoName(false)» _v) {
-                            set«name.toFirstUpper»(_v);
+                        public void set$Version(«fld.JavaDataTypeNoName(false)» _v) {
+                            set«myName.toFirstUpper»(_v);
                         }
-                        public «JavaDataTypeNoName(false)» get$Version() {
-                            return get«name.toFirstUpper»();
+                        public «fld.JavaDataTypeNoName(false)» get$Version() {
+                            return get«myName.toFirstUpper»();
                         }
                     «ENDIF»
-                    «IF hasProperty(properties, "active")»
+                    «IF fld.properties.hasProperty(PROP_ACTIVE)»
                         «setHaveActive»
                         // specific getter/setters for the active flag
                         public void set$Active(boolean _a) {
-                            set«name.toFirstUpper»(_a);
+                            set«myName.toFirstUpper»(_a);
                         }
                         public boolean get$Active() {
-                            return get«name.toFirstUpper»();
+                            return get«myName.toFirstUpper»();
                         }
                     «ENDIF»
                 «ENDIF»
@@ -278,78 +356,78 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         if (ref.objectDataType != null) {
-            if (i.properties.hasProperty("ref"))
+            if (i.properties.hasProperty(PROP_REF))
                 return "Long"
         }
-        return i.JavaDataTypeNoName(false)
+        return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
 
-    def private writeGetter(FieldDefinition i) {
+    def private writeGetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «i.substitutedJavaTypeScalar» get«i.name.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
-                    if («i.name» == null)
+                    if («myName» == null)
                         return null;
-                    ByteArrayParser _bap = new ByteArrayParser(«i.name», 0, -1);
-                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«i.name»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                    ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
+                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
-                        return «i.name»;
+                        return «myName»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «i.name»«IF !useUserTypes» == null ? null : LocalDate.fromCalendarFields(«i.name»)«ENDIF»;
+                        return «myName»«IF !useUserTypes» == null ? null : LocalDate.fromCalendarFields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «i.name»«IF !useUserTypes» == null ? null : LocalDateTime.fromCalendarFields(«i.name»)«ENDIF»;
+                        return «myName»«IF !useUserTypes» == null ? null : LocalDateTime.fromCalendarFields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        return «i.name»«IF !useUserTypes» == null ? null : new ByteArray(«i.name», 0, -1)«ENDIF»;
+                        return «myName»«IF !useUserTypes» == null ? null : new ByteArray(«myName», 0, -1)«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
-                        return ByteUtil.deepCopy(«i.name»);       // deep copy
+                        return ByteUtil.deepCopy(«myName»);       // deep copy
                     «ELSE»
-                        return «i.name»;
+                        return «myName»;
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                    return «ref.elementaryDataType.enumType.name».valueOf(«i.name»);
+                    return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
                 «ELSE»
-                    return «ref.elementaryDataType.enumType.name».factory(«i.name»);
+                    return «ref.elementaryDataType.enumType.name».factory(«myName»);
                 «ENDIF»
             }
         '''
     }
 
-    def private writeSetter(FieldDefinition i) {
+    def private writeSetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar» «i.name») {
+            public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
-                    if («i.name» == null) {
-                        this.«i.name» = null;
+                    if («myName» == null) {
+                        this.«myName» = null;
                     } else {
                         ByteArrayComposer _bac = new ByteArrayComposer();
-                        _bac.addField(«i.name»);
-                        this.«i.name» = _bac.getBytes();
+                        _bac.addField(«myName»);
+                        this.«myName» = _bac.getBytes();
                     }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
-                        this.«i.name» = «i.name»;
+                        this.«myName» = «myName»;
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
-                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»DayTime.toGregorianCalendar(«i.name»)«ENDIF»;
+                        this.«myName» = «IF useUserTypes»«myName»«ELSE»DayTime.toGregorianCalendar(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        this.«i.name» = «IF useUserTypes»«i.name»«ELSE»«i.name» == null ? null : «i.name».getBytes()«ENDIF»;
+                        this.«myName» = «IF useUserTypes»«myName»«ELSE»«myName» == null ? null : «myName».getBytes()«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
-                        this.«i.name» = ByteUtil.deepCopy(«i.name»);       // deep copy
+                        this.«myName» = ByteUtil.deepCopy(«myName»);       // deep copy
                     «ELSE»
-                        this.«i.name» = «i.name»;
+                        this.«myName» = «myName»;
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                     this.«i.name» = «i.name» == null ? null : «i.name».ordinal();
+                     this.«myName» = «myName» == null ? null : «myName».ordinal();
                 «ELSE»
-                    this.«i.name» = «i.name» == null ? null : «i.name».getToken();
+                    this.«myName» = «myName» == null ? null : «myName».getToken();
                 «ENDIF»
             }
         '''
     }
 
-    def private writeException(DataTypeExtension ref, FieldDefinition c) {
+    def private static writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
         else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, "serialized"))) {
@@ -468,44 +546,45 @@ class JavaDDLGeneratorMain implements IGenerator {
                 return null;
             «ELSE»
                 «e.tableCategory.trackingColumns.name» _r = new «e.tableCategory.trackingColumns.name»();
-                «recurseDataGetter(e.tableCategory.trackingColumns, null)»
+                «recurseDataGetter(e.tableCategory.trackingColumns, null, e.embeddables)»
                 return _r;
             «ENDIF»
         }
         @Override
         public void set$Tracking(«trackingType» _d) {
             «IF e.tableCategory.trackingColumns != null»
-                «recurseDataSetter(e.tableCategory.trackingColumns, null, null)»
+                «recurseDataSetter(e.tableCategory.trackingColumns, null, null, e.embeddables)»
             «ENDIF»
         }
         «ENDIF»
     '''
 
+    // TODO: does not work for embeddables!  Would need dot notation for that 
     def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
-        recurse(cl, stopAt, false, [ true ], [ '''''' ], [ '''
-                «IF hasProperty(properties, "findBy")»
-                    public static «e.name» findBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
+        recurse(cl, stopAt, false, [ true ], e.embeddables, [ '''''' ], [ fld, myName | '''
+                «IF fld.properties.hasProperty(PROP_FINDBY)»
+                    public static «e.name» findBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getSingleResult();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
-                «ELSEIF hasProperty(properties, "listBy")»
-                    public static List<«e.name»> listBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
+                «ELSEIF fld.properties.hasProperty(PROP_LISTBY)»
+                    public static List<«e.name»> listBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
                         }
                     }
                 «ENDIF»
-                «IF hasProperty(properties, "listActiveBy")»
-                    public static List<«e.name»> listBy«name.toFirstUpper»(EntityManager _em, «JavaDataTypeNoName(false)» _key) {
+                «IF fld.properties.hasProperty(PROP_LIACBY)»
+                    public static List<«e.name»> listBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«name» = ?1 AND isActive = true", «e.name».class);
+                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1 AND isActive = true", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
@@ -548,7 +627,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
             , uniqueConstraints={
-            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columnName.map['''"«columnName»"'''].join(', ')»})'''].join(',\n')»
+            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columnName.map['''"«name.java2sql»"'''].join(', ')»})'''].join(',\n')»
             }«ENDIF»'''
 
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
@@ -635,6 +714,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.NoResultException;
         import javax.persistence.TypedQuery;
         import javax.persistence.EmbeddedId;
+        import javax.persistence.Embedded;
         import javax.persistence.ManyToOne;
         import javax.persistence.OneToMany;
         import javax.persistence.OneToOne;
@@ -649,6 +729,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.CollectionTable;
         import javax.persistence.EntityListeners;
         import javax.persistence.UniqueConstraint;
+        import javax.persistence.AttributeOverride;
+        import javax.persistence.AttributeOverrides;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -728,10 +810,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     def private javaKeyOut(EntityDefinition e) {
         val String myPackageName = getPackageName(e)
+        val String myName = e.name + "Key"
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.recurseImports(e.pojoType, true)
 
-        imports.addImport(myPackageName, e.name + "Key")  // add myself as well
+        imports.addImport(myPackageName, myName)  // add myself as well
 
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -741,6 +824,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         import javax.persistence.EntityManager;
         import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
         import javax.persistence.Column;
         import javax.persistence.EmbeddedId;
         import javax.persistence.Temporal;
@@ -760,24 +844,83 @@ class JavaDDLGeneratorMain implements IGenerator {
         «imports.createImports»
 
         @Embeddable
-        public class «e.name»Key implements Serializable, Cloneable {
+        public class «myName» implements Serializable, Cloneable {
             «FOR col : e.pk.columnName»
-                «singleColumn(col, e, e.tableCategory.doBeanVal)»
-                «writeGetter(col)»
-                «writeSetter(col)»
+                «col.writeColStuff(e, e.tableCategory.doBeanVal, col.name)»
             «ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
-            «EqualsHash::writeKeyEquals(e, e.pk.columnName)»
-
-            @Override
-            public «e.name»Key clone() {
-                try {
-                    return («e.name»Key)super.clone();
-                } catch (CloneNotSupportedException e) {
-                    return this;  // fallback
-                }
-            }
+            «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
+            «writeCloneable(myName)»
         }
         '''
     }
+    
+    def private javaEmbeddableOut(EmbeddableDefinition e) {
+        val String myPackageName = getPackageName(e)
+        val String myName = e.name
+        val ImportCollector imports = new ImportCollector(myPackageName)
+        imports.recurseImports(e.pojoType, true)
+
+        imports.addImport(myPackageName, e.name)  // add myself as well
+
+        return '''
+        // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+        // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+        package «getPackageName(e)»;
+
+        import javax.persistence.EntityManager;
+        import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
+        import javax.persistence.Column;
+        import javax.persistence.EmbeddedId;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
+        «JavaBeanValidation::writeImports(e.doBeanVal)»
+        «writeDefaultImports»
+        import java.io.Serializable;
+
+        import «bonaparteInterfacesPackage».BonaPortable;
+        import «bonaparteInterfacesPackage».ByteArrayComposer;
+        import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».MessageParserException;
+        «imports.createImports»
+
+        @Embeddable
+        public class «e.name» implements Serializable, Cloneable {
+            «e.pojoType.recurseColumns(e.doBeanVal)»
+            «EqualsHash::writeHash(e.pojoType, null)»
+            «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
+            «writeCloneable(myName)»
+        }
+        '''
+    }
+    
+    def private static writeCloneable(String name) '''
+        @Override
+        public «name» clone() {
+            try {
+                return («name»)super.clone();
+            } catch (CloneNotSupportedException e) {
+                return this;  // fallback
+            }
+        }
+    '''
+    
+    def private CharSequence recurseColumns(ClassDefinition c, boolean doBeanVal) '''
+        «c.extendsClass?.classRef?.recurseColumns(doBeanVal)»
+        «FOR col : c.fields»
+            «col.writeColStuff(null, doBeanVal, col.name)»
+        «ENDFOR»
+    '''
+    
+    def private writeColStuff(FieldDefinition f, EntityDefinition optionalEntity, boolean doBeanVal, String myName) '''
+        «f.singleColumn(optionalEntity, doBeanVal, myName)»
+        «f.writeGetter(myName)»
+        «f.writeSetter(myName)»
+    '''
 }

@@ -34,6 +34,7 @@ import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
+import java.util.ArrayList
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -298,25 +299,15 @@ class XUtil {
         (i.visibility ?: d.defaults?.visibility ?: getPackage(d).defaults?.visibility)?.x ?: XVisibility::DEFAULT
     }
 
-
-    // a generic iterator over the fields of a specific class, plus certain super classes.
-    // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
-    // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
-    // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
-    def public static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
-        (ClassDefinition)=> CharSequence groupSeparator, (FieldDefinition) => CharSequence fieldOutput) '''
-        «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, groupSeparator, fieldOutput)»
-            «groupSeparator?.apply(cl)»
-            «FOR c : cl.fields»
-                «IF includeAggregates || !isAggregate(c)»
-                    «IF filterCondition.apply(c)»
-                        «fieldOutput.apply(c)»
-                    «ENDIF»
-                «ENDIF»
-            «ENDFOR»
-        «ENDIF»
-    '''
+    def public static List<FieldDefinition> allFields(ClassDefinition cl) {
+        if (cl.extendsClass?.classRef == null)
+            return cl.fields;
+        // at least 2 lists to combine
+        val result = new ArrayList<FieldDefinition>(50)
+        result.addAll(cl.extendsClass?.classRef.allFields)
+        result.addAll(cl.fields)
+        return result
+    }
 
     // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def public static writeDefaultImports() '''

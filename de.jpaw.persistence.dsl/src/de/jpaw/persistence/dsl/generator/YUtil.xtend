@@ -25,8 +25,21 @@ import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import java.util.List
 
 class YUtil {
+    // bonaparte properties which are used for bddl code generators
+    public static final String PROP_UNROLL = "unroll";     // List<> => 01...0n
+    public static final String PROP_NOJAVA = "noJava";
+    public static final String PROP_FINDBY = "findBy";
+    public static final String PROP_LISTBY = "listBy";
+    public static final String PROP_LIACBY = "listActiveBy";
+    public static final String PROP_ACTIVE = "active";
+    public static final String PROP_VERSION = "version";
+    public static final String PROP_REF = "ref";
+    
+    
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
     def public static String quoteSQL(String text) {
         return text.replace("'", "''").replace("\\", "\\\\");
@@ -34,10 +47,6 @@ class YUtil {
 
     def public static java2sql(String javaname) {
         CaseFormat::LOWER_CAMEL.to(CaseFormat::LOWER_UNDERSCORE, javaname);
-    }
-
-    def public static String columnName(FieldDefinition c) {
-        return java2sql(c.name)  // allow to add column data type prefixes here... (systems Hungarian notation: http://en.wikipedia.org/wiki/Hungarian_notation)
     }
 
 
@@ -186,33 +195,55 @@ class YUtil {
                             .replace("(di)",       (if (forIndex) "i" else "d"))
         }
     }
+    
+    // a generic iterator over the fields of a specific class, plus certain super classes.
+    // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
+    // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
+    // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
+    def public static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
+        List<EmbeddableUse> embeddables,
+        (ClassDefinition)=> CharSequence groupSeparator,
+        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        «IF cl != stopAt»
+            «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
+            «groupSeparator?.apply(cl)»
+            «FOR c : cl.fields»
+                «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
+                    «c.writeFieldWithEmbeddedAndList(embeddables, null, null, false, "", fieldOutput)»
+                «ENDIF»
+            «ENDFOR»
+        «ENDIF»
+    '''
 
-    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename) {
+    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
                 [ comment != null ],
+                embeddables,
                 [ '''-- comments for columns of java class «name»
                   '''],
-                [ '''COMMENT ON COLUMN «tablename».«columnName» IS '«comment.quoteSQL»';
+                [ fld, myName | '''COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
                   ''']
         )
     }
 
-    def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt) {
+    def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, true,
-                [ !hasProperty(properties, "noJava") ],
+                [ !properties.hasProperty(PROP_NOJAVA) ],
+                embeddables,
                 [ '''// auto-generated data getter for «name»
                   '''],
-                [ '''_r.set«name.toFirstUpper»(get«name.toFirstUpper»());
+                [ fld, myName | '''_r.set«myName.toFirstUpper»(get«myName.toFirstUpper»());
                   ''']
         )
     }
 
-    def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf) {
+    def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, true,
-                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !hasProperty(properties, "noJava") ],
+                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !properties.hasProperty(PROP_NOJAVA) ],
+                embeddables,
                 [ '''// auto-generated data setter for «name»
                   '''],
-                [ '''set«name.toFirstUpper»(_d.get«name.toFirstUpper»());
+                [ fld, myName | '''set«myName.toFirstUpper»(_d.get«myName.toFirstUpper»());
                   ''']
         )
     }
@@ -227,4 +258,42 @@ class YUtil {
         return false
     }
 
+    def public static String asEmbeddedName(String myName, String prefix, String suffix) {
+        if (prefix == null)
+            '''«myName»«suffix»'''
+        else
+            '''«prefix»«myName.toFirstUpper»«suffix»'''
+    }
+        
+    // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
+    def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
+        boolean noListAtThisPoint, String separator, (FieldDefinition, String) => CharSequence func) {
+        // expand Lists first
+        val myName = f.name.asEmbeddedName(prefix, suffix)
+        if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
+            val userPattern = f.properties.getProperty(PROP_UNROLL)
+            val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
+            val indexPattern = if (p >= 0) userPattern else "%02d"
+            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)
+        } else {
+            // see if we need embeddables expansion
+            val emb = embeddables.findFirst[field == f]
+            if (emb != null) {
+                // expand embeddable, output it instead of the original column
+                val objectName = emb.name.pojoType.name
+                val nameLengthDiff = f.name.length - objectName.length
+                val tryDefaults = emb.prefix == null && emb.suffix == null && nameLengthDiff > 0
+                val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
+                val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
+                val newPrefix = '''«prefix»«finalPrefix»'''
+                val newSuffix = '''«finalSuffix»«suffix»'''
+                //System::out.println('''SQL: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
+                //System::out.println('''SQL: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
+                emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndList(emb.name.embeddables, newPrefix, newSuffix, false, separator, func)].join(separator)
+            } else {
+                // regular field
+                func.apply(f, myName)
+            }
+        }
+    }
 }

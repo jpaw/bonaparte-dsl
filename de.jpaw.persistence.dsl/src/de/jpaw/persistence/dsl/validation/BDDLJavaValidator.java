@@ -8,9 +8,12 @@ import org.eclipse.xtext.validation.Check;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
 import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
+import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition;
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.OneToMany;
 import de.jpaw.persistence.dsl.bDDL.Relationship;
@@ -259,9 +262,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     
     @Check
     public void checkOneToMany(OneToMany ec) {
-        
         if (ec.getMapKey() != null) {
-
             if (ec.getMapKey().length() > 30) {
                 warning("The name exceeds 30 characters length and will not work for some database brands (Oracle)",
                         BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
@@ -269,4 +270,33 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         }
     }
     
+    @Check
+    public void checkEmbeddableDefinition(EmbeddableDefinition e) {
+        if (e.getPojoType() != null) {
+            if (!e.getPojoType().isFinal())
+                error("Embeddables must be final", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
+            if (e.getPojoType().isAbstract())
+                error("Embeddables may not be abstract", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
+        }
+    }
+    
+    @Check
+    public void checkEmbeddableUse(EmbeddableUse u) {
+        DataTypeExtension ref;
+        try {
+            ref = DataTypeExtension.get(u.getField().getDatatype());
+        } catch (Exception e) {
+            warning("Could not retrieve datatype", BDDLPackage.Literals.EMBEDDABLE_USE__FIELD);
+            return;
+        }
+        if (ref.objectDataType == null) {
+            error("Referenced field must be of object type", BDDLPackage.Literals.EMBEDDABLE_USE__FIELD);
+            return;
+        }
+        if (ref.objectDataType != u.getName().getPojoType()) {
+            error("class mismatch: embeddable references " + u.getName().getPojoType().getName() + ", field is " + ref.objectDataType.getName(),
+                    BDDLPackage.Literals.EMBEDDABLE_USE__NAME);
+            return;
+        }
+    }
 }
