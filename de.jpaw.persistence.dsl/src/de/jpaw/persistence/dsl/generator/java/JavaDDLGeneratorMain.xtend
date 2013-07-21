@@ -40,10 +40,13 @@ import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
+import java.util.ArrayList
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
     val static final String CALENDAR = "Calendar";
+    val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
     var FieldDefinition haveIntVersion = null
     var haveActive = false
     var boolean useUserTypes = true;
@@ -200,9 +203,9 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     // write the definition of a single column (entities or Embeddables)
-    def private singleColumn(FieldDefinition c, EntityDefinition optionalEntity, boolean withBeanVal, String myName) '''
-        «IF optionalEntity != null && c.aggregate»
-            «ElementCollections::writePossibleCollectionOrRelation(c, optionalEntity)»
+    def private singleColumn(FieldDefinition c, List <ElementCollectionRelationship> el, boolean withBeanVal, String myName) '''
+        «IF el != null && c.aggregate»
+            «ElementCollections::writePossibleCollectionOrRelation(c, el)»
         «ENDIF»
         @Column(name="«myName.java2sql»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
         «c.properties.optionalAnnotation("version", "@Version")»
@@ -219,8 +222,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         return false
     }
 
-    def private hasECin(FieldDefinition c, EntityDefinition e) {
-        e.elementCollections != null && e.elementCollections.map[name].contains(c)
+    def private hasECin(FieldDefinition c, List <ElementCollectionRelationship> el) {
+        el != null && el.map[name].contains(c)
         /*        
         val result = e.elementCollections != null && e.elementCollections.map[name].contains(c)
         System::out.println('''Testing for «c.name» in «e.name» gives «result»''')
@@ -281,7 +284,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         if (_x == null) {
                             «myName» = null;
                         } else {
-                            «f.name» = new «emb.name.name»();
+                            «myName» = new «emb.name.name»();
                             «fields.map['''«myName».set«name.toFirstUpper»(_x.get«name.toFirstUpper»());'''].join('\n')»
                         }
                     }
@@ -311,19 +314,26 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDFOR»
         «ENDIF»
     '''
-        
+    
+    // shorthand call for entities    
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
+        List<FieldDefinition> pkColumns, boolean excludePkColumns) {
+        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, excludePkColumns);
+    }
+    
+    def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
+        List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, boolean doBeanVal,
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
         // include aggregates if there is an @ElementCollection defined for them
-        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(e) || properties.hasProperty(PROP_UNROLL) ], e.embeddables,
+        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName | '''
                 «IF pkColumns != null && pkColumns.size == 1 && fld == pkColumns.get(0)»
                     @Id
                 «ENDIF»
                 «IF (!excludePkColumns || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-                    «fld.singleColumn(e, e.tableCategory.doBeanVal, myName)»
+                    «fld.singleColumn(el, doBeanVal, myName)»
                     «fld.writeGetter(myName)»
                     «fld.writeSetter(myName)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
@@ -892,7 +902,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         @Embeddable
         public class «e.name» implements Serializable, Cloneable {
-            «e.pojoType.recurseColumns(e.doBeanVal)»
+            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, false)»
             «EqualsHash::writeHash(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
@@ -911,15 +921,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     '''
     
-    def private CharSequence recurseColumns(ClassDefinition c, boolean doBeanVal) '''
-        «c.extendsClass?.classRef?.recurseColumns(doBeanVal)»
-        «FOR col : c.fields»
-            «col.writeColStuff(null, doBeanVal, col.name)»
-        «ENDFOR»
-    '''
-    
+   
     def private writeColStuff(FieldDefinition f, EntityDefinition optionalEntity, boolean doBeanVal, String myName) '''
-        «f.singleColumn(optionalEntity, doBeanVal, myName)»
+        «f.singleColumn(optionalEntity.elementCollections, doBeanVal, myName)»
         «f.writeGetter(myName)»
         «f.writeSetter(myName)»
     '''

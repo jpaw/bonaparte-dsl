@@ -18,14 +18,14 @@ package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import java.util.List
 
 class ElementCollections {
     
     def static private makeJoin(ElementCollectionRelationship ec, int i)
         '''@JoinColumn(name="«ec.keyColumns.get(i)»")'''
         
-    def private static writeJoinColumns(ElementCollectionRelationship ec, FieldDefinition c, EntityDefinition e) {
+    def private static writeJoinColumns(ElementCollectionRelationship ec, FieldDefinition c) {
         if (ec.keyColumns.size == 1) {
             '''«ec.makeJoin(0)»'''
         } else {
@@ -33,12 +33,12 @@ class ElementCollections {
         }
     }
     
-    def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, EntityDefinition e) {
-        if (e.elementCollections == null)
+    def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, List<ElementCollectionRelationship> el) {
+        if (el == null)
             return ''''''
-        e.elementCollections.filter[name == c].map[ '''
+        el.filter[name == c].map[ '''
             @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
-            @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c, e)»)
+            @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)
             «IF mapKey != null»
                 @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
             «ENDIF»
