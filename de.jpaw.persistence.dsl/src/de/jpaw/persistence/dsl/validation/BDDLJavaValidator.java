@@ -210,7 +210,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
         } else {
             // the referenced field must be of type list of set
-            if (f.getIsSet() == null || f.getIsList() == null) {
+            if (f.getIsSet() == null && f.getIsList() == null) {
                 if (f.getIsMap() != null) {
                     error("Specify a mapKey for Map type collections",
                         BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
