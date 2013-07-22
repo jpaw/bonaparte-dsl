@@ -230,25 +230,43 @@ class JavaDDLGeneratorMain implements IGenerator {
         return result  */        
     }
     
+    // didn't work:
+    def private static CharSequence onlyLoopUnroll(List<FieldDefinition> l, String prefix, String suffix, (String, String) => CharSequence func) {
+        l.map[ f |
+            val myName = f.name.asEmbeddedName(prefix, suffix)
+            if (f.properties.hasProperty(PROP_UNROLL)) {
+                val indexPattern = f.indexPattern;
+                (1 .. f.isList.maxcount).map[String::format(indexPattern, it)].map[func.apply(f.name + it, myName + it)].join(',\n')
+            } else {
+                func.apply(f.name, myName)
+            }
+        ].join('\n')
+    }
+    // «fields.onlyLoopUnroll(prefix, suffix, [ fldName, myName2 | '''@AttributeOverride(name="«fldName»", column=@Column(name="«myName2.java2sql»"))'''])»
+    
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
-    def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix, boolean noListAtThisPoint, String separator, (FieldDefinition, String) => CharSequence func) {
+    def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables,
+            String prefix, String suffix, String currentIndex,
+            boolean noListAtThisPoint, boolean noList2, String separator, (FieldDefinition, String, String) => CharSequence func) {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
             return '''
-                «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)»
-                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
-                    «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
-                    «(1 .. f.isList.maxcount).map['''_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
-                    return _a;
-                }
-                public void set«myName.toFirstUpper()»(«f.JavaDataTypeNoName(false)» _a) {
-                    «(1 .. f.isList.maxcount).map['''set«myName.toFirstUpper»«String::format(indexPattern, it)»(null);'''].join('\n')»
-                    if (_a == null)
-                        return;
-                    «(1 .. f.isList.maxcount).map['''if (_a.size() >= «it») set«myName.toFirstUpper»«String::format(indexPattern, it)»(_a.get(«it-1»));'''].join('\n')»
-                }
+                «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
+                «IF noList2 == false»
+                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
+                        «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
+                        «(1 .. f.isList.maxcount).map['''_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
+                        return _a;
+                    }
+                    public void set«myName.toFirstUpper()»(«f.JavaDataTypeNoName(false)» _a) {
+                        «(1 .. f.isList.maxcount).map['''set«myName.toFirstUpper»«String::format(indexPattern, it)»(null);'''].join('\n')»
+                        if (_a == null)
+                            return;
+                        «(1 .. f.isList.maxcount).map['''if (_a.size() >= «it») set«myName.toFirstUpper»«String::format(indexPattern, it)»(_a.get(«it-1»));'''].join('\n')»
+                    }
+                «ENDIF»
                 '''
         } else {
             // see if we need embeddables expansion
@@ -268,8 +286,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 
                 return '''
                     @AttributeOverrides({
-                    «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, false, ',\n',
-                        [ fld, myName2 | '''    @AttributeOverride(name="«fld.name»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
+                    «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
+                        [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
                     })
                     @Embedded
                     private «emb.name.name» «myName»;
@@ -289,7 +307,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 '''
             } else {
                 // regular field
-                func.apply(f, myName)
+                func.apply(f, myName, currentIndex)
             }
         }
     }
@@ -301,13 +319,13 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static CharSequence recurseJ(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
         List<EmbeddableUse> embeddables,
         (ClassDefinition)=> CharSequence groupSeparator,
-        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        (FieldDefinition, String, String) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
             «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
                 «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
-                    «c.writeFieldWithEmbeddedAndListJ(embeddables, null, null, false, "", fieldOutput)»
+                    «c.writeFieldWithEmbeddedAndListJ(embeddables, null, null, null, false, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
@@ -326,7 +344,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // include aggregates if there is an @ElementCollection defined for them
         recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
             [ '''// table columns of java class «name»
-            ''' ], [ fld, myName | '''
+            ''' ], [ fld, myName, ind | '''
                 «IF pkColumns != null && pkColumns.size == 1 && fld == pkColumns.get(0)»
                     @Id
                 «ENDIF»

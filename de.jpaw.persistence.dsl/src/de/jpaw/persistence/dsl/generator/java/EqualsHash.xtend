@@ -54,7 +54,7 @@ class EqualsHash {
 
     def private static hashSub33(FieldDefinition i) '''
         «IF i.isList != null && i.properties.hasProperty(PROP_UNROLL)»
-            «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n')»
+            «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n+ ')»
         «ELSE»
             («i.name» == null ? 0 : «i.name».hashCode())
         «ENDIF»
