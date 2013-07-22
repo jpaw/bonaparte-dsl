@@ -83,7 +83,7 @@ class JavaFieldsGettersSetters {
 
     // write the standard getter plus maybe some indexed one
     def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
-        «IF d.getXmlAccess == XXmlAccess::FIELD»
+        «IF d.getXmlAccess == XXmlAccess::PROPERTY»
             @XmlElement(type=Object.class)
         «ENDIF»
         public «JavaDataTypeNoName(i, false)» «getterName»() {

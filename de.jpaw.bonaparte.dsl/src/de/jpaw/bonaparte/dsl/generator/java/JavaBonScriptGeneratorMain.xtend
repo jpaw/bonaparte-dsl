@@ -76,7 +76,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
-                    «IF d.xmlAccess != XXmlAccess::NONE»
+                    «IF d.xmlAccess != null»
                     @XmlJavaTypeAdapters({
                         @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
                         @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
@@ -86,7 +86,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     «ENDIF»
                     «d.javadoc»
                     package «getPackageName(d)»;
-                    «IF d.xmlAccess != XXmlAccess::NONE»
+                    «IF d.xmlAccess != null»
 
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
