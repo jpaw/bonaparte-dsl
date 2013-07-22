@@ -35,6 +35,7 @@ import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 import java.util.ArrayList
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class XUtil {
     private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
@@ -86,6 +87,16 @@ class XUtil {
         return d.getRoot.immutable
     }
 
+    def public static getXmlAccess(ClassDefinition d) {
+        var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
+        return if (t == XXmlAccess::NOXML) null else t
+    }
+    def public static getXmlNs(ClassDefinition d) {
+        d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
+    }
+    def public static needsXmlObjectType(ClassReference r) {
+        r.plainObject || r.genericsParameterRef != null
+    }
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"

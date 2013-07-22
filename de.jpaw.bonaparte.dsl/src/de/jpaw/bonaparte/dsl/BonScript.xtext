@@ -114,11 +114,11 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
-    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
-        ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
-        (isExternalizable = Externalizable)?      // decide if implements Externalizable
-        (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
-        (doBeanNames = BeanNames)?                // create JavaBean compliant names, or plain firstUpperCase, or both (default)
+    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+        ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
+        (isExternalizable = Externalizable)?                    // decide if implements Externalizable
+        (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
+        (doBeanNames = BeanNames)?                              // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
     '{'  
         (defaults = FieldDefaultsDefinition)?
@@ -157,12 +157,12 @@ ClassDefinition:
     (immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
-     (noJava ?= 'nojava')?                      // suppress code generation (if only used for other purposes) 
-    ('XML' xmlAccess = XmlAccess)?            // set @XmlAccess annotation
-    (isExternalizable = Externalizable)?      // decide if implements Externalizable
-    (doBeanValidation = BeanValidation)?      // decide if some JSR 303 Bean Validation annotations should be generated
-    (doBeanNames = BeanNames)?                // create JavaBean compliant names, or plain firstUpperCase, or both (default)
-    ('RTTI' (addRtti ?= '+')? rtti = INT)?    // numeric runtime type information
+     (noJava ?= 'nojava')?                              // suppress code generation (if only used for other purposes) 
+    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+    (isExternalizable = Externalizable)?                // decide if implements Externalizable
+    (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated
+    (doBeanNames = BeanNames)?                          // create JavaBean compliant names, or plain firstUpperCase, or both (default)
+    ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('implements' implementsInterfaceList = InterfaceListDefinition)?

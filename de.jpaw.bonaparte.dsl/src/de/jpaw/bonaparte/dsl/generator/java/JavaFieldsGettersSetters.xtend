@@ -23,6 +23,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class JavaFieldsGettersSetters {
 
@@ -59,6 +60,9 @@ class JavaFieldsGettersSetters {
             «writeFieldComments(i)»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
             «i.writeAnnotationProperties(d)»
+            «IF d.getXmlAccess == XXmlAccess::FIELD»
+                @XmlElement(type=Object.class)
+            «ENDIF»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
     }
@@ -78,7 +82,10 @@ class JavaFieldsGettersSetters {
     '''
 
     // write the standard getter plus maybe some indexed one
-    def private static writeOneGetter(FieldDefinition i, String getterName) '''
+    def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
+        «IF d.getXmlAccess == XXmlAccess::FIELD»
+            @XmlElement(type=Object.class)
+        «ENDIF»
         public «JavaDataTypeNoName(i, false)» «getterName»() {
             return «i.name»;
         }
@@ -106,13 +113,13 @@ class JavaFieldsGettersSetters {
         // auto-generated getters and setters
         «FOR i:d.fields»
             «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
-                «i.writeOneGetter("get" + i.name.toFirstUpper)»
+                «i.writeOneGetter(d, "get" + i.name.toFirstUpper)»
             «ENDIF»
             «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
-                «i.writeOneGetter("get" + i.name.beanName)»
+                «i.writeOneGetter(d, "get" + i.name.beanName)»
             «ENDIF»
             «IF i.getter != null»
-                «i.writeOneGetter(i.getter)»
+                «i.writeOneGetter(d, i.getter)»
             «ENDIF»
             «IF !isImmutable(d)»
                 «IF doNames != XBeanNames::ONLY_BEAN_NAMES»

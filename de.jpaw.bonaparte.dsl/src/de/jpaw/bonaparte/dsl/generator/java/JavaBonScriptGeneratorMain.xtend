@@ -69,15 +69,37 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 «ENDFOR»
                 ''')
 
-            // also, write a package-info.java file, if javadoc on package level exists
-            if (d.javadoc != null) {
+            // also, write a package-info.java file, if javadoc on package level exists or if XML bindings are used
+            if (d.javadoc != null || d.xmlAccess != XXmlAccess::NONE) {
                 fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
                     // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
+                    «IF d.xmlAccess != XXmlAccess::NONE»
+                    @XmlJavaTypeAdapters({
+                        @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
+                        @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
+                        @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
+                        @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
+                    })
+                    «ENDIF»
                     «d.javadoc»
                     package «getPackageName(d)»;
+                    «IF d.xmlAccess != XXmlAccess::NONE»
+
+                        import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+                        import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+                        import org.joda.time.LocalDate;
+                        import org.joda.time.LocalDateTime;
+                        import org.joda.time.LocalTime;
+                        import de.jpaw.util.ByteArray;
+
+                        import de.jpaw.xml.jaxb.ByteArrayAdapter;
+                        import de.jpaw.xml.jaxb.LocalDateAdapter;
+                        import de.jpaw.xml.jaxb.LocalTimeAdapter;
+                        import de.jpaw.xml.jaxb.LocalDateTimeAdapter;
+                    «ENDIF»
                 ''')
             }
         }
@@ -97,10 +119,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }  */
 
     // decision classes for the package level settings
-    def private static getXmlAccess(ClassDefinition d) {
-        var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
-        return if (t == XXmlAccess::NOXML) null else t
-    }
     def private static getExternalizable(ClassDefinition d) {
         val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: XExternalizable::EXT   // default to creation of externalization methods
         return t != null && t != XExternalizable::NOEXT
@@ -128,6 +146,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getXmlAccess(d)
+        val xmlNs = getXmlNs(d)
         val doExt = getExternalizable(d)
         val doBeanVal = getBeanValidation(d)
     return
@@ -142,6 +161,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
+            import javax.xml.bind.annotation.XmlElement;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
@@ -169,7 +189,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
 
         «IF (xmlAccess != null && !d.isAbstract)»
-            @XmlRootElement
+            @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.isDeprecated»
