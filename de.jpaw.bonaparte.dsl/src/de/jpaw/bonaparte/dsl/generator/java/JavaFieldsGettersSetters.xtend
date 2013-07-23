@@ -26,6 +26,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class JavaFieldsGettersSetters {
+    val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
 
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref) {
         if (i.defaultString == null)
@@ -62,7 +63,7 @@ class JavaFieldsGettersSetters {
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
             «i.writeAnnotationProperties(d)»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && i.needsXmlObjectType»
-                @XmlElement(type=Object.class)
+                «xmlInterfaceAnnotation»
             «ENDIF»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
         '''
@@ -85,7 +86,7 @@ class JavaFieldsGettersSetters {
     // write the standard getter plus maybe some indexed one
     def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
         «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && i.needsXmlObjectType»
-            @XmlElement(type=Object.class)
+            «xmlInterfaceAnnotation»
         «ENDIF»
         public «JavaDataTypeNoName(i, false)» «getterName»() {
             return «i.name»;

@@ -162,16 +162,17 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
             import javax.xml.bind.annotation.XmlElement;
+            import javax.xml.bind.annotation.XmlAnyElement;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
-        import java.io.Externalizable;
-        import java.io.IOException;
-        import java.io.ObjectInput;
-        import java.io.ObjectOutput;
-        import «bonaparteInterfacesPackage».ExternalizableConstants;
-        import «bonaparteInterfacesPackage».ExternalizableComposer;
-        import «bonaparteInterfacesPackage».ExternalizableParser;
+            import java.io.Externalizable;
+            import java.io.IOException;
+            import java.io.ObjectInput;
+            import java.io.ObjectOutput;
+            import «bonaparteInterfacesPackage».ExternalizableConstants;
+            import «bonaparteInterfacesPackage».ExternalizableComposer;
+            import «bonaparteInterfacesPackage».ExternalizableParser;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».BonaPortableWithMetaData;
