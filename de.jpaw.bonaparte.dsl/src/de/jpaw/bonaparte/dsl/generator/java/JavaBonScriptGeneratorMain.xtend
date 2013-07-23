@@ -60,7 +60,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
             for (cl : d.classes)
-                if (!cl.isAbstract && getXmlAccess(cl) != null)
+                if (!cl.isAbstract && getRelevantXmlAccess(cl) != null)
                     classList.add(cl)
             if (classList.size() > 0)
                 fsa.generateFile(getJaxbResourceFilename(getPackageName(d)), '''
@@ -145,7 +145,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 if (gp.^extends != null)
                     imports.addImport(gp.^extends)
         // determine XML annotation support
-        val XXmlAccess xmlAccess = getXmlAccess(d)
+        val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
         val xmlNs = getXmlNs(d)
         val doExt = getExternalizable(d)
         val doBeanVal = getBeanValidation(d)

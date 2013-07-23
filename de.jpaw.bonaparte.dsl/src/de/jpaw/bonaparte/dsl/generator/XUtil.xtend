@@ -87,12 +87,20 @@ class XUtil {
         return d.getRoot.immutable
     }
 
-    def public static getXmlAccess(ClassDefinition d) {
+    def public static getRelevantXmlAccess(ClassDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
         return if (t == XXmlAccess::NOXML) null else t
     }
     def public static getXmlNs(ClassDefinition d) {
         d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
+    }
+    def public static needsXmlObjectType(FieldDefinition f) {
+        if (f.datatype.objectDataType != null) {
+            f.datatype.objectDataType.needsXmlObjectType
+        } else {
+            val ref = DataTypeExtension::get(f.datatype)
+            ref != null && ref.elementaryDataType?.name == 'Object'
+        }
     }
     def public static needsXmlObjectType(ClassReference r) {
         r.plainObject || r.genericsParameterRef != null

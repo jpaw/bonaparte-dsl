@@ -55,12 +55,13 @@ class JavaFieldsGettersSetters {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
         // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
-
+        // System::out.println('''writing one field «d.name»:«i.name» needs XmlAccess=«i.needsXmlObjectType» has XmlAccess «d.getRelevantXmlAccess»''')
+        
         return '''
             «writeFieldComments(i)»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
             «i.writeAnnotationProperties(d)»
-            «IF d.getXmlAccess == XXmlAccess::FIELD»
+            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && i.needsXmlObjectType»
                 @XmlElement(type=Object.class)
             «ENDIF»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
@@ -83,7 +84,7 @@ class JavaFieldsGettersSetters {
 
     // write the standard getter plus maybe some indexed one
     def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
-        «IF d.getXmlAccess == XXmlAccess::PROPERTY»
+        «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && i.needsXmlObjectType»
             @XmlElement(type=Object.class)
         «ENDIF»
         public «JavaDataTypeNoName(i, false)» «getterName»() {
