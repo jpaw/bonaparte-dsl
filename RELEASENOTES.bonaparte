@@ -19,3 +19,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: New feature: create @UniqueConstraint information from "index unique" specifications
 - BDDL: New feature: Support for MS SQL server
 - BDDL: bugfix: PK getter / setters used incorrect data type when the field was derived from a ref
+
+
+1.5.8
+- BDDL: New feature: "unroll" property allows converting Lists into single fields in the entity
+- BDDL: new feature: simple @Embeddable objects
+- BDDL: Improvement: validate column names against ANSI SQL reserved words (error) and Oracle reserved words (warning)
+- BON: Improvement: generate @AnyXmlElement annotations for generic types and interfaces. Generate XmlAdapters at package level for ByteArray and JodaTime types
+- BON: Allow definition of "return type", for classes which correspond to some type of request (will require an upgrade to bonaparte-java)
+

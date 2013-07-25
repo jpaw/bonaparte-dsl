@@ -1,10 +1,14 @@
 package de.jpaw.persistence.dsl.validation;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.validation.Check;
 
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
@@ -17,9 +21,149 @@ import de.jpaw.persistence.dsl.bDDL.EmbeddableUse;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.OneToMany;
 import de.jpaw.persistence.dsl.bDDL.Relationship;
+import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition;
+import de.jpaw.persistence.dsl.generator.YUtil;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
+    // SQL reserved words - column names are checked against these
+    static private final Map<String,String> RESERVED_SQL = new HashMap<String,String>(200);
+    static {
+        RESERVED_SQL.put("ACCESS", "-O");
+        RESERVED_SQL.put("ADD", "-O");
+        RESERVED_SQL.put("ALL", "AO");
+        RESERVED_SQL.put("ALTER", "AO");
+        RESERVED_SQL.put("AND", "AO");
+        RESERVED_SQL.put("ANY", "AO");
+        RESERVED_SQL.put("AS", "AO");
+        RESERVED_SQL.put("ASC", "-O");
+        RESERVED_SQL.put("AUDIT", "-O");
+        RESERVED_SQL.put("BETWEEN", "AO");
+        RESERVED_SQL.put("BY", "AO");
+        RESERVED_SQL.put("CHAR", "AO");
+        RESERVED_SQL.put("CHECK", "AO");
+        RESERVED_SQL.put("CLUSTER", "-O");
+        RESERVED_SQL.put("COLUMN", "AO");
+        RESERVED_SQL.put("COLUMN_VALUE", "-O");
+        RESERVED_SQL.put("COMMENT", "-O");
+        RESERVED_SQL.put("COMPRESS", "-O");
+        RESERVED_SQL.put("CONNECT", "AO");
+        RESERVED_SQL.put("CREATE", "AO");
+        RESERVED_SQL.put("CURRENT", "AO");
+        RESERVED_SQL.put("DATE", "AO");
+        RESERVED_SQL.put("DECIMAL", "AO");
+        RESERVED_SQL.put("DEFAULT", "AO");
+        RESERVED_SQL.put("DELETE", "AO");
+        RESERVED_SQL.put("DESC", "-O");
+        RESERVED_SQL.put("DISTINCT", "AO");
+        RESERVED_SQL.put("DROP", "AO");
+        RESERVED_SQL.put("ELSE", "AO");
+        RESERVED_SQL.put("EXCLUSIVE", "-O");
+        RESERVED_SQL.put("EXISTS", "AO");
+        RESERVED_SQL.put("FILE", "-O");
+        RESERVED_SQL.put("FLOAT", "AO");
+        RESERVED_SQL.put("FOR", "AO");
+        RESERVED_SQL.put("FROM", "AO");
+        RESERVED_SQL.put("GRANT", "AO");
+        RESERVED_SQL.put("GROUP", "AO");
+        RESERVED_SQL.put("HAVING", "AO");
+        RESERVED_SQL.put("IDENTIFIED", "-O");
+        RESERVED_SQL.put("IMMEDIATE", "-O");
+        RESERVED_SQL.put("IN", "AO");
+        RESERVED_SQL.put("INCREMENT", "-O");
+        RESERVED_SQL.put("INDEX", "-O");
+        RESERVED_SQL.put("INITIAL", "-O");
+        RESERVED_SQL.put("INSERT", "AO");
+        RESERVED_SQL.put("INTEGER", "AO");
+        RESERVED_SQL.put("INTERSECT", "AO");
+        RESERVED_SQL.put("INTO", "AO");
+        RESERVED_SQL.put("IS", "AO");
+        RESERVED_SQL.put("LEVEL", "-O");
+        RESERVED_SQL.put("LIKE", "AO");
+        RESERVED_SQL.put("LOCK", "-O");
+        RESERVED_SQL.put("LONG", "-O");
+        RESERVED_SQL.put("MAXEXTENTS", "-O");
+        RESERVED_SQL.put("MINUS", "-O");
+        RESERVED_SQL.put("MLSLABEL", "-O");
+        RESERVED_SQL.put("MODE", "-O");
+        RESERVED_SQL.put("MODIFY", "-O");
+        RESERVED_SQL.put("NESTED_TABLE_ID", "-O");
+        RESERVED_SQL.put("NOAUDIT", "-O");
+        RESERVED_SQL.put("NOCOMPRESS", "-O");
+        RESERVED_SQL.put("NOT", "AO");
+        RESERVED_SQL.put("NOWAIT", "-O");
+        RESERVED_SQL.put("NULL", "AO");
+        RESERVED_SQL.put("NUMBER", "-O");
+        RESERVED_SQL.put("OF", "AO");
+        RESERVED_SQL.put("OFFLINE", "-O");
+        RESERVED_SQL.put("ON", "AO");
+        RESERVED_SQL.put("ONLINE", "-O");
+        RESERVED_SQL.put("OPTION", "-O");
+        RESERVED_SQL.put("OR", "AO");
+        RESERVED_SQL.put("ORDER", "AO");
+        RESERVED_SQL.put("PCTFREE", "-O");
+        RESERVED_SQL.put("PRIOR", "-O");
+        RESERVED_SQL.put("PRIVILEGES", "-O");
+        RESERVED_SQL.put("PUBLIC", "-O");
+        RESERVED_SQL.put("RAW", "-O");
+        RESERVED_SQL.put("RENAME", "-O");
+        RESERVED_SQL.put("RESOURCE", "-O");
+        RESERVED_SQL.put("REVOKE", "AO");
+        RESERVED_SQL.put("ROW", "AO");
+        RESERVED_SQL.put("ROWID", "-O");
+        RESERVED_SQL.put("ROWNUM", "-O");
+        RESERVED_SQL.put("ROWS", "AO");
+        RESERVED_SQL.put("SELECT", "AO");
+        RESERVED_SQL.put("SESSION", "-O");
+        RESERVED_SQL.put("SET", "AO");
+        RESERVED_SQL.put("SHARE", "-O");
+        RESERVED_SQL.put("SIZE", "-O");
+        RESERVED_SQL.put("SMALLINT", "AO");
+        RESERVED_SQL.put("START", "AO");
+        RESERVED_SQL.put("SUCCESSFUL", "-O");
+        RESERVED_SQL.put("SYNONYM", "-O");
+        RESERVED_SQL.put("SYSDATE", "-O");
+        RESERVED_SQL.put("TABLE", "AO");
+        RESERVED_SQL.put("THEN", "AO");
+        RESERVED_SQL.put("TO", "AO");
+        RESERVED_SQL.put("TRIGGER", "AO");
+        RESERVED_SQL.put("UID", "-O");
+        RESERVED_SQL.put("UNION", "AO");
+        RESERVED_SQL.put("UNIQUE", "AO");
+        RESERVED_SQL.put("UPDATE", "AO");
+        RESERVED_SQL.put("USER", "AO");
+        RESERVED_SQL.put("VALIDATE", "-O");
+        RESERVED_SQL.put("VALUES", "AO");
+        RESERVED_SQL.put("VARCHAR", "AO");
+        RESERVED_SQL.put("VARCHAR2", "-O");
+        RESERVED_SQL.put("VIEW", "-O");
+        RESERVED_SQL.put("WHENEVER", "AO");
+        RESERVED_SQL.put("WHERE", "AO");
+        RESERVED_SQL.put("WITH", "AO");
+    }
+    
+    private void checkClassForReservedColumnNames(ClassDefinition c, EStructuralFeature feature) {
+        while (c != null) {
+            for (FieldDefinition f : c.getFields()) {
+                String usedWhere = RESERVED_SQL.get(YUtil.java2sql(f.getName()).toUpperCase());
+                if (usedWhere != null) {
+                    if (usedWhere.indexOf('A') >= 0) {
+                        error("The field name " + c.getName() + "." + f.getName() + " results in a reserved word for ANSI SQL", feature);
+                    } else {
+                        warning("The field name " + c.getName() + "." + f.getName() + " results in a reserved word for "
+                            + (usedWhere.indexOf('O') >= 0 ? "Oracle SQL" : "Postgresql"), feature);
+                    }
+                }
+            }
+            c = (c.getExtendsClass() != null) ? c.getExtendsClass().getClassRef() : null;
+        }
+    }
+
+    @Check
+    public void checkTableCategoryDefinition(TableCategoryDefinition c) {
+        checkClassForReservedColumnNames(c.getTrackingColumns(), BDDLPackage.Literals.TABLE_CATEGORY_DEFINITION__TRACKING_COLUMNS);
+    }
+    
     @Check
     public void checkEntity(EntityDefinition e) {
         String s = e.getName();
@@ -97,6 +241,10 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                 return;
             }
         }
+        
+        if (e.getTenantClass() != null)
+            checkClassForReservedColumnNames(e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
+        checkClassForReservedColumnNames(e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
     }
 
     @Check

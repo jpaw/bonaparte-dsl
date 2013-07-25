@@ -22,7 +22,7 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
 
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
@@ -155,6 +155,10 @@ class JavaMeta {
             }
             public String get$Property(String id) {
                 return class$Property(id);
+            }
+            
+            static public Class<BonaPortable> class$returns() {
+                return «IF d.returnsClass == null»null«ELSE»«d.returnsClass.packageName».«d.returnsClass.name».class«ENDIF»;
             }
 
             // my name and revision

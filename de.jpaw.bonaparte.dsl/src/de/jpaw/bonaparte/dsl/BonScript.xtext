@@ -166,6 +166,7 @@ ClassDefinition:
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
+    ('returns' returnsClass = [ClassDefinition])?
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
