@@ -42,9 +42,7 @@ class XUtil {
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
     def public static ClassDefinition getParent(ClassDefinition d) {
-        if (d == null || d.getExtendsClass == null)
-            return null;
-        d.getExtendsClass.getClassRef
+        d?.getExtendsClass?.getClassRef
     }
 
     def public static ClassDefinition getRoot(ClassDefinition d) {

@@ -191,6 +191,13 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             boolean haveAnchestorWithAbsoluteRtti = false;
             ClassDefinition anchestor = cd.getExtendsClass().getClassRef();
             while (++depth < 100) {  // after 100 iterations we assume cyclicity
+                if (cd.getReturnsClass() != null && anchestor.getReturnsClass() != null) {
+                    if (!inheritsClass(cd.getReturnsClass(), anchestor.getReturnsClass())) {
+                        error("return object of a subclass must inherit the return class of any superclass, which is not the case for return type "
+                                + anchestor.getReturnsClass().getName() + " of " + anchestor.getName(),
+                                BonScriptPackage.Literals.CLASS_DEFINITION__RETURNS_CLASS);
+                    }
+                }
                 if ((anchestor.getRtti() > 0) && !anchestor.isAddRtti()) {
                     haveAnchestorWithAbsoluteRtti = true;
                 }
@@ -207,6 +214,15 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
             }
         }
+    }
+    
+    private boolean inheritsClass(ClassDefinition myReturnType, ClassDefinition superclassReturnType) {
+        while (myReturnType != null) {
+            if (myReturnType.equals(superclassReturnType))
+                return true;
+            myReturnType = XUtil.getParent(myReturnType);
+        }
+        return false;
     }
 
     // helper function for checkFieldDefinition

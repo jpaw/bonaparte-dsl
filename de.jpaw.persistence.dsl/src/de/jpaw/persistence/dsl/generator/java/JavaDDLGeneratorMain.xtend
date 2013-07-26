@@ -379,6 +379,41 @@ class JavaDDLGeneratorMain implements IGenerator {
         )
     }
 
+    
+    def public static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
+        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        «IF cl != stopAt»
+            «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput)»
+            «FOR c : cl.fields»
+                «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && (excludes == null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
+                    «c.writeFieldWithEmbeddedAndList(null, null, null, false, "", fieldOutput)»
+                «ENDIF»
+            «ENDFOR»
+        «ENDIF»
+    '''
+                    
+    def private writeCopyOf(EntityDefinition e, String pkType, String trackingType) '''
+        @Override
+        public BonaPersistableNoData<«pkType», «trackingType»> mergeFrom(final BonaPersistableNoData<«pkType», «trackingType»> _b) {
+            «IF e.extends != null»
+                super.mergeFrom(_b);
+            «ENDIF»
+            if (_b instanceof «e.name») {
+                «e.name» _x = («e.name»)_b;
+                «IF e.extends == null && e.pk?.columnName != null»
+                    «FOR f: e.pk?.columnName»
+                        set«f.name.toFirstUpper»(_x.get«f.name.toFirstUpper»());
+                    «ENDFOR»
+                «ENDIF»
+                «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, [ fld, myName | '''«myName» = _x.«myName»;
+                    '''])»
+                «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, [ fld, myName | '''«myName» = _x.«myName»;
+                    '''])»
+            }
+            return this;
+        }
+    '''
+    
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         if (ref.objectDataType != null) {
@@ -761,9 +796,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeDefaultImports»
         import java.io.Serializable;
 
-        «IF e.noDataMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
-        «ELSE»
+        «IF !e.noDataMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
@@ -830,6 +864,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
+            «e.writeCopyOf(pkType, trackingType)»
             «MakeRelationships::writeRelationships(e, fieldVisibility)»
         }
         '''

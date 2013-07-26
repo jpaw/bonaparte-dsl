@@ -281,7 +281,7 @@ class YUtil {
             (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)
         } else {
             // see if we need embeddables expansion
-            val emb = embeddables.findFirst[field == f]
+            val emb = embeddables?.findFirst[field == f]
             if (emb != null) {
                 // expand embeddable, output it instead of the original column
                 val objectName = emb.name.pojoType.name
