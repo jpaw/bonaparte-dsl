@@ -797,6 +797,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.io.Serializable;
 
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
+        import de.jpaw.bonaparte.jpa.KeyClass;
+        import de.jpaw.bonaparte.jpa.DataClass;
+        import de.jpaw.bonaparte.jpa.TrackingClass;
         «IF !e.noDataMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
         «ENDIF»
@@ -812,6 +815,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isAbstract || e.mappedSuperclass»
             @MappedSuperclass
         «ELSE»
+            @DataClass(«e.pojoType.name».class)
+            «IF e.tableCategory.trackingColumns != null»
+                @TrackingClass(«e.tableCategory.trackingColumns.name».class)
+            «ENDIF»
+            «IF e.pk != null»
+                «IF e.pk.columnName.size > 1»
+                    @KeyClass(«e.name»Key.class)
+                «ELSE»
+                    @KeyClass(«e.pk.columnName.get(0).JavaDataTypeNoName(true)».class)
+                «ENDIF»
+            «ENDIF»
             @Entity
             «IF e.tableCategory.autoSetter != null»
                 @EntityListeners({«e.tableCategory.autoSetter».class})
