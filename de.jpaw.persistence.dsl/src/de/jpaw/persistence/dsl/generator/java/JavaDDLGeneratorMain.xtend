@@ -706,7 +706,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         useUserTypes = !myPackage.noUserTypes
 
         imports.addImport(myPackageName, e.name)  // add myself as well
-        imports.addImport(e.pojoType);
+        imports.addImport(e.pojoType);  // TODO: not needed, see above?
         imports.addImport(e.tableCategory.trackingColumns);
         if (e.^extends != null) {
             imports.addImport(getPackageName(e.^extends), e.^extends.name)
@@ -715,6 +715,19 @@ class JavaDDLGeneratorMain implements IGenerator {
         // imports for ManyToOne
         for (r : e.manyToOnes)
             imports.addImport(r.childObject.getPackageName, r.childObject.name)
+        // for OneToMany
+        for (r : e.oneToManys)
+            imports.addImport(r.relationship.childObject.getPackageName, r.relationship.childObject.name)
+        // for OneToOne
+        for (r : e.oneToOnes)
+            imports.addImport(r.relationship.childObject.getPackageName, r.relationship.childObject.name)
+        // for Embeddables
+        for (r : e.embeddables) {
+            imports.addImport(r.name.getPackageName, r.name.name)  // the Entity
+            //imports.addImport(r.name.pojoType.getPackageName, r.name.pojoType.name)  // the BonaPortable
+            imports.recurseImports(e.pojoType, true)
+        }
+        
 
         var List<FieldDefinition> pkColumns = null
         var String pkType = "Serializable"
