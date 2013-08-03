@@ -28,13 +28,14 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.persistence.dsl.generator.YUtil
 import org.eclipse.xtext.generator.builder.BuilderIntegrationFragment
+import de.jpaw.persistence.dsl.generator.RequiredType
 
 class SqlColumns {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
 
     // TODO: check if column is in PK (then assume implicit NOT NULL)
-    def public static notNullConstraint(FieldDefinition c, boolean forceNotNull) {
-        if (forceNotNull || isRequired(c)) " NOT NULL" else ""
+    def public static notNullConstraint(FieldDefinition c, RequiredType reqType) {
+        if (reqType == RequiredType::FORCE_NOT_NULL || (reqType == RequiredType::DEFAULT && isRequired(c))) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
         if (hasProperty(c.properties, "currentUser"))
@@ -47,17 +48,17 @@ class SqlColumns {
             ""
     }
 
-    def public static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, boolean forceNotNull, Delimiter d, String myName) {
+    def public static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, String myName) {
         val String columnName = myName.java2sql
         if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
             logger.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
         return '''
-            «d.get»«columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, forceNotNull)»
+            «d.get»«columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, reqType)»
         '''
     }
 
     // external entry
-    def public static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, boolean forceNotNull, Delimiter d, List<EmbeddableUse> embeddables) {
-        writeFieldWithEmbeddedAndList(f, embeddables, null, null, false, "", [ fld, myName | fld.doDdlColumn(databaseFlavour, forceNotNull, d, myName) ])
+    def public static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
+        writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | fld.doDdlColumn(databaseFlavour, reqType2, d, myName) ])
     }
 }

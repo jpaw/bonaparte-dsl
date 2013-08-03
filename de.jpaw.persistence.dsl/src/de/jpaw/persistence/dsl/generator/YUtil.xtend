@@ -203,13 +203,13 @@ class YUtil {
     def public static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
         List<EmbeddableUse> embeddables,
         (ClassDefinition)=> CharSequence groupSeparator,
-        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
             «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
                 «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
-                    «c.writeFieldWithEmbeddedAndList(embeddables, null, null, false, "", fieldOutput)»
+                    «c.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
@@ -221,7 +221,7 @@ class YUtil {
                 embeddables,
                 [ '''-- comments for columns of java class «name»
                   '''],
-                [ fld, myName | '''COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
+                [ fld, myName, req | '''COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
                   ''']
         )
     }
@@ -232,7 +232,7 @@ class YUtil {
                 embeddables,
                 [ '''// auto-generated data getter for «name»
                   '''],
-                [ fld, myName | '''_r.set«myName.toFirstUpper»(get«myName.toFirstUpper»());
+                [ fld, myName, req | '''_r.set«myName.toFirstUpper»(get«myName.toFirstUpper»());
                   ''']
         )
     }
@@ -243,7 +243,7 @@ class YUtil {
                 embeddables,
                 [ '''// auto-generated data setter for «name»
                   '''],
-                [ fld, myName | '''set«myName.toFirstUpper»(_d.get«myName.toFirstUpper»());
+                [ fld, myName, req | '''set«myName.toFirstUpper»(_d.get«myName.toFirstUpper»());
                   ''']
         )
     }
@@ -273,12 +273,15 @@ class YUtil {
         
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
-        boolean noListAtThisPoint, String separator, (FieldDefinition, String) => CharSequence func) {
+        RequiredType reqType,
+        boolean noListAtThisPoint, String separator, (FieldDefinition, String, RequiredType) => CharSequence func) {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
-            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , true, separator, func)].join(separator)
+            // lists almost always correspond to nullable fields because we don't know the number of elements
+            val newRequired = if (reqType == RequiredType::FORCE_NOT_NULL /* || f.isAggregateRequired */) reqType else RequiredType::FORCE_NULL;
+            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , newRequired, true, separator, func)].join(separator)
         } else {
             // see if we need embeddables expansion
             val emb = embeddables?.findFirst[field == f]
@@ -291,12 +294,13 @@ class YUtil {
                 val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
                 val newPrefix = '''«prefix»«finalPrefix»'''
                 val newSuffix = '''«finalSuffix»«suffix»'''
+                val newRequired = if (reqType == RequiredType::FORCE_NOT_NULL || f.isRequired) reqType else RequiredType::FORCE_NULL;
                 //System::out.println('''SQL: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''SQL: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
-                emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndList(emb.name.embeddables, newPrefix, newSuffix, false, separator, func)].join(separator)
+                emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndList(emb.name.embeddables, newPrefix, newSuffix, newRequired, false, separator, func)].join(separator)
             } else {
                 // regular field
-                func.apply(f, myName)
+                func.apply(f, myName, reqType)
             }
         }
     }

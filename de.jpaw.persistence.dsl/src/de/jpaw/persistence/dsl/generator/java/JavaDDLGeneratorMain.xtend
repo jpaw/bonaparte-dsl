@@ -42,6 +42,7 @@ import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.ArrayList
+import de.jpaw.persistence.dsl.generator.RequiredType
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -381,12 +382,12 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     
     def public static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
-        (FieldDefinition, String) => CharSequence fieldOutput) '''
+        (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
             «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput)»
             «FOR c : cl.fields»
                 «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && (excludes == null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
-                    «c.writeFieldWithEmbeddedAndList(null, null, null, false, "", fieldOutput)»
+                    «c.writeFieldWithEmbeddedAndList(null, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
@@ -405,9 +406,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                         set«f.name.toFirstUpper»(_x.get«f.name.toFirstUpper»());
                     «ENDFOR»
                 «ENDIF»
-                «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, [ fld, myName | '''«myName» = _x.«myName»;
+                «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
                     '''])»
-                «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, [ fld, myName | '''«myName» = _x.«myName»;
+                «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
                     '''])»
             }
             return this;
@@ -622,7 +623,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     // TODO: does not work for embeddables!  Would need dot notation for that 
     def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
-        recurse(cl, stopAt, false, [ true ], e.embeddables, [ '''''' ], [ fld, myName | '''
+        recurse(cl, stopAt, false, [ true ], e.embeddables, [ '''''' ], [ fld, myName, req | '''
                 «IF fld.properties.hasProperty(PROP_FINDBY)»
                     public static «e.name» findBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {

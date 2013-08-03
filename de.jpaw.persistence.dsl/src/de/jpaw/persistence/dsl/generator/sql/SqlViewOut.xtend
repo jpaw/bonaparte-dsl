@@ -42,7 +42,7 @@ class SqlViewOut {
             e.embeddables,
             [ '''-- columns of java class «name»
               '''],
-            [ fld, myName | '''«d.get»«fld.createColumn(prefix, myName)»
+            [ fld, myName, req | '''«d.get»«fld.createColumn(prefix, myName)»
               ''']
         )
     }

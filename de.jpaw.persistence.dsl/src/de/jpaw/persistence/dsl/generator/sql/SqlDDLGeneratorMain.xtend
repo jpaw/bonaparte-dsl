@@ -40,6 +40,8 @@ import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.zip.Deflater
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
@@ -81,8 +83,8 @@ class SqlDDLGeneratorMain implements IGenerator {
               embeddables,
             [ '''-- table columns of java class «name»
               '''],
-            [ fld, myName | 
-            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, pkCols != null && pkCols.contains(fld), d, myName)»
+            [ fld, myName, reqType | 
+            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols != null && pkCols.contains(fld)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
               ''']
         )
     }
@@ -184,7 +186,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             -- base table PK
             «IF baseEntity.pk != null»
                 «FOR c : baseEntity.pk.columnName»
-                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, true, d, t.embeddables)»
+                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
             «IF ec.mapKey != null»
@@ -192,7 +194,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL,
             «ENDIF»
             -- contents field
-            «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, false, d, t.embeddables)»
+            «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
         «IF baseEntity.pk != null»
@@ -236,7 +238,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «IF baseEntity.pk != null && stopAt != null»
                 «FOR c : baseEntity.pk.columnName»
-                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, true, d, t.embeddables)»
+                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
