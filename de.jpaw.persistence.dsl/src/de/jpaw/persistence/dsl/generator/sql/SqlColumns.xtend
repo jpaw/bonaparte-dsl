@@ -35,7 +35,7 @@ class SqlColumns {
 
     // TODO: check if column is in PK (then assume implicit NOT NULL)
     def public static notNullConstraint(FieldDefinition c, RequiredType reqType) {
-        if (reqType == RequiredType::FORCE_NOT_NULL || (reqType == RequiredType::DEFAULT && isRequired(c))) " NOT NULL" else ""
+        if (reqType == RequiredType::FORCE_NOT_NULL || (reqType == RequiredType::DEFAULT && (c.isRequired || c.properties.hasProperty(PROP_NOTNULL)))) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
         if (hasProperty(c.properties, "currentUser"))

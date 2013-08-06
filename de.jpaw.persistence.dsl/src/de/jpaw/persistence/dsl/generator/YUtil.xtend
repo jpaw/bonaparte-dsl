@@ -38,6 +38,7 @@ class YUtil {
     public static final String PROP_ACTIVE = "active";
     public static final String PROP_VERSION = "version";
     public static final String PROP_REF = "ref";
+    public static final String PROP_NOTNULL = "notNull";    // make a field optional in Java, but required on the DB
     
     
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
