@@ -221,7 +221,7 @@ class YUtil {
                 embeddables,
                 [ '''-- comments for columns of java class «name»
                   '''],
-                [ fld, myName, req | '''COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
+                [ fld, myName, req | if (fld.comment != null) '''COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
                   ''']
         )
     }
