@@ -689,7 +689,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
             , uniqueConstraints={
-            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columnName.map['''"«name.java2sql»"'''].join(', ')»})'''].join(',\n')»
+            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columns.columnName.map['''"«name.java2sql»"'''].join(', ')»})'''].join(',\n')»
             }«ENDIF»'''
 
     def private javaEntityOut(EntityDefinition e, boolean compositeKey) {

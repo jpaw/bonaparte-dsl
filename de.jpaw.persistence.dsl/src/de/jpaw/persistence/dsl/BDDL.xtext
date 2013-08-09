@@ -122,7 +122,7 @@ EntityDefinition:
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
-        (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable?
+        (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?
         ('implements' implementsInterface = QualifiedId )?
@@ -135,7 +135,7 @@ EntityDefinition:
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
         ('pk'     pk       = ListOfColumns)?
-        ('index'  index   += ListOfColumns)*
+        ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
         (('@ManyToOne' manyToOnes += Relationship ) |
         ('@OneToOne' oneToOnes += OneToOne ) |
@@ -185,9 +185,13 @@ ForeignKeyDefinition:
     'field' name = [pojos::FieldDefinition] 'references' ownerEntity = [EntityDefinition] '.' referencedFieldName = ID ';'
 ;
 
+IndexDefinition:
+    (isUnique ?= 'unique')?
+    columns = ListOfColumns
+;
+
 // by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
 ListOfColumns:
-    (isUnique ?= 'unique')?
     '(' columnName += [pojos::FieldDefinition] (',' columnName += [pojos::FieldDefinition])* ')'    
 ;
 // by customer ScopeProvider implementation, an appropriate importedNamespace will be added here

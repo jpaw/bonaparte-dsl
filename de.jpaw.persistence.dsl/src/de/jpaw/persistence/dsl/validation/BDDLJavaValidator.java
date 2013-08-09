@@ -274,10 +274,6 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
             if (m2o.getReferencedFields() != null) {
                 // pk is defined and referenced fields as well
-                if (m2o.getReferencedFields().isIsUnique()) {
-                    error("'unique' keyword does not make sense for ManyToOne/OneToMany relationships",
-                            BDDLPackage.Literals.RELATIONSHIP__REFERENCED_FIELDS);
-                }
                 List<FieldDefinition> refc = m2o.getReferencedFields().getColumnName();
                 List<FieldDefinition> pk = child.getPk().getColumnName();
                 if (m2o.eContainer() instanceof OneToMany) {
