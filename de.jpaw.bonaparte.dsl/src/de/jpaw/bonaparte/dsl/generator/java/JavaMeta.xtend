@@ -97,7 +97,7 @@ class JavaMeta {
                 «ENDFOR»
                 «FOR f : d.fields»
                     «FOR p : f.properties»
-                        map.putIfAbsent("«d.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
+                        map.putIfAbsent("«f.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
                     «ENDFOR»
                 «ENDFOR»
                 «IF propertiesInherited»
@@ -115,7 +115,7 @@ class JavaMeta {
             }
             static public String get$Property(String propertyname, String fieldname) {
                 return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
-            } 
+            }
 
             static public String class$Property(String id) {
                 «IF propertiesInherited»
@@ -156,7 +156,7 @@ class JavaMeta {
             public String get$Property(String id) {
                 return class$Property(id);
             }
-            
+
             static public Class<? extends BonaPortable> class$returns() {
                 «IF d.returnsClass != null»
                     return «d.returnsClass.packageName».«d.returnsClass.name».class;
@@ -169,7 +169,7 @@ class JavaMeta {
             public Class<? extends BonaPortable> get$returns() {
                 return class$returns();
             }
- 
+
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;

@@ -204,12 +204,23 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                   BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME);
         }
 
-        // verify for missing primary key
-        if (e.getTableCategory().isRequiresPk()) {
-            // we need one by definition of the category
-            if (e.getPk() == null)
-                error("The table category requires specificaton of a primary key for this entity",
-                        BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
+        // verify for primary key
+        // check for embeddable PK
+        int numPks = YUtil.countEmbeddablePks(e);
+        if (numPks > 1) {
+            error("At most one embeddable may be defined as PK", BDDLPackage.Literals.ENTITY_DEFINITION__EMBEDDABLES);
+        }
+        // we need one by definition of the category
+        if (e.getPk() != null) {
+            ++numPks;
+            if (numPks > 1) {
+                error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK);
+
+            }
+        }
+        if (numPks == 0 && e.getTableCategory().isRequiresPk()) {
+            error("The table category requires specificaton of a primary key for this entity",
+                   BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
         }
 
         if (e.getXinheritance() != null) {

@@ -79,6 +79,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                     // write a separate class for the composite key
                     fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
                     compositeKey = true
+                } else if (e.countEmbeddablePks > 1) {
+                    compositeKey = true
                 }
                 fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
             }
@@ -286,11 +288,17 @@ class JavaDDLGeneratorMain implements IGenerator {
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
                 
                 return '''
-                    @AttributeOverrides({
-                    «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
-                        [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
-                    })
-                    @Embedded
+                    «IF newPrefix != "" || newSuffix != ""»
+                        @AttributeOverrides({
+                        «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
+                            [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
+                        })
+                    «ENDIF»
+                    «IF emb.isPk != null»
+                        @EmbeddedId
+                    «ELSE»
+                        @Embedded
+                    «ENDIF»
                     private «emb.name.name» «myName»;
                     public «emb.name.pojoType.name» get«myName.toFirstUpper()»() {
                         if («myName» == null)
@@ -343,6 +351,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         List<FieldDefinition> pkColumns, boolean excludePkColumns
     ) {
         // include aggregates if there is an @ElementCollection defined for them
+        //        «IF embeddables?.filter[isPk != null].head?.field == fld»
+        //            @EmbeddedId
+        //        «ENDIF»
         recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName, ind | '''
@@ -583,7 +594,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF pkType.equals("Serializable")»
                 return null;  // FIXME! not yet implemented!
             «ELSE»
-                «IF e.pk.columnName.size > 1»
+                «IF e.embeddablePk != null»
+                    return get«e.embeddablePk.field.name.toFirstUpper»();
+                «ELSEIF e.pk.columnName.size > 1»
                     return key.clone(); // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
                     return «e.pk.columnName.get(0).name»;
@@ -595,7 +608,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF pkType.equals("Serializable")»
                 // FIXME! not yet implemented!!!
             «ELSE»
-                «IF e.pk.columnName.size > 1»
+                «IF e.embeddablePk != null»
+                    set«e.embeddablePk.field.name.toFirstUpper»(_k);
+                «ELSEIF e.pk.columnName.size > 1»
                     key = _k.clone();   // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
                     set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions
@@ -731,15 +746,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         
 
         var List<FieldDefinition> pkColumns = null
-        var String pkType = "Serializable"
+        var String pkType0 = null
         var String trackingType = "BonaPortable"
-        if (e.pk != null) {
+        if (e.countEmbeddablePks > 0)
+            pkType0 = e.embeddablePk.name.pojoType.name
+        else if (e.pk != null) {
             pkColumns = e.pk.columnName
             if (pkColumns.size > 1)
-                pkType = e.name + "Key"
+                pkType0 = e.name + "Key"
             else
-                pkType = pkColumns.get(0).JavaDataTypeNoName(true)
+                pkType0 = pkColumns.get(0).JavaDataTypeNoName(true)
         }
+        val String pkType = pkType0 ?: "Serializable"
         if (e.tableCategory.trackingColumns != null) {
             trackingType = e.tableCategory.trackingColumns.name
         }
@@ -833,12 +851,8 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.tableCategory.trackingColumns != null»
                 @TrackingClass(«e.tableCategory.trackingColumns.name».class)
             «ENDIF»
-            «IF e.pk != null»
-                «IF e.pk.columnName.size > 1»
-                    @KeyClass(«e.name»Key.class)
-                «ELSE»
-                    @KeyClass(«e.pk.columnName.get(0).JavaDataTypeNoName(true)».class)
-                «ENDIF»
+            «IF pkType0 != null»
+                @KeyClass(«pkType0».class)
             «ENDIF»
             @Entity
             «IF e.tableCategory.autoSetter != null»
@@ -868,7 +882,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             @Deprecated
         «ENDIF»
         public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
-            «IF stopper == null && compositeKey»
+            «IF stopper == null && compositeKey && e.countEmbeddablePks == 0»
                 @EmbeddedId
                 «fieldVisibility»«e.name»Key key;
                 // forwarding getters and setters

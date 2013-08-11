@@ -271,7 +271,7 @@ class YUtil {
         val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
         if (p >= 0) userPattern else "%02d"        
     }
-        
+    
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
         RequiredType reqType,
@@ -305,4 +305,14 @@ class YUtil {
             }
         }
     }
+    
+    def public static countEmbeddablePks(EntityDefinition e) {
+        if (e.embeddables == null)
+            return 0
+        return e.embeddables.filter[isPk != null].size
+    }
+    def public static getEmbeddablePk(EntityDefinition e) {
+        return e?.embeddables.filter[isPk != null].head
+    }
+        
 }

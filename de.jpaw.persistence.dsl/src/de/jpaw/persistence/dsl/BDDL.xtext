@@ -178,7 +178,7 @@ CollectionDefinition:
 ;
 
 EmbeddableUse:
-    name = [EmbeddableDefinition] 'for' field=[pojos::FieldDefinition] ('prefix' prefix=ID)? ('suffix' suffix=ID)?
+    name = [EmbeddableDefinition] 'for' field=[pojos::FieldDefinition] ('prefix' prefix=ID)? ('suffix' suffix=ID)? ('is' isPk = 'pk')?
 ;
 
 ForeignKeyDefinition:

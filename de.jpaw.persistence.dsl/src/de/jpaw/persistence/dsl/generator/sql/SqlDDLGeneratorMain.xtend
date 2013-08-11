@@ -244,7 +244,11 @@ class SqlDDLGeneratorMain implements IGenerator {
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
-        «IF baseEntity.pk != null»
+        «IF baseEntity.embeddablePk != null»
+            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
+                «FOR c : baseEntity.embeddablePk.name.pojoType.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
+            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ELSEIF baseEntity.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;

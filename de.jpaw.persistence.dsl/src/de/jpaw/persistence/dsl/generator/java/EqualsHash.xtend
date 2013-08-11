@@ -42,7 +42,7 @@ class EqualsHash {
     // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
     def private static writeCompareStuff(FieldDefinition i, String index, String end) '''
         «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
-            ((«index» == null && that.«index» == null) || «index».hasSameContentsAs(that.«index»))«end»
+            ((«index» == null && that.«index» == null) || «index».equals(that.«index»))«end»
         «ELSE»
             «IF DataTypeExtension::get(i.datatype).isPrimitive»
                 «index» == that.«index»«end»
