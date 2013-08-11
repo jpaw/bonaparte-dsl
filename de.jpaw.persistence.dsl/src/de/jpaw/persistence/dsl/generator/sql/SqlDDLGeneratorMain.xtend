@@ -197,7 +197,11 @@ class SqlDDLGeneratorMain implements IGenerator {
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
-        «IF baseEntity.pk != null»
+        «IF baseEntity.embeddablePk != null»
+            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
+                «FOR c : baseEntity.embeddablePk.name.pojoType.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
+            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ELSEIF baseEntity.pk != null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
