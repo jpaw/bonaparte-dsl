@@ -36,3 +36,5 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.6.0
 - BDDL: Improvement: grammar: unique keyword no longer possible where it makes no sense
 - BDDL: bugfix: fix list of columns suggested / validated for @OneToMany (must be of target object, not of current entity) 
+- BDDL: (c) bugfix: remove plausis about sizes of PKs for @OneToMany and @ManyToOne - more flexible structre can and do occur
+- BDDL: (c) bugfix: suppress output of null if no row comment exists for DDL

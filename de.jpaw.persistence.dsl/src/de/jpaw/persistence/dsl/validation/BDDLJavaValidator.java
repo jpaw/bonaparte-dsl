@@ -275,6 +275,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                         BDDLPackage.Literals.RELATIONSHIP__NAME);
             }
         }
+        /* deactivate plausis for now...
         EntityDefinition child = m2o.getChildObject();
         if (child != null) {
             // child must have a PK, and that must have the same number of fields as the referenced field list
@@ -310,7 +311,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                     }
                 }
             }
-        }
+        } */
     }
 
     private static boolean isSame(Object a, Object b) {
