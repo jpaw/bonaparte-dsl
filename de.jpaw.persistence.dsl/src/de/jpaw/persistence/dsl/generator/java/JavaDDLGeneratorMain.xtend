@@ -79,7 +79,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     // write a separate class for the composite key
                     fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
                     compositeKey = true
-                } else if (e.countEmbeddablePks > 1) {
+                } else if (e.countEmbeddablePks > 0) {
                     compositeKey = true
                 }
                 fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
@@ -748,9 +748,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         var List<FieldDefinition> pkColumns = null
         var String pkType0 = null
         var String trackingType = "BonaPortable"
-        if (e.countEmbeddablePks > 0)
+        if (e.countEmbeddablePks > 0) {
             pkType0 = e.embeddablePk.name.pojoType.name
-        else if (e.pk != null) {
+            pkColumns = e.embeddablePk.name.pojoType.fields
+        } else if (e.pk != null) {
             pkColumns = e.pk.columnName
             if (pkColumns.size > 1)
                 pkType0 = e.name + "Key"

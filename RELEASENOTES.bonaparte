@@ -38,3 +38,4 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: bugfix: fix list of columns suggested / validated for @OneToMany (must be of target object, not of current entity) 
 - BDDL: (c) bugfix: remove plausis about sizes of PKs for @OneToMany and @ManyToOne - more flexible structre can and do occur
 - BDDL: (c) bugfix: suppress output of null if no row comment exists for DDL
+- BDDL: (d) bugfix: output for natural key entities via embeddable was incorrect, fixed now

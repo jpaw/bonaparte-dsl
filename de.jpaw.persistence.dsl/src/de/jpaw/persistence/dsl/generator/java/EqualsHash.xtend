@@ -180,7 +180,11 @@ class EqualsHash {
     def public static writeEqualsAndHashCode(EntityDefinition e, boolean compositeKey) '''
         // equals and hash code
         «IF compositeKey»
-            «writeSub(e, "key")»
+            «IF e.countEmbeddablePks == 0»
+                «writeSub(e, "key")»
+            «ELSE»
+                «writeSub(e, e.embeddablePk.field.name)»
+            «ENDIF»
         «ELSEIF e.pk != null && e.pk.columnName != null»
             «writeSub(e, e.pk.columnName.get(0).name)»
         «ELSE»
