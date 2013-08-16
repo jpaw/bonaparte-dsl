@@ -134,7 +134,7 @@ EntityDefinition:
         ('tenantClass' tenantClass = [pojos::ClassDefinition])?
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
-        ('pk'     (pk       = ListOfColumns) | (pkPojo = [pojos::ClassDefinition]) )?
+        ('pk'     ('is' pkPojo = [pojos::ClassDefinition])? (pk       = ListOfColumns)? )?
         ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
         (('@ManyToOne' manyToOnes += Relationship ) |

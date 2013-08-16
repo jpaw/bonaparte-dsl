@@ -356,7 +356,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName, ind | '''
-                «IF (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
+                «IF (primaryKeyType == PrimaryKeyType::SINGLE_COLUMN || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
                     @Id
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
@@ -595,6 +595,8 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ELSE»
                 «IF e.embeddablePk != null»
                     return get«e.embeddablePk.field.name.toFirstUpper»();
+                «ELSEIF e.pkPojo != null»
+                    return new «e.pkPojo.name»(«e.pkPojo.fields.map['''get«name.toFirstUpper»()'''].join(', ')»);
                 «ELSEIF e.pk.columnName.size > 1»
                     return key.clone(); // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
@@ -609,6 +611,10 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ELSE»
                 «IF e.embeddablePk != null»
                     set«e.embeddablePk.field.name.toFirstUpper»(_k);
+                «ELSEIF e.pkPojo != null»
+                    «FOR f: e.pkPojo.fields»
+                        set«f.name.toFirstUpper»(_k.get«f.name.toFirstUpper»());
+                    «ENDFOR»
                 «ELSEIF e.pk.columnName.size > 1»
                     key = _k.clone();   // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
