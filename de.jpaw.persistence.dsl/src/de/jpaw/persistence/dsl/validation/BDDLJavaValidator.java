@@ -218,6 +218,13 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
             }
         }
+        if (e.getPkPojo() != null) {
+            ++numPks;
+            if (numPks > 1) {
+                error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
+
+            }
+        }
         if (numPks == 0 && e.getTableCategory().isRequiresPk()) {
             error("The table category requires specificaton of a primary key for this entity",
                    BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
@@ -256,8 +263,30 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         if (e.getTenantClass() != null)
             checkClassForReservedColumnNames(e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
         checkClassForReservedColumnNames(e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
+        
+        // for PK pojo, all columns must exist
+        if (e.getPkPojo() != null) {
+            for (FieldDefinition f: e.getPkPojo().getFields()) {
+                if (exists(f, e.getPojoType().getFields()))
+                    ;
+                else if (e.getTenantClass() != null && exists(f, e.getTenantClass().getFields()))
+                    ;
+                else {
+                    error("Field " + f.getName() + " of PK not found in entity", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
+                }
+            }
+        }
     }
 
+    private boolean exists(FieldDefinition f, List<FieldDefinition> l) {
+        for (FieldDefinition ff: l) {
+            if (ff.getName().equals(f.getName())) {
+                return true;  // to be refined later by type check
+            }
+        }
+        return false;
+    }
+    
     @Check
     public void checkCollection(CollectionDefinition c) {
         if (c.getMap() != null && c.getMap().getIsMap() != null) {

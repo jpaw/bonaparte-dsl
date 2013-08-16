@@ -317,5 +317,19 @@ class YUtil {
     def public static getEmbeddablePk(EntityDefinition e) {
         return e?.embeddables.filter[isPk != null].head
     }
+    
+    def public static determinePkType(EntityDefinition e) {
+        if (e.pk != null) {
+            if (e.pk.columnName.size > 1)
+                PrimaryKeyType::IMPLICIT_EMBEDDABLE
+            else
+                PrimaryKeyType::SINGLE_COLUMN
+        } else if (e.pkPojo != null) {
+            PrimaryKeyType::ID_CLASS
+        } else if (e.embeddablePk != null)
+            PrimaryKeyType::EXPLICIT_EMBEDDABLE
+        else
+            PrimaryKeyType::NONE
+    }
         
 }

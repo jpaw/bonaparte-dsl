@@ -24,6 +24,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import java.util.List
+import de.jpaw.persistence.dsl.generator.PrimaryKeyType
 
 class EqualsHash {
     def private static writeCompareSub(FieldDefinition i, String index) {
@@ -177,22 +178,24 @@ class EqualsHash {
                 return this.«name».equals(((«e.name»)obj).«name»);
             }
     '''
-    def public static writeEqualsAndHashCode(EntityDefinition e, boolean compositeKey) '''
-        // equals and hash code
-        «IF compositeKey»
-            «IF e.countEmbeddablePks == 0»
-                «writeSub(e, "key")»
-            «ELSE»
-                «writeSub(e, e.embeddablePk.field.name)»
-            «ENDIF»
-        «ELSEIF e.pk != null && e.pk.columnName != null»
-            «writeSub(e, e.pk.columnName.get(0).name)»
-        «ELSE»
+    
+    def public static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
+        switch (primaryKeyType) {
+        case PrimaryKeyType::IMPLICIT_EMBEDDABLE:
+            writeSub(e, "key")
+        case PrimaryKeyType::EXPLICIT_EMBEDDABLE:
+            writeSub(e, e.embeddablePk.field.name)
+        case PrimaryKeyType::SINGLE_COLUMN:
+            writeSub(e, e.pk.columnName.get(0).name)
+        default:
+            // NONE and  PrimaryKeyType::ID_CLASS:
+            '''
             «writeHash(e.pojoType, null)»
             «writeEquals(e)»
-        «ENDIF»
-    '''
-
+        '''
+        }
+    }
+    
     def public static writeKeyEquals(String name, List<FieldDefinition> l) '''
         @Override
         public boolean equals(Object _that) {

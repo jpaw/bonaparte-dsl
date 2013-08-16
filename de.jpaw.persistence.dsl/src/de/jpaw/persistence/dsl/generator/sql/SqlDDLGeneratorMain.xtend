@@ -256,6 +256,10 @@ class SqlDDLGeneratorMain implements IGenerator {
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
             )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ELSEIF baseEntity.pkPojo != null»
+            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
+                «FOR c : baseEntity.pkPojo.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
+            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»

@@ -43,6 +43,8 @@ import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.ArrayList
 import de.jpaw.persistence.dsl.generator.RequiredType
+import de.jpaw.persistence.dsl.generator.PrimaryKeyType
+import javax.lang.model.type.PrimitiveType
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -74,15 +76,12 @@ class JavaDDLGeneratorMain implements IGenerator {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
             if (!e.noJava && !(e.eContainer as PackageDefinition).noJava) {
-                var boolean compositeKey = false;
-                if (e.pk != null && e.pk.columnName.size > 1) {
+                val primaryKeyType = determinePkType(e)
+                if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
                     fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
-                    compositeKey = true
-                } else if (e.countEmbeddablePks > 0) {
-                    compositeKey = true
                 }
-                fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(compositeKey))
+                fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(primaryKeyType))
             }
         }
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
@@ -342,13 +341,13 @@ class JavaDDLGeneratorMain implements IGenerator {
     
     // shorthand call for entities    
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
-        List<FieldDefinition> pkColumns, boolean excludePkColumns) {
-        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, excludePkColumns);
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType) {
+        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, primaryKeyType);
     }
     
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
         List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, boolean doBeanVal,
-        List<FieldDefinition> pkColumns, boolean excludePkColumns
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType
     ) {
         // include aggregates if there is an @ElementCollection defined for them
         //        «IF embeddables?.filter[isPk != null].head?.field == fld»
@@ -357,10 +356,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName, ind | '''
-                «IF pkColumns != null && pkColumns.size == 1 && fld == pkColumns.get(0)»
+                «IF (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
                     @Id
                 «ENDIF»
-                «IF (!excludePkColumns || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
+                «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
                     «fld.singleColumn(el, doBeanVal, myName)»
                     «fld.writeGetter(myName)»
                     «fld.writeSetter(myName)»
@@ -707,7 +706,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columns.columnName.map['''"«name.java2sql»"'''].join(', ')»})'''].join(',\n')»
             }«ENDIF»'''
 
-    def private javaEntityOut(EntityDefinition e, boolean compositeKey) {
+    def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         val String myPackageName = getPackageName(e)
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
@@ -743,6 +742,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             //imports.addImport(r.name.pojoType.getPackageName, r.name.pojoType.name)  // the BonaPortable
             imports.recurseImports(e.pojoType, true)
         }
+        imports.addImport(e.pkPojo)
         
 
         var List<FieldDefinition> pkColumns = null
@@ -757,6 +757,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 pkType0 = e.name + "Key"
             else
                 pkType0 = pkColumns.get(0).JavaDataTypeNoName(true)
+        } else if (e.pkPojo != null) {
+            pkColumns = e.pkPojo.fields
+            pkType0 = e.pkPojo.name 
         }
         val String pkType = pkType0 ?: "Serializable"
         if (e.tableCategory.trackingColumns != null) {
@@ -803,6 +806,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.FetchType;
         import javax.persistence.CascadeType;
         import javax.persistence.Id;
+        import javax.persistence.IdClass;
         import javax.persistence.Temporal;
         import javax.persistence.TemporalType;
         import javax.persistence.NoResultException;
@@ -866,6 +870,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
             «ENDIF»
             @Table(name="«mkTablename(e, false)»"«e.createUniqueConstraints»)
+            «IF primaryKeyType == PrimaryKeyType::ID_CLASS»
+                @IdClass(«e.pkPojo.name».class)
+            «ENDIF»
             «IF e.tenantId != null»
                 @Multitenant(/* SINGLE_TABLE */)
             «ENDIF»
@@ -883,7 +890,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             @Deprecated
         «ENDIF»
         public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
-            «IF stopper == null && compositeKey && e.countEmbeddablePks == 0»
+            «IF stopper == null && primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 @EmbeddedId
                 «fieldVisibility»«e.name»Key key;
                 // forwarding getters and setters
@@ -897,10 +904,10 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
 
             «ENDIF»
-            «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, compositeKey)»«ENDIF»
-            «e.tenantClass?.recurseColumns(null, e, pkColumns, false)»
-            «e.pojoType.recurseColumns(stopper, e, pkColumns, compositeKey)»
-            «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, compositeKey)»«ENDIF»
+            «IF stopper == null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType)»«ENDIF»
+            «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType)»
+            «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType)»
+            «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»«ENDIF»
             «writeStubs(e)»
             «writeInterfaceMethods(e, pkType, trackingType)»
             «IF (!e.noDataMapper)»
@@ -996,7 +1003,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         @Embeddable
         public class «e.name» implements Serializable, Cloneable {
-            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, false)»
+            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
             «EqualsHash::writeHash(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
