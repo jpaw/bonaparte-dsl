@@ -148,15 +148,15 @@ class EqualsHash {
             return equalsSub(_that);
         }
 
-        «IF e.pojoType.extendsClass != null»
+        «IF e.extendsClass != null»
         @Override
         «ENDIF»
         protected boolean equalsSub(Object _that) {
             «e.name» that = («e.name»)_that;
-            «IF e.pojoType.extendsClass != null»
+            «IF e.extendsClass != null»
                 return super.equalsSub(_that)
             «ELSE»
-                return true  // FIXME: there is very likely an issue here if the related entity extends a Java class for relations, which declares fiels as well
+                return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fiels as well
             «ENDIF»
             «writeEqualsSub(e.pojoType.fields)»
             ;
