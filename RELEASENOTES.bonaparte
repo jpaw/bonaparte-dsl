@@ -42,3 +42,4 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: (e) new feature: allow to define composite primary keys via IdClass
 - BON: (f): bugfix / workaround: capture some NPEs when classes inherit from other classes which are not in open projects in Eclipse
 - BON: (f) extension: allow to specify pk for classes (for Natural Key)
+- BDDL: (f) bugfix: allow to use @ManyToOne with natural key classes
