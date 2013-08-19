@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.EObject;
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
@@ -374,6 +375,11 @@ public class DataTypeExtension {
             r.currentlyVisited = true;
             // add to map
             map.put(key, r);
+            if (r.typedef.getDatatype() == null) {
+                // currently we have some sporadic NPE on Windows here
+                System.out.println("NPE alert for typedef " + nvl(r.typedef.getName(), "NULL") + " for parent " + prtParent(r.typedef.eContainer()));
+                return null;
+            }
             DataTypeExtension resolvedReference = get(r.typedef.getDatatype());  // descend via DFS
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
@@ -407,5 +413,17 @@ public class DataTypeExtension {
             map.put(key, r);
         }
         return r;
+    }
+    
+    private static String nvl(String me, String them) {
+        return me != null ? me : them;
+    }
+    
+    private static String prtParent(EObject parent) {
+        if (parent instanceof FieldDefinition)
+            return " FIELD " + ((ClassDefinition)(parent.eContainer())).getName() + "." + ((FieldDefinition)parent).getName();
+        if (parent instanceof TypeDefinition)
+            return " TYPE " + ((ClassDefinition)(parent.eContainer())).getName() + "." + ((TypeDefinition)parent).getName();
+        return "UNKNOWN";
     }
 }

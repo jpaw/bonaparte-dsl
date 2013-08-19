@@ -38,16 +38,19 @@ public class ImportCollector {
             return;
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
-            var ref = DataTypeExtension::get(i.datatype)
-            // referenced objects
-            if (ref.objectDataType != null)
-                addImport(ref.objectDataType)
-            if (ref.genericsRef != null)
-                addImport(ref.genericsRef)
-            // referenced enums
-            // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-            if (ref.category == DataCategory::ENUM)
-                addImport(ref.elementaryDataType.enumType)
+            val ref = DataTypeExtension::get(i.datatype)
+            if (ref == null) {
+                System::out.println('''recurseImports: NPE catch for «d.name».«i.name»''')
+            } else {
+                // referenced objects
+                if (ref.objectDataType != null)
+                    addImport(ref.objectDataType)
+                if (ref.genericsRef != null)
+                    addImport(ref.genericsRef) // referenced enums
+                // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
+                if (ref.category == DataCategory::ENUM)
+                    addImport(ref.elementaryDataType.enumType)
+            }
         }
         // generic parameters
         if (d.genericParameters != null)
