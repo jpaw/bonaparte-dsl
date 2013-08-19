@@ -24,12 +24,14 @@ import org.apache.commons.logging.LogFactory
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.persistence.dsl.bDDL.OneToMany
+import java.util.List
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class MakeRelationships {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.MakeRelationships") // jcl
     
-    def static private makeJoin(Relationship m, int i, boolean readonly) '''
-        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«m.childObject.pk.columnName.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
+    def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns) '''
+        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
     '''
 
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
@@ -59,15 +61,18 @@ class MakeRelationships {
             return '''(«arg2»)'''
     }  */
     
-    def private static writeJoinColumns(Relationship m, boolean readOnly) '''
-        «IF m.referencedFields.columnName.size == 1»
-            «m.makeJoin(0, readOnly)»
-        «ELSE»
-            @JoinColumns({
-               «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly)].join(', ')»
-            })
-        «ENDIF»
-    '''
+    def private static writeJoinColumns(Relationship m, boolean readOnly) {
+        val childPkColumns = m.childObject.pk?.columnName ?: m.childObject.pkPojo?.fields ?: m.childObject.embeddablePk.name.pojoType.fields
+        '''
+            «IF m.referencedFields.columnName.size == 1»
+                «m.makeJoin(0, readOnly, childPkColumns)»
+            «ELSE»
+                @JoinColumns({
+                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns)].join(', ')»
+                })
+            «ENDIF»
+        '''
+    }
     
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
