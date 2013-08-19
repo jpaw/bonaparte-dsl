@@ -167,6 +167,7 @@ ClassDefinition:
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     ('return' returnsClass = [ClassDefinition])?
+    ('pk' pkClass = [ClassDefinition])?
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?

@@ -174,6 +174,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import «bonaparteInterfacesPackage».ExternalizableComposer;
             import «bonaparteInterfacesPackage».ExternalizableParser;
         «ENDIF»
+        «IF d.pkClass != null»
+            import de.jpaw.bonaparte.annotation.RelatedKey;
+        «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».BonaPortableWithMetaData;
         import «bonaparteInterfacesPackage».MessageParser;
@@ -192,6 +195,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF (xmlAccess != null && !d.isAbstract)»
             @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
+        «ENDIF»
+        «IF d.pkClass != null»
+            @RelatedKey(«JavaPackages::getPackageName(d.pkClass)».«d.pkClass.name».class)
         «ENDIF»
         «IF d.isDeprecated»
         @Deprecated

@@ -40,3 +40,5 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: (c) bugfix: suppress output of null if no row comment exists for DDL
 - BDDL: (d) bugfix: output for natural key entities via embeddable was incorrect, fixed now
 - BDDL: (e) new feature: allow to define composite primary keys via IdClass
+- BON: (f): bugfix / workaround: capture some NPEs when classes inherit from other classes which are not in open projects in Eclipse
+- BON: (f) extension: allow to specify pk for classes (for Natural Key)
