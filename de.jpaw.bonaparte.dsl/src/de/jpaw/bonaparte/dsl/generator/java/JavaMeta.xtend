@@ -170,6 +170,20 @@ class JavaMeta {
                 return class$returns();
             }
 
+
+            static public Class<? extends BonaPortable> class$pk() {
+                «IF d.pkClass != null»
+                    return «d.pkClass.packageName».«d.pkClass.name».class;
+                «ELSE»
+                    return «IF d.parent != null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
+                «ENDIF»
+            }
+
+            @Override
+            public Class<? extends BonaPortable> get$pk() {
+                return class$pk();
+            }
+
             // my name and revision
             private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;

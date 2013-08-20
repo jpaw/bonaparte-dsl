@@ -85,11 +85,15 @@ class JavaConstructor {
         @Override
         public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
             if (desiredSuperType == null || desiredSuperType == getClass())
-                return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.toFirstUpper() + "()"].join(', ')»);
+                «IF d.abstract»
+                    throw new IllegalArgumentException("«d.name» is abstract can cannot be supported by copyOf()");
+                «ELSE»
+                    return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.toFirstUpper() + "()"].join(', ')»);
+                «ENDIF»
             «IF d.extendsClass != null»
                 return super.copyAs(desiredSuperType);
             «ELSE»
-                throw new IllegalArgumentException("Wrapper does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");
+                throw new IllegalArgumentException("«d.name» does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");
             «ENDIF»
         }
      '''
