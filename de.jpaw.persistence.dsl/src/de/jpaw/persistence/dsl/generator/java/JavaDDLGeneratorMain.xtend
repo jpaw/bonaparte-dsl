@@ -688,7 +688,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private static noDataMapper(EntityDefinition e) {
-        e.noMapper || (e.eContainer as PackageDefinition).noMapper
+        e.noMapper || (e.eContainer as PackageDefinition).noMapper || e.noDataKeyMapper
     }
 
     def private static noDataKeyMapper(EntityDefinition e) {
