@@ -555,20 +555,12 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
         «IF e.^extends == null»
-        public static Class<«pkType»> class$KeyClass() {
-            return «pkType».class;
-        }
         public static Class<«trackingType»> class$TrackingClass() {
             «IF e.tableCategory.trackingColumns == null»
                 return null;
             «ELSE»
                 return «trackingType».class;
             «ENDIF»
-        }
-
-        @Override
-        public Class<«pkType»> get$KeyClass() {
-            return «pkType».class;
         }
         @Override
         public String get$TrackingPQON() {
@@ -588,6 +580,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
 
         «IF !e.noDataKeyMapper»
+        public static Class<«pkType»> class$KeyClass() {
+            return «pkType».class;
+        }
+        @Override
+        public Class<«pkType»> get$KeyClass() {
+            return «pkType».class;
+        }
         @Override
         public «pkType» get$Key() throws ApplicationException {
             «IF pkType.equals("Serializable")»
