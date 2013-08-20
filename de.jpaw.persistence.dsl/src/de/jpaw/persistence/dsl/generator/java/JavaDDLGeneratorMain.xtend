@@ -405,7 +405,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     
     def private writeCopyOf(EntityDefinition e, String pkType, String trackingType) '''
         @Override
-        public BonaPersistableNoData<«pkType», «trackingType»> mergeFrom(final BonaPersistableNoData<«pkType», «trackingType»> _b) {
+        public BonaPersistableBase mergeFrom(final BonaPersistableBase _b) {
             «IF e.extends != null»
                 super.mergeFrom(_b);
             «ENDIF»
@@ -566,7 +566,6 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         }
 
-
         @Override
         public Class<«pkType»> get$KeyClass() {
             return «pkType».class;
@@ -588,6 +587,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         }
 
+        «IF !e.noDataKeyMapper»
         @Override
         public «pkType» get$Key() throws ApplicationException {
             «IF pkType.equals("Serializable")»
@@ -622,6 +622,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDIF»
             «ENDIF»
         }
+        «ENDIF»
+        
         @Override
         public «trackingType» get$Tracking() throws ApplicationException {
             «IF e.tableCategory.trackingColumns == null»
@@ -685,12 +687,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def private noDataMapper(EntityDefinition e) {
+    def private static noDataMapper(EntityDefinition e) {
         e.noMapper || (e.eContainer as PackageDefinition).noMapper
+    }
+
+    def private static noDataKeyMapper(EntityDefinition e) {
+        e.noKeyMapper || (e.eContainer as PackageDefinition).noKeyMapper
     }
     
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
-        if (e.noDataMapper)
+        if (e.noDataKeyMapper)
+            '''BonaPersistableTracking<«trackingType»>'''
+        else if (e.noDataMapper)
             '''BonaPersistableNoData<«pkType», «trackingType»>'''
         else
             '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
@@ -840,12 +848,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         import java.io.Serializable;
 
         import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
+        import de.jpaw.bonaparte.jpa.BonaPersistableTracking;
+        import de.jpaw.bonaparte.jpa.BonaPersistableBase;
+        import de.jpaw.bonaparte.jpa.BonaPersistable;
         import de.jpaw.bonaparte.jpa.KeyClass;
         import de.jpaw.bonaparte.jpa.DataClass;
         import de.jpaw.bonaparte.jpa.TrackingClass;
-        «IF !e.noDataMapper»
         import de.jpaw.bonaparte.jpa.BonaPersistable;
-        «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;

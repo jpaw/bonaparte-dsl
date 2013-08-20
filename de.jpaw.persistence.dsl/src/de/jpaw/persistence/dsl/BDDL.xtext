@@ -80,7 +80,7 @@ TableCategoryDefinition:
 
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
-    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper') ')')?
+    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper') ')')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
         'owner'  schemaOwner = ID
@@ -111,7 +111,7 @@ EmbeddableDefinition:
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper' | mappedSuperclass?='mappedSuperclass') ')')?
+    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper' | mappedSuperclass?='mappedSuperclass') ')')?
     (isAbstract?='abstract')?
     'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
