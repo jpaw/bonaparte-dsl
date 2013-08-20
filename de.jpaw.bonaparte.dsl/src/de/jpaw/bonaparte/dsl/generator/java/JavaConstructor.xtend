@@ -21,7 +21,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.bonaparte.dsl.generator.Generics
 
-import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import java.util.List
 import java.util.ArrayList
 
@@ -84,11 +84,11 @@ class JavaConstructor {
         // copyOf clone method
         @Override
         public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
-            if (desiredSuperType == null || desiredSuperType == getClass())
+            if (desiredSuperType == null || desiredSuperType == «d.name».class)
                 «IF d.abstract»
                     throw new IllegalArgumentException("«d.name» is abstract can cannot be supported by copyOf()");
                 «ELSE»
-                    return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.toFirstUpper() + "()"].join(', ')»);
+                    return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.getNameCapsed(d) + "()"].join(', ')»);
                 «ENDIF»
             «IF d.extendsClass != null»
                 return super.copyAs(desiredSuperType);

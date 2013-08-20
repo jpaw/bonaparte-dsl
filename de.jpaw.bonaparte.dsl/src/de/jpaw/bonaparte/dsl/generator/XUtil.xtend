@@ -211,6 +211,13 @@ class XUtil {
             ref.javaType
     }
     
+    def public static String getNameCapsed(String fieldname, ClassDefinition d) {
+        if (d.beanNames == XBeanNames::ONLY_BEAN_NAMES)
+            return fieldname.beanName
+        else
+            return fieldname.toFirstUpper    
+    }
+    
     def public static String getBeanName(String fieldname) {
         if (fieldname.length >= 2) {
             if (Character::isLowerCase(fieldname.charAt(0)) && Character.isUpperCase(fieldname.charAt(1)))
