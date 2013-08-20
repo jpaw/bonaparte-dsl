@@ -266,14 +266,30 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         
         // for PK pojo, all columns must exist
         if (e.getPkPojo() != null) {
-            for (FieldDefinition f: e.getPkPojo().getFields()) {
-                if (exists(f, e.getPojoType().getFields()))
-                    ;
-                else if (e.getTenantClass() != null && exists(f, e.getTenantClass().getFields()))
-                    ;
-                else {
-                    error("Field " + f.getName() + " of PK not found in entity", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
+            // this must be either a final class, or a superclass
+            if (e.getPkPojo().isFinal()) {
+                for (FieldDefinition f : e.getPkPojo().getFields()) {
+                    if (exists(f, e.getPojoType().getFields()))
+                        ;
+                    else if (e.getTenantClass() != null && exists(f, e.getTenantClass().getFields()))
+                        ;
+                    else {
+                        error("Field " + f.getName() + " of final PK not found in entity", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
+                    }
                 }
+            } else {
+                // must be a superclass
+                ClassDefinition dd = e.getPojoType();
+                while (dd != null) {
+                    if (dd == e.getPkPojo())
+                        break;
+                    if (dd.getExtendsClass() == null)
+                        dd = null;
+                    else
+                        dd = dd.getExtendsClass().getClassRef();
+                }
+                if (dd == null)
+                    error("A PK class which is not final must be a superclass of the definining DTO", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
             }
         }
     }

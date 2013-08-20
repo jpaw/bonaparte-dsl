@@ -22,6 +22,8 @@ import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.bonaparte.dsl.generator.Generics
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import java.util.List
+import java.util.ArrayList
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
@@ -50,6 +52,15 @@ class JavaConstructor {
         return sum
     }
 
+    def public static List<FieldDefinition> fieldsOfMeAndSuperClasses(ClassDefinition d) {
+        if (d.extendsClass?.classRef == null)
+            return d.fields
+        val result = new ArrayList<FieldDefinition>()
+        result.addAll(d.extendsClass?.classRef.fieldsOfMeAndSuperClasses)
+        result.addAll(d.fields)
+        return result        
+    }
+    
     def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
@@ -69,5 +80,17 @@ class JavaConstructor {
                 «ENDFOR»
             }
         «ENDIF»
+        
+        // copyOf clone method
+        @Override
+        public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
+            if (desiredSuperType == null || desiredSuperType == getClass())
+                return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.toFirstUpper() + "()"].join(', ')»);
+            «IF d.extendsClass != null»
+                return super.copyAs(desiredSuperType);
+            «ELSE»
+                throw new IllegalArgumentException("Wrapper does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");
+            «ENDIF»
+        }
      '''
 }
