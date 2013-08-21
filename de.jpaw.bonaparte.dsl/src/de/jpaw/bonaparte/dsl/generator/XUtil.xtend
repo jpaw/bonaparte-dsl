@@ -100,9 +100,13 @@ class XUtil {
             ref != null && ref.elementaryDataType?.name == 'Object'
         }
     }
-    def public static needsXmlObjectType(ClassReference r) {
-        r.plainObject || r.genericsParameterRef != null
+    def public static boolean needsXmlObjectType(ClassReference r) {
+        r.plainObject || (r.genericsParameterRef != null && r.genericsParameterRef.hasNoBound)
     }
+    def public static boolean hasNoBound(GenericsDef rd) {
+        rd.extends == null || rd.extends.needsXmlObjectType
+    }
+    
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
@@ -317,6 +321,18 @@ class XUtil {
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static boolean isAggregate(FieldDefinition c) {
         return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null
+    }
+    // determines if the field is an aggregate type (array / list / map and possibly later additional
+    def public static int aggregateMaxSize(FieldDefinition c) {
+        if (c.isArray != null)
+            c.isArray.maxcount
+        if (c.isList != null)
+            c.isList.maxcount
+        if (c.isSet != null)
+            c.isSet.maxcount
+        if (c.isMap != null)
+            c.isMap.maxcount
+        0        
     }
 
     def public static getFieldVisibility(ClassDefinition d, FieldDefinition i) {
