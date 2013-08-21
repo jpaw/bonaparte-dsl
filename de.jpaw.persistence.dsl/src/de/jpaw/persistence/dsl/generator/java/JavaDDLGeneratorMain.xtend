@@ -255,13 +255,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         val myName = f.name.asEmbeddedName(prefix, suffix)
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
-            val nullableElements = f.isRequired
+            val notNullElements = f.isRequired
             return '''
                 «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
                     public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
                         «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
-                        «(1 .. f.isList.maxcount).map['''«IF !nullableElements»if (get«myName.toFirstUpper»«String::format(indexPattern, it)»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
+                        «(1 .. f.isList.maxcount).map['''«IF notNullElements»if (get«myName.toFirstUpper»«String::format(indexPattern, it)»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
                         return _a;
                     }
                     public void set«myName.toFirstUpper()»(«f.JavaDataTypeNoName(false)» _a) {

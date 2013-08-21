@@ -325,13 +325,13 @@ class XUtil {
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static int aggregateMaxSize(FieldDefinition c) {
         if (c.isArray != null)
-            c.isArray.maxcount
+            return c.isArray.maxcount
         if (c.isList != null)
-            c.isList.maxcount
+            return c.isList.maxcount
         if (c.isSet != null)
-            c.isSet.maxcount
+            return c.isSet.maxcount
         if (c.isMap != null)
-            c.isMap.maxcount
+            return c.isMap.maxcount
         0        
     }
 
