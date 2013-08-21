@@ -285,7 +285,9 @@ class YUtil {
             val indexPattern = f.indexPattern;
             // lists almost always correspond to nullable fields because we don't know the number of elements
             val newRequired = if (reqType == RequiredType::FORCE_NOT_NULL /* || f.isAggregateRequired */) reqType else RequiredType::FORCE_NULL;
-            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , newRequired, true, separator, func)].join(separator)
+            val newRequiredInitial = if (reqType == RequiredType::FORCE_NOT_NULL || f.isAggregateRequired) reqType else RequiredType::FORCE_NULL;
+            // actually, if the List is required AND we have a mincount > 0, then the first fields will actually be required
+            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , if (it > f.isList.mincount) newRequired else newRequiredInitial, true, separator, func)].join(separator)
         } else {
             // see if we need embeddables expansion
             val emb = embeddables?.findFirst[field == f]

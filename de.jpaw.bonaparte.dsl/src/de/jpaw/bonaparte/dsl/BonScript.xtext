@@ -222,19 +222,19 @@ DataType:
 
 ArrayModifier:
     {ArrayModifier}
-    '[' (maxcount=INT)? ']'
+    '[' ((mincount=INT '..')? maxcount=INT)? ']'
 ;
 ListModifier:
     {ListModifier}
-    'List' '<'(maxcount=INT)? '>'
+    'List' '<'((mincount=INT '..')? maxcount=INT)? '>'
 ;
 SetModifier:
     {SetModifier}
-    'Set' '<'(maxcount=INT)? '>'
+    'Set' '<'((mincount=INT '..')? maxcount=INT)? '>'
 ;
 MapModifier:
     {MapModifier}
-    'Map' '<' indexType=('String' | 'Integer' | 'Long') (',' maxcount=INT)? '>'
+    'Map' '<' indexType=('String' | 'Integer' | 'Long') (',' (mincount=INT '..')? maxcount=INT)? '>'
 ;
  
 ElementaryDataType:

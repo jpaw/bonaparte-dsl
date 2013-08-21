@@ -22,14 +22,18 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.validation.Check;
 import org.eclipse.xtext.xbase.lib.StringExtensions;
 
+import de.jpaw.bonaparte.dsl.bonScript.ArrayModifier;
 import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
+import de.jpaw.bonaparte.dsl.bonScript.ListModifier;
+import de.jpaw.bonaparte.dsl.bonScript.MapModifier;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse;
+import de.jpaw.bonaparte.dsl.bonScript.SetModifier;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 
@@ -342,6 +346,31 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("the property " + pu.getKey().getName() + " has been defined to not accept a value",
                         BonScriptPackage.Literals.PROPERTY_USE__VALUE);
         }
+    }
+
+    @Check
+    public void checkArrayModifier(ArrayModifier mod) {
+        if (mod.getMincount() > mod.getMaxcount())
+            error("The minimum count cannot be larger than the maximum count",
+                    BonScriptPackage.Literals.ARRAY_MODIFIER__MINCOUNT);
+    }
+    @Check
+    public void checkListModifier(ListModifier mod) {
+        if (mod.getMincount() > mod.getMaxcount())
+            error("The minimum count cannot be larger than the maximum count",
+                    BonScriptPackage.Literals.LIST_MODIFIER__MINCOUNT);
+    }
+    @Check
+    public void checkSetModifier(SetModifier mod) {
+        if (mod.getMincount() > mod.getMaxcount())
+            error("The minimum count cannot be larger than the maximum count",
+                    BonScriptPackage.Literals.SET_MODIFIER__MINCOUNT);
+    }
+    @Check
+    public void checkMapModifier(MapModifier mod) {
+        if (mod.getMincount() > mod.getMaxcount())
+            error("The minimum count cannot be larger than the maximum count",
+                    BonScriptPackage.Literals.MAP_MODIFIER__MINCOUNT);
     }
 
 }

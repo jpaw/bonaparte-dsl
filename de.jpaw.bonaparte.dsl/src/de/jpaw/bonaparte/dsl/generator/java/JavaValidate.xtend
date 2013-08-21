@@ -96,6 +96,15 @@ class JavaValidate {
                         throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
                                                     "«indexedName(i)»", PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
+                «IF i.aggregateMaxSize > 0»
+                    «IF !i.isAggregateRequired»
+                        if («i.name» != null) {
+                            «i.writeSizeCheck»
+                        }
+                    «ELSE»
+                        «i.writeSizeCheck»
+                    «ENDIF»
+                «ENDIF»
                 «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
                     «loopStart(i)»
                     «makeValidate(i, indexedName(i))»
@@ -113,4 +122,37 @@ class JavaValidate {
             «ENDFOR»
         }
     '''
+
+    
+    def private static writeSizeCheck(FieldDefinition i) {
+        if (i.isArray != null) '''
+            «IF i.isArray.mincount > 0»
+                if («i.name».length < «i.isArray.mincount»)
+                    throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isArray.mincount», " + «i.name».length, PARTIALLY_QUALIFIED_CLASS_NAME);
+                if («i.name».length > «i.isArray.maxcount»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isArray.maxcount», " + «i.name».length, PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+        ''' else if (i.isList != null) '''
+            «IF i.isList.mincount > 0»
+                if («i.name».size() < «i.isList.mincount»)
+                    throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isList.mincount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+                if («i.name».size() > «i.isList.maxcount»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isList.maxcount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+        ''' else if (i.isSet != null) '''
+            «IF i.isSet.mincount > 0»
+                if («i.name».size() < «i.isSet.mincount»)
+                    throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isSet.mincount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+                if («i.name».size() > «i.isSet.maxcount»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isSet.maxcount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+        ''' else if (i.isMap != null) '''
+            «IF i.isMap.mincount > 0»
+                if («i.name».size() < «i.isMap.mincount»)
+                    throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isMap.mincount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+                if («i.name».size() > «i.isMap.maxcount»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isMap.maxcount», " + «i.name».size(), PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+        ''' else ''''''
+    }
 }
