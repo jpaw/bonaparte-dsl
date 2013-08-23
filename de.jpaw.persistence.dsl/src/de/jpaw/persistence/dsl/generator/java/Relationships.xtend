@@ -61,8 +61,8 @@ class MakeRelationships {
             return '''(«arg2»)'''
     }  */
     
-    def private static writeJoinColumns(Relationship m, boolean readOnly) {
-        val childPkColumns = m.childObject.pk?.columnName ?: m.childObject.pkPojo?.fields ?: m.childObject.embeddablePk.name.pojoType.fields
+    def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject) {
+        val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
         '''
             «IF m.referencedFields.columnName.size == 1»
                 «m.makeJoin(0, readOnly, childPkColumns)»
@@ -80,7 +80,7 @@ class MakeRelationships {
                 if (m.fetchType != null) '''fetch=FetchType.«m.fetchType»''',
                 if (m.nonOptional(e)) '''optional=false'''
             )»
-            «m.writeJoinColumns(true)»
+            «m.writeJoinColumns(true, m.childObject)»
             «m.writeFGS(fieldVisibility, m.childObject.name, "", false)»
         «ENDFOR»
         
@@ -90,7 +90,7 @@ class MakeRelationships {
                 if (m.relationship.nonOptional(e)) 'optional=false',
                 if (m.cascade) 'cascade=CascadeType.ALL' 
             )»
-            «m.relationship.writeJoinColumns(!m.cascade)»
+            «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", m.cascade)»
         «ENDFOR»
         
@@ -100,7 +100,7 @@ class MakeRelationships {
                 'cascade=CascadeType.ALL',
                 if (m.relationship.fetchType != null) '''fetch=FetchType.«m.relationship.fetchType»'''
             )»
-            «m.relationship.writeJoinColumns(false)»
+            «m.relationship.writeJoinColumns(false, e)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»
