@@ -178,12 +178,12 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import de.jpaw.bonaparte.annotation.RelatedKey;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
-        import «bonaparteInterfacesPackage».BonaPortableWithMetaData;
         import «bonaparteInterfacesPackage».MessageParser;
         import «bonaparteInterfacesPackage».MessageComposer;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
         import «bonaparteInterfacesPackage».StringConverter;
+        import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
 
@@ -204,7 +204,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortableWithMetaData«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
+          implements BonaPortable«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaMeta::writeMetaData(d)»

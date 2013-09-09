@@ -78,8 +78,8 @@ public class DataTypeExtension {
         dataCategory.put("char",      DataCategory.MISC);
         dataCategory.put("character", DataCategory.MISC);
 
-        dataCategory.put("raw",       DataCategory.MISC);    // not recommended because mutable. Also weird for 2nd level of array index
-        dataCategory.put("binary",    DataCategory.MISC);
+        dataCategory.put("raw",       DataCategory.BINARY);    // not recommended because mutable. Also weird for 2nd level of array index
+        dataCategory.put("binary",    DataCategory.BINARY);
         dataCategory.put("uuid",      DataCategory.MISC);
         dataCategory.put("calendar",  DataCategory.TEMPORAL);  // not recommended because mutable
         dataCategory.put("timestamp", DataCategory.TEMPORAL);  // temporary solution until JSR 310 has been implemented
@@ -143,6 +143,7 @@ public class DataTypeExtension {
     public boolean effectiveAutoScale = false;
     public boolean effectiveAllowCtrls = false;
     public boolean isPrimitive = false;             // true if this refers to an atomic data type which in Java is a primitive (can never be null)
+    public boolean isWrapper = false;               // true if this refers to a type which has a corresponding primitive type
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
     public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
     public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
@@ -323,6 +324,8 @@ public class DataTypeExtension {
                     e.setName("Integer");     // fix java naming inconsistency
                 if (e.getName().equals("Char"))
                     e.setName("Character");   // fix java naming inconsistency
+                if (JAVA_PRIMITIVES.contains(e.getName().toLowerCase()) || e.getName().equals("Integer") || e.getName().equals("Character"))
+                    r.isWrapper = true;
             } else {
                 if (e.getName().equals("integer"))
                     e.setName("int");         // fix java naming inconsistency
@@ -356,11 +359,6 @@ public class DataTypeExtension {
                     }
                 }
             }
-            // compatibility...
-            if (!Util.useJoda()) {
-                if (r.javaType.equals("LocalDate") || r.javaType.equals("LocalDate"))
-                    r.javaType = "Calendar";
-            }
 
             // special treatment for uppercase / lowercase shorthands
             if (r.javaType.equals("String"))
@@ -387,6 +385,7 @@ public class DataTypeExtension {
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
+            r.isWrapper = resolvedReference.isWrapper;
 
             r.effectiveSigned = resolvedReference.effectiveSigned;
             r.effectiveRounding = resolvedReference.effectiveRounding;

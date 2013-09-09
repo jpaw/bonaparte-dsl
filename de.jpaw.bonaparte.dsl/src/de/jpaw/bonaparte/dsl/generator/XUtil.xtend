@@ -349,7 +349,6 @@ class XUtil {
         return result
     }
 
-    // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def public static writeDefaultImports() '''
         import java.util.Arrays;
         import java.util.List;
@@ -375,10 +374,8 @@ class XUtil {
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
         import de.jpaw.util.BigDecimalTools;
-        «IF Util::useJoda()»
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
-        «ENDIF»
     '''
 
 }

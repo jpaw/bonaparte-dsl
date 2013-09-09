@@ -25,10 +25,6 @@ public class Util {
     private static Log logger = LogFactory.getLog("de.jpaw.bonaparte.dsl.generator.Util"); // jcl
     static private Boolean runningInEclipse = null; 
     
-    static public boolean useJoda() {  // configuration: use JodaTime instead of Date/Calendar?
-        return true;
-    }
-
     static public boolean autodetectMavenRun() {
         if (runningInEclipse == null) {
             // allocate a Boolean and set it to true, if we detect an Eclipse environment variable

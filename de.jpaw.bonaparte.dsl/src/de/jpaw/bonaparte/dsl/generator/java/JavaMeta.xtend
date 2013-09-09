@@ -35,17 +35,18 @@ class JavaMeta {
         var String classname
         var String visibility = getFieldVisibility(d, i).name
         var String ext = ""  // category specific data
+        var String extraItem = null  // category specific data
 
         if (i.isArray != null)
-            multi = "Multiplicity.ARRAY, " + i.isArray.maxcount
+            multi = "Multiplicity.ARRAY, 0, " + i.isArray.mincount + ", " + i.isArray.maxcount
         else if (i.isList != null)
-            multi = "Multiplicity.LIST, " + i.isList.maxcount
+            multi = "Multiplicity.LIST, 0, " + i.isList.mincount + ", " + i.isList.maxcount
         else if (i.isSet != null)
-            multi = "Multiplicity.SET, " + i.isSet.maxcount
+            multi = "Multiplicity.SET, 0, " + i.isSet.mincount + ", " + i.isSet.maxcount
         else if (i.isMap != null)
-            multi = "Multiplicity.MAP, " + mapIndexID(i.isMap)  // misusing it for the index length instead of max size...
+            multi = "Multiplicity.MAP, " + mapIndexID(i.isMap) + ", " + i.isMap.mincount + ", " + i.isMap.maxcount
         else
-            multi = "Multiplicity.SCALAR, 0"
+            multi = "Multiplicity.SCALAR, 0, 0, 0"
 
         switch (ref.category) {
         case DataCategory::NUMERIC: {
@@ -54,29 +55,47 @@ class JavaMeta {
             }
         case DataCategory::STRING: {
             classname = "AlphanumericElementaryDataItem"
-            ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
+            ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «b2A(!elem.name.toLowerCase.equals("unicode"))», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
             }
         case DataCategory::ENUM: {
-            // TODO
             classname = "EnumDataItem"
+            if (ref.enumMaxTokenLength >= 0)
+                // separate item for the token
+                extraItem = '''
+                    protected static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                        "String", false, true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                '''
+            else
+                extraItem = '''
+                    protected static final NumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                        "int", true, false, 4, 0, false, false);  // assume 4 digits
+                '''
             ext = ''', "«elem.enumType.name»", null'''
         }
+        case DataCategory::TEMPORAL: {
+            classname = "TemporalElementaryDataItem"
+            ext = ''', «elem.length», «elem.doHHMMSS»'''
+            }
         case DataCategory::OBJECT: {
+            classname = "ObjectReference"
             if (elem != null) {
-                  // just "Object
-                classname = "MiscElementaryDataItem"
-                ext = ''', 0'''
+                 // just "Object
+                ext = ''', true, "BonaPortable"'''
             } else {
-                classname = "ObjectReference"
                 ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»"'''
             }
         }
+        case DataCategory::BINARY: {
+            classname = "BinaryElementaryDataItem"
+            ext = ''', «elem.length»'''
+            }
         default: {
             classname = "MiscElementaryDataItem"
-            ext = ''', «elem.length»'''
+            ext = ''''''
             }
         }
         return '''
+            «extraItem»
             protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
                 "«ref.javaType»", «b2A(ref.isPrimitive)»«ext»);
             '''
@@ -211,7 +230,7 @@ class JavaMeta {
                 «ENDFOR»
                 my$MetaData.setFields(field$array);
                 my$MetaData.setPropertiesInherited(«propertiesInherited»);
-                my$MetaData.setWhenLoaded(«IF Util::useJoda()»new LocalDateTime()«ELSE»DayTime.getCurrentTimestamp()«ENDIF»);
+                my$MetaData.setWhenLoaded(new LocalDateTime());
             };
 
             // get all the meta data in one go

@@ -21,7 +21,6 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.Util
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
@@ -56,14 +55,9 @@ class JavaDeserialize {
         case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
         case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
         case 'calendar':  '''p.readCalendar  ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'timestamp': if (Util::useJoda())
-                             '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-                          else
-                             '''p.readCalendar("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'day':       if (Util::useJoda())
-                             '''p.readDay("«fieldname»", «!isRequired»)'''
-                          else
-                             '''p.readCalendar("«fieldname»", «!isRequired», «i.doHHMMSS», -1)'''
+        case 'timestamp': '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
+        case 'day':       '''p.readDay("«fieldname»", «!isRequired»)'''
+                          
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
         case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «!isRequired», true)'''

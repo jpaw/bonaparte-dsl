@@ -21,42 +21,26 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class JavaSerialize {
 
-    def private static makeWrite(String indexedName, ElementaryDataType e, DataTypeExtension ref) {
+    def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
+        if (ref.isPrimitive || ref.category == DataCategory.OBJECT)
+            return '''w.addField(«indexedName»);'''     // no di attribute
         val String grammarName = e.name.toLowerCase;
-        if (grammarName.equals("unicode"))  // special treatment if Unicode and / or escaped characters must be checked for
-            '''w.addUnicodeString(«indexedName», «e.length», «ref.effectiveAllowCtrls»);'''
-        else if (grammarName.equals("timestamp") || grammarName.equals("calendar"))
-            '''w.addField(«indexedName», «e.doHHMMSS», «e.length»);'''
-        else if (ref.javaType.equals("String") || grammarName.equals("raw") || grammarName.equals("binary"))
-            '''w.addField(«indexedName», «e.length»);'''
-        else if (grammarName.equals("decimal"))
-            '''w.addField(«indexedName», «e.length», «e.decimals», «ref.effectiveSigned»);'''
-        else if (grammarName.equals("number"))
-            '''w.addField(«indexedName», «e.length», «ref.effectiveSigned»);'''
-        else if (grammarName.equals("day") && !Util::useJoda())
-            '''w.addField(«indexedName», -1);'''
-        else if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens
-            if (ref.enumMaxTokenLength >= 0) {
-                // alphanumeric enum
-                if (ref.allTokensAscii)
-                    '''if («indexedName» == null) w.writeNull(); else w.addField(«indexedName».getToken(), «ref.enumMaxTokenLength»);'''
-                else
-                    '''if («indexedName» == null) w.writeNull(); else w.addUnicodeString(«indexedName».getToken(), «ref.enumMaxTokenLength», false);'''
-            } else {
-                // numeric enum
-                '''if («indexedName» == null) w.writeNull(); else w.addField(«indexedName».ordinal());'''
-            }
-        } else // primitive or boxed type or object
-            '''«IF !ref.isPrimitive»if («indexedName» == null) w.writeNull(); else «ENDIF»w.addField(«indexedName»);'''
+        if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens
+            '''w.addField(meta$$«i.name»$token, «indexedName» == null ? null : «IF ref.enumMaxTokenLength >= 0»«indexedName».getToken()«ELSE»Integer.valueOf(«indexedName».ordinal())«ENDIF»);'''
+        } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
+            '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(«indexedName»);'''
+        } else {
+            '''w.addField(meta$$«i.name», «indexedName»);'''
+        }
     }
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
         «IF resolveElem(i.datatype) != null»
-            «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+            «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
             w.addField((BonaPortable)«index»);
         «ENDIF»
@@ -64,12 +48,12 @@ class JavaSerialize {
 
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index) '''
         «IF resolveElem(i.datatype) != null»
-            «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+            «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
             if («index» == null) {
-                w.writeNull();
+                w.writeNull(meta$$«i.name»);
             } else if (pfc.getComponent() == null) {
-                w.addField((BonaPortable)«index»);             // full / rescursive object output
+                w.addField((BonaPortable)«index»);             // full / recursive object output
             } else {
                 // write a specific subcomponent
                 «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
@@ -88,7 +72,7 @@ class JavaSerialize {
             «FOR i:d.fields»
                 «IF i.isAggregate»
                     if («i.name» == null) {
-                        w.writeNull();
+                        w.writeNullCollection(meta$$«i.name»);
                     } else {
                         «IF i.isArray != null»
                             w.startArray(«i.name».length, «i.isArray.maxcount», 0);
@@ -105,7 +89,7 @@ class JavaSerialize {
                             for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                 // write (key, value) tuples
                                 «IF i.isMap.indexType == "String"»
-                                    w.addField(_i.getKey(), 255);
+                                    w.addField(StaticMeta.MAP_INDEX_META, _i.getKey());
                                 «ELSE»
                                     w.addField(_i.getKey());
                                 «ENDIF»
@@ -134,7 +118,7 @@ class JavaSerialize {
                         «makeFoldedWrite2(d, i, indexedName(i))»
                     «ELSE»
                         if («i.name» == null) {
-                            w.writeNull();
+                            w.writeNullCollection(meta$$«i.name»);
                         } else {
                             «IF i.isArray != null»
                                 if (pfc.index < 0) {
@@ -178,7 +162,7 @@ class JavaSerialize {
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
                                         «IF i.isMap.indexType == "String"»
-                                            w.addField(_i.getKey(), 255);
+                                            w.addField(StaticMeta.MAP_INDEX_META, _i.getKey());
                                         «ELSE»
                                             w.addField(_i.getKey());
                                         «ENDIF»
