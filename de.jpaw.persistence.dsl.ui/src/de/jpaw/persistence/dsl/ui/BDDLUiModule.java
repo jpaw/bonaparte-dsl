@@ -13,6 +13,7 @@ import de.jpaw.bonaparte.dsl.ui.BonAntlrTokenToAttributeIdMapper;
 import de.jpaw.bonaparte.dsl.ui.Highlighter;
 import de.jpaw.persistence.dsl.ui.help.BDDLEObjectDocumentationProvider;
 import de.jpaw.persistence.dsl.ui.help.BDDLEObjectHoverProvider;
+import de.jpaw.persistence.dsl.ui.scoping.BDDLGlobalScopeProvider;
 
 /**
  * Use this class to register components to be used within the IDE.
@@ -43,4 +44,8 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
 	public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
 		return BonAntlrTokenToAttributeIdMapper.class ;
 	}
+    
+    public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
+        return BDDLGlobalScopeProvider.class;
+    }
 }
