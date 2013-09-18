@@ -47,3 +47,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.6.1
 - BON: (a) add method return get$pk() key class
 - BON: (a) add method copyAs(subtype)
+
+1.6.2
+- BON: (a) generate code to provide full metadata to serialization methods in bonaparte-java for all but the Java primitives
+- BON: (a) bugfix: workaround NPE in Eclipse if referenced bon files are in projects which are not open
+- BDDL: (b) bugfix: workaround NPE in Eclipse if referenced bon files are in projects which are not open
+- BON: (c) add directive noAllFieldsConstructor for class definition to allow for classes with more than 255 fields

@@ -69,7 +69,7 @@ class JavaConstructor {
             «ENDIF»
         }
 
-        «IF countAllFields(d) > 0»
+        «IF countAllFields(d) > 0 && !d.isNoAllFieldsConstructor»
             // default all-arguments constructor
             public «d.name»(«allFields(new Delimiter("", ", "), new Generics(), d, true)») {
                 «IF d.extendsClass != null && d.extendsClass.classRef != null»

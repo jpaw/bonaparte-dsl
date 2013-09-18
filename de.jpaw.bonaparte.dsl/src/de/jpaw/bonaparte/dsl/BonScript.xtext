@@ -168,6 +168,7 @@ ClassDefinition:
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     ('return' returnsClass = [ClassDefinition])?
     ('pk' pkClass = [ClassDefinition])?
+    (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?

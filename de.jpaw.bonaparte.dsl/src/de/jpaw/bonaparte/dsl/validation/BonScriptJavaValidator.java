@@ -20,8 +20,6 @@ import java.util.List;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.validation.Check;
-import org.eclipse.xtext.xbase.lib.StringExtensions;
-
 import de.jpaw.bonaparte.dsl.bonScript.ArrayModifier;
 import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
@@ -216,6 +214,30 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             // check that relative rtti may only be given if there is a parent class with a fixed rtti
             if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti()) {
                 error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
+            }
+        }
+        
+        // check the number of fields, unless noAllFieldsConstructor is set
+        if (!cd.isNoAllFieldsConstructor()) {
+            // count the fields. We can have 255 at max, due to JVM limitations
+            int numFields = 0;
+            ClassDefinition p = cd;
+            while (p != null) {
+                // parent class may not have this directive, due to recursive implementation
+                if (p.isNoAllFieldsConstructor()) {
+                    error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.getName() + " does not)",
+                            BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
+                    return;    
+                }
+                numFields += p.getFields().size();
+                if (p.getExtendsClass() == null)
+                    break;
+                else
+                    p = p.getExtendsClass().getClassRef();
+            }
+            if (numFields > 255) {
+                error("More than 255 fields, cannot build all-fields constructor. Use noAllFieldsConstructor directive!",
+                        BonScriptPackage.Literals.CLASS_DEFINITION__FIELDS);
             }
         }
     }
