@@ -84,12 +84,21 @@ class JavaConstructor {
         // copyOf clone method
         @Override
         public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
-            if (desiredSuperType == null || desiredSuperType == «d.name».class)
+            if (desiredSuperType == null || desiredSuperType == «d.name».class) {
                 «IF d.abstract»
                     throw new IllegalArgumentException("«d.name» is abstract can cannot be supported by copyOf()");
                 «ELSE»
-                    return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.getNameCapsed(d) + "()"].join(', ')»);
+                    «IF d.isNoAllFieldsConstructor»
+                        «d.name» _new = new «d.name»();
+                        «FOR fld : d.fieldsOfMeAndSuperClasses»
+                            _new.set«fld.name.getNameCapsed(d)»(get«fld.name.getNameCapsed(d)»());
+                        «ENDFOR»
+                        return (T) _new;
+                    «ELSE»
+                        return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.getNameCapsed(d) + "()"].join(', ')»);
+                    «ENDIF»
                 «ENDIF»
+            }
             «IF d.extendsClass != null»
                 return super.copyAs(desiredSuperType);
             «ELSE»
