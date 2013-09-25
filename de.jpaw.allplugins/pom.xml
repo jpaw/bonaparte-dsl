@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>1.6.2-SNAPSHOT</version>
+    <version>1.6.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -160,6 +160,7 @@
             <id>xtend</id>
             <url>http://build.eclipse.org/common/xtend/maven/</url>
         </pluginRepository>
+<!--
         <pluginRepository>
             <id>xtend.snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -170,6 +171,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
+-->
     </pluginRepositories>
 
     <repositories>
@@ -201,6 +203,7 @@
             <name>Fornax Repository</name>
             <url>http://www.fornax-platform.org/m2/repository</url>
         </repository>
+<!--
         <repository>
             <id>xtend.snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -211,6 +214,7 @@
                 <enabled>true</enabled>
             </snapshots>
         </repository>
+-->
     </repositories>
 
     <profiles>
