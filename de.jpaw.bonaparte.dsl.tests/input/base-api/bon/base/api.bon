@@ -1,0 +1,170 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+import base.api.types.*
+
+/** 
+ * Package which contains the definitions of all essential message elements.
+ */
+package (com.arvatosystems.fortytwo) base.api XML PROPERTY {
+    default unsigned trim noControlChars;
+    
+    type messageId  is Binary(16);
+    
+    /** Defines the behaviour how to deal with resent (duplicate sent) messages */
+    enum RetryAdvice {
+        NEVER_RETRY="N", ALWAYS_RETRY="A", RETRY_ON_ERROR="E" 
+    }
+
+    /** Defines the target classification. Looked up from configuration table. */
+    enum CommunicationTargetChannelType {
+        NULL = "N",         // discard the data (no output channel is opened at all)
+        FILE = "F",         // output the result to a file (and possibly transmit the file via Apache Camel route)
+        BIGDATA_DB = "D",   // storage in Bigdata DB
+        QUEUE = "Q",        // output single message to a JMS queue
+        TOPIC = "T",        // output single messages to a JMS topic
+        CAMEL = "C"         // just produce internal temporary data which is sent via Apache Camel route 
+    }
+    
+    /** Defines the format of the data output. */
+    enum CommunicationFormatType {
+        // structured output types (record output)
+        BONAPARTE = "B", ^XML = "L", JSON = "J", NULL = "N",
+        // flat file output types (general documents)
+        PDF = "P", XLS = "X", CSV = "C", TEXT = "T", XLSX="x", UNDEFINED = "?" , HTML="H",
+        // images
+        JPG = "j", PNG = "p", GIF = "g",
+        // audio
+        WAV = "w", MP3 = "3",
+        // anything else
+        RAW = "#",
+        // user defined
+        USER_DEFINED = "U"
+    }
+    
+    enum InputCommunicationFormatType {
+        // structured output types (record output)
+        BONAPARTE = "B", ^XML = "L", JSON = "J",
+        // flat file output types (general documents)
+        CSV = "C"
+    }
+    
+    enum InputCommunicationTargetChannelType {
+        FILE = "F", QUEUE = "Q"
+    }
+
+    /** The ServiceRequestHeader is the definition of all common properties of a request. It is sent for any synchronous or asynchronous request.
+     * Restructured version - move relevant information for JCA connector to the front, to simplify parsing without Bonaparte generated code...
+     */
+    class ServiceRequestHeader {
+        required tenantId               tenantId;
+        required extUserId              userId;
+        required enum RetryAdvice       idempotencyBehaviour;  // persistence mapping for enums not available 
+        optional extendedLanguageCode   languageCode;           // unless default language is desired, a specific language code.    
+        optional Integer                recordNo;               // serial number within logical processing (file line #, request within user session...)
+        optional messageId              messageId;              // a unique ID assigned by the sender or JMS transport, to allow detection of resent messages
+        optional Timestamp(0)           plannedRunDate;         // set by requests initiated by the scheduler - indicates the targeted execution time.
+        optional (AuthenticationParameters...) List<> authenticationParameters;  // extra parameters provided by the sender or insert by the transport layer
+    }
+	
+    /** The JmsServiceRequestHeader is the definition of all common properties of a request sent with JMS. */
+    class JmsServiceRequestHeader extends ServiceRequestHeader {
+        optional jmsAddress             responseAddress;        // queue or topic target name for the service response
+    }
+    
+    /** The AuthenticationParameters provide information about the authentication of a ServiceRequest. */
+    abstract class AuthenticationParameters {
+    }
+    
+    /** Provides authentication information via commonName, which has been provided by the SSL layer and taken from the peer's verified certificate. */
+    class AuthX500DistinguishedName extends AuthenticationParameters {
+        required distinguishedName      distinguishedName;         // distinguished name of the SSL certificate
+    }
+    
+    /** Provides authentication information via SAML v2 token. */
+    class AuthSAML extends AuthenticationParameters {
+        required Unicode(4000)          samlToken;                 // SAML v2 token
+    }
+    
+    /** Provides authentication information via Fortytwo platform specific security token. */
+    class AuthFortytwo extends AuthenticationParameters {
+        required Binary(32)             fortytwoToken;             // token for internal SSO provider
+    }
+
+    /** The RequestParameters provide an artifical common base class, only required because JAXB cannot deal with interfaces (BonaPortable as common request parameter class). */
+    abstract class RequestParameters return ServiceResponse {
+    }
+    
+    /** The ServiceRequest object defines all properties of a request. It is sent for any synchronous or asynchronous request, except JMS */
+    class ServiceRequest {
+        required (ServiceRequestHeader...) requestHeader;          // the standardized request header (or an extended one, for example for JMS)
+        required (RequestParameters...)    requestParameters;      // arbitrary parameters to the request
+    }
+
+    /** The ServiceResponse is the base class of all response objects. */
+    class ServiceResponse {
+        // initial three fields will be populated by framework, the remaining ones must be filled by the application
+        optional messageId              requestId;              // copied from request header
+        required tenantId               tenantId;               // copied from request header
+        required f42Ref                 processRef;             // created internally (unique reference)
+        required int                    returnCode;             // the most significant digit provides the error category. Field contains 0 if no error occured.
+        optional Ascii(512)             errorDetails;           // a data parameter which allows to localize the error condition (offending field / parameter name etc.)
+        optional Unicode(512)           errorMessage;           // optional lookup of the returnCode as a standard text message, as defined in FortytwoException and derived classes. Only for convenience, may be translated to the requester's language.
+    }
+
+    /** The SessionParameters are provided once per connection / file upload and provide information about the connecting client.
+     * This is for debugging / auditing purposes only. */
+    class SessionParameters {    
+        required Ascii(100)              executable;            // program loading the data / accepting the transmission 
+        required Unicode(255)            dataUrl;               // filename or just protocol : port number or queue name
+        optional tenantId                singleTenantId;        // if non null, every request will belong to the same tenant (allows better caching)
+    }
+    
+    /** Provides a String key / String value pair. */
+    class KeyValuePair {
+        required Ascii(16)                  key;            // the token to use
+        optional Unicode(255)               value;          // the assigned value
+    }
+
+    /** The OutputSessionParameters are provided once per outbound file / communication.
+     * They provide information required by the output processor in order to select the physical transport. */
+    class OutputSessionParameters {    
+        required Ascii(16)               dataSinkId;            // every data output is assigned a name
+        required Timestamp(0)            asOf;                  // (planned) run date / cutoff date for the data provided
+        optional (KeyValuePair) List <>  additionalParameters;  // additional application specific parameters
+        optional f42Ref                  originatorRef;         // optional reference to report params, documentRef etc.
+        optional Enum CommunicationFormatType communicationFormatType;  // can be used to specify output, unless defined in configuration 
+        optional f42Ref                  configurationRef;      // optional additional reference (report configuration, documentTemplate etc.)
+        // optional Ascii(16)               mappingId;             // optional mapping / folding for custom column sequence. 
+    }
+    
+    
+    /** The simplest service request parameter, which provides no further information and requests just "is alive" response. */
+    class PingRequest extends RequestParameters return PingResponse {
+        optional Integer                pingId;                 // if not null, the id will be echoed with the response
+        optional Integer                delayInMillis;          // if not null, the response will be delayed by the given number of milliseconds              
+    }
+    
+    /** The response to the PingRequest just sends the instant in time when the request has been executed on the server. */
+    class PingResponse extends ServiceResponse {
+        optional Integer                pingId;                 // the echoed pingId, if set with the request
+        required Timestamp(0)           whenExecuted;
+        required Timestamp(0)           whenFinished;
+    }
+    
+    /** The BatchRequest allows to execute a series of commands in sequence (provided all of them return a zero return code). */
+    class BatchRequest extends RequestParameters {
+        boolean                         allowNo;                // continue batch if technically correct, but business "no" returned (CLASS 1)?
+        required (BatchRequest...) List<> commands;             // list of requests
+    }
+    
+    /** Technical (internal) request which is required for logging of unparseable messages.
+     * The ErrorRequest will create an error response from the parameters provided.
+     */ 
+    class ErrorRequest extends RequestParameters {
+        required int                    returnCode;             // the most significant digit provides the error category. Field contains 0 if no error occured.
+        optional Ascii(512)             errorDetails;           // a data parameter which allows to localize the error condition (offending field / parameter name etc.)
+        optional Binary(16777216)       originalMessage;        // the unparseable message.
+    }
+}

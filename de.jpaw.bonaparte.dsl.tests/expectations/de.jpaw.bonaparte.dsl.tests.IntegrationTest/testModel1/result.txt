@@ -1,0 +1,1026 @@
+{DEFAULT_OUTPUTdebug/somepackage.info==== PACKAGE somepackage (ROOT) ===
+CLASS AbstractClass:  abstract=true final=false
+    //
+    FIELD fieldEnum: defaults: req=null)
+    FIELD fieldBoolean: defaults: req=null)
+    FIELD requiredFieldNamedType: local required = required, defaults: req=null)
+    FIELD fieldInt: defaults: req=null)
+    FIELD fieldInteger: defaults: req=null)
+    FIELD fieldAsci20: defaults: req=null)
+
+CLASS SubClass: EXTENDS AbstractClass abstract=false final=false
+    //
+    FIELD fieldArray: defaults: req=null)
+    FIELD unicodeField: local required = required, defaults: req=null)
+    FIELD fieldAbstractOrMoreConcrete: local required = optional, defaults: req=null)
+    FIELD subClasses: defaults: req=null)
+    FIELD fieldTimeStamp: local required = optional, defaults: req=null)
+
+, DEFAULT_OUTPUTjava/de/jpaw/bonaparte/pojos/somepackage/AbstractClass.java=// This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+// The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+// The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+package de.jpaw.bonaparte.pojos.somepackage;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
+import java.util.UUID;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.math.BigDecimal;
+import de.jpaw.util.EnumException;
+import de.jpaw.util.ByteArray;
+import de.jpaw.util.CharTestsASCII;
+import de.jpaw.util.ToStringHelper;
+import de.jpaw.util.ApplicationException;
+import de.jpaw.util.DayTime;
+import de.jpaw.util.ByteUtil;
+import de.jpaw.util.BigDecimalTools;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import de.jpaw.bonaparte.core.ExternalizableConstants;
+import de.jpaw.bonaparte.core.ExternalizableComposer;
+import de.jpaw.bonaparte.core.ExternalizableParser;
+import de.jpaw.bonaparte.core.BonaPortable;
+import de.jpaw.bonaparte.core.MessageParser;
+import de.jpaw.bonaparte.core.MessageComposer;
+import de.jpaw.bonaparte.core.MessageParserException;
+import de.jpaw.bonaparte.core.ObjectValidationException;
+import de.jpaw.bonaparte.core.StringConverter;
+import de.jpaw.bonaparte.core.StaticMeta;
+import de.jpaw.bonaparte.pojos.meta.*;
+
+
+
+public abstract class AbstractClass
+  implements BonaPortable, Externalizable {
+    private static final long serialVersionUID = 1539745338L;
+
+    // property map
+    private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<String,String>();
+    
+    // initializer
+    protected static void class$fillProperties(ConcurrentMap<String,String> map) {
+    }
+    static {
+        class$fillProperties(property$Map);
+    }
+    static public ConcurrentMap<String,String> class$PropertyMap() {
+        return property$Map;
+    }
+    public ConcurrentMap<String,String> get$PropertyMap() {
+        return property$Map;
+    }
+    static public String get$Property(String propertyname, String fieldname) {
+        return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
+    }
+    
+    static public String class$Property(String id) {
+        return property$Map.get(id);
+    }
+    static public String field$Property(String fieldname, String propertyname) {
+        String id = fieldname + "." + propertyname;
+        return property$Map.get(id);
+    }
+    static public boolean class$hasProperty(String id) {
+        return property$Map.containsKey(id);
+    }
+    static public boolean field$hasProperty(String fieldname, String propertyname) {
+        String id = fieldname + "." + propertyname;
+        return property$Map.containsKey(id);
+    }
+    public String get$Property(String id) {
+        return class$Property(id);
+    }
+    
+    static public Class<? extends BonaPortable> class$returns() {
+        return null;
+    }
+    
+    @Override
+    public Class<? extends BonaPortable> get$returns() {
+        return class$returns();
+    }
+    
+    
+    static public Class<? extends BonaPortable> class$pk() {
+        return null;
+    }
+    
+    @Override
+    public Class<? extends BonaPortable> get$pk() {
+        return class$pk();
+    }
+    
+    // my name and revision
+    private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "somepackage.AbstractClass";
+    private static final String REVISION = null;
+    private static final String PARENT = null;
+    private static final String BUNDLE = null;
+    
+    protected static final NumericElementaryDataItem meta$$fieldEnum$token = new NumericElementaryDataItem(Visibility.PRIVATE, true, "fieldEnum$token", Multiplicity.SCALAR, 0, 0, 0, DataCategory.NUMERIC,
+        "int", true, false, 4, 0, false, false);  // assume 4 digits
+    protected static final EnumDataItem meta$$fieldEnum = new EnumDataItem(Visibility.PRIVATE, true, "fieldEnum", Multiplicity.SCALAR, 0, 0, 0, DataCategory.ENUM,
+        "MyEnum", false, "MyEnum", null);
+    protected static final MiscElementaryDataItem meta$$fieldBoolean = new MiscElementaryDataItem(Visibility.PRIVATE, true, "fieldBoolean", Multiplicity.SCALAR, 0, 0, 0, DataCategory.MISC,
+        "Boolean", true);
+    protected static final AlphanumericElementaryDataItem meta$$requiredFieldNamedType = new AlphanumericElementaryDataItem(Visibility.PRIVATE, true, "requiredFieldNamedType", Multiplicity.SCALAR, 0, 0, 0, DataCategory.STRING,
+        "String", false, true, false, false, true, 255, 0, null);
+    protected static final NumericElementaryDataItem meta$$fieldInt = new NumericElementaryDataItem(Visibility.PRIVATE, true, "fieldInt", Multiplicity.SCALAR, 0, 0, 0, DataCategory.NUMERIC,
+        "Integer", true, false, 0, 0, false, false);
+    protected static final NumericElementaryDataItem meta$$fieldInteger = new NumericElementaryDataItem(Visibility.PRIVATE, false, "fieldInteger", Multiplicity.SCALAR, 0, 0, 0, DataCategory.NUMERIC,
+        "Integer", false, false, 0, 0, false, false);
+    protected static final AlphanumericElementaryDataItem meta$$fieldAsci20 = new AlphanumericElementaryDataItem(Visibility.PRIVATE, true, "fieldAsci20", Multiplicity.SCALAR, 0, 0, 0, DataCategory.STRING,
+        "String", false, true, false, false, true, 20, 0, null);
+    
+    // extended meta data (for the enhanced interface)
+    private static final ClassDefinition my$MetaData = new ClassDefinition();
+    static {
+        my$MetaData.setIsAbstract(true);
+        my$MetaData.setIsFinal(false);
+        my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME);
+        my$MetaData.setRevision(REVISION);
+        my$MetaData.setParent(PARENT);
+        my$MetaData.setBundle(BUNDLE);
+        my$MetaData.setSerialUID(serialVersionUID);
+        my$MetaData.setNumberOfFields(6);
+        FieldDefinition [] field$array = new FieldDefinition[6];
+        field$array[0] = meta$$fieldEnum;
+        field$array[1] = meta$$fieldBoolean;
+        field$array[2] = meta$$requiredFieldNamedType;
+        field$array[3] = meta$$fieldInt;
+        field$array[4] = meta$$fieldInteger;
+        field$array[5] = meta$$fieldAsci20;
+        my$MetaData.setFields(field$array);
+        my$MetaData.setPropertiesInherited(false);
+        my$MetaData.setWhenLoaded(new LocalDateTime());
+    };
+    
+    // get all the meta data in one go
+    static public ClassDefinition class$MetaData() {
+        return my$MetaData;
+    }
+    
+    // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect
+    // no namespace conflicts here
+    // must be repeated as a member method to make it available in the (extended) interface
+    // feature of extended BonaPortable, not in the core interface
+    @Override
+    public ClassDefinition get$MetaData() {
+        return my$MetaData;
+    }
+    
+    // convenience functions for faster access if the metadata structure is not used
+    @Override
+    public String get$PQON() {
+        return PARTIALLY_QUALIFIED_CLASS_NAME;
+    }
+    @Override
+    public String get$Revision() {
+        return REVISION;
+    }
+    @Override
+    public String get$Parent() {
+        return PARENT;
+    }
+    @Override
+    public String get$Bundle() {
+        return BUNDLE;
+    }
+    @Override
+    public long get$Serial() {
+        return serialVersionUID;
+    }
+    private static final int MY_RTTI = 0;
+    public static int class$rtti() {
+        return MY_RTTI;
+    }
+    public int get$rtti() {
+        return MY_RTTI;
+    }
+    // fields as defined in DSL
+    private MyEnum fieldEnum;
+    private boolean fieldBoolean;
+    private String requiredFieldNamedType;
+    private int fieldInt;
+    private Integer fieldInteger;
+    private String fieldAsci20;
+    // auto-generated getters and setters
+    public MyEnum getFieldEnum() {
+        return fieldEnum;
+    }
+    public boolean getFieldBoolean() {
+        return fieldBoolean;
+    }
+    public String getRequiredFieldNamedType() {
+        return requiredFieldNamedType;
+    }
+    public int getFieldInt() {
+        return fieldInt;
+    }
+    public Integer getFieldInteger() {
+        return fieldInteger;
+    }
+    public String getFieldAsci20() {
+        return fieldAsci20;
+    }
+    /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
+    @Override
+    public <E extends Exception> void serializeSub(MessageComposer<E> w) throws E {
+        w.addField(meta$$fieldEnum$token, fieldEnum == null ? null : Integer.valueOf(fieldEnum.ordinal()));
+        w.addField(fieldBoolean);
+        w.addField(meta$$requiredFieldNamedType, requiredFieldNamedType);
+        w.addField(fieldInt);
+        if (fieldInteger == null) w.writeNull(meta$$fieldInteger); else w.addField(fieldInteger);
+        w.addField(meta$$fieldAsci20, fieldAsci20);
+        w.writeSuperclassSeparator();
+    }
+    
+    /* serialize selected fields of the object. */
+    @Override
+    public <E extends Exception> void foldedOutput(MessageComposer<E> w, ParsedFoldingComponent pfc) throws E {
+        String _n = pfc.getFieldname();
+        if (_n.equals("fieldEnum")) {
+            w.addField(meta$$fieldEnum$token, fieldEnum == null ? null : Integer.valueOf(fieldEnum.ordinal()));
+            return;
+        }
+        if (_n.equals("fieldBoolean")) {
+            w.addField(fieldBoolean);
+            return;
+        }
+        if (_n.equals("requiredFieldNamedType")) {
+            w.addField(meta$$requiredFieldNamedType, requiredFieldNamedType);
+            return;
+        }
+        if (_n.equals("fieldInt")) {
+            w.addField(fieldInt);
+            return;
+        }
+        if (_n.equals("fieldInteger")) {
+            if (fieldInteger == null) w.writeNull(meta$$fieldInteger); else w.addField(fieldInteger);
+            return;
+        }
+        if (_n.equals("fieldAsci20")) {
+            w.addField(meta$$fieldAsci20, fieldAsci20);
+            return;
+        }
+        // not found
+    }
+    
+    @Override
+    public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
+    //public void deserialize(MessageParser p) throws MessageParserException {
+        int _length;
+        // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
+        p.setClassName(PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
+        try {  // for possible EnumExceptions
+        fieldEnum = de.jpaw.bonaparte.pojos.somepackage.MyEnum.valueOf(p.readInteger("fieldEnum", false, false));
+        } catch (EnumException e) {
+            // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
+            throw p.enumExceptionConverter(e);
+        }
+        fieldBoolean = p.readBoolean   ("fieldBoolean", false);
+        requiredFieldNamedType = p.readString    ("requiredFieldNamedType", false, 255, true, false, false, false);
+        fieldInt = p.readInteger   ("fieldInt", false, false);
+        fieldInteger = p.readInteger   ("fieldInteger", true, false);
+        fieldAsci20 = p.readString    ("fieldAsci20", false, 20, true, false, false, false);
+        p.eatParentSeparator();
+        // p.setCurrentClass(embeddingObject); // ignore result
+    }
+    @Override
+    public void validate() throws ObjectValidationException {
+        // perform checks for required fields
+        if (fieldEnum == null)
+            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                        "fieldEnum", PARTIALLY_QUALIFIED_CLASS_NAME);
+        if (requiredFieldNamedType == null)
+            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                        "requiredFieldNamedType", PARTIALLY_QUALIFIED_CLASS_NAME);
+        if (fieldAsci20 == null)
+            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                        "fieldAsci20", PARTIALLY_QUALIFIED_CLASS_NAME);
+        if (requiredFieldNamedType != null) {
+            if (requiredFieldNamedType.length() > 255)
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "requiredFieldNamedType.length=" + requiredFieldNamedType.length() + " > 255",
+                                                    PARTIALLY_QUALIFIED_CLASS_NAME);
+        }
+        if (fieldAsci20 != null) {
+            if (fieldAsci20.length() > 20)
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "fieldAsci20.length=" + fieldAsci20.length() + " > 20",
+                                                    PARTIALLY_QUALIFIED_CLASS_NAME);
+        }
+    }
+    @Override
+    public int hashCode() {
+        int _hash = 997;
+        _hash = 29 * _hash + (fieldEnum == null ? 0 : fieldEnum.hashCode());
+        _hash = 29 * _hash + (fieldBoolean ? 1231 : 1237);
+        _hash = 29 * _hash + (requiredFieldNamedType == null ? 0 : requiredFieldNamedType.hashCode());
+        _hash = 29 * _hash + fieldInt;
+        _hash = 29 * _hash + (fieldInteger == null ? 0 : fieldInteger.hashCode());
+        _hash = 29 * _hash + (fieldAsci20 == null ? 0 : fieldAsci20.hashCode());
+        return _hash;
+    }
+    
+    // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
+    @Override
+    public boolean equals(Object _that) {
+        if (_that == null)
+            return false;
+        if (!(_that instanceof AbstractClass))
+            return false;
+        if (this == _that)
+            return true;
+        return equalsSub((BonaPortable)_that);
+    }
+    
+    // same function, but with second argument of (almost) known type
+    @Override
+    public boolean hasSameContentsAs(BonaPortable _that) {
+        if (_that == null)
+            return false;
+        if (!(_that instanceof AbstractClass))
+            return false;
+        if (this == _that)
+            return true;
+        return equalsSub(_that);
+    }
+    
+    protected boolean equalsSub(BonaPortable _that) {
+        AbstractClass that = (AbstractClass)_that;
+        return true
+        && ((fieldEnum == null && that.fieldEnum == null) || (fieldEnum != null && fieldEnum.equals(that.fieldEnum)))
+        && fieldBoolean == that.fieldBoolean
+        && ((requiredFieldNamedType == null && that.requiredFieldNamedType == null) || (requiredFieldNamedType != null && requiredFieldNamedType.equals(that.requiredFieldNamedType)))
+        && fieldInt == that.fieldInt
+        && ((fieldInteger == null && that.fieldInteger == null) || (fieldInteger != null && fieldInteger.equals(that.fieldInteger)))
+        && ((fieldAsci20 == null && that.fieldAsci20 == null) || (fieldAsci20 != null && fieldAsci20.equals(that.fieldAsci20)))
+        ;
+    }
+    @Override
+    public void writeExternal(ObjectOutput _out) throws IOException {
+        serializeSub(new ExternalizableComposer(_out));
+    }
+    
+    @Override
+    public void readExternal(ObjectInput _in) throws IOException,
+            ClassNotFoundException {
+        deserialize(new ExternalizableParser(_in));
+    }
+    @Override
+    public void treeWalkString(StringConverter _cvt) {
+        requiredFieldNamedType = _cvt.convert(requiredFieldNamedType, meta$$requiredFieldNamedType);
+        fieldAsci20 = _cvt.convert(fieldAsci20, meta$$fieldAsci20);
+    }
+    // default no-argument constructor
+    public AbstractClass() {
+    }
+    
+    // default all-arguments constructor
+    public AbstractClass(MyEnum fieldEnum
+    , boolean fieldBoolean
+    , String requiredFieldNamedType
+    , int fieldInt
+    , Integer fieldInteger
+    , String fieldAsci20
+    ) {
+        this.fieldEnum = fieldEnum;
+        this.fieldBoolean = fieldBoolean;
+        this.requiredFieldNamedType = requiredFieldNamedType;
+        this.fieldInt = fieldInt;
+        this.fieldInteger = fieldInteger;
+        this.fieldAsci20 = fieldAsci20;
+    }
+    
+    // copyOf clone method
+    @Override
+    public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
+        if (desiredSuperType == null || desiredSuperType == AbstractClass.class) {
+            throw new IllegalArgumentException("AbstractClass is abstract can cannot be supported by copyOf()");
+        }
+        throw new IllegalArgumentException("AbstractClass does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");
+    }
+
+    @Override
+    public String toString() {
+        return ToStringHelper.toStringSL(this);
+    }
+}
+, DEFAULT_OUTPUTjava/de/jpaw/bonaparte/pojos/somepackage/MyEnum.java=// This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+// The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+// The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+package de.jpaw.bonaparte.pojos.somepackage;
+
+import de.jpaw.util.EnumException;
+import de.jpaw.enums.TokenizableEnum;
+
+
+public enum MyEnum {
+    FOO, BAR, BAZ;
+
+    public static MyEnum valueOf(Integer ordinal) throws EnumException {
+        if (ordinal != null) {
+            switch (ordinal.intValue()) {
+            case 0: return FOO;
+            case 1: return BAR;
+            case 2: return BAZ;
+            default: throw new EnumException(EnumException.INVALID_NUM, ordinal.toString());
+            }
+        }
+        return null;
+    }
+}
+, DEFAULT_OUTPUTjava/de/jpaw/bonaparte/pojos/somepackage/SubClass.java=// This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+// The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+// The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+package de.jpaw.bonaparte.pojos.somepackage;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.GregorianCalendar;
+import java.util.Calendar;
+import java.util.UUID;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.math.BigDecimal;
+import de.jpaw.util.EnumException;
+import de.jpaw.util.ByteArray;
+import de.jpaw.util.CharTestsASCII;
+import de.jpaw.util.ToStringHelper;
+import de.jpaw.util.ApplicationException;
+import de.jpaw.util.DayTime;
+import de.jpaw.util.ByteUtil;
+import de.jpaw.util.BigDecimalTools;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalDateTime;
+import java.io.Externalizable;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
+import de.jpaw.bonaparte.core.ExternalizableConstants;
+import de.jpaw.bonaparte.core.ExternalizableComposer;
+import de.jpaw.bonaparte.core.ExternalizableParser;
+import de.jpaw.bonaparte.core.BonaPortable;
+import de.jpaw.bonaparte.core.MessageParser;
+import de.jpaw.bonaparte.core.MessageComposer;
+import de.jpaw.bonaparte.core.MessageParserException;
+import de.jpaw.bonaparte.core.ObjectValidationException;
+import de.jpaw.bonaparte.core.StringConverter;
+import de.jpaw.bonaparte.core.StaticMeta;
+import de.jpaw.bonaparte.pojos.meta.*;
+
+
+
+public class SubClass extends AbstractClass
+  implements BonaPortable, Externalizable {
+    private static final long serialVersionUID = -61887802698L;
+
+    // property map
+    private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<String,String>();
+    
+    // initializer
+    protected static void class$fillProperties(ConcurrentMap<String,String> map) {
+    }
+    static {
+        class$fillProperties(property$Map);
+    }
+    static public ConcurrentMap<String,String> class$PropertyMap() {
+        return property$Map;
+    }
+    public ConcurrentMap<String,String> get$PropertyMap() {
+        return property$Map;
+    }
+    static public String get$Property(String propertyname, String fieldname) {
+        return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
+    }
+    
+    static public String class$Property(String id) {
+        return property$Map.get(id);
+    }
+    static public String field$Property(String fieldname, String propertyname) {
+        String id = fieldname + "." + propertyname;
+        return property$Map.get(id);
+    }
+    static public boolean class$hasProperty(String id) {
+        return property$Map.containsKey(id);
+    }
+    static public boolean field$hasProperty(String fieldname, String propertyname) {
+        String id = fieldname + "." + propertyname;
+        return property$Map.containsKey(id);
+    }
+    public String get$Property(String id) {
+        return class$Property(id);
+    }
+    
+    static public Class<? extends BonaPortable> class$returns() {
+        return AbstractClass.class$returns();
+    }
+    
+    @Override
+    public Class<? extends BonaPortable> get$returns() {
+        return class$returns();
+    }
+    
+    
+    static public Class<? extends BonaPortable> class$pk() {
+        return AbstractClass.class$pk();
+    }
+    
+    @Override
+    public Class<? extends BonaPortable> get$pk() {
+        return class$pk();
+    }
+    
+    // my name and revision
+    private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "somepackage.SubClass";
+    private static final String REVISION = null;
+    private static final String PARENT = "somepackage.AbstractClass";
+    private static final String BUNDLE = null;
+    
+    protected static final AlphanumericElementaryDataItem meta$$fieldArray = new AlphanumericElementaryDataItem(Visibility.PRIVATE, true, "fieldArray", Multiplicity.ARRAY, 0, 0, 0, DataCategory.STRING,
+        "String", false, true, false, false, true, 39, 0, null);
+    protected static final AlphanumericElementaryDataItem meta$$unicodeField = new AlphanumericElementaryDataItem(Visibility.PRIVATE, true, "unicodeField", Multiplicity.SCALAR, 0, 0, 0, DataCategory.STRING,
+        "String", false, true, false, false, false, 512, 0, null);
+    protected static final ObjectReference meta$$fieldAbstractOrMoreConcrete = new ObjectReference(Visibility.PRIVATE, false, "fieldAbstractOrMoreConcrete", Multiplicity.ARRAY, 0, 0, 0, DataCategory.OBJECT,
+        "AbstractClass", false, true, "AbstractClass");
+    protected static final ObjectReference meta$$subClasses = new ObjectReference(Visibility.PRIVATE, false, "subClasses", Multiplicity.ARRAY, 0, 0, 0, DataCategory.OBJECT,
+        "SubClass", false, false, "SubClass");
+    protected static final TemporalElementaryDataItem meta$$fieldTimeStamp = new TemporalElementaryDataItem(Visibility.PRIVATE, false, "fieldTimeStamp", Multiplicity.SCALAR, 0, 0, 0, DataCategory.TEMPORAL,
+        "LocalDateTime", false, 3, false);
+    
+    // extended meta data (for the enhanced interface)
+    private static final ClassDefinition my$MetaData = new ClassDefinition();
+    static {
+        my$MetaData.setIsAbstract(false);
+        my$MetaData.setIsFinal(false);
+        my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME);
+        my$MetaData.setRevision(REVISION);
+        my$MetaData.setParent(PARENT);
+        my$MetaData.setBundle(BUNDLE);
+        my$MetaData.setSerialUID(serialVersionUID);
+        my$MetaData.setNumberOfFields(5);
+        FieldDefinition [] field$array = new FieldDefinition[5];
+        field$array[0] = meta$$fieldArray;
+        field$array[1] = meta$$unicodeField;
+        field$array[2] = meta$$fieldAbstractOrMoreConcrete;
+        field$array[3] = meta$$subClasses;
+        field$array[4] = meta$$fieldTimeStamp;
+        my$MetaData.setFields(field$array);
+        my$MetaData.setPropertiesInherited(false);
+        my$MetaData.setWhenLoaded(new LocalDateTime());
+    };
+    
+    // get all the meta data in one go
+    static public ClassDefinition class$MetaData() {
+        return my$MetaData;
+    }
+    
+    // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect
+    // no namespace conflicts here
+    // must be repeated as a member method to make it available in the (extended) interface
+    // feature of extended BonaPortable, not in the core interface
+    @Override
+    public ClassDefinition get$MetaData() {
+        return my$MetaData;
+    }
+    
+    // convenience functions for faster access if the metadata structure is not used
+    @Override
+    public String get$PQON() {
+        return PARTIALLY_QUALIFIED_CLASS_NAME;
+    }
+    @Override
+    public String get$Revision() {
+        return REVISION;
+    }
+    @Override
+    public String get$Parent() {
+        return PARENT;
+    }
+    @Override
+    public String get$Bundle() {
+        return BUNDLE;
+    }
+    @Override
+    public long get$Serial() {
+        return serialVersionUID;
+    }
+    private static final int MY_RTTI = 0;
+    public static int class$rtti() {
+        return MY_RTTI;
+    }
+    public int get$rtti() {
+        return MY_RTTI;
+    }
+    // fields as defined in DSL
+    private String[] fieldArray;
+    private String unicodeField;
+    private AbstractClass[] fieldAbstractOrMoreConcrete;
+    private SubClass[] subClasses;
+    private LocalDateTime fieldTimeStamp;
+    // auto-generated getters and setters
+    public String[] getFieldArray() {
+        return fieldArray;
+    }
+    public String getFieldArray(int _i) {
+        return fieldArray[_i];
+    }
+    public String getUnicodeField() {
+        return unicodeField;
+    }
+    public AbstractClass[] getFieldAbstractOrMoreConcrete() {
+        return fieldAbstractOrMoreConcrete;
+    }
+    public AbstractClass getFieldAbstractOrMoreConcrete(int _i) {
+        return fieldAbstractOrMoreConcrete[_i];
+    }
+    public SubClass[] getSubClasses() {
+        return subClasses;
+    }
+    public SubClass getSubClasses(int _i) {
+        return subClasses[_i];
+    }
+    public LocalDateTime getFieldTimeStamp() {
+        return fieldTimeStamp;
+    }
+    /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
+    @Override
+    public <E extends Exception> void serializeSub(MessageComposer<E> w) throws E {
+        // recursive call of superclass first
+        super.serializeSub(w);
+        if (fieldArray == null) {
+            w.writeNullCollection(meta$$fieldArray);
+        } else {
+            w.startArray(fieldArray.length, 0, 0);
+            for (int _i = 0; _i < fieldArray.length; ++_i)
+                w.addField(meta$$fieldArray, fieldArray[_i]);
+            w.terminateArray();
+        }
+        w.addField(meta$$unicodeField, unicodeField);
+        if (fieldAbstractOrMoreConcrete == null) {
+            w.writeNullCollection(meta$$fieldAbstractOrMoreConcrete);
+        } else {
+            w.startArray(fieldAbstractOrMoreConcrete.length, 0, 0);
+            for (int _i = 0; _i < fieldAbstractOrMoreConcrete.length; ++_i)
+                w.addField((BonaPortable)fieldAbstractOrMoreConcrete[_i]);
+            w.terminateArray();
+        }
+        if (subClasses == null) {
+            w.writeNullCollection(meta$$subClasses);
+        } else {
+            w.startArray(subClasses.length, 0, 0);
+            for (int _i = 0; _i < subClasses.length; ++_i)
+                w.addField((BonaPortable)subClasses[_i]);
+            w.terminateArray();
+        }
+        w.addField(meta$$fieldTimeStamp, fieldTimeStamp);
+        w.writeSuperclassSeparator();
+    }
+    
+    /* serialize selected fields of the object. */
+    @Override
+    public <E extends Exception> void foldedOutput(MessageComposer<E> w, ParsedFoldingComponent pfc) throws E {
+        String _n = pfc.getFieldname();
+        if (_n.equals("fieldArray")) {
+            if (fieldArray == null) {
+                w.writeNullCollection(meta$$fieldArray);
+            } else {
+                if (pfc.index < 0) {
+                    w.startArray(fieldArray.length, 0, 0);
+                    for (int _i = 0; _i < fieldArray.length; ++_i) {
+                        w.addField(meta$$fieldArray, fieldArray[_i]);
+                    }
+                    w.terminateArray();
+                } else {
+                    if (pfc.index < fieldArray.length) {
+                        // output single element
+                        w.addField(meta$$fieldArray, fieldArray[pfc.index]);
+                    }
+                }
+            }
+            return;
+        }
+        if (_n.equals("unicodeField")) {
+            w.addField(meta$$unicodeField, unicodeField);
+            return;
+        }
+        if (_n.equals("fieldAbstractOrMoreConcrete")) {
+            if (fieldAbstractOrMoreConcrete == null) {
+                w.writeNullCollection(meta$$fieldAbstractOrMoreConcrete);
+            } else {
+                if (pfc.index < 0) {
+                    w.startArray(fieldAbstractOrMoreConcrete.length, 0, 0);
+                    for (int _i = 0; _i < fieldAbstractOrMoreConcrete.length; ++_i) {
+                        if (fieldAbstractOrMoreConcrete[_i] == null) {
+                            w.writeNull(meta$$fieldAbstractOrMoreConcrete);
+                        } else if (pfc.getComponent() == null) {
+                            w.addField((BonaPortable)fieldAbstractOrMoreConcrete[_i]);             // full / recursive object output
+                        } else {
+                            // write a specific subcomponent
+                            fieldAbstractOrMoreConcrete[_i].foldedOutput(w, pfc.getComponent());   // recurse specific field
+                        }
+                    }
+                    w.terminateArray();
+                } else {
+                    if (pfc.index < fieldAbstractOrMoreConcrete.length) {
+                        // output single element
+                        if (fieldAbstractOrMoreConcrete[pfc.index] == null) {
+                            w.writeNull(meta$$fieldAbstractOrMoreConcrete);
+                        } else if (pfc.getComponent() == null) {
+                            w.addField((BonaPortable)fieldAbstractOrMoreConcrete[pfc.index]);             // full / recursive object output
+                        } else {
+                            // write a specific subcomponent
+                            fieldAbstractOrMoreConcrete[pfc.index].foldedOutput(w, pfc.getComponent());   // recurse specific field
+                        }
+                    }
+                }
+            }
+            return;
+        }
+        if (_n.equals("subClasses")) {
+            if (subClasses == null) {
+                w.writeNullCollection(meta$$subClasses);
+            } else {
+                if (pfc.index < 0) {
+                    w.startArray(subClasses.length, 0, 0);
+                    for (int _i = 0; _i < subClasses.length; ++_i) {
+                        if (subClasses[_i] == null) {
+                            w.writeNull(meta$$subClasses);
+                        } else if (pfc.getComponent() == null) {
+                            w.addField((BonaPortable)subClasses[_i]);             // full / recursive object output
+                        } else {
+                            // write a specific subcomponent
+                            subClasses[_i].foldedOutput(w, pfc.getComponent());   // recurse specific field
+                        }
+                    }
+                    w.terminateArray();
+                } else {
+                    if (pfc.index < subClasses.length) {
+                        // output single element
+                        if (subClasses[pfc.index] == null) {
+                            w.writeNull(meta$$subClasses);
+                        } else if (pfc.getComponent() == null) {
+                            w.addField((BonaPortable)subClasses[pfc.index]);             // full / recursive object output
+                        } else {
+                            // write a specific subcomponent
+                            subClasses[pfc.index].foldedOutput(w, pfc.getComponent());   // recurse specific field
+                        }
+                    }
+                }
+            }
+            return;
+        }
+        if (_n.equals("fieldTimeStamp")) {
+            w.addField(meta$$fieldTimeStamp, fieldTimeStamp);
+            return;
+        }
+        // not found
+        super.foldedOutput(w, pfc);
+    }
+    
+    @Override
+    public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
+    //public void deserialize(MessageParser p) throws MessageParserException {
+        int _length;
+        // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
+        super.deserialize(p);
+        p.setClassName(PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
+        _length = p.parseArrayStart("fieldArray", true, 0, 0);
+        if (_length < 0) {
+            fieldArray = null;
+        } else {
+            fieldArray = new String[_length];
+            for (int _i = 0; _i < _length; ++_i)
+                fieldArray[_i] = p.readString    ("fieldArray", false, 39, true, false, false, false);
+            p.parseArrayEnd();
+        }
+        unicodeField = p.readString    ("unicodeField", false, 512, true, false, false, true);
+        _length = p.parseArrayStart("fieldAbstractOrMoreConcrete", true, 0, 0);
+        if (_length < 0) {
+            fieldAbstractOrMoreConcrete = null;
+        } else {
+            fieldAbstractOrMoreConcrete = new AbstractClass[_length];
+            for (int _i = 0; _i < _length; ++_i)
+                fieldAbstractOrMoreConcrete[_i] = (AbstractClass)p.readObject("fieldAbstractOrMoreConcrete", AbstractClass.class, true, true);
+            p.parseArrayEnd();
+        }
+        _length = p.parseArrayStart("subClasses", true, 0, 0);
+        if (_length < 0) {
+            subClasses = null;
+        } else {
+            subClasses = new SubClass[_length];
+            for (int _i = 0; _i < _length; ++_i)
+                subClasses[_i] = (SubClass)p.readObject("subClasses", SubClass.class, true, false);
+            p.parseArrayEnd();
+        }
+        fieldTimeStamp = p.readDayTime("fieldTimeStamp", true, false, 3);
+        p.eatParentSeparator();
+        // p.setCurrentClass(embeddingObject); // ignore result
+    }
+    @Override
+    public void validate() throws ObjectValidationException {
+        // perform checks for required fields
+        super.validate();
+        if (fieldArray != null)
+            for (int _i = 0; _i < fieldArray.length; ++_i)
+        if (fieldArray[_i] == null)
+            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                        "fieldArray[_i]", PARTIALLY_QUALIFIED_CLASS_NAME);
+        if (unicodeField == null)
+            throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
+                                        "unicodeField", PARTIALLY_QUALIFIED_CLASS_NAME);
+        if (fieldAbstractOrMoreConcrete != null)
+            for (int _i = 0; _i < fieldAbstractOrMoreConcrete.length; ++_i)
+        if (fieldAbstractOrMoreConcrete[_i] != null)
+            fieldAbstractOrMoreConcrete[_i].validate();  // check object
+        if (subClasses != null)
+            for (int _i = 0; _i < subClasses.length; ++_i)
+        if (subClasses[_i] != null)
+            subClasses[_i].validate();  // check object
+        if (fieldArray != null)
+            for (int _i = 0; _i < fieldArray.length; ++_i)
+        if (fieldArray[_i] != null) {
+            if (fieldArray[_i].length() > 39)
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "fieldArray[_i].length=" + fieldArray[_i].length() + " > 39",
+                                                    PARTIALLY_QUALIFIED_CLASS_NAME);
+        }
+        if (unicodeField != null) {
+            if (unicodeField.length() > 512)
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "unicodeField.length=" + unicodeField.length() + " > 512",
+                                                    PARTIALLY_QUALIFIED_CLASS_NAME);
+        }
+    }
+    @Override
+    public int hashCode() {
+        int _hash = super.hashCode();
+        _hash = 29 * _hash + (fieldArray == null ? 0 : Arrays.deepHashCode(fieldArray));
+        _hash = 29 * _hash + (unicodeField == null ? 0 : unicodeField.hashCode());
+        _hash = 29 * _hash + (fieldAbstractOrMoreConcrete == null ? 0 : Arrays.deepHashCode(fieldAbstractOrMoreConcrete));
+        _hash = 29 * _hash + (subClasses == null ? 0 : Arrays.deepHashCode(subClasses));
+        _hash = 29 * _hash + (fieldTimeStamp == null ? 0 : fieldTimeStamp.hashCode());
+        return _hash;
+    }
+    
+    // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
+    @Override
+    public boolean equals(Object _that) {
+        if (_that == null)
+            return false;
+        if (!(_that instanceof SubClass))
+            return false;
+        if (this == _that)
+            return true;
+        return equalsSub((BonaPortable)_that);
+    }
+    
+    // same function, but with second argument of (almost) known type
+    @Override
+    public boolean hasSameContentsAs(BonaPortable _that) {
+        if (_that == null)
+            return false;
+        if (!(_that instanceof SubClass))
+            return false;
+        if (this == _that)
+            return true;
+        return equalsSub(_that);
+    }
+    
+    @Override
+    protected boolean equalsSub(BonaPortable _that) {
+        SubClass that = (SubClass)_that;
+        return super.equalsSub(_that)
+        && ((fieldArray == null && that.fieldArray == null) || (fieldArray != null && that.fieldArray != null && xCompareSub$fieldArray(that)))
+        && ((unicodeField == null && that.unicodeField == null) || (unicodeField != null && unicodeField.equals(that.unicodeField)))
+        && ((fieldAbstractOrMoreConcrete == null && that.fieldAbstractOrMoreConcrete == null) || (fieldAbstractOrMoreConcrete != null && that.fieldAbstractOrMoreConcrete != null && xCompareSub$fieldAbstractOrMoreConcrete(that)))
+        && ((subClasses == null && that.subClasses == null) || (subClasses != null && that.subClasses != null && xCompareSub$subClasses(that)))
+        && ((fieldTimeStamp == null && that.fieldTimeStamp == null) || (fieldTimeStamp != null && fieldTimeStamp.equals(that.fieldTimeStamp)))
+        ;
+    }
+    private boolean xCompareSub$fieldArray(SubClass that) {
+        // both fieldArray and that fieldArray are known to be not null
+        if (fieldArray.length != that.fieldArray.length)
+            return false;
+        for (int _i = 0; _i < fieldArray.length; ++_i)
+            if (!(((fieldArray[_i] == null && that.fieldArray[_i] == null) || (fieldArray[_i] != null && fieldArray[_i].equals(that.fieldArray[_i])))))
+                return false;
+        return true;
+    }
+    private boolean xCompareSub$fieldAbstractOrMoreConcrete(SubClass that) {
+        // both fieldAbstractOrMoreConcrete and that fieldAbstractOrMoreConcrete are known to be not null
+        if (fieldAbstractOrMoreConcrete.length != that.fieldAbstractOrMoreConcrete.length)
+            return false;
+        for (int _i = 0; _i < fieldAbstractOrMoreConcrete.length; ++_i)
+            if (!(((fieldAbstractOrMoreConcrete[_i] == null && that.fieldAbstractOrMoreConcrete[_i] == null) || (fieldAbstractOrMoreConcrete[_i] != null && fieldAbstractOrMoreConcrete[_i].hasSameContentsAs(that.fieldAbstractOrMoreConcrete[_i])))))
+                return false;
+        return true;
+    }
+    private boolean xCompareSub$subClasses(SubClass that) {
+        // both subClasses and that subClasses are known to be not null
+        if (subClasses.length != that.subClasses.length)
+            return false;
+        for (int _i = 0; _i < subClasses.length; ++_i)
+            if (!(((subClasses[_i] == null && that.subClasses[_i] == null) || (subClasses[_i] != null && subClasses[_i].hasSameContentsAs(that.subClasses[_i])))))
+                return false;
+        return true;
+    }
+    @Override
+    public void writeExternal(ObjectOutput _out) throws IOException {
+        serializeSub(new ExternalizableComposer(_out));
+    }
+    
+    @Override
+    public void readExternal(ObjectInput _in) throws IOException,
+            ClassNotFoundException {
+        deserialize(new ExternalizableParser(_in));
+    }
+    @Override
+    public void treeWalkString(StringConverter _cvt) {
+        super.treeWalkString(_cvt);
+        fieldArray = _cvt.convertArray(fieldArray, meta$$fieldArray);
+        unicodeField = _cvt.convert(unicodeField, meta$$unicodeField);
+        if (fieldAbstractOrMoreConcrete != null)
+            for (int _i = 0; _i < fieldAbstractOrMoreConcrete.length; ++_i)
+        if (fieldAbstractOrMoreConcrete[_i] != null)
+            fieldAbstractOrMoreConcrete[_i].treeWalkString(_cvt);
+        if (subClasses != null)
+            for (int _i = 0; _i < subClasses.length; ++_i)
+        if (subClasses[_i] != null)
+            subClasses[_i].treeWalkString(_cvt);
+    }
+    // default no-argument constructor
+    public SubClass() {
+        super();
+    }
+    
+    // default all-arguments constructor
+    public SubClass(MyEnum fieldEnum
+    , boolean fieldBoolean
+    , String requiredFieldNamedType
+    , int fieldInt
+    , Integer fieldInteger
+    , String fieldAsci20
+    , String[] fieldArray
+    , String unicodeField
+    , AbstractClass[] fieldAbstractOrMoreConcrete
+    , SubClass[] subClasses
+    , LocalDateTime fieldTimeStamp
+    ) {
+        super(fieldEnum
+        , fieldBoolean
+        , requiredFieldNamedType
+        , fieldInt
+        , fieldInteger
+        , fieldAsci20
+        );
+        this.fieldArray = fieldArray;
+        this.unicodeField = unicodeField;
+        this.fieldAbstractOrMoreConcrete = fieldAbstractOrMoreConcrete;
+        this.subClasses = subClasses;
+        this.fieldTimeStamp = fieldTimeStamp;
+    }
+    
+    // copyOf clone method
+    @Override
+    public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
+        if (desiredSuperType == null || desiredSuperType == SubClass.class) {
+            return (T) new SubClass(getFieldEnum(), getFieldBoolean(), getRequiredFieldNamedType(), getFieldInt(), getFieldInteger(), getFieldAsci20(), getFieldArray(), getUnicodeField(), getFieldAbstractOrMoreConcrete(), getSubClasses(), getFieldTimeStamp());
+        }
+        return super.copyAs(desiredSuperType);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringHelper.toStringSL(this);
+    }
+}
+, DEFAULT_OUTPUTjava/de/jpaw/bonaparte/pojos/somepackage/package-info.java=// This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+// The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+// The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+
+package de.jpaw.bonaparte.pojos.somepackage;
+}

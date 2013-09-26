@@ -1,0 +1,34 @@
+
+package embeddables {
+    default unsigned trim noControlChars;
+    properties unroll;
+    type city  is Unicode(30);
+    
+    // standard Embeddable
+    final class Address {
+    	required Unicode(20)	street;
+    	optional Ascii(10) zipCode;
+    	city city;
+    }
+    
+    // Embeddable with unrolled list inside
+    final class Add2 {
+        required Unicode(10) data1;
+        Unicode(10) List<4> props properties unroll;
+    }
+    
+    class Person {
+    	Long personKey;
+    	Unicode(20) name;
+    	(Address)   homeAddress;
+    	(Address)	addressWork;
+    	(Address)	extra;
+    	Unicode(80) List<3> addressLines properties unroll; 
+    	(Address) List<3> evenMore properties unroll="x%03d";
+    	(Add2)      myAdd2;
+    }
+    
+    class Tracking {
+    	Ascii(8)	userId;
+    }
+}

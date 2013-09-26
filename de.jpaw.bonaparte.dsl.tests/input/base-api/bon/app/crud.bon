@@ -1,0 +1,80 @@
+import base.api.types.*
+import base.api.*
+import base.data.*
+
+package (com.arvatosystems.fortytwo) app.crud XML PROPERTY {
+    default unsigned trim noControlChars;
+        
+    /**
+     * The base class to be used for CRUD specific requests for entities which have an artificial key.
+     */
+    class CrudRequest<DATA extends Ref> extends RequestParameters return CrudResponse {
+        required enum Crud              crud;               // specifies the command 
+        required boolean                onlyActive;         // work on active records only, fail if record exists, but is inactive        
+        optional version                version;            // this is a required field for all crud except INSERT and READ
+        optional f42Ref                 key;                // the artificial key
+        optional (!DATA...)             data;               // the full data record
+    }
+
+    /**
+     * The base class to be used for CRUD specific responses for entities which have an artificial key.
+     */    
+    class CrudResponse<DATA extends Object, TRACKING extends NoTracking> extends ServiceResponse {
+        optional (!TRACKING...)         tracking;           // the tracking columns, returned for READ commands
+        optional f42Ref                 key;                // the artificial key       
+        optional (!DATA...)             data;               // the full data record        
+    }
+    
+    /**
+     * The base class to be used for CRUD specific requests for entities which have a natural key.
+     */
+    class CrudNaturalKeyRequest<DATA extends NaturalKeyBase, KEY extends NaturalKeyRef> extends RequestParameters return CrudNaturalKeyResponse {
+        required enum Crud              crud;               // specifies the command 
+        required boolean                onlyActive;         // work on active records only, fail if record exists, but is inactive        
+        optional version                version;            // this is a required field for all crud except INSERT and READ
+        optional (!KEY...)              key;                // the key object
+        optional (!DATA...)             data;               // the full data record
+    }
+
+    /**
+     * The base class to be used for CRUD specific responses for entities which have a natural key.
+     */    
+    class CrudNaturalKeyResponse<DATA extends NaturalKeyBase, KEY extends NaturalKeyRef, TRACKING extends NoTracking> extends ServiceResponse {
+        optional (!TRACKING...)         tracking;           // the tracking columns, returned for READ commands
+        optional (!KEY...)              key;                // the key object
+        optional (!DATA...)             data;               // the full data record        
+    }
+    
+
+    /**
+     * A simple request to return all relevant data records for a JPA entity. Do not use for tables which could contain huge data sets.
+     */    
+    class ReadAllRequest<DATA extends Ref> extends RequestParameters return ReadAllResponse { // dummy generics arg for symmetry reasons and return type definition
+        required boolean                returnOnlyActive;
+    }
+    
+    class DataWithTracking<DATA extends Object, TRACKING extends NoTracking> {
+        required (!TRACKING...)         tracking;
+        required (!DATA...)             data;
+    }
+    
+    class ReadAllResponse<DATA extends Object, TRACKING extends NoTracking> extends ServiceResponse {
+        required (DataWithTracking<!DATA, !TRACKING>) required List<>   dataList; // the list of results
+        optional f42Ref                 sinkRef;                // contains the result if an export was called (in which case the result list is empty)
+    }
+    
+    
+    /**
+     * The base class to be used for Resolver specific requests for the artificial key.
+     */
+    class RefResolverRequest<REF extends Ref> extends RequestParameters return RefResolverResponse {
+        required (!REF...)              ref;                // the reference to the data
+    }
+
+    /**
+     * The base class to be used for Resolver specific responses for the artificial key.
+     */    
+    class RefResolverResponse extends ServiceResponse {
+        required f42Ref                 key;                // the artificial key       
+    }
+}
