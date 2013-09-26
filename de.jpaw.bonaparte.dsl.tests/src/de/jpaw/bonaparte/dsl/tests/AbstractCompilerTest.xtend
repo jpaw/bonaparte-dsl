@@ -24,6 +24,7 @@ abstract class AbstractCompilerTest {
 	
 	@Inject extension ParseHelper<Model>
 	@Inject Provider<ResourceSet> resourceSetProvider
+
 	protected def IGenerator getGenerator(Resource resource) {
 		switch resource {
 			XtextResource : resource.resourceServiceProvider.get(IGenerator)
