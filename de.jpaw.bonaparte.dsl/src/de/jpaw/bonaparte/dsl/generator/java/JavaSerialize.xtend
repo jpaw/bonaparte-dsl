@@ -17,9 +17,11 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
@@ -27,11 +29,8 @@ class JavaSerialize {
 
     def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         if (ref.isPrimitive || ref.category == DataCategory.OBJECT)
-            return '''w.addField(«indexedName»);'''     // no di attribute
-        val String grammarName = e.name.toLowerCase;
-        if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens
-            '''w.addField(meta$$«i.name»$token, «indexedName» == null ? null : «IF ref.enumMaxTokenLength >= 0»«indexedName».getToken()«ELSE»Integer.valueOf(«indexedName».ordinal())«ENDIF»);'''
-        } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
+            '''w.addField(«indexedName»);'''     // no di attribute
+        else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
             '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(«indexedName»);'''
         } else {
             '''w.addField(meta$$«i.name», «indexedName»);'''
@@ -39,16 +38,20 @@ class JavaSerialize {
     }
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) != null»
+        «IF i.datatype.pointsToElementaryDataType»
             «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+        «ELSEIF i.datatype.isEnum»
+        	w.addField(meta$$«i.name»$token, «index» == null ? null : «IF i.datatype.enumMaxTokenLength >= 0»«index».getToken()«ELSE»Integer.valueOf(«index».ordinal())«ENDIF»);
         «ELSE»
             w.addField((BonaPortable)«index»);
         «ENDIF»
     '''
 
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) != null»
+        «IF i.datatype.pointsToElementaryDataType»
             «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+        «ELSEIF i.datatype.isEnum»
+        	w.addField(meta$$«i.name»$token, «index» == null ? null : «IF i.datatype.enumMaxTokenLength >= 0»«index».getToken()«ELSE»Integer.valueOf(«index».ordinal())«ENDIF»);
         «ELSE»
             if («index» == null) {
                 w.writeNull(meta$$«i.name»);

@@ -24,7 +24,7 @@ class IntegrationTest extends AbstractCompilerTest {
 			    enum MyEnum { FOO, BAR, BAZ }
 			    
 				abstract immutable class AbstractClass {
-				    enum MyEnum  fieldEnum;
+				    enum MyEnum fieldEnum;
 					boolean fieldBoolean;
 					required namedType requiredFieldNamedType;
 					int fieldInt;

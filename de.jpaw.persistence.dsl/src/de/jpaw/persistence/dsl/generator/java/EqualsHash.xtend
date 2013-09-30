@@ -103,7 +103,7 @@ class EqualsHash {
     '''
     def private static CharSequence writeHashSub(ClassDefinition d) '''
         «IF d.extendsClass != null»
-            «writeHashSub(d.extendsClass.classRef)»
+            «writeHashSub(d.extendsClass.referenceDataType as ClassDefinition)»
         «ENDIF»
         «writeHashSub2(d.fields)»
     '''

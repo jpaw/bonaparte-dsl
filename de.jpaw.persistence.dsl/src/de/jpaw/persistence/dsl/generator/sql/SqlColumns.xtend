@@ -18,17 +18,15 @@ package de.jpaw.persistence.dsl.generator.sql
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-// using JCL here, because it is already a project dependency, should switch to slf4j
+import de.jpaw.bonaparte.dsl.generator.Delimiter
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.List
 import org.apache.commons.logging.Log
 import org.apache.commons.logging.LogFactory
-import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
-import java.util.List
-import de.jpaw.bonaparte.dsl.generator.Delimiter
-import de.jpaw.persistence.dsl.generator.YUtil
-import org.eclipse.xtext.generator.builder.BuilderIntegrationFragment
-import de.jpaw.persistence.dsl.generator.RequiredType
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlColumns {
     private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl

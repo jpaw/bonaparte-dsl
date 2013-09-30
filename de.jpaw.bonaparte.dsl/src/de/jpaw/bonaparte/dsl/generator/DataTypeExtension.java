@@ -26,26 +26,25 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
-import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.AbstractTypeDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.DataType;
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.DataType;
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
-import de.jpaw.bonaparte.dsl.bonScript.XRounding;
-import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
-import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
+import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XSignedness;
 import de.jpaw.bonaparte.dsl.bonScript.XSpecialCharsSetting;
 import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
+import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
+import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 
 public class DataTypeExtension {
     // constants for enumMaxTokenLength field
@@ -89,7 +88,6 @@ public class DataTypeExtension {
         dataCategory.put("lowercase", DataCategory.STRING);
         dataCategory.put("ascii",     DataCategory.STRING);
         dataCategory.put("unicode",   DataCategory.STRING);
-        dataCategory.put("enum",      DataCategory.ENUM);  // artificial entry for enum
         dataCategory.put("object",    DataCategory.OBJECT);  // which is really an object reference instead of an elementary item...
     }
 
@@ -121,7 +119,6 @@ public class DataTypeExtension {
         dataTypeJava.put("lowercase", "String");
         dataTypeJava.put("ascii",     "String");
         dataTypeJava.put("unicode",   "String");
-        dataTypeJava.put("enum",      "@");  			// artificial entry for enum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
 
@@ -131,7 +128,7 @@ public class DataTypeExtension {
     public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
     public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
     public boolean orSuperClass;                    // if subclasses are allowed
-    public ClassReference genericsRef;				// a generic type argument
+//    public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
     public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference
     public boolean isUpperCaseOrLowerCaseSpecialType = false;  // true for uppercase or lowercase (has extra built-in validation function)
@@ -147,8 +144,8 @@ public class DataTypeExtension {
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
     public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
     public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
-    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
-    public boolean allTokensAscii = true;
+//    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
+//    public boolean allTokensAscii = true;
     public DataCategory category = DataCategory.MISC;
 
     static public void clear() {
@@ -297,21 +294,20 @@ public class DataTypeExtension {
         // does not exist, create a new one!
         r = new DataTypeExtension();
         r.elementaryDataType = key.getElementaryDataType();
-        r.typedef = key.getReferenceDataType();
-        r.objectDataType = null;
-        r.genericsRef = key.getObjectDataType();
-        if (key.getObjectDataType() != null) {
-        	r.category = DataCategory.OBJECT;
-        	r.orSuperClass = key.isOrSuperClass();
-        	// construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
-        	r.javaType = XUtil.genericRef2String(key.getObjectDataType());
-        	if (key.getObjectDataType().getClassRef() != null)
-        		r.objectDataType = key.getObjectDataType().getClassRef();
-        	// TODO: how to fill objectDataType when we have generics...
-        	
-            // merge the defaults specifications
-            mergeFieldSpecsWithDefaultsForObjects(r, key);
-        }
+        AbstractTypeDefinition refType = key.getReferenceDataType();
+        if (refType instanceof TypeDefinition) {
+        	r.typedef = (TypeDefinition) refType;
+        } else if (refType instanceof ClassDefinition) {
+        	r.objectDataType = (ClassDefinition) refType;
+        } 
+    	r.category = DataCategory.OBJECT;
+    	r.orSuperClass = key.isOrSuperClass();
+    	// construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
+    	r.javaType = XUtil.genericDataType2String(key);
+    	// TODO: how to fill objectDataType when we have generics...
+    	
+        // merge the defaults specifications
+        mergeFieldSpecsWithDefaultsForObjects(r, key);
 
         if (r.elementaryDataType != null) {
             // immediate data: perform postprocessing. transfer defaults of embedding package to this instance
@@ -338,27 +334,8 @@ public class DataTypeExtension {
             mergeFieldSpecsWithDefaults(r, key);
 
             if (!r.wasUpperCase)
-                r.isRequired = XRequired.REQUIRED;              // field is set to required by specification
+                r.isRequired = XRequired.REQUIRED; // field is set to required by specification
 
-            // special handling for enums
-            if (r.javaType == null)
-                throw new Exception("unmapped Java data type for " + e.getName());
-            else if (r.javaType.equals("@")) {  // special case for enum types: replace java type by referenced class
-                r.javaType = e.getEnumType().getName();
-                // also count the max length if alphanumeric
-                EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
-                r.enumMaxTokenLength = ENUM_NUMERIC;
-                if (ead != null && !ead.isEmpty()) {
-                    // compute the maximum length of all tokens, could be useful for derived grammars...
-                    for (EnumAlphaValueDefinition enumX : ead) {
-                        if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
-                            r.enumMaxTokenLength = enumX.getToken().length();
-                            if (!Util.isAsciiString(enumX.getToken()))
-                                r.allTokensAscii = false;
-                        }
-                    }
-                }
-            }
 
             // special treatment for uppercase / lowercase shorthands
             if (r.javaType.equals("String"))
@@ -367,6 +344,13 @@ public class DataTypeExtension {
 
             //System.out.println("setting elem data type: " + e.getName() + String.format(": wasUpper=%b, primitive=%b, length=%d, key=",
             //      r.wasUpperCase, r.isPrimitive, e.getLength()) + key);
+        }
+        // special handling for enums
+        if (key.getReferenceDataType() instanceof EnumDefinition) {
+        	r.category = DataCategory.ENUM;
+        	if (Character.isUpperCase(key.getReferenceDataType().getName().charAt(0))) {
+        		r.isRequired = XRequired.REQUIRED; // field is set to required by specification
+        	}
         }
         // now resolve the typedef, if exists
         if (r.typedef != null) {
@@ -382,7 +366,6 @@ public class DataTypeExtension {
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
             r.orSuperClass = resolvedReference.orSuperClass;
-            r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;
             r.isPrimitive = resolvedReference.isPrimitive;
             r.isWrapper = resolvedReference.isWrapper;
@@ -395,7 +378,7 @@ public class DataTypeExtension {
             r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;
             r.javaType = resolvedReference.javaType;
             r.isUpperCaseOrLowerCaseSpecialType = resolvedReference.isUpperCaseOrLowerCaseSpecialType;
-            r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
+//            r.enumMaxTokenLength = resolvedReference.enumMaxTokenLength;
             r.category = resolvedReference.category;
             r.currentlyVisited = false;
             // computation of the "required" state

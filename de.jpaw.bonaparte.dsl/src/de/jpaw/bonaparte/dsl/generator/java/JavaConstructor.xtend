@@ -22,8 +22,6 @@ import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.bonaparte.dsl.generator.Generics
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import java.util.List
-import java.util.ArrayList
 
 /* DISCLAIMER: Validation is work in progress. Neither direct validation nor JSR 303 annotations are complete */
 
@@ -37,43 +35,27 @@ class JavaConstructor {
     }
 
     def private static CharSequence allFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
-        «IF d.extendsClass != null && d.extendsClass.classRef != null»
-            «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
+        «IF d.parent != null»
+            «allFields(s, new Generics(g, d), d.parent, withTypes)»
         «ENDIF»
         «FOR i : d.fields»
             «s.get»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»
         «ENDFOR»
     '''
 
-    def private static int countAllFields(ClassDefinition d) {
-        var int sum = d.fields.size
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
-            sum = sum + countAllFields(d.extendsClass.classRef)
-        return sum
-    }
-
-    def public static List<FieldDefinition> fieldsOfMeAndSuperClasses(ClassDefinition d) {
-        if (d.extendsClass?.classRef == null)
-            return d.fields
-        val result = new ArrayList<FieldDefinition>()
-        result.addAll(d.extendsClass?.classRef.fieldsOfMeAndSuperClasses)
-        result.addAll(d.fields)
-        return result        
-    }
-    
     def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
-            «IF d.extendsClass != null && d.extendsClass.classRef != null»
+            «IF d.parent != null»
                 super();
             «ENDIF»
         }
 
-        «IF countAllFields(d) > 0 && !d.isNoAllFieldsConstructor»
+        «IF !d.allFields.empty && !d.isNoAllFieldsConstructor»
             // default all-arguments constructor
             public «d.name»(«allFields(new Delimiter("", ", "), new Generics(), d, true)») {
-                «IF d.extendsClass != null && d.extendsClass.classRef != null»
-                    super(«allFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
+                «IF d.parent != null»
+                    super(«allFields(new Delimiter("", ", "), null, d.parent, false)»);
                 «ENDIF»
                 «FOR i : d.fields»
                     this.«i.name» = «i.name»;
@@ -90,12 +72,12 @@ class JavaConstructor {
                 «ELSE»
                     «IF d.isNoAllFieldsConstructor»
                         «d.name» _new = new «d.name»();
-                        «FOR fld : d.fieldsOfMeAndSuperClasses»
+                        «FOR fld : d.allFields»
                             _new.set«fld.name.getNameCapsed(d)»(get«fld.name.getNameCapsed(d)»());
                         «ENDFOR»
                         return (T) _new;
                     «ELSE»
-                        return (T) new «d.name»(«d.fieldsOfMeAndSuperClasses.map["get" + name.getNameCapsed(d) + "()"].join(', ')»);
+                        return (T) new «d.name»(«d.allFields.map["get" + name.getNameCapsed(d) + "()"].join(', ')»);
                     «ENDIF»
                 «ENDIF»
             }

@@ -21,17 +21,17 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.Inheritance
+
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlViewOut {
 
     def private static createColumn(FieldDefinition i, String prefix, String myName) {
-        val ref = DataTypeExtension::get(i.datatype)
         val cn = myName.java2sql
-        if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
-            '''«ref.elementaryDataType.enumType.name»2s(«prefix».«cn») AS «cn»'''
+        if (i.datatype.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+            '''«i.datatype.enumDefinition.name»2s(«prefix».«cn») AS «cn»'''
         else
             '''«prefix».«cn» AS «cn»'''
     }

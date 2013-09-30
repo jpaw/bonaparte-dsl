@@ -20,25 +20,26 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
-import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.AbstractTypeDefinition
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
     public static final String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
 
-    def public static getPackageName(PackageDefinition p) {
+    def dispatch static String getPackageName(PackageDefinition p) {
         (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
 
     // create the package name for a class definition object
-    def public static getPackageName(ClassDefinition d) {
+    def dispatch static String getPackageName(AbstractTypeDefinition d) {
         getPackageName(getPackage(d))
     }
     // create the package name for an enum object
-    def public static getPackageName(EnumDefinition d) {
+    def dispatch static String getPackageName(EnumDefinition d) {
         getPackageName(getPackage(d))
     }
-
+ 
     // Utility methods
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
         getPackage(d).name + "." + d.name
@@ -48,8 +49,8 @@ class JavaPackages {
         var long myUID = getPartiallyQualifiedClassName(d).hashCode()
         if (d.revision != null)
             myUID = 97L * myUID + d.revision.hashCode()
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
-            myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
+        if (d.parent != null)
+            myUID = 131L * myUID + getSerialUID(d.parent)   // recurse parent classes
         return myUID
     }
 

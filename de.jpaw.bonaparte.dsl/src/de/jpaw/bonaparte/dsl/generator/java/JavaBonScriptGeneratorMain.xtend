@@ -143,7 +143,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
                 if (gp.^extends != null)
-                    imports.addImport(gp.^extends)
+                    imports.addImports(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
         val xmlNs = getXmlNs(d)
@@ -203,7 +203,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         @Deprecated
         «ENDIF»
         «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «genericDataType2String(d.extendsClass)»«ENDIF»
           implements BonaPortable«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 

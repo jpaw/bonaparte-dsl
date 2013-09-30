@@ -17,7 +17,6 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
@@ -25,9 +24,12 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
 
 class JavaDeserialize {
-    private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
     def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref, boolean isRequired) {
         switch i.name.toLowerCase {
@@ -57,33 +59,34 @@ class JavaDeserialize {
         case 'calendar':  '''p.readCalendar  ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'day':       '''p.readDay("«fieldname»", «!isRequired»)'''
-                          
-        // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
         case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «!isRequired», true)'''
         }
     }
 
-    def private static String getKnownSupertype(ClassReference d) {
-        if (d.plainObject)
+    def private static String getKnownSupertype(DataType d) {
+        if (d.isObject)
             return "BonaPortable"
-        if (d.classRef != null)
-            return d.classRef.name
+        if (d.elementaryDataType != null)
+            return d.elementaryDataType.name
         // this must be a generics ref. Return the static type for now, but later extend to the runtime type!
-        if (d.genericsParameterRef != null) {
-            if (d.genericsParameterRef.^extends != null)
-                return getKnownSupertype(d.genericsParameterRef.^extends)
-            else
-                return "BonaPortable"  // unspecified type
+        switch type : d.referenceDataType {
+        	GenericsDef : {
+                return if (type.^extends != null) getKnownSupertype(type.^extends) else "BonaPortable"
+        	}
+        	ClassDefinition : {
+        		return type.name
+        	}
         }
         return "FIXME! no supertype resolved!"
     }
 
-    def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
-        «IF resolveElem(i.datatype) != null»
-            «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
+    def private static makeRead2(ClassDefinition d, FieldDefinition it, String end) '''
+        «IF datatype.pointsToElementaryDataType»
+            «makeRead(name, datatype.findElementaryDataType, DataTypeExtension::get(datatype), isRequired)»«end»
+        «ELSEIF datatype.referenceDataType instanceof EnumDefinition»
+        	«getPackageName(datatype.referenceDataType)».«datatype.referenceDataType.name».«IF (datatype.enumMaxTokenLength >= 0)»factory(p.readString("«name»", «!isRequired», «datatype.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«name»", «!isRequired», false))«ENDIF»«end»
         «ELSE»
-            («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
+            («DataTypeExtension::get(datatype).javaType»)p.readObject("«name»", «getKnownSupertype(datatype)».class, «!isRequired», «DataTypeExtension.get(datatype).orSuperClass»)«end»
         «ENDIF»
     '''
 
@@ -107,7 +110,7 @@ class JavaDeserialize {
                 «ENDIF»
                 p.setClassName(PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
-                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
+                    «IF i.datatype.isEnum»
                         try {  // for possible EnumExceptions
                     «ENDIF»
                     «IF i.isArray != null»
@@ -163,7 +166,7 @@ class JavaDeserialize {
                     «ELSE»
                         «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»
-                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
+                    «IF i.datatype.isEnum»
                          } catch (EnumException e) {
                              // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
                              throw p.enumExceptionConverter(e);

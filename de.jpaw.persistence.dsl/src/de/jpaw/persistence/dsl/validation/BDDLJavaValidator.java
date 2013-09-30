@@ -1,5 +1,7 @@
 package de.jpaw.persistence.dsl.validation;
 
+import static de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.getExtendedClassDefinition;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,8 +11,6 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.validation.Check;
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.DataType;
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
@@ -155,7 +155,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                     }
                 }
             }
-            c = (c.getExtendsClass() != null) ? c.getExtendsClass().getClassRef() : null;
+            c = getExtendedClassDefinition(c);
         }
     }
 
@@ -286,7 +286,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                     if (dd.getExtendsClass() == null)
                         dd = null;
                     else
-                        dd = dd.getExtendsClass().getClassRef();
+                        dd = getExtendedClassDefinition(dd);
                 }
                 if (dd == null)
                     error("A PK class which is not final must be a superclass of the definining DTO", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
@@ -359,37 +359,34 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         } */
     }
 
-    private static boolean isSame(Object a, Object b) {
-        if (a == null && b == null)
-            return true;
-        if (a == null || b == null)
-            return false;
-        return a.equals(b);
-    }
+//    private static boolean isSame(Object a, Object b) {
+//        if (a == null && b == null)
+//            return true;
+//        if (a == null || b == null)
+//            return false;
+//        return a.equals(b);
+//    }
 
-    private static boolean checkSameType(DataType a, DataType b) {
-        if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
-            return false;
-        ElementaryDataType adt = a.getElementaryDataType();
-        ElementaryDataType bdt = b.getElementaryDataType();
-
-        if (adt != null) {
-            if (bdt == null)
-                return false;
-            // a and b both not null, compare!
-            if (!isSame(adt.getEnumType(), bdt.getEnumType()))
-                return false;
-            if (!isSame(adt.getName(), bdt.getName()))
-                return false;
-            if (adt.getLength() != bdt.getLength())
-                return false;
-        } else if (bdt != null) {
-            // a is null, b not
-            return false;
-        }
-        return true;
-
-    }
+//    private static boolean checkSameType(DataType a, DataType b) {
+//        if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
+//            return false;
+//        ElementaryDataType adt = a.getElementaryDataType();
+//        ElementaryDataType bdt = b.getElementaryDataType();
+//
+//        if (adt != null) {
+//            if (bdt == null)
+//                return false;
+//            // a and b both not null, compare!
+//            if (!isSame(adt.getName(), bdt.getName()))
+//                return false;
+//            if (adt.getLength() != bdt.getLength())
+//                return false;
+//        } else if (bdt != null) {
+//            // a is null, b not
+//            return false;
+//        }
+//        return true;
+//    }
     
     @Check
     public void checkElementCollectionRelationship(ElementCollectionRelationship ec) {

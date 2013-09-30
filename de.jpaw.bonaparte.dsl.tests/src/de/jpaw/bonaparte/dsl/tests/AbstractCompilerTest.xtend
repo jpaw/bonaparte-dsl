@@ -56,7 +56,7 @@ abstract class AbstractCompilerTest {
 				close
 			]
 		} else {
-			assertEquals(fsa.allFiles.toString, Resources.readLines(data.toURL, Charset.defaultCharset).join("\n"))
+			assertEquals(Resources.readLines(data.toURL, Charset.defaultCharset).join("\n"), fsa.allFiles.toString)
 		}
 	}
 	

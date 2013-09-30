@@ -206,7 +206,7 @@ class YUtil {
         (ClassDefinition)=> CharSequence groupSeparator,
         (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
+            «(cl.extendsClass?.referenceDataType as ClassDefinition)?.recurse(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
                 «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
