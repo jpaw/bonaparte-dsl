@@ -1,0 +1,194 @@
+import base.api.types.*
+
+package (com.arvatosystems.fortytwo) base.data XML PROPERTY {
+    default unsigned trim noControlChars;
+
+    /*
+     * The set of properties each class within this package shall have by default.
+     */        
+    properties inherited, version, active, nochange, noinsert, ^default, currentUser, currentTimestamp, findBy, listBy,
+        serialized, ref, searchprefix,
+        tenantCategory is com.arvatosystems.fortytwo.base.TenantCategory(),
+        noupdate is com.arvatosystems.fortytwo.base.NotUpdatable;
+
+    /**
+     * The types of customization the system shall support.
+     */
+    enum CustomizationType { BACKEND="B", UI_ONLY="U", REPORTING_ONLY="R" }
+
+    /**
+     * The types of authentication the system shall support.
+     */
+    enum AuthenticationType {
+        LDAP="L", SSO="S", AD="A", DB="D", X509="X"
+        // SSO=single-sign-on, AD=Active directory,
+        // DB=internal user database, X509= authenticate via SSL CN
+    }  
+    
+    /** Base class for all JPA entity tracking classes. */
+    class NoTracking {}
+    
+    /** Tracking data for write-only tables. */
+    class WriteTracking extends NoTracking {
+        required userId     cTechUserId     properties noupdate, currentUser;       // noinsert removed, causes problems with H2 unit tests
+        required f42Ref     cAppUserRef     properties noupdate;
+        required instant    cTimestamp      properties noupdate, currentTimestamp;  // noinsert removed, causes problems with H2 unit tests
+        required f42Ref     cProcessRef     properties noupdate;
+    }
+    
+    /** Tracking data for read/write tables, using pessimistic locking. */
+    class FullTracking extends WriteTracking {
+        required userId     mTechUserId     properties currentUser;  // noupdate, noinsert removed, causes problems with H2 unit tests
+        required f42Ref     mAppUserRef;
+        required instant    mTimestamp      properties currentTimestamp;
+        required f42Ref     mProcessRef;
+    }
+    
+    /** Tracking data for read/write tables, using pessimistic locking, and an active column (usually masterdata). */
+    class FullTrackingWithActiveColumn extends FullTracking {
+        required boolean    isActive        properties active;
+    }
+        
+    /** Tracking data for read/write tables, using optimistic locking, and an active column (usually configuration data). */
+    class FullTrackingWithActiveColumnAndVersion extends FullTrackingWithActiveColumn {
+        required int        version         properties version;
+    }
+    
+    /** Tracking data for read/write tables, using optimistic locking, but no active column (usually transaction data). */
+    class FullTrackingWithVersion extends FullTracking {
+        required int        version         properties version;
+    }
+    
+    class AdditionalHistoryTableColumns {
+        Crud                                crud;
+        long                                historyNo;   // maybe we do not need this, because we have the version now
+        required                            instant localTimestamp;
+    }
+    
+    /** Inheritance root object for all DTOs / JPA entities which have an artificial key.
+     * (An artificial key is a key which is of type Long and is assigned a value from a sequence by the
+     * genericRefGenerator.)
+     */
+    class Ref {
+        f42Ref                              objectRef properties noupdate;
+    }
+    
+    /** Inheritance root object for all keys of DTOs / JPA entities which have a natural key.
+     * (A natural key is a key which consists of one or more fields which are assigned values related to business meaning
+     * or other object references.)
+     */
+    abstract class NaturalKeyRef {}
+    
+    /** Inheritance root object for all DTOs / JPA entities which have a natural key.
+     * (A natural key is a key which consists of one or more fields which are assigned values related to business meaning
+     * or other object references.)
+     */
+    abstract class NaturalKeyBase {}
+    
+    class UserRef RTTI 80 extends Ref {
+        // nothing in here, just a retyping 
+    }
+        
+    final class UserKey extends UserRef {
+        public required extUserId           userId;         // User id to be used for login
+    }
+        
+    // user which can log into the system or perform remote web service calls
+    class User extends UserRef {
+        properties tenantCategory="G";
+        required extUserId                  userId properties noupdate, findBy; // User id to be used for login
+        required Ascii(255)                 username;       // Open id related username 
+        required boolean                    isTechnical;    // true if this is a technical user used for file processing, socket servers etc.
+        required tenantId                   tenantId;       // not implicit because it could differ from tenant setting (ALL or NONE) 
+        f42Ref                              personRef;      // if user is a b2c customer (self service login)
+        optional shortText                  fullName;       // christian name, surname
+        optional Ascii(255)                 emailAddress;   // email address of user, if known   
+        required AuthenticationType    authenticationType;// specifies the authentication type
+        optional shortText phoneNo;                         // phone no
+        optional distinguishedName          commonName;     // distinguishedName name which must match the one in the SSL certificate, if access via X509 is done
+        required boolean                    noLogging;      // do not store requests for this user in message_log (for privacy or performance)
+    }
+    
+    /** 
+     * The UserStatus shares the same value for the primary key as the User, the corresponding database table holds data which
+     * Updated authentication request handler, added features:
+     * is frequently changing and therefore not suitable to keep in the User configuration table. It also does only exist if the
+     * user authenticates via the internal password logic, not if a user uses some external SSO or LDAP.
+     */
+    class UserStatus RTTI 88 extends Ref {
+        required Timestamp(0)               lastSuccessfulLogin;                // for information to the user
+        required Integer                    currentPasswordSerialNumber;        // current valid password serial number; allows a single fetch join
+        required Integer                    numberOfIncorrectAttempts;          // for information to the user, also required to configure throttling of retries
+        optional Timestamp(0)               accountThrottledUntil;              // set after n unsuccessful attempts, locks out user for 1 minute.      
+    }    
+    
+    class Password RTTI 85 extends Ref {                    // the Ref is the same as the user Ref, but a password serial number is appended for the PK
+        required Integer                    passwordSerialNumber;               // 1..n for 1st password, ...
+        required passwordHash               passwordHash;                       // salted hash
+        required Timestamp(0)               passwordExpiry;                     // when this date is reached, the only allowed action is to renew the password
+        required Timestamp(0)               userExpiry;                         // when this date is reached, the user cannot log in any more (but every activity resets it)
+        required Timestamp(0)               passwordCreation;                   // when this password was set
+        required f42Ref                     passwordSetByUser;                  // reference of (technical) user who set this password
+    }
+    
+    class TenantRef RTTI 81 extends Ref {     
+        // nothing in here, just a retyping 
+    }
+    
+    final class TenantKey extends TenantRef {
+        public required tenantId            tenantId;                           // tenant Id in this special case not implicit
+    }
+    
+    class Tenant extends TenantRef {
+        required tenantId                   tenantId        properties noupdate, findBy;  // tenant Id in this special case not implicit
+        required shortText                  name;                               // tenant name 
+        optional f42Ref                		customizationRef;                   // null is standard, else points to specific customization
+        optional f42Ref                		customizationUIRef;                 // null is standard, else points to specific customization for UI
+        optional f42Ref                		customizationRepRef;                // null is standard, else points to specific customization for reporting
+        optional Integer                    passwordMinimumLength          default "10";    // minimum length for a password in characters (default 10)
+        optional Integer                    passwordDifferPreviousN        default "3";     // from how many previous passwords must this one be different? (default 3)
+        optional Integer                    passwordExpirationInDays       default "60";    // after how many days does a password expired? (0 to disable expiry, 60 is default)
+        optional Integer                    passwordResetDurationInSec     default "86400"; // how long is a reset password valid? Default 86400 (1 day)
+        optional Integer                    passwordThrottlingAfterX       default "3";     // after how many incorrect attempts is the access throttled? (default 3)
+        optional Integer                    passwordThrottlingDuration     default "60";    // for how many seconds does the account not accept any login attempt after throttling? (60)
+        optional Integer                    passwordBlockingPeriod         default "0";     // Period in days saying how long an old password will be blocked before it can be used again. "0" Disables this feature
+    }
+    
+    
+    /** Stores the customization for a tenant - head record */
+    class Customization RTTI 82 extends Ref {
+        required customizationId            customizationId;
+        optional f42Ref                		parentRef;
+        required CustomizationType     customizationType;
+        required shortText                  name;    
+    }
+    
+   /** Stores the customization for a specific entity */
+    class EntityCustomizationEntry {
+        required f42Ref                		customizationRef;           // Points to customization head record
+        required Integer                    rtti;						// RTTI of the data transfer object
+        required Ascii(80)                  dataTransferObjClassName;   // Class name or UI screen name
+        required Ascii(80)                  entityClassName;			// Class name or UI screen name
+        required boolean                    isInherited;                // if inherited, propagate
+    }
+    
+   /** Stores the mapping between service requests and their appropriate (potentially customized) request handlers */
+    class RequestHandlerCustomizationEntry {
+        required f42Ref                		customizationRef;           // Points to customization head record
+        required Ascii(80)                  requestClassName;           // Class name or UI screen name
+        required Ascii(80)                  requestHandlerClassName;    // Class name or UI screen name
+    }        
+    
+    final class TranslationKey extends NaturalKeyRef {
+        required f42Ref                     targetObjectRef;            // 1:1 long key of masterdata or transaction data
+        required extendedLanguageCode       languageCode;               // language code        
+    }
+        
+    class TranslationDTO extends NaturalKeyBase pk TranslationKey {
+        required f42Ref                     targetObjectRef properties nochange, listBy;// 1:1 long key of masterdata or transaction data
+        required extendedLanguageCode       languageCode    properties nochange;        // language code        
+        required f42Ref                     tenantRef       properties nochange;        // just for separation purposes, not part of any key
+        shortText                           name; 
+    }            
+
+}

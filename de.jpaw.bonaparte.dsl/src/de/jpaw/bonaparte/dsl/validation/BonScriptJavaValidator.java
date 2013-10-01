@@ -138,6 +138,9 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     public void checkDataType(DataType dataType) {
+    	if (dataType.isDeprecatedSyntax()) {
+    		warning("Deprecated syntax. '!', 'enum' or '(' ')' are no longer neccessary.",null);
+    	}
     	if (dataType.getReferenceDataType() instanceof ClassDefinition) {
     		ClassDefinition parent = (ClassDefinition) dataType.getReferenceDataType();
     		EList<GenericsDef> args = parent.getGenericParameters();

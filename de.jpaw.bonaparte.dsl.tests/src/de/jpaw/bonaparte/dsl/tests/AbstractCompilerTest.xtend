@@ -37,16 +37,25 @@ abstract class AbstractCompilerTest {
 	}
 
 	def void assertNoChanges(CharSequence source) {
+		assertNoChanges(source, 0)
+	}
+	
+	def void assertNoChanges(CharSequence source, int expectedWarnings) {
 		val model = source.parse
 		val issues = getValidator(model.eResource).validate(model.eResource, CheckMode.ALL, null)
-		assertTrue(issues.toString, issues.empty)
+		issues.filter[severity==Severity.WARNING] => [
+			assertEquals(toString, expectedWarnings, size)
+		]
+		issues.filter[severity == Severity.ERROR] => [
+			assertTrue(toString, empty)
+		]
 		val fsa = new InMemoryFileSystemAccess
 		getGenerator(model.eResource).doGenerate(model.eResource, fsa)
 		assertOrGenerate(fsa)
 	}
 	
 	private def void assertOrGenerate(InMemoryFileSystemAccess fsa) {
-		val stackElement = new Exception().stackTrace.get(2)
+		val stackElement = findStackElementOfTestMethod
 		val data = new File("./expectations/"+stackElement.className+"/"+stackElement.methodName+"/result.txt")
 		if (!data.exists) {
 			println("No expectation data found. Generating it now.")
@@ -58,6 +67,15 @@ abstract class AbstractCompilerTest {
 		} else {
 			assertEquals(Resources.readLines(data.toURL, Charset.defaultCharset).join("\n"), fsa.allFiles.toString)
 		}
+	}
+	
+	private def StackTraceElement findStackElementOfTestMethod() {
+		for (element : new Exception().stackTrace) {
+			if (element.methodName.startsWith("test")) {
+				return element
+			}	
+		}
+		throw new IllegalStateException("Couldn't find test method in stacktrace")
 	}
 	
 	def void assertNoChanges(File pathToRoot, int expectedWarnings) {

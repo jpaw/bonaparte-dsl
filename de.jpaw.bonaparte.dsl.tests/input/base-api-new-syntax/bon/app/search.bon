@@ -1,0 +1,115 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+import base.api.types.*
+import base.api.*
+import base.data.*
+import base.messaging.*
+import app.crud.*
+
+package (com.arvatosystems.fortytwo) app.search XML PROPERTY {
+    default unsigned trim noControlChars;
+    
+    type fieldName                  is Ascii(64);       // can contain entity.fieldname pattern
+    
+    /** The type which defines filtering, sorting and data subsets for queries.
+     * This class contains the components searchFilters, searchOption and sortColumns, all of which may be null.
+     * If all components are null, the result set matches the result set of the CfgReadAllRequest (ignoring a possibly different sorting).
+     * <p>
+     * For filtering, the SearchFilter class is the abstract base class, which can be extended for customization purposes, in order to provide additional filters.
+     * In addition to the SearchFilter interface class, the corresponding implementation must be provided, overriding the <code>applyFilters</code> method of the CfgReadAllResponse generic class.
+     * <p>
+     * The SearchOption class just provides functionality to select a subset of the result, for paging views in the UI. As this does only make sense in conjunction with a defined ordering,
+     * ordering by the (artificial) primary key column is assumed in case no list of SortColumns is provided (objectRef ascending).  
+     */
+    abstract class SearchCriteria extends RequestParameters return ReadAllResponse {
+        SearchFilter... List<>    searchFilters;
+        SearchOption              searchOption;
+        SortColumn List<>         sortColumns;  
+        OutputSessionParameters... searchOutputTarget;  // if supplied, then the results will be redirected to a dataSink        
+    }
+    
+    final class SearchOption {
+        required int                limit;          // max rows
+        required int                offset;         // skip rows
+    }
+    
+    final class SortColumn {
+        required fieldName          fieldName;
+        required boolean            ascending;
+    }
+    
+    
+    abstract class SearchFilter {
+        required fieldName          fieldName;      // the field name subject to comparison
+        required boolean            negateResult;   // if true, this condition is negated.
+    }
+    
+    /** Provides filtering for NULL fields. The result set consists of all rows which have a NULL value for the specified column.
+     * To select all rows with a NOT NULL value, set the "negateResult" field of the SearchFilter base class to true.
+     */
+    final class NullFilter extends SearchFilter {
+    }
+    /** Provides filtering for boolean values. The result set is the subset of all rows which have the same boolean setting for the given field. */
+    final class BooleanFilter extends SearchFilter {
+        required boolean            booleanValue;
+    }
+    /** Provides filtering for Unicode text fields. Exactly one of the parameters equalsValue and likeValue must be provided, the other one must be null.
+     * If both parameters are null or both are not equal to null, an "invalid search filter" parameter error is returned. */
+    final class UnicodeFilter extends SearchFilter {
+        optional Unicode(80)        equalsValue;
+        optional Unicode(80)        likeValue;
+    }
+    /** Provides filtering for ASCII text fields (IDs, tokens). Exactly one of the parameters equalsValue and likeValue must be provided, the other one must be null.
+     * If both parameters are null or both are not equal to null, an "invalid search filter" parameter error is returned. */
+    final class AsciiFilter extends SearchFilter {
+        optional Ascii(80)          equalsValue;
+        optional Ascii(80)          likeValue;
+    }
+    /** Provides filtering for integral values. At least one parameter must be provided. In order to search for exactly one value, both parameters must be set to the same value.
+     */
+    final class IntFilter extends SearchFilter {
+        optional Integer            lowerBound;
+        optional Integer            upperBound;
+    }
+    /** Provides filtering for integral values. At least one parameter must be provided. In order to search for exactly one value, both parameters must be set to the same value.
+     */
+    final class LongFilter extends SearchFilter {
+        optional Long               lowerBound;
+        optional Long               upperBound;
+    }
+    /** Provides filtering for non-integral values. At least one parameter must be provided. In order to search for exactly one value, both parameters must be set to the same value.
+     */
+    final class NumericFilter extends SearchFilter {
+        optional Decimal(18,6)      lowerBound;
+        optional Decimal(18,6)      upperBound;
+    }
+    /** Provides filtering for calendar dates (full days). 
+     */
+    final class DayFilter extends SearchFilter {
+        optional Day                lowerBound;
+        optional Day                upperBound;
+    }
+    /** Provides filtering for time instants. All parameters are provided in UTC timezone. 
+     */
+    final class TimestampFilter extends SearchFilter {
+        optional Timestamp(0)       lowerBound;
+        optional Timestamp(0)       upperBound;
+    }
+    /** Provides filtering for enum.  Should not be used. If it is possible to fill enumClass, then it should
+     * also be possible to call getToken() at the caller and use a regular AsciiFilter.
+     * Reflection should be avoided where possible.
+     */
+     @Deprecated
+    final class EnumFilter extends SearchFilter {
+        required Ascii(100)			enumClass;
+        required Ascii(30)			enumName;
+    }
+        
+    /**
+     * The request to be used when communicating with search based request handler.
+     */
+    class SearchRequest<DATA extends Object> extends SearchCriteria {
+    }
+}
