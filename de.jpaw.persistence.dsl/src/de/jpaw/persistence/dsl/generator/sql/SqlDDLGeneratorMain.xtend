@@ -30,8 +30,7 @@ import de.jpaw.persistence.dsl.generator.YUtil
 import java.util.HashSet
 import java.util.List
 import java.util.Set
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
@@ -44,7 +43,7 @@ import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
 
 class SqlDDLGeneratorMain implements IGenerator {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
+    static val logger = Logger.getLogger(SqlDDLGeneratorMain)
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 

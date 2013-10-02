@@ -16,28 +16,25 @@
 
 package de.jpaw.bonaparte.dsl.generator
 
-import java.util.List
-
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
-import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
-import de.jpaw.bonaparte.dsl.bonScript.XRequired
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
-import java.util.ArrayList
+import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import java.util.ArrayList
+import java.util.List
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EObject
 
 class XUtil {
-    private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
+    private static Logger logger = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
     def public static ClassDefinition getParent(ClassDefinition d) {

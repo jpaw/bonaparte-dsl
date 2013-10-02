@@ -22,14 +22,13 @@ import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import de.jpaw.persistence.dsl.generator.RequiredType
 import java.util.List
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlColumns {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
+   static val logger = Logger.getLogger(SqlColumns)
 
     // TODO: check if column is in PK (then assume implicit NOT NULL)
     def public static notNullConstraint(FieldDefinition c, RequiredType reqType) {

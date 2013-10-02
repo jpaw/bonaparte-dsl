@@ -16,37 +16,37 @@
 
 package de.jpaw.persistence.dsl.generator.java
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
-import de.jpaw.bonaparte.dsl.generator.XUtil
-import de.jpaw.bonaparte.dsl.generator.DataCategory
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import java.util.List
-import de.jpaw.persistence.dsl.bDDL.Inheritance
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.XUtil
+import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
-import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.ArrayList
-import de.jpaw.persistence.dsl.generator.RequiredType
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.bDDL.Inheritance
+import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.persistence.dsl.generator.PrimaryKeyType
-import javax.lang.model.type.PrimitiveType
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.ArrayList
+import java.util.List
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
