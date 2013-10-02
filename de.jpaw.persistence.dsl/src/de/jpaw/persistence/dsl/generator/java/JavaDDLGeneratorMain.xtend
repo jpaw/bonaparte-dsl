@@ -511,7 +511,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                      this.«myName» = «myName» == null ? null : «myName».ordinal();
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
-                        this.«myName» = «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» ? null : «myName».getToken();
+                        this.«myName» = «myName» == «i.datatype.enumDefinition.name».«i.idForEnumTokenNull» ? null : «myName».getToken();
                     «ELSE»
                         this.«myName» = «myName» == null ? null : «myName».getToken();
                     «ENDIF»

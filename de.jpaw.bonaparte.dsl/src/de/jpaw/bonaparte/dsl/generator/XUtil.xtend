@@ -32,6 +32,7 @@ import java.util.ArrayList
 import java.util.List
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
@@ -383,15 +384,15 @@ class XUtil {
     '''
     
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
-        val ref = DataTypeExtension.get(f.datatype)
-        ref.enumMaxTokenLength >= 0 && ref.elementaryDataType.enumType.avalues.map[token].contains("")
+        //val ref = DataTypeExtension.get(f.datatype)
+        f.datatype.enumMaxTokenLength >= 0 && f.datatype.enumDefinition.avalues.map[token].contains("")
     }
     def public static idForEnumTokenNull(FieldDefinition f) {
-        val ref = DataTypeExtension.get(f.datatype)
-        if (ref.enumMaxTokenLength < 0)
+        //val ref = DataTypeExtension.get(f.datatype)
+        if (f.datatype.enumMaxTokenLength < 0)
             null
         else
-            ref.elementaryDataType.enumType.avalues.findFirst[token.empty]?.name
+            f.datatype.enumDefinition.avalues.findFirst[token.empty]?.name
     }
 
 }
