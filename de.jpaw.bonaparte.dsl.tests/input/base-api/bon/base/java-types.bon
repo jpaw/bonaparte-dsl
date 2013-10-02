@@ -1,0 +1,56 @@
+ /*
+  * Copyright 2013 arvato systems GmbH
+  * 
+  */
+package (com.arvatosystems.fortytwo) base.core XML PROPERTY {
+    default signed notrim allowControlChars;
+
+    abstract class SingleValueBase {
+        // nothing in here
+    }
+
+    class Integer_ {
+        Integer value;
+    }
+
+    class Long_ {
+        Long value;
+    }
+    
+    class Boolean_ {
+    	Boolean value;
+    }
+
+    class Day_ {
+        Day value;
+    }
+
+    class Timestamp_ {
+        Timestamp value;
+    }
+
+    class Double_ {
+        Double value;
+    }
+
+    class Ascii_ {
+        Ascii(4000) value;
+    }
+
+    class Unicode_ {
+        Unicode(4000) value;
+    }
+
+    class Uppercase_ {
+        Uppercase(3) value;
+    }
+
+    class Decimal_ {
+        Decimal(18,6) value;
+    }
+
+	class Enum_ {
+		Ascii(300) clazz;
+		Ascii(100) name;
+	}
+}

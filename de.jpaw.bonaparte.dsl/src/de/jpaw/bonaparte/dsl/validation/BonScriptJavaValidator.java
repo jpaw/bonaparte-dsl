@@ -16,14 +16,13 @@
 
 package de.jpaw.bonaparte.dsl.validation;
 
-import java.util.List;
-
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.xtext.validation.Check;
+
 import de.jpaw.bonaparte.dsl.bonScript.ArrayModifier;
 import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
+import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
@@ -138,82 +137,84 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     }
 
     @Check
+    public void checkDataType(DataType dataType) {
+    	if (dataType.isDeprecatedSyntax()) {
+    		warning("Deprecated syntax. '!', 'enum' or '(' ')' are no longer neccessary.",null);
+    	}
+    	if (dataType.getReferenceDataType() instanceof ClassDefinition) {
+    		ClassDefinition parent = (ClassDefinition) dataType.getReferenceDataType();
+    		EList<GenericsDef> args = parent.getGenericParameters();
+            EList<DataType> argValues = dataType.getClassRefGenericParms();
+            if (args.size() != argValues.size()) {
+            	error("Parameter number mismatch for generics arguments: " + argValues.size() + " parameters found, but " + args.size() + " expected",
+            			BonScriptPackage.Literals.DATA_TYPE__CLASS_REF_GENERIC_PARMS);
+            }
+    	}
+    }
+    
+    @Check
     public void checkClassDefinition(ClassDefinition cd) {
         String s = cd.getName();
         if (s != null) {
             if (!Character.isUpperCase(s.charAt(0))) {
                 error("Class names should start with an upper case letter",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
+                        BonScriptPackage.Literals.ABSTRACT_TYPE_DEFINITION__NAME);
             }
         }
         if (cd.getExtendsClass() != null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
-            if (cd.getExtendsClass().getClassRef() == null) {
-                error("Parent class must be an explicit class, not a generic type",
+            if (! (cd.getExtendsClass().getReferenceDataType() instanceof ClassDefinition)) {
+                error("Parent class must be a class definition.",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
-            } else {
-                // check the number of generic parameters
-                ClassDefinition parent = cd.getExtendsClass().getClassRef();
-                EList<GenericsDef> args = parent.getGenericParameters();
-                EList<ClassReference> argValues = cd.getExtendsClass().getClassRefGenericParms();
-                if ((args == null) && (argValues == null)) {
-                    ; // fine
-                } else if ((args != null) && (argValues != null)) {
-                    if (args.size() != argValues.size()) {
-                        error("Parameter number mismatch for generics arguments: " + argValues.size() + " parameters found, but " + args.size() + " expected",
-                                BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-                    }
-                } else if (argValues != null) {
-                    error("Generics arguments found, but extending non-generic class", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-                } else if (args != null) {
-                    error("Extending generics class, but no generics arguments found", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-                }
             }
+            ClassDefinition extendedClass = (ClassDefinition) cd.getExtendsClass().getReferenceDataType();
             // the extended class may not be final
-            if (cd.getExtendsClass().getClassRef().isFinal()) {
-                error("Classes max not extend a final class",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-            }
-            // the extended class must be in the same bundle or a superbundle
-            PackageDefinition myPackage = XUtil.getPackageOrNull(cd);
-            PackageDefinition extendedFromPackage = XUtil.getPackageOrNull(cd.getExtendsClass().getClassRef());
-            if (myPackage != null && extendedFromPackage != null) {
-                if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
-                    error("Parent classes must be in the same or a superbundle of the current package",
-                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-                }
-            } else {
-                warning("Cannot determine package of " + (myPackage == null ? cd.getName() : cd.getExtendsClass().getClassRef().getName())
-                        + " +++ " + TreeView.getClassInfo(cd) + " *** " + TreeView.getClassInfo(cd.getExtendsClass().getClassRef()),
-                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-            }
-            // check for cyclic dependencies
-            int depth = 0;
-            boolean haveAnchestorWithAbsoluteRtti = false;
-            ClassDefinition anchestor = cd.getExtendsClass().getClassRef();
-            while (++depth < 100) {  // after 100 iterations we assume cyclicity
-                if (cd.getReturnsClass() != null && anchestor.getReturnsClass() != null) {
-                    if (!inheritsClass(cd.getReturnsClass(), anchestor.getReturnsClass())) {
-                        error("return object of a subclass must inherit the return class of any superclass, which is not the case for return type "
-                                + anchestor.getReturnsClass().getName() + " of " + anchestor.getName(),
-                                BonScriptPackage.Literals.CLASS_DEFINITION__RETURNS_CLASS);
-                    }
-                }
-                if ((anchestor.getRtti() > 0) && !anchestor.isAddRtti()) {
-                    haveAnchestorWithAbsoluteRtti = true;
-                }
-                anchestor = XUtil.getParent(anchestor);
-                if (anchestor == null) {
-                    break;
-                }
-            }
-            if (depth >= 100) {
-                error("Parent hierarchy is cyclical", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-            }
-            // check that relative rtti may only be given if there is a parent class with a fixed rtti
-            if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti()) {
-                error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
+            if (extendedClass != null) {
+            	if (extendedClass.isFinal()) {
+	                error("Classes max not extend a final class",
+	                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+	            }
+	            // the extended class must be in the same bundle or a superbundle
+	            PackageDefinition myPackage = XUtil.getPackageOrNull(cd);
+	            PackageDefinition extendedFromPackage = XUtil.getPackageOrNull(extendedClass);
+	            if (myPackage != null && extendedFromPackage != null) {
+	                if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
+	                    error("Parent classes must be in the same or a superbundle of the current package",
+	                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+	                }
+	            } else {
+	                warning("Cannot determine package of " + (myPackage == null ? cd.getName() : extendedClass.getName())
+	                        + " +++ " + TreeView.getClassInfo(cd) + " *** " + TreeView.getClassInfo(extendedClass),
+	                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+	            }
+	            // check for cyclic dependencies
+	            int depth = 0;
+	            boolean haveAnchestorWithAbsoluteRtti = false;
+	            ClassDefinition anchestor = extendedClass;
+	            while (++depth < 100) {  // after 100 iterations we assume cyclicity
+	            	if (cd.getReturnsClass() != null && anchestor.getReturnsClass() != null) {
+	            		if (!inheritsClass(cd.getReturnsClass(), anchestor.getReturnsClass())) {
+	            			error("return object of a subclass must inherit the return class of any superclass, which is not the case for return type "
+	            					+ anchestor.getReturnsClass().getName() + " of " + anchestor.getName(),
+	            					BonScriptPackage.Literals.CLASS_DEFINITION__RETURNS_CLASS);
+	            		}
+	            	}
+	            	if ((anchestor.getRtti() > 0) && !anchestor.isAddRtti()) {
+	            		haveAnchestorWithAbsoluteRtti = true;
+	            	}
+	            	anchestor = XUtil.getParent(anchestor);
+	            	if (anchestor == null) {
+	            		break;
+	            	}
+	            }
+	            if (depth >= 100) {
+	            	error("Parent hierarchy is cyclical", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+	            }
+	            // check that relative rtti may only be given if there is a parent class with a fixed rtti
+	            if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti()) {
+	            	error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
+	            }
             }
         }
         
@@ -226,14 +227,15 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 // parent class may not have this directive, due to recursive implementation
                 if (p.isNoAllFieldsConstructor()) {
                     error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.getName() + " does not)",
-                            BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
+                            BonScriptPackage.Literals.ABSTRACT_TYPE_DEFINITION__NAME);
                     return;    
                 }
                 numFields += p.getFields().size();
-                if (p.getExtendsClass() == null)
+                if (p.getExtendsClass()==null 
+                	|| !(p.getExtendsClass().getReferenceDataType() instanceof ClassDefinition))
                     break;
                 else
-                    p = p.getExtendsClass().getClassRef();
+                    p = (ClassDefinition) p.getExtendsClass().getReferenceDataType();
             }
             if (numFields > 255) {
                 error("More than 255 fields, cannot build all-fields constructor. Use noAllFieldsConstructor directive!",
@@ -316,44 +318,6 @@ public class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
     }
-
-    @Check
-    public void checkGenericsParameterList(ClassReference ref) {
-        if (ref.getClassRef() != null) {
-            // verify that the parameters given match the definition of the class referenced
-            List <GenericsDef> requiredParameters = ref.getClassRef().getGenericParameters();
-            List <ClassReference> providedParameters = ref.getClassRefGenericParms();
-            if ((requiredParameters == null) && (providedParameters == null))
-            {
-                return;  // OK, both have no parameters
-            }
-            if (requiredParameters == null) {
-                // not ok, one is empty, the other not!
-                error("list of generic type attributes does not match definition of referenced class, which is a non-generic type",
-                        BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF_GENERIC_PARMS);
-                return;
-            }
-            if (providedParameters == null) {
-                // not ok, one is empty, the other not!
-                error("must provide a list of generic type attributes",
-                        BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF);
-                return;
-            }
-            if (requiredParameters.size() != providedParameters.size()) {
-                // not ok, one is empty, the other not!
-                error("list of generic type attributes differs in length from definition in referenced class",
-                        BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF_GENERIC_PARMS);
-                return;
-            }
-            for (int i = 0; i < requiredParameters.size(); ++i) {
-                if (requiredParameters.get(i).getExtends() != null) {
-                    // provided parameter must be a subclass of the requested one
-                    ; //if (!isSuperClass(requiredParameters.get(i).getExtends(), providedParameters.get(i)))
-                }
-            }
-        }
-    }
-    
 
     @Check
     public void checkPropertyUse(PropertyUse pu) {

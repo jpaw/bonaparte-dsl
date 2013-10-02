@@ -21,6 +21,7 @@ import java.util.Map;
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.generator.YUtil;
@@ -143,19 +144,24 @@ public class SqlMapping {
                 columnLength = 18;
                 columnDecimals = 0;
             }
+        } else if (DataTypeExtensions2.isEnum(c.getDatatype())) {
+        	datatype = "enum";
+        	columnLength = 0;
+        	columnDecimals = 0;
         } else {
             datatype = ref.elementaryDataType.getName().toLowerCase();
             columnLength = ref.elementaryDataType.getLength();
             columnDecimals = ref.elementaryDataType.getDecimals();
         }
-        if (ref.enumMaxTokenLength >= 0) {
+        if (DataTypeExtensions2.getEnumMaxTokenLength(c.getDatatype()) >= 0) {
             // alphanumeric enum! use other type!
             datatype = "unicode";
         }
         
         String columnLengthString = Integer.valueOf(columnLength).toString();
         // System.out.println(databaseFlavour.toString() + ": Length of " + c.getName() + " is " + columnLengthString);
-        
+        Integer enumMaxTokenLength = DataTypeExtensions2.getEnumMaxTokenLength(c.getDatatype());
+        boolean isAllTokensAscii = DataTypeExtensions2.isAllTokensAscii(c.getDatatype());
         switch (databaseFlavour) {
         case ORACLE:
             datatype = dataTypeSqlOracle.get(datatype);
@@ -168,20 +174,20 @@ public class SqlMapping {
             } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
                 datatype = "date";  // better performance, less memory consumption
             }
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
-                datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+			if (isAllTokensAscii && enumMaxTokenLength >= 0) {
+                datatype = "varchar2(" + (enumMaxTokenLength == 0 ? 1 : enumMaxTokenLength) + ")";
             }
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
-                datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            if (isAllTokensAscii && (enumMaxTokenLength >= 0)) {
+                datatype = "varchar(" + (enumMaxTokenLength == 0 ? 1 : enumMaxTokenLength) + ")";
             }
             break;
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
-                datatype = "nvarchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            if (isAllTokensAscii && (enumMaxTokenLength >= 0)) {
+                datatype = "nvarchar(" + (enumMaxTokenLength == 0 ? 1 : enumMaxTokenLength) + ")";
             }
             if (columnLength > 8000) {
                 columnLengthString = "MAX";
@@ -195,9 +201,9 @@ public class SqlMapping {
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
         //System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
         //System.out.println("DEBUG: precision = " + Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
-        if (ref.enumMaxTokenLength >= 0) {
+        if (enumMaxTokenLength >= 0) {
             // special case for alphanumeric enums, again!
-            return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
+            return datatype.replace("#length",    Integer.valueOf(enumMaxTokenLength).toString());
         }
         return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }

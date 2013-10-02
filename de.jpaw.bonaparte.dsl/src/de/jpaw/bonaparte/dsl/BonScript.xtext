@@ -138,15 +138,7 @@ PropertyUse:
 ;
 
 GenericsDef:
-    name = ID ('extends' extends = ClassReference)?
-;
-
-ClassReference:
-    (plainObject ?= 'Object') |
-    ('!' genericsParameterRef = [GenericsDef|ID]) |
-    (classRef = [ClassDefinition|QualifiedId]
-        ('<' classRefGenericParms += ClassReference (',' classRefGenericParms += ClassReference)* '>')?
-    )
+    name = ID ('extends' extends = DataType)?
 ;
 
 // a class corresponds to a Java class
@@ -164,10 +156,10 @@ ClassDefinition:
     (doBeanNames = BeanNames)?                          // create JavaBean compliant names, or plain firstUpperCase, or both (default)
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
     ('revision' revision = STRING)?
-    ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
+    ('extends' extendsClass=DataType)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
-    ('return' returnsClass = [ClassDefinition])?
-    ('pk' pkClass = [ClassDefinition])?
+    ('return' returnsClass = [ClassDefinition|QualifiedId])?
+    ('pk' pkClass = [ClassDefinition|QualifiedId])?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     '{'
         (defaults = FieldDefaultsDefinition)?
@@ -193,6 +185,10 @@ EnumAlphaValueDefinition:
     name = ID '=' token = STRING
 ;
 
+AbstractTypeDefinition:
+	TypeDefinition | EnumDefinition | ClassDefinition | GenericsDef
+;
+
 // type definitions can be used in the same or different packages. It is important to know that
 // any package defaults will apply at the location where the type is defined. This means that
 // the type expansion will have the same features in different packages, even if they use different defaults. 
@@ -214,12 +210,6 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (comment     = SL_COMMENT)?
 ;
 
-DataType:
-    (elementaryDataType=ElementaryDataType
-        | ('(' objectDataType=ClassReference (orSuperClass?='...')? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
-        | referenceDataType=[TypeDefinition|QualifiedId]
-    )  
-;
 
 ArrayModifier:
     {ArrayModifier}
@@ -238,11 +228,20 @@ MapModifier:
     'Map' '<' indexType=('String' | 'Integer' | 'Long') (',' (mincount=INT '..')? maxcount=INT)? '>'
 ;
  
+DataType:
+    (elementaryDataType=ElementaryDataType
+        | deprecatedSyntax?='!'? referenceDataType=[AbstractTypeDefinition|QualifiedId] (orSuperClass?='...')?
+        ('<' classRefGenericParms += DataType (',' classRefGenericParms += DataType)* '>')?
+    	// deprecated ( remove these )
+        | '(' DataType deprecatedSyntax?=')'// unfortunately parentheses needed to avoid conflict with typeRef
+        // deprecated ( remove these )
+        | deprecatedSyntax?=('enum'| 'Enum') referenceDataType = [AbstractTypeDefinition|QualifiedId]  // enums are not precisely elementary data types in Java, but they do not require recursing another class
+    )  
+;
 ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
               | "uuid"    | "Uuid"     | "object"    | "Object" )
-      | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name= ("timestamp" | "Timestamp" | "calendar" | "Calendar") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)

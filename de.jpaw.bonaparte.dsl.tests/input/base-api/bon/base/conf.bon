@@ -1,0 +1,97 @@
+import base.api.types.*
+import base.api.*
+import base.data.*
+
+package (com.arvatosystems.fortytwo) base.conf XML PROPERTY {
+    default unsigned trim noControlChars;
+    properties inherited, serialized, ref, searchprefix,
+        tenantCategory is com.arvatosystems.fortytwo.base.TenantCategory(),
+        noupdate is com.arvatosystems.fortytwo.base.NotUpdatable;
+    
+    type configGroup                    is Ascii(16);       // a fixed token assigned by the application. Every package should assign a single configGroup only.
+    type configKey                      is Unicode(64);     // specific key for the data, possibly concatenated fields with custom separators.
+    
+    /** The ConfigTypeEnum indicates, which kind of information is stored in the configuration record.
+     * It is a policy that only a single of the value fields is used per record.
+     */
+    enum ConfigTypeEnum {
+        BOOLEAN="B",                                            // indicates the Boolean field is used        
+        INTEGRAL="I",                                           // indicates the Long field is used (for numeric integral values)        
+        REFERENCE="R",                                          // indicates the Long field is used to store an object reference
+        FRACTIONAL="F",                                         // indicates the Decimal field is used (for numeric values with fractional data)        
+        TEXT="T",                                               // indicates the Unicode field is used (for any string value)
+        OBJECT="O"                                              // indicates the generic object type field is used (which can contain any object structure).         
+    }
+    
+    
+    /** A reference to a single configuration entry. */
+    class ConfigRef extends Ref {
+    }
+    
+    /** Defines the natural key for a configuration entry. */
+    class ConfigKey extends ConfigRef {
+        required configGroup            configGroup;            // the fixed key (application index)
+        required configKey              configKey;              // a concatenated key of additional key parameters, "-" if not required. 
+        required f42Ref                 genericRef1;            // the first generic reference, 0 if not required
+        required f42Ref                 genericRef2;            // the second generic reference, 0 if not required     
+    }
+
+    /** An arbitrary base class which should be inherited by specific data object which must be stored. In the UI project, a mapper
+     * between the object and a stringified version must be provided, which allows maintenance of the data using the UI.
+     * The default mapping used will be a JSON converter.
+     */
+    abstract class AbstractConfigObject {
+    }
+    
+    /** A configuration record as exchanged with the frontend for a simple administration UI. */
+    class ConfigDTO extends ConfigRef {
+        properties tenantCategory="I";  // TODO: This should be "D", but for that we're missing the tenantRef here
+        required configGroup            configGroup properties noupdate;  // the fixed key (application index)
+        required configKey              configKey   properties noupdate;  // a concatenated key of additional key parameters, "-" if not required. 
+        required f42Ref                 genericRef1 properties noupdate;  // the first generic reference, 0 if not required
+        required f42Ref                 genericRef2 properties noupdate;  // the second generic reference, 0 if not required     
+        required enum ConfigTypeEnum    configTypeEnum;         // indicator, which type of field is used
+        optional Boolean                booleanProperty;        // a boolean type property
+        optional Long                   integerProperty;        // an integer type property
+        optional Decimal(18,6)          decimalProperty;        // a decimal type property
+        optional Unicode(1024)          stringProperty;         // a string type property
+        optional (AbstractConfigObject...) objectProperty properties serialized;  // any arbitrary object, stored serialized.      
+    }
+    
+    /** A service request to read a single configuration value, and to fall back to specific defaults if no entry is found.
+     * If no entry is found with the specific key, the fields genericRef2, 1, configKey and tenantRef will be set to default values (if configured) as follows:
+     * genericRef2 - 0
+     * genericRef1 - 0
+     * tenantRef - 1001 (GLOBAL_TENANT_REF)
+     * 
+     * In case the specific parameter did have the according value already, of course no second redundant SELECT will be performed. 
+     */
+    class ReadConfigWithDefaultsRequest extends RequestParameters {
+        (ConfigKey)                     key;                    // the desired key data
+        boolean                         retryWithDefaultRef2;   // if TRUE, a retry will be done with genericRef2 = 0, else not.
+        boolean                         retryWithDefaultRef1;   // if TRUE, a retry will be done with genericRef1 = 0, else not.
+        boolean                         retryWithDefaultTenant; // if TRUE, a retry will be done with tenantRef = GLOBAL_TENANT_REF, else not.
+    }
+    
+    /** Returns the selected record. The defaultsUsed flag shows, if the record is specific (false) or less specific (true). 
+     *  The configurationResult is empty (null) if no record has been found.
+     */
+    class ReadConfigWithDefaultsResponse extends ServiceResponse {
+        optional (ConfigDTO...)          configurationResult;   // if null, no configuration has been found for the key
+        boolean                          defaultsUsed;          // if FALSE, the specific entry was found, otherwise at least one value was set to defaults
+    }
+    
+    /** If multiple entries exist for the same configGroup (i.e. are required by the same process), multiple separate READs
+     * should be avoided and the whole available set read instead in a single JPA query, using this API.
+     * Depending on the setting of readGlobal, only the default settings (stored with the @ tenant) will be read, or the tenant
+     * specific entries. */
+     class ReadConfigMultipleEntriesRequest extends RequestParameters {
+         required configGroup            configGroup;            // the fixed key (application index)
+         required boolean                readGlobalTenant;       // if true, the application defaults will be read, else the entries of the default tenant
+     }
+     
+     class ReadConfigMultipleEntriesResponse extends ServiceResponse {
+         required (ConfigDTO...) List <>    entries;
+     }
+     
+}

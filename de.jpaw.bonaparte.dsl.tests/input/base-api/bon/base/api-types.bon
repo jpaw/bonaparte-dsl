@@ -1,0 +1,56 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+  
+package (com.arvatosystems.fortytwo) base.api.types {
+    default unsigned trim noControlChars;
+
+    // generic type definitions for the fortytwo technical framework
+    type tenantId               is Ascii(1..10);        // specifies the tenant
+    type customizationId        is Ascii(1..100);       // defines the customization in the hierarchy
+    type roleId                 is Ascii(32);           // what defines a role
+    type permissionId           is Ascii(64);           // what defines a permission
+    type defaultExternalId		is Ascii(36);			// default size for any external ID - large enough to contain an ASCII UUID
+    
+    type userId                 is Ascii(8);            // database user Id
+    type extUserId              is Ascii(16);           // external user Id
+    type instant                is Timestamp(0);        // used for database timestamps
+    type f42Ref                 is Long;                // platform-unique numeric ID
+    type version                is Integer;             // separate field used for optimistic locking
+    type emailAddress           is Ascii(255);
+    type jmsAddress             is Ascii(64);           // a name that can be used took lookup a jms ressource on jndi
+    
+    type shortText              is Unicode(80);         // type for all cfg item descriptions
+
+    // security related objects
+    type distinguishedName      is Unicode(255);        // common name + issuer, which must match the one in the SSL certificate, if access via X509 is done
+    type passwordHash           is Binary(64);
+
+    // ISO codes
+    type countryCode            is Uppercase(2);        // ISO 3166
+    type countryCodeA3          is Uppercase(3);        
+    type countryCodeN3          is Ascii(3) regexp "[0-9][0-9][0-9]?";
+    type currencyCode           is Uppercase(3);        // ISO 4217
+    type currencyCodeN3         is Ascii(3) regexp "[0-9][0-9][0-9]?";
+    type languageCodeA3         is Ascii(3);
+    type extendedLanguageCode   is Ascii(16) regexp "[a-z][a-z](_[A-Z][A-Z](_[a-zA-Z0-9#]+)?)?";
+    
+    // internal
+    type requestClassId         is Ascii(255);          // bonaportable partially qualified class IDs
+    
+    // contents of a CRUD field, with extra command "inactivate", which should be used instead of delete,
+    // plus the reversal "activate again". It is task of the permission subsystem to ensure that normal
+    // deletes cannot be performed except by admin users.
+    enum Crud {
+        CREATE="C", READ="R", UPDATE="U", DELETE="D", INACTIVATE="I", ACTIVATE="A"  // , MERGE="M"
+    }
+    /** UI relevant category of underlying entity. The token of this enum should be available from DTO classes via class$Property("tenantCategory"). */
+    enum TenantIsolationCategory {
+        GLOBAL = "G",                   // no tenantRef in table (includes "S"pecial tables)  (default if no column "tenantRef" found) 
+        ISOLATED = "I",                 // can only access own data (default if column "tenantRef" found)
+        ISOLATED_WITH_DEFAULT = "D",    // can access own data + readonly access to "@" tenant (activated by "@TenantFilterMeOrGlobal")
+        ISOLATED_WITH_ADMIN = "A",      // global admin tenant has access to all data      
+        SPECIAL = "S"                   // anything else
+    }
+}

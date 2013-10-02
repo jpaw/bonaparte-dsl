@@ -61,6 +61,11 @@ Workflow {
                 }
     
                 // The antlr parser generator fragment.
+                fragment = parser.antlr.DebugAntlrGeneratorFragment {
+                //  options = {
+                //      backtrack = true
+                //  }
+                }
                 fragment = parser.antlr.XtextAntlrGeneratorFragment {
                 //  options = {
                 //      backtrack = true

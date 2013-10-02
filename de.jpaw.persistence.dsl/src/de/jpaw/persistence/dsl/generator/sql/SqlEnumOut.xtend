@@ -16,9 +16,10 @@
 
 package de.jpaw.persistence.dsl.generator.sql
 
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+
+import static de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlEnumOut {
     def private static postgresEnumFuncsNumeric(EnumDefinition e) '''

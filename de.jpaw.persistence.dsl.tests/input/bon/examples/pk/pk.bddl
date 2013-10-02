@@ -1,0 +1,37 @@
+import examples.pkey.*
+
+@Generator(noMapper)
+package examples.pkey.entities owner scott prefix pkey {
+    grants rw {
+        demorole: SELECT,INSERT,UPDATE,DELETE;
+    }
+    category tests {
+       grants rw
+    }
+
+    embeddable EKeyEntity is EKey {}
+    
+    // example of an entity without a primary key
+    entity NoPkEntity category tests is EDto {
+    }
+    
+    // example of an entity with a single field primary key
+    entity OneFieldPkEntity category tests is EDto {
+        pk (data)
+    }
+    
+    // example of an entity with a multi field primary key - implicit embeddable
+    entity MultiFieldPkEntity category tests is EDto2 {
+        pk (key1, key2)
+    }
+    
+    // example of an entity with an explicit embeddable primary key
+    entity EmbeddedPkEntity category tests is EDto {
+    	@Embeddable EKeyEntity for myCompositeKey is pk
+    }
+    
+    // example of an entity with a multi field primary key - usind an ID class
+    entity IdClassPkEntity category tests is EDto2 {
+        pk is EKey
+    }
+}

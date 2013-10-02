@@ -1,0 +1,53 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+import base.api.types.*
+import base.api.*
+import base.data.*
+import app.crud.*
+import app.search.*
+
+package (com.arvatosystems.fortytwo) base.input XML PROPERTY {
+    default unsigned trim noControlChars;
+    properties inherited, serialized, ref, searchprefix,
+        tenantCategory is com.arvatosystems.fortytwo.base.TenantCategory(),
+        noupdate is com.arvatosystems.fortytwo.base.NotUpdatable;
+    
+    class ImportRef extends Ref {
+    }
+    
+    final class ImportKey extends ImportRef {
+        required Ascii(16)                                importConfigId; // Id for this configuration
+    }
+    
+    /** DTO for storing import information */
+    class ImportConfigDto extends ImportRef {
+        required Ascii(16)                                 importConfigId;     // Id for this configuration
+    	optional Enum InputCommunicationFormatType         format;             // Format of the content that is to be imported required if camelConfig = true
+    	optional Enum InputCommunicationTargetChannelType  inputChannelType;   // Channel that is used for transfer
+    	required boolean                                   camelConfig;        // Flag to decide whether this should be a camel route definition or a general configuration
+    	optional Ascii(250)                                uri;                // URI from where the content should be obtained required if camelConfig = true
+    	required Ascii(250)                                baseClassName;      // Root class for unmarshalling
+    	required Ascii(250)                                importTypeClassName; // Class of the concrete type that should be processed as a request
+    	required boolean                                   split;              // allows splitting of files containing multiple requests
+    	optional (TenantRef...)                            tenantRef   properties ref; // Tenant on which the request should be executed
+    	optional (UserRef...)                              userRef     properties ref; // User under whom the request should be executed
+    }
+    
+    
+    final class ImportPreConfig extends ImportRef {
+    	required Ascii(16) importConfigId; // Id for this configuration
+    	required Ascii(250) uri;
+    	optional Enum InputCommunicationFormatType format; // Format of the content that is to be imported
+    	optional Enum InputCommunicationTargetChannelType inputChannelType; // Channel that is used for transfer
+    }
+    
+    class ImportConfigCrudRequest                   extends CrudRequest<ImportConfigDto> {}
+    class ImportConfigSearchRequest                 extends SearchRequest<ImportConfigDto> {}
+    
+    class ImportRequest extends RequestParameters {
+    	required (ImportRef...)	importRef;
+    }
+
+}

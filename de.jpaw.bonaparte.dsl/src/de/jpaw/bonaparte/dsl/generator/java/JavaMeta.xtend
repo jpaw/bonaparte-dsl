@@ -26,6 +26,8 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+
 class JavaMeta {
 
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
@@ -57,21 +59,6 @@ class JavaMeta {
             classname = "AlphanumericElementaryDataItem"
             ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «b2A(!elem.name.toLowerCase.equals("unicode"))», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
             }
-        case DataCategory::ENUM: {
-            classname = "EnumDataItem"
-            if (ref.enumMaxTokenLength >= 0)
-                // separate item for the token
-                extraItem = '''
-                    protected static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                        "String", false, true, false, false, false, «ref.enumMaxTokenLength», 0, null);
-                '''
-            else
-                extraItem = '''
-                    protected static final NumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                        "int", true, false, 4, 0, false, false);  // assume 4 digits
-                '''
-            ext = ''', "«elem.enumType.name»", null'''
-        }
         case DataCategory::TEMPORAL: {
             classname = "TemporalElementaryDataItem"
             ext = ''', «elem.length», «elem.doHHMMSS»'''
@@ -94,9 +81,25 @@ class JavaMeta {
             ext = ''''''
             }
         }
+        if (i.datatype.isEnum) {
+            classname = "EnumDataItem"
+            if (i.datatype.enumMaxTokenLength >= 0)
+                // separate item for the token
+                extraItem = '''
+                    protected static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «i.isRequired», "«i.name»$token", «multi», DataCategory.STRING,
+                        "String", false, true, false, false, false, «i.datatype.enumMaxTokenLength», 0, null);
+                '''
+            else
+                extraItem = '''
+                    protected static final NumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «i.isRequired», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                        "int", true, false, 4, 0, false, false);  // assume 4 digits
+                '''
+            ext = ''', "«i.datatype.enumDefinition.name»", null'''
+        }
+        
         return '''
             «extraItem»
-            protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+            protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «i.isRequired», "«i.name»", «multi», DataCategory.«ref.category.name»,
                 "«ref.javaType»", «b2A(ref.isPrimitive)»«ext»);
             '''
     }

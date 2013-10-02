@@ -16,35 +16,34 @@
 
 package de.jpaw.persistence.dsl.generator.sql
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.emf.ecore.EObject
-import de.jpaw.persistence.dsl.bDDL.Inheritance
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
-import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.generator.Delimiter
-import java.util.Set
-import java.util.HashSet
-import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Delimiter
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.persistence.dsl.generator.RequiredType
-import java.util.zip.Deflater
+import de.jpaw.persistence.dsl.generator.YUtil
+import java.util.HashSet
+import java.util.List
+import java.util.Set
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
 
 class SqlDDLGeneratorMain implements IGenerator {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
+    static val logger = Logger.getLogger(SqlDDLGeneratorMain)
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
@@ -95,12 +94,11 @@ class SqlDDLGeneratorMain implements IGenerator {
         var ClassDefinition citer = c
         while (citer != null) {
             for (i : citer.fields) {
-                val ref = DataTypeExtension::get(i.datatype)
-                if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
-                    enumsRequired.add(ref.elementaryDataType.enumType)
+                if (i.datatype.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+                    enumsRequired.add(i.datatype.enumDefinition)
             }
             if (citer.extendsClass != null)
-                citer = citer.extendsClass.classRef
+                citer = citer.extendedClassDefinition
             else
                 citer = null
         }

@@ -1,0 +1,20 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+import base.api.types.*
+import base.api.*
+
+/** 
+ * Package which contains the definitions of all essential message elements.
+ */
+package (com.arvatosystems.fortytwo) base.api.ping XML PROPERTY {
+    default unsigned trim noControlChars;
+    properties bpmId;
+    
+    class BpmPingRequest extends RequestParameters {
+        properties bpmId="bpmPingService";
+        Integer         iterations;
+        Integer         delay;        
+    }
+}

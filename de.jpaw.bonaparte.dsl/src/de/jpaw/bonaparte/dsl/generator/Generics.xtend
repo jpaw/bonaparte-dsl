@@ -23,10 +23,10 @@ class Generics {
         if (superClass != null) {
             var args = superClass.genericParameters     // the symbolic names of the generics parameters in the superclass
             var argValues = d.extendsClass.classRefGenericParms
-            if (argValues != null && args != null && !argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
+            if (!argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
                 // get the names to be substituted
-                for (int i : 0 .. args.size-1)
-                    current.put(args.get(i).name, XUtil::genericRef2String(argValues.get(i)))
+                for (int i : 0 ..< args.size)
+                    current.put(args.get(i).name, XUtil.genericDataType2String(argValues.get(i)))
             }
         }
         // System::out.println("new generics created for " + d.name + " END");

@@ -1,0 +1,109 @@
+import base.api.types.*
+import base.api.*
+import base.data.Ref
+import base.data.User
+import base.data.Tenant
+import base.data.AuthenticationType
+
+package (com.arvatosystems.fortytwo) base.security XML PROPERTY {
+    default unsigned trim noControlChars;
+    properties inherited, version, active, nochange, noinsert, ^default, currentUser, currentTimestamp, findBy, listBy,
+        serialized, ref, searchprefix,
+        tenantCategory is com.arvatosystems.fortytwo.base.TenantCategory(),
+        noupdate is com.arvatosystems.fortytwo.base.NotUpdatable;
+    
+
+    enum PermissionType {
+        FRONTEND="U", BACKEND="B", REPORTING="R"
+    }
+    
+    /**
+     * The request to be used in the scope of the authentication dialog.
+     */
+    class AuthenticationRequest extends RequestParameters return AuthenticationResponse {
+        optional passwordHash passwordHash; // sha-512 hashed password, salted by username
+        required AuthenticationType authenticationType; // specifies the authentication type
+    }
+
+    /**
+     * The class providing additional user specific information as part of the authentication response. 
+     */    
+    class AuthenticationDetails {
+        instant whenLastLoggedIn;
+        instant passwordExpires;
+        short numberInvalidAttempts;
+    }    
+    
+    /**
+     * The response to be used in the scope of the authentication dialog.
+     */
+    class AuthenticationResponse extends ServiceResponse {
+        User userInformation;
+        AuthenticationDetails userHistory;
+        Tenant List<> allowedTenants;
+    }
+    
+    /**
+     * The request to be used in the scope of the authorization dialog.
+     */
+    class AuthorizationRequest extends RequestParameters return AuthorizationResponse {
+        required extUserId             userId;                      // user ID for this request
+        required tenantId              tenantId;                    // tenantId for which this request is intended        
+        optional Unicode(30)           likePermissionName;          // If set, to be used as filter criteria when compiling the result list
+        optional PermissionType   onlyPermissionType;          // If set, to be used as filter criteria when compiling the result list
+    }
+    
+    /**
+     * The response to be used in the scope of the authorization dialog.
+     */
+    class AuthorizationResponse extends ServiceResponse {
+        Permission Set <> resultingPermissions;                  // explicit permissions (list contains no duplicates)
+    }    
+
+    /**
+     * The class representing a role a user has when interacting with the system.
+     */
+    class RoleRef extends Ref {}
+    final class RoleKey extends RoleRef {
+        required f42Ref tenantRef;              // references a specific tenant or the "GLOBAL" tenant
+        required roleId roleId;                 // tenant Id in this special case not implicit
+    }
+    class Role RTTI 86 extends RoleRef {
+        required f42Ref tenantRef   properties noupdate;    // references a specific tenant or the "GLOBAL" tenant
+        required roleId roleId      properties noupdate;    // tenant Id in this special case not implicit
+        required shortText name;                            // role name 
+    }
+
+    /**
+     * The relationship between roles and permissions.
+     */
+    class RoleToPermission {
+        required f42Ref tenantRef; // specific tenant for tenant
+        required f42Ref roleRef;
+        required permissionId  permissionId;
+    }
+
+    /**
+     * The relationship between users, roles and tenants.
+     */
+    class UserTenantRole {
+        required f42Ref userRef;
+        required f42Ref tenantRef;
+        required f42Ref roleRef;
+    }
+
+    /**
+     * The class representing a permission as it might be referenced by roles.
+     */
+    class PermissionRef extends Ref {}
+    final class PermissionKey extends PermissionRef {
+        required f42Ref               tenantRef;      // references a specific tenant or the "GLOBAL" tenant for predefined (standard) permissions
+        required permissionId         permissionId;   // a displayable name of the permission
+    } 
+    class Permission RTTI 87 extends PermissionRef {
+        required f42Ref               tenantRef properties noupdate;      // references a specific tenant or the "GLOBAL" tenant for predefined (standard) permissions
+        required permissionId         permissionId properties noupdate;   // a displayable name of the permission
+        required PermissionType       permissionType; // to which part of the system the permission relates to, essential to keep lists manageable
+    }
+
+}

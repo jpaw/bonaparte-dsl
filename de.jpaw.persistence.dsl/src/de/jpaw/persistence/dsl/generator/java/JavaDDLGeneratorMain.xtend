@@ -16,35 +16,37 @@
 
 package de.jpaw.persistence.dsl.generator.java
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
-import de.jpaw.bonaparte.dsl.generator.XUtil
-import de.jpaw.bonaparte.dsl.generator.DataCategory
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import java.util.List
-import de.jpaw.persistence.dsl.bDDL.Inheritance
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.bonaparte.dsl.generator.XUtil
+import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
-import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.ArrayList
-import de.jpaw.persistence.dsl.generator.RequiredType
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.bDDL.Inheritance
+import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.persistence.dsl.generator.PrimaryKeyType
-import javax.lang.model.type.PrimitiveType
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.ArrayList
+import java.util.List
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -153,7 +155,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
             }
         }
-        switch (ref.enumMaxTokenLength) {
+        switch (c.datatype.enumMaxTokenLength) {
         case DataTypeExtension::NO_ENUM:
             switch (ref.javaType) {
             case "Calendar":        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
@@ -176,7 +178,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                                     '''
             }
         case DataTypeExtension::ENUM_NUMERIC:   writeField(c, "Integer", myName)
-        default:                                writeField(c, if (ref.allTokensAscii) "String" else "Integer", myName)
+        default:                                writeField(c, if (c.datatype.allTokensAscii) "String" else "Integer", myName)
         }
     }
 
@@ -339,7 +341,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         (ClassDefinition)=> CharSequence groupSeparator,
         (FieldDefinition, String, String) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
+            «cl.extendedClassDefinition?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
                 «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
@@ -404,7 +406,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def public static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
         (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput)»
+            «cl.extendedClassDefinition?.recurseForCopyOf(stopAt, excludes, fieldOutput)»
             «FOR c : cl.fields»
                 «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && (excludes == null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
                     «c.writeFieldWithEmbeddedAndList(null, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
@@ -453,7 +455,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         return null;
                     ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
                     return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
+                «ELSEIF i.datatype.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
@@ -467,14 +469,14 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ELSE»
                         return «myName»;
                     «ENDIF»
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                    return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
+                «ELSEIF i.datatype.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !i.datatype.allTokensAscii»
+                    return «i.datatype.enumDefinition.name».valueOf(«myName»);
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
                         // special mapping of null to the enum value with the empty string token
-                        return «myName» == null ? «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» : «ref.elementaryDataType.enumType.name».factory(«myName»);
+                        return «myName» == null ? «i.datatype.enumDefinition.name».«i.idForEnumTokenNull» : «i.datatype.enumDefinition.name».factory(«myName»);
                     «ELSE»
-                        return «ref.elementaryDataType.enumType.name».factory(«myName»);
+                        return «i.datatype.enumDefinition.name».factory(«myName»);
                     «ENDIF»
                 «ENDIF»
             }
@@ -493,7 +495,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         _bac.addField(«myName»);
                         this.«myName» = _bac.getBytes();
                     }
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
+                «ELSEIF i.datatype.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         this.«myName» = «myName»;
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
@@ -505,7 +507,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ELSE»
                         this.«myName» = «myName»;
                     «ENDIF»
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
+                «ELSEIF i.datatype.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !i.datatype.allTokensAscii»
                      this.«myName» = «myName» == null ? null : «myName».ordinal();
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
@@ -519,7 +521,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private static writeException(DataTypeExtension ref, FieldDefinition c) {
-        if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+        if (c.datatype.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
         else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, "serialized"))) {
             return "throws MessageParserException "

@@ -1,0 +1,204 @@
+ /*
+  * Copyright 2012 arvato systems GmbH
+  * 
+  */
+import base.api.types.*
+import base.api.*
+import base.data.*
+
+package (com.arvatosystems.fortytwo) base.messaging XML PROPERTY {
+    default unsigned trim noControlChars;
+    properties inherited, serialized, ref, searchprefix,
+        tenantCategory is com.arvatosystems.fortytwo.base.TenantCategory(),
+        noupdate is com.arvatosystems.fortytwo.base.NotUpdatable;
+    
+    type dataSinkId                                     is Ascii(16);                   // a token to specify OutputSession parameters
+
+    /** Defines the principal type of a data sink. */
+    enum DataSinkCategory {
+        DATA_EXPORT = "E",                  // used for all kinds of (batched) data exports, i.e. logical data record output
+        REPORT = "R",                       // this is a JasperReport output
+        CUSTOMER_COMMUNICATION = "C",       // anything created through the communications module (predox)
+        MASTER_DATA = "M",                  // product images, user pictures, any stuff
+        USER_DATA = "U"                     // data requested via UI by a user        
+    }
+    
+    /** Defines the principal type of a callback / request handler.
+     * This defines the location of use as well as the base class of the request handler's parameters.
+     */
+    enum RequestHandlerCategory {
+        PLAIN_SCHEDULER_JOB = "S",          // no-args scheduler job (basic task)
+        DOCUMENT_CREATED_CALLBACK = "D"     // called when a document has been finished (either by reporting or by the layout module).         
+    }
+    
+    /** RequestHandlerConfigDTO entries of type DOCUMENT_CREATED_CALLBACK must refer to jobParameters
+     * extending this class.
+     */
+    class DocumentCreatedCallbackRequest extends RequestParameters {
+        optional Enum CommunicationFormatType   communicationFormatType;    // can be used to specify output, unless defined in configuration 
+        optional f42Ref                         sinkRef;                    // for successful responses, reference to the Sink record
+        optional f42Ref                         originatorRef;              // optional link to object which is representing this file (params ref) (predox ref) (as in Sinks table)
+        optional f42Ref                         configurationRef;           // a reference to the configuration/source of the originator (aroma ref) (as in Sinks table)
+        optional Integer                        returnCode;                 // null if no returncode provided, 0 if no error, else implementation specific code
+        optional Unicode(80)                    returnDetails;              // some more textual information
+    }
+
+    /** RequestHandlerConfig lists all available handlers for a given category. */
+    class RequestHandlerConfigRef RTTI 13 extends Ref {}
+    
+    final class RequestHandlerConfigKey extends RequestHandlerConfigRef {
+        public required f42Ref                      tenantRef;                  // links to ALL_TENANTS or to a specific tenant
+        required Ascii(100)                         jobRequestObjectName;              // the PQON of the object extending RequestParameters
+    }
+    
+    class RequestHandlerConfigDTO extends RequestHandlerConfigRef {
+        properties tenantCategory="D";
+        public required f42Ref                      tenantRef            properties noupdate;                              // links to ALL_TENANTS or to a specific tenant
+        required Ascii(100)                         jobRequestObjectName properties noupdate;   // the PQON of the object extending RequestParameters
+        required enum RequestHandlerCategory        category;                                   // purpose of the handler
+        required Ascii(1..16)                       moduleId;                                   // must match the DataSink originatorModule or scheduler moduleId
+        required Unicode(80)                        name;                                       // explanation / purpose in primary language
+        optional (RequestParameters...)             jobParameters properties serialized;        // filled by backend (for CRUD C and U operations)
+    }
+
+
+    class SinkRef RTTI 17 extends Ref {
+    }
+    
+    /** Records all asynchronous outgoing communication. For every file created, there is one entry of this type.
+     * The time used to create this output can be measured by taking the difference between mTimestamp and cTimestamp
+     * in the underlying database table (or TrackingData).
+     * 
+     * A sink contains either structured data (on a record basis), formatted in Bonaparte, XML or JSON format, but can
+     * also contain output from the reporting or communications module, in which case the data can be in additional
+     * formats such as PDF, XLS, CSV or plain text. Primarily for the latter case, the file type can also be defined
+     * by the actual program run and passed as part of the parameters to the open() method, and then will not be taken
+     * from the configuration table.
+     * 
+     * Structured output will be logged into OutboundMessages.
+     */
+    class Sink extends SinkRef {
+        properties tenantCategory="I";
+        required enum CommunicationTargetChannelType    commTargetChannelType;          // filled from configuration lookup
+        required enum CommunicationFormatType           commFormatType;                 // filled from configuration lookup
+        required Ascii(255)                             fileOrQueueName;                // file name (including optional date/time pattern) or queue name
+        optional Integer                                numberOfSourceRecords;          // in case of structured output, the number of records written (pre Hook)
+        optional Integer                                numberOfMappedRecords;          // in case of structured output, the number of records written (post Hook)
+        optional Timestamp(0)                           plannedRunDate;                 // optional scheduled run date of the call (only for messages from the scheduler)
+        optional f42Ref                                 originatorRef;                  // optional link to object which is representing this file (params ref) (predox ref)
+        optional f42Ref                                 configurationRef;               // a reference to the configuration of the originator (aroma ref)
+        required (DataSinkRef...)                       dataSinkRef properties ref="DataSinkKey", noupdate, searchprefix="dataSink";     // replaces configurationUsed
+        optional Long                                   fileSize;                       // size of the created file (if available)
+    }
+    
+    /** Response which is returned by export jobs or report runs.
+     * It transmits the key to the created file (or other export event).
+     */
+    class SinkCreatedResponse extends ServiceResponse {
+        required f42Ref                                 sinkRef;                        // the key to the sink table
+    }
+    
+    /** Request which can be used to download a file or just retrieve parameters (in case limit=0).
+     * The file parameter retrieval can be done by the three requests
+     * <ul>
+     * <li>This one with offset = 0, limit = 0</li>
+     * <li>The Sink CRUD request with CRUD.READ</li>
+     * <li>The Sink Search request with objectRef = (sink)</li>
+     * </ul>
+     * 
+     * In case of offset / limit other than 0, actual file data will be returned (or an error message, if the sink
+     *     does not represent a file but went to a queue or JMS topic instead).
+     */
+    class FileDownloadRequest extends RequestParameters return FileDownloadResponse {
+        required f42Ref                                 sinkRef;                        // references some existing Sink
+        required unsigned long                          offset;                         // offset from start
+        required unsigned int                           limit;                          // max number of bytes to transfer
+    }
+
+    class FileDownloadResponse extends ServiceResponse {
+        required (Sink...)                              sink;                           // file information
+        required boolean                                hasMore;                        // if this data does not reach EOF
+        required Binary(11500000)                       data;                           // must be less than maxMessage size in length, when base64 encoded,
+        // which is FortytwoConstants.MAXIMUM_MESSAGE_LENGTH = 16 MB
+    }
+
+    /** The file upload request allows to create a sink entry for given upload data.
+     * It returns a sink reference in case of success.
+     */
+    class FileUploadRequest extends RequestParameters return SinkCreatedResponse {
+        required (OutputSessionParameters...)           parameters;                     // any input, most important is DATA_SINK_ID
+        required Binary(11500000)                       data;                           // must be less than maxMessage size in length, when base64 encoded,
+        // which is FortytwoConstants.MAXIMUM_MESSAGE_LENGTH = 16 MB
+    }
+    
+    class SourceRef extends Ref {
+    }
+    
+    /** Records incoming communication. For every remote connection or file processed, there is one entry of this type. */
+    class Source RTTI 0 extends SourceRef {         // RTTI should be 0, because when this entry is written, user and tenant are usually not known as well, and have 0 reference then
+        properties tenantCategory="G";
+        Ascii(100)              executable;         // program loading the data / accepting the transmission 
+        Ascii(100)              hostname;           // where the program was run
+        Unicode(255)            dataUrl;            // filename or just protocol : port number
+        tenantId                singleTenantId;     // if non null, every request will belong to the same tenant (allows better caching)
+        // accounting information
+        required Unicode(32)    osUserId;           // user ID who started the program
+        Integer                 numberOfRecords;
+        Integer                 numberSuccessful;
+        Integer                 numberDuplicate;    // requests which have been identified as duplicate by either sourceNo/recordNo or messageId
+        required Timestamp(0)   executableStartedAt;
+        Timestamp(0)            firstRecordProcessedAt;
+        Timestamp(0)            lastRecordProcessedAt;
+        Timestamp(0)            executableStoppedAt;
+    }
+    
+    /** Configuration table for data targets. This is used to determine the actual values used for outputs (as stored in Sinks).
+     * The fileOrQueueNamePattern will be expanded, variables may be embedded using the ${name} pattern. Values can be provided as part
+     * of a map provided to the open() parameters, and in addition some default expansions are always available. These include
+     * tenantId, userId, fileExt, asOf, planDate, today.
+     * 
+     */
+    class DataSinkRef RTTI 19 extends Ref {
+    }
+    
+    final class DataSinkKey extends DataSinkRef {
+        public required f42Ref                          tenantRef;                  // links to ALL_TENANTS or to a specific tenant
+        public required dataSinkId                      dataSinkId;                 // every data output is assigned a name
+    }
+    /** Class with useful properties, returned in the sink DTO, to allow filtering and display. */
+    final class DataSinkFilterProps extends DataSinkRef {
+        required f42Ref                                 tenantRef;                  // links to ALL_TENANTS or to a specific tenant
+        required dataSinkId                             dataSinkId;                 // every data output is assigned a name
+        required enum CommunicationTargetChannelType    commTargetChannelType;      // defines the type of output for this output
+        required enum CommunicationFormatType           commFormatType;             // defines the format for the output
+        required Enum DataSinkCategory                  category;                   // the type of data sink
+    }
+    class DataSink extends DataSinkRef {
+        properties tenantCategory="D";
+        required f42Ref                                 tenantRef  properties noupdate;  // links to ALL_TENANTS or to a specific tenant
+        required dataSinkId                             dataSinkId properties noupdate;  // every data output is assigned a name
+        required enum CommunicationTargetChannelType    commTargetChannelType;      // defines the type of output for this output
+        required enum CommunicationFormatType           commFormatType;             // defines the format for the output
+        required Ascii(255)                             fileOrQueueNamePattern;     // substitutions: DAY/TIME, TENANT,  
+        required boolean                                compressed;                 // if true and the output type is a file, then it should be compressed (gzipped) on the fly
+        optional Ascii(8)                               originatorModule;           // REP, COMM, AROMA etc...
+        optional Unicode(20)                            preTransformerName;         // custom pre-transform to transform output data before storing it
+        optional Unicode(20)                            commFormatName;             // custom communication format name (done through CDI lookup)
+        optional Unicode(100)                           camelRoute;                 // camel route for output processing
+        required Enum DataSinkCategory                  category;                   // the type of data sink
+        optional (RequestHandlerConfigRef...)           callbackRef properties ref; // the request handler to call for operation results (when an entry is finished or aborted with an error)
+    }
+    
+    
+    /** Test data record which is used for output tests. */
+    class DemoRecord {
+        required int                                    recordNo;
+        required Decimal(5,2)                           minusPi;
+        required Unicode(20)                            hello;
+        required Day                                    today;
+        required Timestamp(0)                           now;
+        optional Ascii(10)                              none;
+        required boolean                                yes;
+        required boolean                                no;
+    }
+}

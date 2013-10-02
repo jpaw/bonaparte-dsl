@@ -1,12 +1,12 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
-import java.util.Map
-import java.util.HashMap
+import de.jpaw.bonaparte.dsl.bonScript.AbstractTypeDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.DataCategory
+import java.util.HashMap
+import java.util.Map
+
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 public class ImportCollector {
@@ -22,14 +22,26 @@ public class ImportCollector {
         requiredImports.clear()
     }
 
-    def void addImport(ClassDefinition cl) {
-        if (cl != null)
-            addImport(getPackageName(cl), cl.name)
+    def void addImports(DataType dataType) {
+    	if (dataType == null)
+    		return;
+    	addImport(dataType.referenceDataType)
+    	dataType.classRefGenericParms.forEach[addImports]
+    }
+    
+    def dispatch void addImport(AbstractTypeDefinition cl) {
+    	// do nothing
+    }
+    def dispatch void addImport(Void cl) {
+    	// do nothing
+    }
+    
+    def dispatch void addImport(ClassDefinition cl) {
+        addImport(getPackageName(cl), cl.name)
     }
 
-    def void addImport(EnumDefinition cl) {
-        if (cl != null)
-            addImport(getPackageName(cl), cl.name)
+    def dispatch void addImport(EnumDefinition cl) {
+        addImport(getPackageName(cl), cl.name)
     }
 
     // same code as in JavaBonScriptGenerator...
@@ -38,39 +50,17 @@ public class ImportCollector {
             return;
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
-            val ref = DataTypeExtension::get(i.datatype)
-            if (ref == null) {
-                System::out.println('''recurseImports: NPE catch for «d.name».«i.name»''')
-            } else {
-                // referenced objects
-                if (ref.objectDataType != null)
-                    addImport(ref.objectDataType)
-                if (ref.genericsRef != null)
-                    addImport(ref.genericsRef) // referenced enums
-                // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                if (ref.category == DataCategory::ENUM)
-                    addImport(ref.elementaryDataType.enumType)
-            }
+        	addImports(i.datatype)
         }
         // generic parameters
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
                 if (gp.^extends != null)
-                    addImport(gp.^extends)
+                    addImports(gp.^extends)
         // finally, possibly the parent object
-        addImport(d.extendsClass)
-        if (recurseFields && d.extendsClass != null && d.extendsClass.classRef != null)
-            recurseImports(d.extendsClass.classRef, true)
-    }
-
-
-    def void addImport(ClassReference r) {
-        if (r != null && r.classRef != null) {
-            addImport(r.classRef)
-            if (r.classRefGenericParms != null)     // recursively add any args
-                for (args : r.classRefGenericParms)
-                    addImport(args)
-        }
+        addImports(d.extendsClass)
+        if (recurseFields && d.extendsClass != null && d.extendsClass.referenceDataType instanceof ClassDefinition)
+            recurseImports(d.extendsClass.referenceDataType as ClassDefinition, true)
     }
 
     def void addImport(String packageName, String objectName) {

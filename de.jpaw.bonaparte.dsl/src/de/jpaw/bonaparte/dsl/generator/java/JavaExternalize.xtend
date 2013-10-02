@@ -20,6 +20,8 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtensions2.*
+
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaExternalize {
@@ -43,24 +45,24 @@ class JavaExternalize {
             case "LocalDateTime":    '''ExternalizableComposer.writeLocalDateTime(_out, «e.doHHMMSS», «indexedName»);'''
             case "LocalDate":        '''ExternalizableComposer.writeLocalDate(_out, «indexedName»);'''
             case "BonaPortable":     '''ExternalizableComposer.writeObject(_out, «indexedName»);'''
-            default:  // enums...
-                if (ref.enumMaxTokenLength >= 0) {
-                    '''ExternalizableComposer.writeString (_out, «indexedName».getToken());'''
-                } else {
-                    // numeric enum
-                    '''ExternalizableComposer.writeVarInt (_out, «indexedName».ordinal());'''
-                }
+            default:  '''UNKOWN'''
         }
     }
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
         «IF resolveElem(i.datatype) != null»
             «makeWrite(index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
+        «ELSEIF i.datatype.isEnum»
+            «IF i.datatype.enumMaxTokenLength >= 0»
+            	ExternalizableComposer.writeString (_out, «index».getToken());
+            «ELSE»
+            	ExternalizableComposer.writeVarInt (_out, «index».ordinal());
+            «ENDIF»
         «ELSE»
             ExternalizableComposer.writeObject(_out, (BonaPortable)«index»);
         «ENDIF»
     '''
-
+    
     def public static writeExternalizeOld(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {

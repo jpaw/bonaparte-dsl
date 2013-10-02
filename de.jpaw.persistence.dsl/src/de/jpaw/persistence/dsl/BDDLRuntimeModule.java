@@ -5,8 +5,7 @@ package de.jpaw.persistence.dsl;
 
 // import org.eclipse.xtext.scoping.impl.ImportUriGlobalScopeProvider;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 import de.jpaw.persistence.dsl.scoping.BDDLScopeProvider;
 
@@ -14,7 +13,7 @@ import de.jpaw.persistence.dsl.scoping.BDDLScopeProvider;
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class BDDLRuntimeModule extends de.jpaw.persistence.dsl.AbstractBDDLRuntimeModule {
-    private static Log logger = LogFactory.getLog("de.jpaw.persistence.dsl.BDDLRuntimeModule"); // jcl
+    private static Logger logger = Logger.getLogger(BDDLRuntimeModule.class);
     public BDDLRuntimeModule() {
         logger.info("BDDL Runtime module constructed");
     }

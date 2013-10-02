@@ -16,33 +16,29 @@
 
 package de.jpaw.bonaparte.dsl.generator
 
-import java.util.List
-
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
-import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
-import de.jpaw.bonaparte.dsl.bonScript.XRequired
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
-import java.util.ArrayList
+import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import java.util.ArrayList
+import java.util.List
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EObject
 
 class XUtil {
-    private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
+    private static Logger logger = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
     def public static ClassDefinition getParent(ClassDefinition d) {
-        d?.getExtendsClass?.getClassRef
+        d?.getExtendsClass?.referenceDataType as ClassDefinition
     }
 
     def public static ClassDefinition getRoot(ClassDefinition d) {
@@ -93,42 +89,46 @@ class XUtil {
         d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
     }
     def public static needsXmlObjectType(FieldDefinition f) {
-        if (f.datatype.objectDataType != null) {
-            f.datatype.objectDataType.needsXmlObjectType
+        if (f.datatype != null) {
+            f.datatype.needsXmlObjectType
         } else {
             val ref = DataTypeExtension::get(f.datatype)
             ref != null && ref.elementaryDataType?.name == 'Object'
         }
     }
-    def public static boolean needsXmlObjectType(ClassReference r) {
-        r.plainObject || (r.genericsParameterRef != null && r.genericsParameterRef.hasNoBound)
+    
+    def static ClassDefinition getObjectDataType(DataType dt) {
+    	dt.referenceDataType as ClassDefinition
     }
+    
+    def public static boolean needsXmlObjectType(DataType r) {
+        r.isObject || (r.referenceDataType instanceof GenericsDef && (r.referenceDataType as GenericsDef).hasNoBound)
+    }
+    
     def public static boolean hasNoBound(GenericsDef rd) {
         rd.extends == null || rd.extends.needsXmlObjectType
     }
     
-    def public static String genericRef2String(ClassReference r) {
-        if (r.plainObject)
-            return "BonaPortable"
-        if (r.genericsParameterRef != null)
-            return r.genericsParameterRef.name
-        if (r.classRef != null)
-            return r.classRef.name + genericArgs2String(r.classRefGenericParms)
-
-        logger.error("*** FIXME: class reference with all null fields ***")
-        return "*** FIXME: class reference with all null fields ***"
+    def static isObject(DataType dt) {
+    	dt?.elementaryDataType?.name == "Object" 
     }
-
-    def public static genericArgs2String(List<ClassReference> args) {
-        if (args == null)
-            return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«genericRef2String(a)»«ENDFOR»'''
+    
+    def public static String genericDataType2String(DataType r) {
+        if (r.isObject)
+            return "BonaPortable"
+        if (r.elementaryDataType != null) {
+        	return r.elementaryDataType.name
+        }
+        val params = if (r.classRefGenericParms.empty) {''} else {
+        	'<'+r.classRefGenericParms.map[genericDataType2String(it)].join(', ')+'>'
+        }
+        return r.referenceDataType.name+params
     }
 
     def public static genericDef2String(List<GenericsDef> args) {
         if (args == null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericDataType2String(a.^extends)»«ENDIF»«ENDFOR»'''
     }
 
     def public static genericDef2StringAsParams(List<GenericsDef> args) {
@@ -258,6 +258,10 @@ class XUtil {
     }
 
     def public static boolean isRequired(FieldDefinition i) {
+    	// field is explicitly set to optional
+    	if (i.required?.x != null) {
+    		return i.required.x != XRequired.OPTIONAL
+    	}
         var ref = DataTypeExtension::get(i.datatype)
         if (ref.isRequired != null) {
             if (i.required != null && i.required.x != null) {
@@ -340,11 +344,11 @@ class XUtil {
     }
 
     def public static List<FieldDefinition> allFields(ClassDefinition cl) {
-        if (cl.extendsClass?.classRef == null)
-            return cl.fields;
-        // at least 2 lists to combine
         val result = new ArrayList<FieldDefinition>(50)
-        result.addAll(cl.extendsClass?.classRef.allFields)
+        switch ext : cl.extendsClass?.referenceDataType {
+        	ClassDefinition :
+	        	result.addAll(ext.allFields)
+        }
         result.addAll(cl.fields)
         return result
     }
