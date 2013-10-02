@@ -204,16 +204,24 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ''''''
     }
     
+    // return true, if this is a list with lower number of elements strictly less than the upper bound.
+    // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null
+    def private static isPartOfVariableLengthList(FieldDefinition c) {
+        c.isList != null && c.isList.mincount < c.isList.maxcount        
+    } 
+    
     // write the definition of a single column (entities or Embeddables)
     def private singleColumn(FieldDefinition c, List <ElementCollectionRelationship> el, boolean withBeanVal, String myName) '''
         «IF el != null && c.aggregate»
             «ElementCollections::writePossibleCollectionOrRelation(c, el)»
         «ENDIF»
-        @Column(name="«myName.java2sql»"«IF XUtil::isRequired(c)», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
+        @Column(name="«myName.java2sql»"«IF c.isRequired && !c.isPartOfVariableLengthList && !c.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
         «c.properties.optionalAnnotation("version", "@Version")»
         «c.properties.optionalAnnotation("lob",     "@Lob")»
         «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
-        «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
+        «IF !c.isASpecialEnumWithEmptyStringAsNull»
+            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
+        «ENDIF»
         «c.writeColumnType(myName)»
     '''
 
@@ -462,7 +470,12 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
                     return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
                 «ELSE»
-                    return «ref.elementaryDataType.enumType.name».factory(«myName»);
+                    «IF i.isASpecialEnumWithEmptyStringAsNull»
+                        // special mapping of null to the enum value with the empty string token
+                        return «myName» == null ? «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» : «ref.elementaryDataType.enumType.name».factory(«myName»);
+                    «ELSE»
+                        return «ref.elementaryDataType.enumType.name».factory(«myName»);
+                    «ENDIF»
                 «ENDIF»
             }
         '''
@@ -495,7 +508,11 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
                      this.«myName» = «myName» == null ? null : «myName».ordinal();
                 «ELSE»
-                    this.«myName» = «myName» == null ? null : «myName».getToken();
+                    «IF i.isASpecialEnumWithEmptyStringAsNull»
+                        this.«myName» = «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» ? null : «myName».getToken();
+                    «ELSE»
+                        this.«myName» = «myName» == null ? null : «myName».getToken();
+                    «ENDIF»
                 «ENDIF»
             }
         '''

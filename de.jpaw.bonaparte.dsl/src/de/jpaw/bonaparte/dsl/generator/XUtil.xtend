@@ -377,5 +377,17 @@ class XUtil {
         import org.joda.time.LocalDate;
         import org.joda.time.LocalDateTime;
     '''
+    
+    def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
+        val ref = DataTypeExtension.get(f.datatype)
+        ref.enumMaxTokenLength >= 0 && ref.elementaryDataType.enumType.avalues.map[token].contains("")
+    }
+    def public static idForEnumTokenNull(FieldDefinition f) {
+        val ref = DataTypeExtension.get(f.datatype)
+        if (ref.enumMaxTokenLength < 0)
+            null
+        else
+            ref.elementaryDataType.enumType.avalues.findFirst[token.empty]?.name
+    }
 
 }

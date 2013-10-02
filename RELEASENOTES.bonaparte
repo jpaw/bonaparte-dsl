@@ -53,3 +53,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (a) bugfix: workaround NPE in Eclipse if referenced bon files are in projects which are not open
 - BDDL: (b) bugfix: workaround NPE in Eclipse if referenced bon files are in projects which are not open
 - BON: (c) add directive noAllFieldsConstructor for class definition to allow for classes with more than 255 fields
+
+1.6.3
+- BDDL: (a) bugfix: do not create nullable=false for elements of unrolled lists if the lower bound is strictly less than the upper bound
+- BDDL: (a) bugfix: create proper conversions in geter/setter of JPA entity class for enums, if one token is the empty string (which should be mapped to null on the DB for optimized indexes)
+
