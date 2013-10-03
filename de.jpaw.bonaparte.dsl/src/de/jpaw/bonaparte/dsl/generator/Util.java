@@ -17,28 +17,8 @@
 package de.jpaw.bonaparte.dsl.generator;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.log4j.Logger;
 
 public class Util {
-    private static Logger logger = Logger.getLogger(Util.class);
-    static private Boolean runningInEclipse = null; 
-    
-    static public boolean autodetectMavenRun() {
-        if (runningInEclipse == null) {
-            // allocate a Boolean and set it to true, if we detect an Eclipse environment variable
-            if (System.getProperty("eclipse.vm") != null ||
-                System.getProperty("eclipse.launcher") != null ||
-                System.getProperty("eclipse.vmargs") != null) {
-                runningInEclipse = Boolean.TRUE;
-                logger.info("Found an eclipse system property - assuming we're within Eclipse");
-            } else {
-                runningInEclipse = Boolean.FALSE;
-                logger.info("Found NO eclipse system property - assuming we're running from maven");
-            }
-        }
-        return !runningInEclipse;
-    }
-    
     static public String escapeString2Java(String s) {
         return StringEscapeUtils.escapeJava(s);
     }

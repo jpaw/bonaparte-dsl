@@ -1,8 +1,6 @@
 
 package de.jpaw.bonaparte.dsl;
 
-import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator;
-
 /**
  * Initialization support for running Xtext languages
  * without equinox extension registry
@@ -10,7 +8,6 @@ import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator;
 public class BonScriptStandaloneSetup extends BonScriptStandaloneSetupGenerated{
 
     public static void doSetup() {
-        BonScriptGenerator.activateFilter();
         new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 }

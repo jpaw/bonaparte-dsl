@@ -16,22 +16,18 @@
 
 package de.jpaw.persistence.dsl.generator
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.apache.log4j.Logger
-import de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.java.JavaDDLGeneratorMain
 import de.jpaw.persistence.dsl.generator.res.ResourceGeneratorMain
+import de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
-import de.jpaw.bonaparte.dsl.generator.Util
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
 
 class BDDLGenerator implements IGenerator {
-    // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
-    //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
     private static Logger logger = Logger.getLogger(BDDLGenerator)
-    private static boolean doFilter = Util::autodetectMavenRun;
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
     
@@ -39,31 +35,16 @@ class BDDLGenerator implements IGenerator {
     @Inject JavaDDLGeneratorMain generatorJava
     @Inject ResourceGeneratorMain generatorResource
     
-    def public static void activateFilter() {
-        //doFilter = true;  // not setting it, we rely on the Eclipse detection now
-        logger.info("### BDDL STANDALONE MODE: filter is ON ### for Id " + globalId.addAndGet(100));
-    }
     def private String filterInfo() {
-        "#" + localId + ": " + if (doFilter) "Filter ON : " else "Filter OFF: "   
+        "#" + localId + ": "   
     }
     
     public new() {
         logger.info("BDDLGenerator constructed. " + filterInfo)
-        /* still causes the build run to break - why? It's just a debug output!  
-        try {
-            val Exception e = new Exception("BDDLGenerator constructed. " + filterInfo)
-            e.printStackTrace
-        } catch (Exception e) {
-        } */
     }
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
-        // adaption: in maven builds, too many files are presented, need to filter out the ones for this project, which is done via URL start pattern
-        if (!doFilter   // !doFilter = Eclipse mode
-            || resource.URI.toString.startsWith("platform:/resource") // building inside Eclipse
-            || (resource.URI.toString.startsWith("file:/") && resource.URI.toString.endsWith(".bddl")) // maven fornax plugin
-            ) {
             logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
             generatorSql.doGenerate(resource, fsa)
 
@@ -74,8 +55,5 @@ class BDDLGenerator implements IGenerator {
             generatorResource.doGenerate(resource, fsa)
 
             logger.info(filterInfo + "start cleanup");
-        } else {
-            logger.info(filterInfo + "Skipping code generation for " + resource.URI.toString);
-        }
     }
 }
