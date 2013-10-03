@@ -20,9 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import java.util.List
 import de.jpaw.bonaparte.dsl.generator.Delimiter
@@ -31,7 +29,7 @@ import org.eclipse.xtext.generator.builder.BuilderIntegrationFragment
 import de.jpaw.persistence.dsl.generator.RequiredType
 
 class SqlColumns {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlColumns") // jcl
+    private static Logger LOGGER = Logger.getLogger(SqlColumns)
 
     // TODO: check if column is in PK (then assume implicit NOT NULL)
     def public static notNullConstraint(FieldDefinition c, RequiredType reqType) {
@@ -52,7 +50,7 @@ class SqlColumns {
     def public static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, String myName) {
         val String columnName = myName.java2sql
         if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
-            logger.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
+            LOGGER.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
         return '''
             «d.get»«columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, reqType)»
         '''

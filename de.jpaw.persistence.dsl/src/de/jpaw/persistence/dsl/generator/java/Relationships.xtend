@@ -18,8 +18,7 @@ package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.bDDL.Relationship
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
@@ -28,7 +27,7 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class MakeRelationships {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.java.MakeRelationships") // jcl
+    private static Logger logger = Logger.getLogger(MakeRelationships)
     
     def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns) '''
         @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)

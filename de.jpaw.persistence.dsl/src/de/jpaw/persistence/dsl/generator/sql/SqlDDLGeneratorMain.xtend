@@ -25,9 +25,7 @@ import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
 import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
@@ -44,7 +42,7 @@ import de.jpaw.persistence.dsl.generator.RequiredType
 import java.util.zip.Deflater
 
 class SqlDDLGeneratorMain implements IGenerator {
-    private static Log logger = LogFactory::getLog("de.jpaw.persistence.dsl.generator.sql.SqlDDLGeneratorMain") // jcl
+    private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
@@ -56,12 +54,12 @@ class SqlDDLGeneratorMain implements IGenerator {
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            logger.info("start code output of main table for " + e.name)
+            LOGGER.info("start code output of main table for " + e.name)
             // System::out.println("start code output of main table for " + e.name)
             makeTables(fsa, e, false)
             if (e.tableCategory != null && e.tableCategory.historyCategory != null) {
                 // do histories as well
-                logger.info("    doing history table as well, due to category " + e.tableCategory.name);
+                LOGGER.info("    doing history table as well, due to category " + e.tableCategory.name);
                 // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
                 makeTables(fsa, e, true)
             }

@@ -25,9 +25,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
 import de.jpaw.bonaparte.dsl.bonScript.XRequired
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger;
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
 import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import org.eclipse.emf.ecore.EObject
@@ -38,7 +36,7 @@ import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class XUtil {
-    private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.XUtil") // jcl
+    private static Logger logger = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
     def public static ClassDefinition getParent(ClassDefinition d) {

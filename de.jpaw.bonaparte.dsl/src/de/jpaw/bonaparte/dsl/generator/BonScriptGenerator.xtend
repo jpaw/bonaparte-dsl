@@ -20,9 +20,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 
-// using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log
-import org.apache.commons.logging.LogFactory
+import org.apache.log4j.Logger
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
@@ -30,7 +28,7 @@ import javax.inject.Inject
 class BonScriptGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
     //private static final logger logger = LoggerFactory.getLogger(BonScriptGenerator.class); // slf4f
-    private static Log logger = LogFactory::getLog("de.jpaw.bonaparte.dsl.generator.BonScriptGenerator") // jcl
+    private static Logger logger = Logger.getLogger(BonScriptGenerator)
     private static boolean doFilter = Util::autodetectMavenRun;
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet

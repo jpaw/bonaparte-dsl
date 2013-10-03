@@ -17,12 +17,10 @@
 package de.jpaw.bonaparte.dsl.generator;
 
 import org.apache.commons.lang.StringEscapeUtils;
-//using JCL here, because it is already a project dependency, should switch to slf4j
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 
 public class Util {
-    private static Log logger = LogFactory.getLog("de.jpaw.bonaparte.dsl.generator.Util"); // jcl
+    private static Logger logger = Logger.getLogger(Util.class);
     static private Boolean runningInEclipse = null; 
     
     static public boolean autodetectMavenRun() {
