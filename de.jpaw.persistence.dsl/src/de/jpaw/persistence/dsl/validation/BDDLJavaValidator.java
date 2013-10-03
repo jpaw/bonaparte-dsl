@@ -19,6 +19,7 @@ import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition;
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
+import de.jpaw.persistence.dsl.bDDL.NoSQLEntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.OneToMany;
 import de.jpaw.persistence.dsl.bDDL.Relationship;
 import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition;
@@ -498,6 +499,115 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             error("class mismatch: embeddable references " + u.getName().getPojoType().getName() + ", field is " + ref.objectDataType.getName(),
                     BDDLPackage.Literals.EMBEDDABLE_USE__NAME);
             return;
+        }
+    }
+    
+    @Check
+    public void checkNoSQLEntityDefinition(NoSQLEntityDefinition e) {
+        String s = e.getName();
+        if (s != null) {
+            if (!Character.isUpperCase(s.charAt(0))) {
+                error("NoSQLEntity names should start with an upper case letter",
+                        BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__NAME);
+            }
+        }
+        if (e.getExtends() != null) {
+            // parent must extend as well or define inheritance
+            if ((e.getExtends().getExtends() == null) && (e.getExtends().getXinheritance() == null)) {
+                error("entities inherited from must define inheritance properties",
+                        BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
+            }
+
+            if ((e.getTenantClass() != null)) {
+                error("tenantClass only allowed for root entity", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__EXTENDS);
+            }
+            if ((e.getPkPojo() != null)) {
+                error("primary key only allowed for root entity", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__PK_POJO);
+            }
+        } else {
+            if ((e.getPkPojo() == null)) {
+                error("primary key required unless the entity inherits another one", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__NAME);
+            }
+        }
+
+        String tablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, false);
+        if (tablename.length() > 32) {
+            warning("The resulting CQL table name " + tablename + " exceeds 32 characters length and will not work",
+                    e.getTablename() != null ? BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__TABLENAME : BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__NAME);
+        }
+        if (e.getTableCategory().getHistoryCategory() != null) {
+            String historytablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, true);
+            if (tablename.length() > 32) {
+                warning("The resulting CQL history table name " + historytablename + " exceeds 32 characters length and will not work",
+                        e.getHistorytablename() != null ? BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__NAME);
+            }
+        } else if (e.getHistorytablename() != null) {
+            error("History tablename provided, but table category does not specify use of history",
+                  BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__HISTORYTABLENAME);
+        }
+
+        if (e.getXinheritance() != null) {
+            switch (e.getXinheritance()) {
+            case NONE:
+                if (e.getDiscname() != null) {
+                    error("discriminator without inheritance", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__DISCNAME);
+                }
+                break;
+            case TABLE_PER_CLASS:
+                if (e.getDiscname() != null) {
+                    warning("TABLE_PER_CLASS inheritance does not need a discriminator", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__DISCNAME);
+                }
+                break;
+            case SINGLE_TABLE:
+            case JOIN:
+                if (e.getDiscname() == null) {
+                    error("JOIN / SINGLE_TABLE inheritance require a discriminator", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__DISCNAME);
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        
+        if (e.getTenantClass() != null)
+            checkClassForReservedColumnNames(e.getTenantClass(), BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__TABLE_CATEGORY);
+        checkClassForReservedColumnNames(e.getPojoType(), BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__POJO_TYPE);
+        
+        // for PK pojo, all columns must exist
+        if (e.getPkPojo() != null) {
+            // must be a superclass
+            ClassDefinition dd = e.getPojoType();
+            while (dd != null) {
+                if (dd == e.getPkPojo())
+                    break;
+                if (dd.getExtendsClass() == null)
+                    dd = null;
+                else
+                    dd = dd.getExtendsClass().getClassRef();
+            }
+            if (dd == null)
+                error("The PK class must be a superclass of the definining DTO", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__PK_POJO);
+            
+            // verify that key columns are all elementary types
+            for (FieldDefinition f : e.getPkPojo().getFields()) {
+                if (f.getDatatype().getObjectDataType() != null) {
+                    error("The PK class max not contain object references: " + f.getName(), BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__PK_POJO);
+                }
+            }
+        }
+
+        if (e.getPartitionKey() != null) {
+            // verify that all fields are in the PK
+            for (FieldDefinition f : e.getPartitionKey().getColumnName()) {
+                if (e.getPkPojo().getFields().contains(f))
+                    ;
+                else if (e.getTenantClass() != null && e.getTenantClass().getFields().contains(f))
+                    ;
+                else {
+                    error("Field " + f.getName() + " of partition key not found in primary key or tenant class", BDDLPackage.Literals.NO_SQL_ENTITY_DEFINITION__PK_POJO);
+                }
+                
+            }
         }
     }
 }

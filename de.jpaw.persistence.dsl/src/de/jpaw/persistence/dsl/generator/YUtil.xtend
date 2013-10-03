@@ -27,6 +27,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import java.util.List
+import de.jpaw.persistence.dsl.bDDL.NoSQLEntityDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class YUtil {
@@ -100,15 +101,27 @@ class YUtil {
             t.tablename
         else if (forHistory && t.historytablename != null)
             t.historytablename
-        else {
+        else
+            genericTablename(t.eContainer as PackageDefinition, t.tableCategory, t.name, forHistory)       
+    }
+    
+    def public static String mkTablename(NoSQLEntityDefinition t, boolean forHistory) {
+        if (!forHistory && t.tablename != null)
+            t.tablename
+        else if (forHistory && t.historytablename != null)
+            t.historytablename
+        else
+            genericTablename(t.eContainer as PackageDefinition, t.tableCategory, t.name, forHistory)       
+    }
+    
+    def public static String genericTablename(PackageDefinition myPackage, TableCategoryDefinition cat, String entityName, boolean forHistory) {
             // build the table name according to the template in the table category or the default
             // 1. get a suitable pattern
             var String myPattern
             var String dropSuffix
             var String tablename
-            var myPackage = t.eContainer as PackageDefinition
             var myModel = getModel(myPackage.eContainer)
-            var TableCategoryDefinition myCategory = t.tableCategory
+            var TableCategoryDefinition myCategory = cat
             if (forHistory)
                  myCategory = myCategory.historyCategory
             var theOtherModel = getModel(myCategory)
@@ -132,7 +145,7 @@ class YUtil {
             }
             // 2. have the pattern, apply substitution rules
             tablename = myPattern.replace("(category)", myCategory.name)
-                                 .replace("(entity)",   java2sql(t.name))
+                                 .replace("(entity)",   java2sql(entityName))
                                  .replace("(prefix)",   myPackage.dbPrefix)
                                  .replace("(owner)",    myPackage.schemaOwner)
                                  .replace("(package)",  myPackage.name.replace('.', '_'))
@@ -143,7 +156,6 @@ class YUtil {
                     tablename = tablename.substring(0, tablename.length - suffixLength)
             }
             return tablename
-        }
     }
 
     def public static String mkTablespaceName(EntityDefinition t, boolean forIndex, TableCategoryDefinition myCategory) {

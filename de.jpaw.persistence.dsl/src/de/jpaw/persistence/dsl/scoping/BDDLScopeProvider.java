@@ -35,10 +35,13 @@ import de.jpaw.persistence.dsl.bDDL.EmbeddableUse;
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition;
 import de.jpaw.persistence.dsl.bDDL.ForeignKeyDefinition;
 import de.jpaw.persistence.dsl.bDDL.ListOfColumns;
+import de.jpaw.persistence.dsl.bDDL.NoSQLEntityDefinition;
+import de.jpaw.persistence.dsl.bDDL.NoSQLIndexDefinition;
 import de.jpaw.persistence.dsl.bDDL.OneToMany;
 import de.jpaw.persistence.dsl.bDDL.Relationship;
 import de.jpaw.persistence.dsl.bDDL.SingleColumn;
 import de.jpaw.persistence.dsl.generator.YUtil;
+import de.jpaw.persistence.dsl.generator.cql.CUtil;
 
 /**
  * This class contains custom scoping description.
@@ -85,11 +88,36 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
         //System.out.println("DEBUG: Resolver found " + preliminaryResult.size() + " entries");
         return preliminaryResult;
     }
+    private List<ImportNormalizer> getColumnsSub(NoSQLEntityDefinition entity, boolean ignoreCase) {
+        List<ImportNormalizer> preliminaryResult = new ArrayList<ImportNormalizer>(50);
+        //System.out.println("DEBUG: Resolver invoked for ListOfColumns inside " + entity.getName());
+        recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getPojoType(), ignoreCase);
+        // also add the fields of the entity category class (& parents)
+        if (entity.getTableCategory() != null)
+            recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getTableCategory().getTrackingColumns(), ignoreCase);
+        // also add the fields in a potential tenant discriminator class
+        if (CUtil.getInheritanceRoot(entity).getTenantClass() != null)
+            recursivelyAddColumnsOfClassAndParents(preliminaryResult, CUtil.getInheritanceRoot(entity).getTenantClass(), ignoreCase);
+        //System.out.println("DEBUG: Resolver found " + preliminaryResult.size() + " entries");
+        return preliminaryResult;
+    }
 
     @Override
     protected
     List<ImportNormalizer> internalGetImportedNamespaceResolvers(EObject context, boolean ignoreCase) {
         List<ImportNormalizer> preliminaryResult;
+        if (context.eContainer() == null) {
+            // shortcut if we have no parent
+            return super.internalGetImportedNamespaceResolvers(context, ignoreCase);
+        } else if (context.eContainer() instanceof NoSQLEntityDefinition) {
+            if (context instanceof SingleColumn ||
+                context instanceof ListOfColumns ||
+                context instanceof NoSQLIndexDefinition) {
+                return getColumnsSub((NoSQLEntityDefinition)context.eContainer(), ignoreCase);
+            } else {
+                return super.internalGetImportedNamespaceResolvers(context, ignoreCase);
+            }
+        }
         if ((context instanceof SingleColumn ||
              context instanceof ForeignKeyDefinition ||
              context instanceof ElementCollectionRelationship ||

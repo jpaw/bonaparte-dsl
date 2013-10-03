@@ -26,6 +26,7 @@ import de.jpaw.persistence.dsl.generator.res.ResourceGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import de.jpaw.bonaparte.dsl.generator.Util
+import de.jpaw.persistence.dsl.generator.cql.CqlDDLGeneratorMain
 
 class BDDLGenerator implements IGenerator {
     // we use JCL instead of SLF4J here in order not not introduce another logging framework (JCL is already used in Eclipse)
@@ -35,6 +36,7 @@ class BDDLGenerator implements IGenerator {
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
     
+    @Inject CqlDDLGeneratorMain generatorCql
     @Inject SqlDDLGeneratorMain generatorSql
     @Inject JavaDDLGeneratorMain generatorJava
     @Inject ResourceGeneratorMain generatorResource
@@ -72,6 +74,9 @@ class BDDLGenerator implements IGenerator {
 
             logger.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
             generatorResource.doGenerate(resource, fsa)
+
+            logger.info(filterInfo + "start code output: CQL DDL for " + resource.URI.toString);
+            generatorCql.doGenerate(resource, fsa)
 
             logger.info(filterInfo + "start cleanup");
         } else {

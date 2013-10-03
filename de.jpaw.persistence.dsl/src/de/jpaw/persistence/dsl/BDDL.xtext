@@ -1,5 +1,5 @@
  /*
-  * Copyright 2012 Michael Bischoff
+  * Copyright 2012,2013 Michael Bischoff
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
   * you may not use this file except in compliance with the License.
@@ -92,6 +92,7 @@ PackageDefinition:
         | tableCategories += TableCategoryDefinition
         | entities += EntityDefinition
         | embeddables += EmbeddableDefinition
+        | noSQLs += NoSQLEntityDefinition
         )*
     '}'
 ;
@@ -197,4 +198,33 @@ ListOfColumns:
 // by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
 SingleColumn:
     singleColumnName = [pojos::FieldDefinition]    
+;
+
+
+
+// NoSQL part - for Cassandra 2.0.1 ff
+
+NoSQLEntityDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
+    'noSQL' name = ID
+        'category' tableCategory=[TableCategoryDefinition]
+        'is' pojoType=[pojos::ClassDefinition]
+        ('tablename' tablename = ID)?  // overwrite auto-generated tablename
+        ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
+        'keyspace' keyspaceName=ID
+        ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
+         | ('inherits' (extends=[NoSQLEntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
+        ('implements' implementsInterface = QualifiedId )?
+    '{'
+        ('fields' visibility=Visibility ';')?
+        ('tenantClass' tenantClass = [pojos::ClassDefinition])?
+        ('pk' pkPojo = [pojos::ClassDefinition]          // primary key as object (must be a superobject of pojo)
+            (partitionKey = ListOfColumns)?)?             // optional partition key (fields must be part of pkPojo)
+        ('index'  index   += NoSQLIndexDefinition)*
+    '}'       
+;
+
+NoSQLIndexDefinition:
+    '(' columnName = [pojos::FieldDefinition] ')'
 ;
