@@ -21,7 +21,6 @@ import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
-import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
@@ -44,7 +43,6 @@ import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.ArrayList
 import de.jpaw.persistence.dsl.generator.RequiredType
 import de.jpaw.persistence.dsl.generator.PrimaryKeyType
-import javax.lang.model.type.PrimitiveType
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -509,7 +507,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                      this.«myName» = «myName» == null ? null : «myName».ordinal();
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
-                        this.«myName» = «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» ? null : «myName».getToken();
+                        this.«myName» = («myName» == null || «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull») ? null : «myName».getToken();
                     «ELSE»
                         this.«myName» = «myName» == null ? null : «myName».getToken();
                     «ENDIF»
