@@ -21,23 +21,22 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaRtti {
 
-    def public static getRtti(ClassDefinition d) {
-        var rtti = d.rtti
-        if (d.addRtti) {
-            var dd = d.getParent
-            while (dd != null) {
-                if (dd.rtti != 0 && !dd.addRtti)
-                    return rtti + dd.rtti
-                // recurse
-                dd = dd.getParent
-            }
-        }
-        return rtti;
+    def public static int getRttiRecursive(ClassDefinition d) {
+        if (d == null)
+            return 0
+        else if (d.getParent == null)
+            return d.rtti
+        else if (d.addRtti)
+            return d.rtti + d.getParent.rttiRecursive
+        else if (d.rtti != 0)
+            return d.rtti
+        else
+            return d.getParent.rttiRecursive
     }
 
     def public static writeRtti(ClassDefinition d) {
         return '''
-            private static final int MY_RTTI = «getRtti(d)»;
+            private static final int MY_RTTI = «d.rttiRecursive»;
             public static int class$rtti() {
                 return MY_RTTI;
             }

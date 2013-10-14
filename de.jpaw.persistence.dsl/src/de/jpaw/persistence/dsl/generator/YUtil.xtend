@@ -27,7 +27,6 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import java.util.List
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
