@@ -38,7 +38,7 @@ class SqlViewOut {
 
     def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d, EntityDefinition e) {
         recurse(cl, null, false,
-            [ true ],
+            [ !properties.hasProperty(PROP_NODDL) ],
             e.embeddables,
             [ '''-- columns of java class «name»
               '''],

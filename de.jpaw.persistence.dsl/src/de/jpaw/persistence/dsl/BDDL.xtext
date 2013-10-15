@@ -190,11 +190,11 @@ IndexDefinition:
     columns = ListOfColumns
 ;
 
-// by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
+// by custom ScopeProvider implementation, an appropriate importedNamespace will be added here
 ListOfColumns:
     '(' columnName += [pojos::FieldDefinition] (',' columnName += [pojos::FieldDefinition])* ')'    
 ;
-// by customer ScopeProvider implementation, an appropriate importedNamespace will be added here
+// by custom ScopeProvider implementation, an appropriate importedNamespace will be added here
 SingleColumn:
     singleColumnName = [pojos::FieldDefinition]    
 ;

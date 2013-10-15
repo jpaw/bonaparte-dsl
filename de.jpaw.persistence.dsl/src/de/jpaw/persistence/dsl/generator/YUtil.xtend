@@ -32,6 +32,7 @@ class YUtil {
     // bonaparte properties which are used for bddl code generators
     public static final String PROP_UNROLL = "unroll";     // List<> => 01...0n
     public static final String PROP_NOJAVA = "noJava";
+    public static final String PROP_NODDL  = "noDDL";
     public static final String PROP_FINDBY = "findBy";
     public static final String PROP_LISTBY = "listBy";
     public static final String PROP_LIACBY = "listActiveBy";
@@ -218,7 +219,7 @@ class YUtil {
 
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
-                [ comment != null ],
+                [ comment != null && !properties.hasProperty(PROP_NODDL) ],
                 embeddables,
                 [ '''-- comments for columns of java class «name»
                   '''],
@@ -232,7 +233,7 @@ class YUtil {
 
     def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, true,
-                [ !properties.hasProperty(PROP_NOJAVA) ],
+                [ !properties.hasProperty(PROP_NODDL) ],
                 embeddables,
                 [ '''// auto-generated data getter for «name»
                   '''],

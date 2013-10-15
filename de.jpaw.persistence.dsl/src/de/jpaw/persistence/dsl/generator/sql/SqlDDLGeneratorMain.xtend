@@ -77,7 +77,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
         List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
-            [ true ],
+            [ !properties.hasProperty(PROP_NODDL) ],
               embeddables,
             [ '''-- table columns of java class «name»
               '''],
