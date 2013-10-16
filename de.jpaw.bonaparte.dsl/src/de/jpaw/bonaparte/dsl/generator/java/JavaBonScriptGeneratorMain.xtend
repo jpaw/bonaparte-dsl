@@ -162,6 +162,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
             import javax.xml.bind.annotation.XmlElement;
+            import javax.xml.bind.annotation.XmlTransient;
             import javax.xml.bind.annotation.XmlAnyElement;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
@@ -173,6 +174,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import «bonaparteInterfacesPackage».ExternalizableConstants;
             import «bonaparteInterfacesPackage».ExternalizableComposer;
             import «bonaparteInterfacesPackage».ExternalizableParser;
+        «ENDIF»
+        «IF d.isFreezable»
+            import com.google.common.collect.ImmutableList;
+            import com.google.common.collect.ImmutableSet;
+            import com.google.common.collect.ImmutableMap;
         «ENDIF»
         «IF d.pkClass != null»
             import de.jpaw.bonaparte.annotation.RelatedKey;
@@ -208,6 +214,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaMeta::writeMetaData(d)»
+            «JavaFrozen::writeFreezingCode(d)»
             «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»

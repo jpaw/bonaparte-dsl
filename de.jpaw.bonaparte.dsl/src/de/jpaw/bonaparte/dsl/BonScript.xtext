@@ -154,7 +154,7 @@ ClassDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')?
-    (immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
+    ((unfreezable ?= 'not')? immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
      (noJava ?= 'nojava')?                              // suppress code generation (if only used for other purposes) 

@@ -223,21 +223,19 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         }
         
         // do various checks if the class has been defined as freezable or is a child of a freezable one
-//        if (cd.root.isFreezable) {
-//            // may not have mutable fields
-//            if (cd.fields.exists[datatype.elementaryDataType != null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase)])
-//                error("mutable field types are not allowed for freezable classes", BonScriptPackage.Literals.CLASS_DEFINITION__FREEZABLE)
-//            // any type parameters must be freezable as well
-//            if (cd.genericParameters.exists[extends != null && extends.isMutable])
-//                error("mutable generic references are not allowed for freezable classes", BonScriptPackage.Literals.CLASS_DEFINITION__FREEZABLE)
-//            if (cd.fields.exists[isArray != null])
-//                error("arrays are always mutable and therefore not allowed for freezable classes", BonScriptPackage.Literals.CLASS_DEFINITION__FREEZABLE)
-//        }
+        if (!cd.unfreezable) {   // no explicit immutability advice
+            // may not have mutable fields
+            if (cd.fields.exists[datatype.elementaryDataType != null && #[ "raw", "calendar" ].contains(datatype.elementaryDataType.name.toLowerCase)])
+                warning("class is not freezable due to mutable fields", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
+            // any type parameters must be freezable as well
+            if (cd.genericParameters.exists[extends != null && !extends.isFreezable])
+                warning("class is not freezable due to unfreezable generic references", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
+            if (cd.fields.exists[isArray != null])
+                warning("class is not freezable due to arrays", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
+            if (cd.extendsClass != null && !cd.extendsClass.freezable)
+                warning("class is not freezable due to parent", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
+        }
     }
-    
-    def private static boolean isMutable(ClassReference it) {
-        isPlainObject || classRefGenericParms.exists[isMutable]
-    } 
     
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {
         var myReturnType = myInitialReturnType

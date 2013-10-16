@@ -321,6 +321,18 @@ class XUtil {
         return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null
     }
     // determines if the field is an aggregate type (array / list / map and possibly later additional
+    def public static aggregateToken(FieldDefinition c) {
+        if (c.isArray != null)
+            return "[]"
+        if (c.isList != null)
+            return "List"
+        if (c.isSet != null)
+            return "Set"
+        if (c.isMap != null)
+            return "Map"
+        null       
+    }
+    // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static int aggregateMaxSize(FieldDefinition c) {
         if (c.isArray != null)
             return c.isArray.maxcount
@@ -388,4 +400,14 @@ class XUtil {
             ref.elementaryDataType.enumType.avalues.findFirst[token.empty]?.name
     }
 
+
+    def public static boolean isFreezable(ClassReference it) {
+        classRef == null || (classRef.isFreezable && !classRefGenericParms.exists[!isFreezable])
+    }
+    
+    def public static boolean isFreezable(ClassDefinition cd) {
+        !cd.unfreezable && (cd.parent == null || cd.parent.isFreezable) && 
+            !cd.fields.exists[isArray != null || (datatype.elementaryDataType != null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
+            !cd.genericParameters.exists[extends != null && !extends.isFreezable]
+    }
 }

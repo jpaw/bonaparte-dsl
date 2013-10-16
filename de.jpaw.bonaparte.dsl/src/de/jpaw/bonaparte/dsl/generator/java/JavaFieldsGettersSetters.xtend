@@ -98,8 +98,11 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
     // write the standard setter plus maybe some indexed one
-    def private static writeOneSetter(FieldDefinition i, String setterName) '''
+    def private static writeOneSetter(FieldDefinition i, String setterName, boolean isFreezable) '''
         public void «setterName»(«JavaDataTypeNoName(i, false)» «i.name») {
+            «IF isFreezable»
+                verify$Not$Frozen();
+            «ENDIF»
             this.«i.name» = «i.name»;
         }
         «IF i.isArray != null»
@@ -110,6 +113,7 @@ class JavaFieldsGettersSetters {
     '''
     
     def public static writeGettersSetters(ClassDefinition d) {
+        val isFreezable = d.freezable
         val doNames = d.beanNames
     '''
         // auto-generated getters and setters
@@ -125,13 +129,13 @@ class JavaFieldsGettersSetters {
             «ENDIF»
             «IF !isImmutable(d)»
                 «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
-                    «i.writeOneSetter("set" + i.name.toFirstUpper)»
+                    «i.writeOneSetter("set" + i.name.toFirstUpper, isFreezable)»
                 «ENDIF»
                 «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
-                    «i.writeOneSetter("set" + i.name.beanName)»
+                    «i.writeOneSetter("set" + i.name.beanName, isFreezable)»
                 «ENDIF»
                 «IF i.setter != null»
-                    «i.writeOneSetter(i.setter)»
+                    «i.writeOneSetter(i.setter, isFreezable)»
                 «ENDIF»
             «ENDIF»
         «ENDFOR»
