@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="de.jpaw.persistence.dsl.sdk"
 	label="BDDL SDK Feature "
-	version="1.6.3.qualifier">
+	version="1.7.0.qualifier">
       id="de.jpaw.persistence.dsl.sdk"
       label="Bonaparte Persistence SDK Feature "
-      version="1.6.3.qualifier">
+      version="1.7.0.qualifier">
 
    <copyright>
       Copyright 2012 Michael Bischoff
