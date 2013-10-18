@@ -120,7 +120,7 @@ class JavaFrozen {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
                         if (_i.getValue() != null) {
-                            _i.getValue() = _i.value.get$FrozenClone();
+                            _i.getValue() = _i.getValue().get$FrozenClone();
                             _b.put(_i);
                         }
                     _new.«i.name» = _b.build();
@@ -178,9 +178,9 @@ class JavaFrozen {
                     «IF i.isArray != null»
                         _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
                         if (_deepCopy) {
-                            for (int _i = 0; i < «i.name».length; ++i)
-                                if (_new[_i] != null)
-                                    _new[_i] = _new[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
+                            for (int _i = 0; _i < «i.name».length; ++_i)
+                                if (_new.«i.name»[_i] != null)
+                                    _new.«i.name»[_i] = _new.«i.name»[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
                         }
                     «ELSEIF i.isList != null»
                         _new.«i.name» = new ArrayList<«i.JavaDataTypeNoName(true)»>(«i.name».size());
@@ -192,7 +192,7 @@ class JavaFrozen {
                             _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
                     «ELSEIF i.isMap != null»
                         _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
-                        for (Map.Entry<«i.isMap.indexType», «ref.javaType»> _e : «i.name»)
+                        for (Map.Entry<«i.isMap.indexType», «ref.javaType»> _e : «i.name».entrySet())
                             _new.«i.name».put(_e.getKey(), _deepCopy && _e.getValue() != null ? _e.getValue().get$MutableClone(_deepCopy, _unfreezeCollections) : _e.getValue());
                     «ENDIF»
                 «ENDIF»
