@@ -119,10 +119,7 @@ class JavaFrozen {
                 if («i.name» != null) {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
-                        if (_i.getValue() != null) {
-                            _i.getValue() = _i.getValue().get$FrozenClone();
-                            _b.put(_i);
-                        }
+                        _b.put(_i.getKey(), _i.getValue() != null ? _i.getValue().get$FrozenClone() : null); 
                     _new.«i.name» = _b.build();
                 } else {
                     _new.«i.name» = null;
