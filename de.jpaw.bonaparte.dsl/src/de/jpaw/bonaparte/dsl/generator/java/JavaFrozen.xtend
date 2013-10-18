@@ -30,7 +30,7 @@ class JavaFrozen {
     def private static writeFreezeField(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
         if (ref.elementaryDataType != null && ref.category != DataCategory.OBJECT) {
-            if (i.aggregate) {
+            if (i.aggregate) {  // Set, Map, List are possible here, classes which contain arrays are not freezable!
                 val token = i.aggregateToken
                 '''
                 // copy unless the «token» is immutable already (or null)
@@ -80,7 +80,7 @@ class JavaFrozen {
 
     }
     
-    // write the code to freeze one field.
+    // write the code to freeze one field into another class
     def private static writeFreezeFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
         if (ref.elementaryDataType != null && ref.category != DataCategory.OBJECT) {
@@ -141,7 +141,7 @@ class JavaFrozen {
         }                
     }
     
-    // write the code to freeze one field.
+    // write the code to copy one field into a mutable copy
     def private static writeToMutableFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
         if (!i.aggregate) {
@@ -164,10 +164,25 @@ class JavaFrozen {
                 «IF (ref.elementaryDataType != null && ref.category != DataCategory.OBJECT)»
                     «IF i.isArray != null»
                         _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
+                    «ELSEIF i.isList != null»
+                        _new.«i.name» = new Array«i.JavaDataTypeNoName(false)»(«i.name».size());
+                        _new.«i.name».addAll(«i.name»);
+                    «ELSEIF i.isSet != null»
+                        _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
+                        _new.«i.name».addAll(«i.name»);
+                    «ELSEIF i.isMap != null»
+                        _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
+                        _new.«i.name».putAll(«i.name»);
                     «ENDIF»
-                    // FIXME: primitive or wrapper, collection of
                 «ELSE»
-                    «IF i.isList != null»
+                    «IF i.isArray != null»
+                        _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
+                        if (_deepCopy) {
+                            for (int _i = 0; i < «i.name».length; ++i)
+                                if (_new[_i] != null)
+                                    _new[_i] = _new[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
+                        }
+                    «ELSEIF i.isList != null»
                         _new.«i.name» = new ArrayList<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
                             _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
@@ -175,6 +190,10 @@ class JavaFrozen {
                         _new.«i.name» = new HashSet<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
                             _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
+                    «ELSEIF i.isMap != null»
+                        _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
+                        for (Map.Entry<«i.isMap.indexType», «ref.javaType»> _e : «i.name»)
+                            _new.«i.name».put(_e.getKey(), _deepCopy && _e.getValue() != null ? _e.getValue().get$MutableClone(_deepCopy, _unfreezeCollections) : _e.getValue());
                     «ENDIF»
                 «ENDIF»
             }
