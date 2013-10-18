@@ -63,12 +63,12 @@ class JavaMeta {
                 // separate item for the token
                 extraItem = '''
                     protected static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                        "String", false, true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                        "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             else
                 extraItem = '''
                     protected static final NumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                        "int", true, false, 4, 0, false, false);  // assume 4 digits
+                        "int", true, «i.isAggregateRequired», false, 4, 0, false, false);  // assume 4 digits
                 '''
             ext = ''', "«elem.enumType.name»", null'''
         }
@@ -97,7 +97,7 @@ class JavaMeta {
         return '''
             «extraItem»
             protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
-                "«ref.javaType»", «b2A(ref.isPrimitive)»«ext»);
+                "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
             '''
     }
 

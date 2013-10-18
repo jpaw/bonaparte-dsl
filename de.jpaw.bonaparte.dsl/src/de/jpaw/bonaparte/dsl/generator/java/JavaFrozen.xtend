@@ -46,7 +46,7 @@ class JavaFrozen {
                 val token = i.aggregateToken
                 '''
                 if («i.name» != null) {
-                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».Builder<«ref.javaType»>.builder();
+                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
                     for («ref.javaType» _i: «i.name»)
                         if (_i != null) {
                             _i.freeze();
@@ -59,10 +59,10 @@ class JavaFrozen {
                 val genericsArg = '''<«IF (i.isMap != null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>''' 
                 '''
                 if («i.name» != null) {
-                    ImmutableMap.Builder<«genericsArg»> _b = ImmutableMap.Builder<«genericsArg»>.builder();
-                    for (ImmutableSet<Map.Entry«genericsArg»> _i: «i.name»)
-                        if (_i.value != null) {
-                            _i.value.freeze();
+                    ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
+                    for (Map.Entry«genericsArg» _i: «i.name».entrySet())
+                        if (_i.getValue() != null) {
+                            _i.getValue().freeze();
                             _b.put(_i);
                         }
                     «i.name» = _b.build();
@@ -103,7 +103,7 @@ class JavaFrozen {
                 val token = i.aggregateToken
                 '''
                 if («i.name» != null) {
-                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».Builder<«ref.javaType»>.builder();
+                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
                     for («ref.javaType» _i: «i.name»)
                         if (_i != null) {
                             _b.add(_i.get$FrozenClone());
@@ -117,10 +117,10 @@ class JavaFrozen {
                 val genericsArg = '''<«IF (i.isMap != null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>''' 
                 '''
                 if («i.name» != null) {
-                    ImmutableMap.Builder<«genericsArg»> _b = ImmutableMap.Builder<«genericsArg»>.builder();
-                    for (ImmutableSet<Map.Entry«genericsArg»> _i: «i.name»)
-                        if (_i.value != null) {
-                            _i.value = _i.value.get$FrozenClone();
+                    ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
+                    for (Map.Entry«genericsArg» _i: «i.name».entrySet())
+                        if (_i.getValue() != null) {
+                            _i.getValue() = _i.value.get$FrozenClone();
                             _b.put(_i);
                         }
                     _new.«i.name» = _b.build();
@@ -139,9 +139,49 @@ class JavaFrozen {
                 '''
             }
         }                
-
     }
     
+    // write the code to freeze one field.
+    def private static writeToMutableFieldCopy(FieldDefinition i, ClassDefinition cd) {
+        val ref = i.datatype.get
+        if (!i.aggregate) {
+            if (ref.elementaryDataType != null && ref.category != DataCategory.OBJECT) {
+                '''
+                _new.«i.name» = «i.name»;
+                '''
+            } else {
+                '''
+                _new.«i.name» = («i.name» == null || !_deepCopy) ? «i.name» : «i.name».get$MutableClone(_deepCopy, _unfreezeCollections);
+                '''
+            }
+        } else {
+            // collection of something
+            '''
+            if («i.name» == null || !_unfreezeCollections) {
+                _new.«i.name» = «i.name»;
+            } else {
+                // unfreeze collection
+                «IF (ref.elementaryDataType != null && ref.category != DataCategory.OBJECT)»
+                    «IF i.isArray != null»
+                        _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
+                    «ENDIF»
+                    // FIXME: primitive or wrapper, collection of
+                «ELSE»
+                    «IF i.isList != null»
+                        _new.«i.name» = new ArrayList<«i.JavaDataTypeNoName(true)»>(«i.name».size());
+                        for («i.JavaDataTypeNoName(true)» _e : «i.name»)
+                            _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
+                    «ELSEIF i.isSet != null»
+                        _new.«i.name» = new HashSet<«i.JavaDataTypeNoName(true)»>(«i.name».size());
+                        for («i.JavaDataTypeNoName(true)» _e : «i.name»)
+                            _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
+                    «ENDIF»
+                «ENDIF»
+            }
+            '''
+        }                
+    }
+
     
     def public static writeFreezingCode(ClassDefinition cd) '''
         public static boolean class$isFreezable() {
@@ -206,8 +246,13 @@ class JavaFrozen {
             «ENDIF»
         }
         «IF !cd.root.immutable && cd.isFreezable»
-            «IF cd.parent != null»@Override«ENDIF»
-            protected void frozenCloneSub(«cd.name» _new) throws ObjectValidationException {
+            «IF cd.parent != null»
+                @Override
+                protected void frozenCloneSub(«cd.root.name» __new) throws ObjectValidationException {
+                    «cd.name» _new = («cd.name»)__new;
+            «ELSE»
+                protected void frozenCloneSub(«cd.name» _new) throws ObjectValidationException {
+            «ENDIF»
                 «FOR f: cd.fields»
                     «f.writeFreezeFieldCopy(cd)»
                 «ENDFOR»
@@ -219,23 +264,28 @@ class JavaFrozen {
             }
         «ENDIF»
         @Override
-        public «cd.name» get$MutableClone(boolean deepCopy, boolean unfreezeCollections) throws ObjectValidationException {
+        public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
             «IF cd.root.immutable»
                 throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
             «ELSE»
                 «cd.name» _new = new «cd.name»();
-                mutableCloneSub(_new, deepCopy, unfreezeCollections);
+                mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
                 return _new;
             «ENDIF»
         }
         «IF !cd.root.immutable»
-            «IF cd.parent != null»@Override«ENDIF»
-            protected void mutableCloneSub(«cd.name» _new, boolean deepCopy, boolean unfreezeCollections) throws ObjectValidationException {
+            «IF cd.parent != null»
+                @Override
+                protected void mutableCloneSub(«cd.root.name» __new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+                    «cd.name» _new = («cd.name»)__new;
+            «ELSE»
+                protected void mutableCloneSub(«cd.name» _new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+            «ENDIF»
                 «FOR f: cd.fields»
-                    «f.writeFreezeFieldCopy(cd)»
+                    «f.writeToMutableFieldCopy(cd)»
                 «ENDFOR»
                 «IF cd.extendsClass != null»
-                    super.mutableCloneSub(_new, deepCopy, unfreezeCollections);
+                    super.mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
                 «ENDIF»                    
             }
         «ENDIF»
