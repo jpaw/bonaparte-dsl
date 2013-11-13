@@ -45,10 +45,22 @@ class JavaConstructor {
         «ENDFOR»
     '''
 
-    def private static int countAllFields(ClassDefinition d) {
-        var int sum = d.fields.size
+    def private static CharSequence allRequiredFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
+        «IF d.extendsClass != null && d.extendsClass.classRef != null»
+            «allRequiredFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
+        «ENDIF»
+        «FOR i : d.fields.filter[cannotBeNull]»
+            «s.get»«IF withTypes»«typeWithGenericsReplacement(g, d, i)» «ENDIF»«i.name»
+        «ENDFOR»
+    '''
+
+    def private static int countAllFields(ClassDefinition d, boolean onlyRequired) {
+        var int sum = if (onlyRequired)
+            d.fields.filter[cannotBeNull].size
+        else
+            d.fields.size
         if (d.extendsClass != null && d.extendsClass.classRef != null)
-            sum = sum + countAllFields(d.extendsClass.classRef)
+            sum = sum + countAllFields(d.extendsClass.classRef, onlyRequired)
         return sum
     }
 
@@ -69,13 +81,25 @@ class JavaConstructor {
             «ENDIF»
         }
 
-        «IF countAllFields(d) > 0 && !d.isNoAllFieldsConstructor»
+        «IF !d.isNoAllFieldsConstructor && countAllFields(d, false) > 0»
             // default all-arguments constructor
-            public «d.name»(«allFields(new Delimiter("", ", "), new Generics(), d, true)») {
+            public «d.name»(«allFields(new Delimiter("", ", "), new Generics, d, true)») {
                 «IF d.extendsClass != null && d.extendsClass.classRef != null»
                     super(«allFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
                 «ENDIF»
                 «FOR i : d.fields»
+                    this.«i.name» = «i.name»;
+                «ENDFOR»
+            }
+        «ENDIF»
+        
+        «IF !d.isNoAllFieldsConstructor && countAllFields(d, true) > 0 && countAllFields(d, false) > countAllFields(d, true)»
+            // separate constructor with only required fields, as there is at least one optional field
+            public «d.name»(«allRequiredFields(new Delimiter("", ", "), new Generics, d, true)») {
+                «IF d.extendsClass != null && d.extendsClass.classRef != null»
+                    super(«allRequiredFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
+                «ENDIF»
+                «FOR i : d.fields.filter[cannotBeNull]»
                     this.«i.name» = «i.name»;
                 «ENDFOR»
             }

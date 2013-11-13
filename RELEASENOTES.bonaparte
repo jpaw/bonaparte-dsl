@@ -57,4 +57,4 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.6.3
 - BDDL: (a) bugfix: do not create nullable=false for elements of unrolled lists if the lower bound is strictly less than the upper bound
 - BDDL: (a) bugfix: create proper conversions in geter/setter of JPA entity class for enums, if one token is the empty string (which should be mapped to null on the DB for optimized indexes)
-
+- BON: (e) New feature: create a constructor with just the required fields as parameters.
