@@ -29,8 +29,8 @@ class JavaSerialize {
         if (ref.isPrimitive || ref.category == DataCategory.OBJECT)
             return '''w.addField(«indexedName»);'''     // no di attribute
         val String grammarName = e.name.toLowerCase;
-        if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens
-            '''w.addField(meta$$«i.name»$token, «indexedName» == null ? null : «IF ref.enumMaxTokenLength >= 0»«indexedName».getToken()«ELSE»Integer.valueOf(«indexedName».ordinal())«ENDIF»);'''
+        if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens, the meta for the enum as well as the expansion are provided
+            '''w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
         } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
             '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(«indexedName»);'''
         } else {
