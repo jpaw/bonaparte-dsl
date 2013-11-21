@@ -255,6 +255,12 @@ class XUtil {
             dataClass
     }
 
+    // checks if null can be assigned to a field. If the field is an aggregate, this relates to the aggregate itself, not its members.
+    // for primitives, false is returned.
+    def public static boolean cannotBeNull(FieldDefinition it) {
+        if (aggregate) isAggregateRequired else isRequired
+    }
+
     def public static boolean isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
         if (ref.isRequired != null) {

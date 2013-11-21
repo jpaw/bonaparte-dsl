@@ -33,8 +33,11 @@ import de.jpaw.bonaparte.dsl.bonScript.SetModifier;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
+    static public final int MAX_PQON_LENGTH = 63;     // keep in sync with length in bonaparte-java/StaticMeta
 
     /* Must change MANIFEST.MF to contain
      * Bundle-RequiredExecutionEnvironment: JavaSE-1.7
@@ -126,15 +129,16 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         val s = cd.getName();
         if (s != null) {
             if (!Character.isUpperCase(s.charAt(0))) {
-                error("Class names should start with an upper case letter",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
+                error("Class names should start with an upper case letter", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
+            }
+            if (cd.getPartiallyQualifiedClassName.length > MAX_PQON_LENGTH) {
+                error("Partially qualified class name cannot exceed 63 characters length", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
             }
         }
         if (cd.getExtendsClass() != null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
             if (cd.getExtendsClass().getClassRef() == null) {
-                error("Parent class must be an explicit class, not a generic type",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+                error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
             } else {
                 // check the number of generic parameters
