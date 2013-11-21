@@ -160,18 +160,6 @@
             <id>xtend</id>
             <url>http://build.eclipse.org/common/xtend/maven/</url>
         </pluginRepository>
-<!--
-        <pluginRepository>
-            <id>xtend.snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
--->
     </pluginRepositories>
 
     <repositories>
@@ -203,21 +191,39 @@
             <name>Fornax Repository</name>
             <url>http://www.fornax-platform.org/m2/repository</url>
         </repository>
-<!--
-        <repository>
-            <id>xtend.snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
--->
     </repositories>
 
     <profiles>
+        <profile>
+            <id>xtendsnapshots</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>xtend.snapshots</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>xtend.snapshots</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
         <profile>
             <id>kreios</id>
             <distributionManagement>
