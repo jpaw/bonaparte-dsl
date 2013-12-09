@@ -28,8 +28,8 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import java.util.Map
 
 class JavaMeta {
-    private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15 }
-    private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15 }
+    private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15, 'integer' -> 9 }
+    private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0 }
     
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
@@ -75,7 +75,7 @@ class JavaMeta {
                 '''
             else
                 extraItem = '''
-                    protected static final BasicNumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                    protected static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
                         "int", true, «i.isAggregateRequired», false, 4, 0);  // assume 4 digits
                 '''
             ext = ''', "«elem.enumType.name»", null'''
