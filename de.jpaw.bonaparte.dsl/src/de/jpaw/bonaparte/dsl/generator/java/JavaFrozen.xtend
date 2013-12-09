@@ -248,19 +248,23 @@ class JavaFrozen {
             «ENDIF»
         }
         @Override
-        public «cd.name» get$FrozenClone() throws ObjectValidationException {
-            «IF !cd.isFreezable»
-                throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
-            «ELSEIF cd.root.immutable»
-                return this;
-            «ELSE»
-                if (is$Frozen()) // no need to copy!
+        «IF cd.abstract»
+            abstract public «cd.name» get$FrozenClone() throws ObjectValidationException;
+        «ELSE»
+            public «cd.name» get$FrozenClone() throws ObjectValidationException {
+                «IF !cd.isFreezable»
+                    throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
+                «ELSEIF cd.root.immutable»
                     return this;
-                «cd.name» _new = new «cd.name»();
-                frozenCloneSub(_new);
-                return _new;
-            «ENDIF»
-        }
+                «ELSE»
+                    if (is$Frozen()) // no need to copy!
+                        return this;
+                    «cd.name» _new = new «cd.name»();
+                    frozenCloneSub(_new);
+                    return _new;
+                «ENDIF»
+            }
+        «ENDIF»
         «IF !cd.root.immutable && cd.isFreezable»
             «IF cd.parent != null»
                 @Override
@@ -280,15 +284,19 @@ class JavaFrozen {
             }
         «ENDIF»
         @Override
-        public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
-            «IF cd.root.immutable»
-                throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
-            «ELSE»
-                «cd.name» _new = new «cd.name»();
-                mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
-                return _new;
-            «ENDIF»
-        }
+        «IF cd.abstract»
+            abstract public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException;
+        «ELSE»
+            public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+                «IF cd.root.immutable»
+                    throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
+                «ELSE»
+                    «cd.name» _new = new «cd.name»();
+                    mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
+                    return _new;
+                «ENDIF»
+            }
+        «ENDIF»
         «IF !cd.root.immutable»
             «IF cd.parent != null»
                 @Override
