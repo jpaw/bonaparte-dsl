@@ -25,9 +25,12 @@ import de.jpaw.bonaparte.dsl.generator.Util
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import java.util.Map
 
 class JavaMeta {
-
+    private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15 }
+    private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15 }
+    
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -49,6 +52,11 @@ class JavaMeta {
             multi = "Multiplicity.SCALAR, 0, 0, 0"
 
         switch (ref.category) {
+        case DataCategory::BASICNUMERIC: {
+            classname = "BasicNumericElementaryDataItem"
+            val type = ref.javaType.toLowerCase
+            ext = ''', «b2A(ref.effectiveSigned)», «TOTAL_DIGITS.get(type)», «DECIMAL_DIGITS.get(type)»'''
+            }
         case DataCategory::NUMERIC: {
             classname = "NumericElementaryDataItem"
             ext = ''', «b2A(ref.effectiveSigned)», «elem.length», «elem.decimals», «b2A(ref.effectiveRounding)», «b2A(ref.effectiveAutoScale)»'''
@@ -67,8 +75,8 @@ class JavaMeta {
                 '''
             else
                 extraItem = '''
-                    protected static final NumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                        "int", true, «i.isAggregateRequired», false, 4, 0, false, false);  // assume 4 digits
+                    protected static final BasicNumericElementaryDataItem meta$$«i.name»$token = new NumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                        "int", true, «i.isAggregateRequired», false, 4, 0);  // assume 4 digits
                 '''
             ext = ''', "«elem.enumType.name»", null'''
         }

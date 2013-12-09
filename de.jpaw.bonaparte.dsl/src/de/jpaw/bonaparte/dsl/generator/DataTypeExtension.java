@@ -66,15 +66,15 @@ public class DataTypeExtension {
     static protected Map<String,DataCategory> dataCategory = new HashMap<String, DataCategory>(32);
     static {
         dataCategory.put("boolean",   DataCategory.MISC);
-        dataCategory.put("int",       DataCategory.NUMERIC);
-        dataCategory.put("integer",   DataCategory.NUMERIC);
-        dataCategory.put("long",      DataCategory.NUMERIC);
-        dataCategory.put("float",     DataCategory.NUMERIC);
-        dataCategory.put("double",    DataCategory.NUMERIC);
-        dataCategory.put("number",    DataCategory.NUMERIC);
+        dataCategory.put("int",       DataCategory.BASICNUMERIC);
+        dataCategory.put("integer",   DataCategory.BASICNUMERIC);
+        dataCategory.put("long",      DataCategory.BASICNUMERIC);
+        dataCategory.put("float",     DataCategory.BASICNUMERIC);
+        dataCategory.put("double",    DataCategory.BASICNUMERIC);
+        dataCategory.put("number",    DataCategory.BASICNUMERIC);
         dataCategory.put("decimal",   DataCategory.NUMERIC);
-        dataCategory.put("byte",      DataCategory.NUMERIC);
-        dataCategory.put("short",     DataCategory.NUMERIC);
+        dataCategory.put("byte",      DataCategory.BASICNUMERIC);
+        dataCategory.put("short",     DataCategory.BASICNUMERIC);
         dataCategory.put("char",      DataCategory.MISC);
         dataCategory.put("character", DataCategory.MISC);
 

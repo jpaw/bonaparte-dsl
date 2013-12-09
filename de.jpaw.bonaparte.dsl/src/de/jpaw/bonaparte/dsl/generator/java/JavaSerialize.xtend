@@ -27,12 +27,12 @@ class JavaSerialize {
 
     def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         if (ref.isPrimitive || ref.category == DataCategory.OBJECT)
-            return '''w.addField(«indexedName»);'''     // no di attribute
+            return '''w.addField(meta$$«i.name», «indexedName»);'''
         val String grammarName = e.name.toLowerCase;
         if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens, the meta for the enum as well as the expansion are provided
             '''w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
         } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
-            '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(«indexedName»);'''
+            '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(meta$$«i.name», «indexedName»);'''
         } else {
             '''w.addField(meta$$«i.name», «indexedName»);'''
         }
@@ -88,11 +88,7 @@ class JavaSerialize {
                             w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
                             for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                 // write (key, value) tuples
-                                «IF i.isMap.indexType == "String"»
-                                    w.addField(StaticMeta.MAP_INDEX_META, _i.getKey());
-                                «ELSE»
-                                    w.addField(_i.getKey());
-                                «ENDIF»
+                                w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType», _i.getKey());
                                 «makeWrite2(d, i, indexedName(i))»
                             }
                             w.terminateArray();
@@ -161,11 +157,7 @@ class JavaSerialize {
                                     w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
-                                        «IF i.isMap.indexType == "String"»
-                                            w.addField(StaticMeta.MAP_INDEX_META, _i.getKey());
-                                        «ELSE»
-                                            w.addField(_i.getKey());
-                                        «ENDIF»
+                                        w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType», _i.getKey());
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
                                     w.terminateArray();
