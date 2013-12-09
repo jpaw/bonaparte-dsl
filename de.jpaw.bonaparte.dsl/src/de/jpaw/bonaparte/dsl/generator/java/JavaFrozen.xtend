@@ -248,10 +248,10 @@ class JavaFrozen {
             «ENDIF»
         }
         @Override
-        «IF cd.abstract»
-            abstract public «cd.name» get$FrozenClone() throws ObjectValidationException;
-        «ELSE»
-            public «cd.name» get$FrozenClone() throws ObjectValidationException {
+        public «cd.name» get$FrozenClone() throws ObjectValidationException {
+            «IF cd.abstract»
+                throw new RuntimeException("This method is really not there (abstract class). Most likely someone has handcoded bonaparte classes (and missed to implement some methods).");
+            «ELSE»
                 «IF !cd.isFreezable»
                     throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
                 «ELSEIF cd.root.immutable»
@@ -263,8 +263,8 @@ class JavaFrozen {
                     frozenCloneSub(_new);
                     return _new;
                 «ENDIF»
-            }
-        «ENDIF»
+            «ENDIF»
+        }
         «IF !cd.root.immutable && cd.isFreezable»
             «IF cd.parent != null»
                 @Override
@@ -284,10 +284,10 @@ class JavaFrozen {
             }
         «ENDIF»
         @Override
-        «IF cd.abstract»
-            abstract public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException;
-        «ELSE»
-            public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+        public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+            «IF cd.abstract»
+                throw new RuntimeException("This method is really not there (abstract class). Most likely someone has handcoded bonaparte classes (and missed to implement some methods).");
+            «ELSE»
                 «IF cd.root.immutable»
                     throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
                 «ELSE»
@@ -295,8 +295,8 @@ class JavaFrozen {
                     mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
                     return _new;
                 «ENDIF»
-            }
-        «ENDIF»
+            «ENDIF»
+        }
         «IF !cd.root.immutable»
             «IF cd.parent != null»
                 @Override
