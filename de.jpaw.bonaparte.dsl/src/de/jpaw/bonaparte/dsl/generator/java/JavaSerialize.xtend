@@ -42,7 +42,7 @@ class JavaSerialize {
         «IF resolveElem(i.datatype) != null»
             «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
-            w.addField((BonaPortable)«index»);
+            w.addField(meta$$«i.name», (BonaPortable)«index»);
         «ENDIF»
     '''
 
@@ -53,7 +53,7 @@ class JavaSerialize {
             if («index» == null) {
                 w.writeNull(meta$$«i.name»);
             } else if (pfc.getComponent() == null) {
-                w.addField((BonaPortable)«index»);             // full / recursive object output
+                w.addField(meta$$«i.name», (BonaPortable)«index»);             // full / recursive object output
             } else {
                 // write a specific subcomponent
                 «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
@@ -88,7 +88,7 @@ class JavaSerialize {
                             w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
                             for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                 // write (key, value) tuples
-                                w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType», _i.getKey());
+                                w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
                                 «makeWrite2(d, i, indexedName(i))»
                             }
                             w.terminateArray();
@@ -157,7 +157,7 @@ class JavaSerialize {
                                     w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
-                                        w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType», _i.getKey());
+                                        w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
                                     w.terminateArray();
