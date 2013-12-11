@@ -78,7 +78,7 @@ class JavaMeta {
                     protected static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
                         "int", true, «i.isAggregateRequired», false, 4, 0);  // assume 4 digits
                 '''
-            ext = ''', "«elem.enumType.partiallyQualifiedClassName».«elem.enumType.name»", null'''
+            ext = ''', "«elem.enumType.partiallyQualifiedClassName»", null'''
         }
         case DataCategory::TEMPORAL: {
             classname = "TemporalElementaryDataItem"
