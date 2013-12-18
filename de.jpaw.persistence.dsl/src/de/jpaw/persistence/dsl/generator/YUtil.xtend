@@ -292,6 +292,7 @@ class YUtil {
         } else {
             // see if we need embeddables expansion
             val emb = embeddables?.findFirst[field == f]
+            // System.out.println('''****** Field «f.name»: found emb = «emb != null»''')
             if (emb != null) {
                 // expand embeddable, output it instead of the original column
                 val objectName = emb.name.pojoType.name
