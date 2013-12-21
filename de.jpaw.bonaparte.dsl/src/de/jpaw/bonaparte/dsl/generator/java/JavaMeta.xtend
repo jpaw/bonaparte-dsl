@@ -36,7 +36,7 @@ class JavaMeta {
         val elem = ref.elementaryDataType
         var String multi
         var String classname
-        var String visibility = getFieldVisibility(d, i).name
+        var String visibility = getFieldVisibility(d, i).getName()
         var String ext = ""  // category specific data
         var String extraItem = null  // category specific data
 

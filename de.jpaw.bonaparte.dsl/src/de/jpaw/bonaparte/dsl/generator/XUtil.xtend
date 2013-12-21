@@ -50,17 +50,17 @@ class XUtil {
         return dd
     }
 
-    def public static getPackageOrNull(EObject ee) {
+    def public static PackageDefinition getPackageOrNull(EObject ee) {
         var e = ee
         while (e != null) {
             if (e.eIsProxy)
                 logger.warn("Is a proxy only: " + e.eClass.name)
             if (e instanceof PackageDefinition)
-                return e as PackageDefinition
+                return e as PackageDefinition       // cast required for Xtext 2.4.3, but causes warning in 2.5.0
             if (e.eClass.name == "PackageDefinition") {
                 if (e instanceof PackageDefinition) {
                     logger.warn("*** RESOLVED *** ")
-                    return e as PackageDefinition
+                    return e as PackageDefinition        // cast required for Xtext 2.4.3, but causes warning in 2.5.0
                 }
                 logger.warn("*** NOT RESOLVED *** ")
                 // what now?
