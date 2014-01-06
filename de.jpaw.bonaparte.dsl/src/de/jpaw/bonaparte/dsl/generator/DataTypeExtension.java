@@ -39,6 +39,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefaults;
 import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
 import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
@@ -138,6 +139,7 @@ public class DataTypeExtension {
     // parameters which cascade down from global defaults to package defaults to class defaults (grammar: FieldDefaultsDefinition)
     public boolean effectiveSigned = true;
     public boolean effectiveTrim = false;
+    public boolean effectiveEnumDefault = false;
     public boolean effectiveTruncate = false;
     public boolean effectiveRounding = false;
     public boolean effectiveAutoScale = false;
@@ -241,6 +243,14 @@ public class DataTypeExtension {
                             ? p.getDefaults().getTrim().getX()
                             : XTrimming.NOTRIM;
         r.effectiveTrim = trim == XTrimming.TRIM;
+
+        XEnumDefaults enumDefault = 
+                classdefs != null && classdefs.getEnumDefault() != null
+                        ? classdefs.getEnumDefault().getX()
+                        : p.getDefaults() != null && p.getDefaults().getEnumDefault() != null
+                            ? p.getDefaults().getEnumDefault().getX()
+                            : XEnumDefaults.NOENUM;
+        r.effectiveEnumDefault = e.isEnumDefault() || (enumDefault == XEnumDefaults.ENUM);
 
         XTruncating trunc = e.getTruncating() != null
                 ? e.getTruncating().getX()
@@ -391,6 +401,7 @@ public class DataTypeExtension {
             r.effectiveRounding = resolvedReference.effectiveRounding;
             r.effectiveAutoScale = resolvedReference.effectiveAutoScale;
             r.effectiveTrim = resolvedReference.effectiveTrim;
+            r.effectiveEnumDefault = resolvedReference.effectiveEnumDefault;
             r.effectiveTruncate = resolvedReference.effectiveTruncate;
             r.effectiveAllowCtrls = resolvedReference.effectiveAllowCtrls;
             r.javaType = resolvedReference.javaType;
