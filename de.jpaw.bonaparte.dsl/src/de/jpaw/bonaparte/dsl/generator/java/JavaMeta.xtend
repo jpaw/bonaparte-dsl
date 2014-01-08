@@ -240,7 +240,7 @@ class JavaMeta {
                 my$MetaData.setPropertiesInherited(«propertiesInherited»);
                 my$MetaData.setWhenLoaded(new LocalDateTime());
                 «IF (d.extendsClass != null)»
-                	my$MetaData.setParentMeta(«d.getParent».class$MetaData());
+                	my$MetaData.setParentMeta(«d.getParent.name».class$MetaData());
                 «ENDIF»
             };
 
