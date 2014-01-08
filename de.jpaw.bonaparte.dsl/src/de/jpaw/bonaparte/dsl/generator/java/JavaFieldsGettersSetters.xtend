@@ -29,9 +29,18 @@ class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
 
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref) {
-        if (i.defaultString == null)
+        if (i.defaultString == null) {
+            // check for enum defaults, these use a different mechanism
+            if (ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
+                switch (ref.enumMaxTokenLength) {
+                case -1:        // numeric enum
+                    return ''' = «JavaDataTypeNoName(i, false)».«ref.elementaryDataType.enumType.values.get(0)»'''        // the first one is the default
+                default:        // alphanumeric enum    
+                    return ''' = «JavaDataTypeNoName(i, false)».«ref.elementaryDataType.enumType.avalues.get(0).name»'''  // the first one is the default
+                }
+            }
             ''''''
-        else
+        } else
             if (ref.javaType.equals("String"))
                 ''' = "«i.defaultString.escapeString2Java»"'''
             else

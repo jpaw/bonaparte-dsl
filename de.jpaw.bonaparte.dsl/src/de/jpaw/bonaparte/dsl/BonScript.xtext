@@ -57,6 +57,8 @@ enum XRequired:
     REQUIRED='required' | OPTIONAL='optional';
 enum XTrimming:
     TRIM='trim' | NOTRIM='notrim';
+enum XEnumDefaults:
+    ENUM='enum' | NOENUM='noenum';
 enum XTruncating:
     TRUNCATE='truncate' | NOTRUNCATE='failOnOversize';
 enum XRounding:
@@ -84,6 +86,7 @@ Visibility:          x = XVisibility;
 Signedness:          x = XSignedness;
 Required:            x = XRequired;
 Trimming:            x = XTrimming;
+EnumDefaults:        x = XEnumDefaults;
 Truncating:          x = XTruncating;
 SpecialCharsSetting: x = XSpecialCharsSetting;
 UsePrimitives:       x = XUsePrimitives;
@@ -101,6 +104,7 @@ FieldDefaultsDefinition:
         ((signed       = Signedness)? &           // numeric integers: if not provided, default is signed
         (required      = Required)? &             // default is required for lower case types
         (trim          = Trimming)? &             // Unicode & Ascii: default is notrim (conserve leading and trailing spaces)
+        (enumDefault   = EnumDefaults)? &         // Preset enum value with first field?
         (truncate      = Truncating)? &           // Unicode & Ascii: default is fail on oversized input. This allows to just skip extra data
         (round         = Rounding)? &             // BigDecimals: record an error if too many decimals are seen?
         (autoScale     = AutoScale)? &            // BigDecimals: scale it to the specified number of digits in any case?
@@ -242,7 +246,7 @@ ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
               | "uuid"    | "Uuid"     | "object"    | "Object" )
-      | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId])  // enums are not precisely elementary data types in Java, but they do not require recursing another class
+      | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId] (enumDefault?='default')? )  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name= ("timestamp" | "Timestamp" | "calendar" | "Calendar") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)
