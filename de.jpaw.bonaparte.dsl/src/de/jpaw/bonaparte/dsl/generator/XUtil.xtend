@@ -104,6 +104,14 @@ class XUtil {
     def public static boolean hasNoBound(GenericsDef rd) {
         rd.extends == null || rd.extends.needsXmlObjectType
     }
+    // return null if the object is a generic BonaPortable, or the java type if it is bounded by a specific object
+    def public static ClassDefinition getLowerBound(ClassReference r) {
+    	if (r == null || r.plainObject)
+    		return null;
+    	if (r.genericsParameterRef != null)
+    		return getLowerBound(r.genericsParameterRef.extends);
+    	return r.classRef
+    } 
     
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)

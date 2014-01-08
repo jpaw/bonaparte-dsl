@@ -318,6 +318,8 @@ public class DataTypeExtension {
         	if (key.getObjectDataType().getClassRef() != null)
         		r.objectDataType = key.getObjectDataType().getClassRef();
         	// TODO: how to fill objectDataType when we have generics...
+        	else
+        		r.objectDataType = XUtil.getLowerBound(key.getObjectDataType());  // this call should also work with the other if() branch...
         	
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);

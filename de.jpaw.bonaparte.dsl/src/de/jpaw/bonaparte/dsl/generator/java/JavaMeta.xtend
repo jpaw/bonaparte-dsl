@@ -26,6 +26,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import java.util.Map
+import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaMeta {
     private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15, 'integer' -> 9 }
@@ -90,7 +91,9 @@ class JavaMeta {
                  // just "Object
                 ext = ''', true, "BonaPortable", null'''
             } else {
-                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «ref.javaType».class$MetaData()'''
+            	val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
+            	val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
+                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta»'''
             }
         }
         case DataCategory::BINARY: {
