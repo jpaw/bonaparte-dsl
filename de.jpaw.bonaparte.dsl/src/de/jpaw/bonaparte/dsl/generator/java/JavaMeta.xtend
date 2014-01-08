@@ -88,9 +88,9 @@ class JavaMeta {
             classname = "ObjectReference"
             if (elem != null) {
                  // just "Object
-                ext = ''', true, "BonaPortable"'''
+                ext = ''', true, "BonaPortable", null'''
             } else {
-                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»"'''
+                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «ref.javaType».class$MetaData()'''
             }
         }
         case DataCategory::BINARY: {
@@ -239,6 +239,9 @@ class JavaMeta {
                 my$MetaData.setFields(field$array);
                 my$MetaData.setPropertiesInherited(«propertiesInherited»);
                 my$MetaData.setWhenLoaded(new LocalDateTime());
+                «IF (d.extendsClass != null)»
+                	my$MetaData.setParentMeta(«d.getParent».class$MetaData());
+                «ENDIF»
             };
 
             // get all the meta data in one go
