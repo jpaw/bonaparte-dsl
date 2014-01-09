@@ -131,7 +131,7 @@ EntityDefinition:
         (cacheable ?= 'cacheable')?
         // EclipseLink specific caching: do not use
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?
-        ('tenantClass' tenantClass = [pojos::ClassDefinition])?
+        ('tenantClass' tenantClass = [pojos::ClassDefinition] (tenantInJoinedTables?='join')?)?
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
         ('pk'     ('is' pkPojo = [pojos::ClassDefinition])? (pk       = ListOfColumns)? )?
