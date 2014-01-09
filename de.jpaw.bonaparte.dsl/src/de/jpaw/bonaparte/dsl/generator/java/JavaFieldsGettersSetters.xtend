@@ -28,9 +28,12 @@ import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
 
-    def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref) {
+    def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
+    	if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
+    		return ''''''
+    		
         if (i.defaultString == null) {
-            // check for enum defaults, these use a different mechanism
+            // check for enum defaults, these use a different mechanism.
             if (ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
                 switch (ref.enumMaxTokenLength) {
                 case -1:        // numeric enum
@@ -74,7 +77,7 @@ class JavaFieldsGettersSetters {
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && i.needsXmlObjectType»
                 «xmlInterfaceAnnotation»
             «ENDIF»
-            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref)»;
+            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
         '''
     }
 
