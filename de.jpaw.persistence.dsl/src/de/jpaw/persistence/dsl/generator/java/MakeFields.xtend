@@ -17,6 +17,7 @@
 package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
@@ -79,13 +80,13 @@ class JavaFieldWriter {
     }
 
     // temporal types for UserType mappings (OR mapper specific extensions)
-    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String type, String fieldType, String myName) '''
-        @Temporal(TemporalType.«type»)
+    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String extraAnnotationType, String fieldType, String myName) '''
+        @Temporal(TemporalType.«extraAnnotationType»)
         «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»;
     '''
     // temporal types for UserType mappings (OR mapper specific extensions)
-    def private writeField(FieldDefinition c, String fieldType, String myName) '''
-        «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»;
+    def private writeField(FieldDefinition c, String fieldType, String myName, CharSequence defaultValue) '''
+        «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»«defaultValue»;
     '''
 
     def private writeColumnType(FieldDefinition c, String myName) {
@@ -119,27 +120,38 @@ class JavaFieldWriter {
             case "Calendar":        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
             case "DateTime":        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
             case "LocalDateTime":   if (useUserTypes)
-                                        writeField(c, ref.javaType, myName)
+                                        writeField(c, ref.javaType, myName, "")
                                     else
                                         writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
             case "LocalDate":       if (useUserTypes)
-                                        writeField(c, ref.javaType, myName)
+                                        writeField(c, ref.javaType, myName, "")
                                     else
                                         writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
-            case "ByteArray":       writeField(c, if (useUserTypes) "ByteArray" else "byte []", myName)
+            case "ByteArray":       writeField(c, if (useUserTypes) "ByteArray" else "byte []", myName, "")
             case JAVA_OBJECT_TYPE:  '''
                                         // @Lob
-                                        «writeField(c, "byte []", myName)»
+                                        «writeField(c, "byte []", myName, "")»
                                     '''
             default:                '''
                                         «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
                                     '''
             }
-        case DataTypeExtension::ENUM_NUMERIC:   writeField(c, "Integer", myName)
-        default:                                writeField(c, if (ref.allTokensAscii) "String" else "Integer", myName)
+        case DataTypeExtension::ENUM_NUMERIC:   writeField(c, "Integer", myName, makeEnumNumDefault(c, ref))
+        default:                                writeField(c, if (ref.allTokensAscii) "String" else "Integer", myName, makeEnumAlphanumDefault(c, ref))
         }
     }
-
+	def private static makeEnumNumDefault(FieldDefinition f, DataTypeExtension ref) {
+		if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL)))
+			''' = 0'''
+		else
+			''''''
+	}
+	def private static makeEnumAlphanumDefault(FieldDefinition f, DataTypeExtension ref) {
+		if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL)))
+			''' = "«ref.elementaryDataType.enumType.avalues.get(0).token.escapeString2Java»"'''
+		else
+			''''''
+	}
 
     def private static optionalAnnotation(List <PropertyUse> properties, String key, String annotation) {
         '''«IF properties.hasProperty(key)»«annotation»«ENDIF»'''
@@ -185,7 +197,7 @@ class JavaFieldWriter {
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
 
-    def private static writeException(DataTypeExtension ref, FieldDefinition c) {
+    def public static writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
         else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, "serialized"))) {
@@ -196,7 +208,7 @@ class JavaFieldWriter {
     def private writeGetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
-            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(DataTypeExtension::get(i.datatype), i)»{
+            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(ref, i)»{
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
                     if («myName» == null)
                         return null;

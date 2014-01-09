@@ -38,6 +38,7 @@ import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import java.util.ArrayList
 import de.jpaw.persistence.dsl.generator.RequiredType
 import de.jpaw.persistence.dsl.generator.PrimaryKeyType
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -142,10 +143,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
             val notNullElements = f.isRequired
+	        val ref = DataTypeExtension::get(f.datatype);
             return '''
                 «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
-                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
+                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»()«JavaFieldWriter::writeException(ref, f)» {
                         «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
                         «(1 .. f.isList.maxcount).map['''«IF notNullElements»if (get«myName.toFirstUpper»«String::format(indexPattern, it)»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
                         return _a;
