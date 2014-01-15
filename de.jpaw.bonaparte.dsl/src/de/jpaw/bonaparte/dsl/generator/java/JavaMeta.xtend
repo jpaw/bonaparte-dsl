@@ -32,6 +32,13 @@ class JavaMeta {
     private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15, 'integer' -> 9 }
     private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0 }
     
+    def private static metaVisibility(ClassDefinition d) {
+    	if (d.publicMeta)
+    		'''public'''
+    	else
+    		'''protected'''
+	}
+    
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -71,12 +78,12 @@ class JavaMeta {
             if (ref.enumMaxTokenLength >= 0)
                 // separate item for the token
                 extraItem = '''
-                    protected static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                    «d.metaVisibility» static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
                         "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             else
                 extraItem = '''
-                    protected static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                    «d.metaVisibility» static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
                         "int", true, «i.isAggregateRequired», false, 4, 0);  // assume 4 digits
                 '''
             ext = ''', "«elem.enumType.partiallyQualifiedClassName»", null'''
@@ -107,7 +114,7 @@ class JavaMeta {
         }
         return '''
             «extraItem»
-            protected static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+            «d.metaVisibility» static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
                 "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
             '''
     }

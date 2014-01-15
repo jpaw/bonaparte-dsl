@@ -173,6 +173,7 @@ ClassDefinition:
     ('return' returnsClass = [ClassDefinition])?
     ('pk' pkClass = [ClassDefinition])?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
+    (publicMeta ?= 'public' 'type')?					// make field metadata public
     '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
