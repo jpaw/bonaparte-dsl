@@ -239,6 +239,8 @@ public class SqlMapping {
     }
 
     static public String getDefault(FieldDefinition c, DatabaseFlavour databaseFlavour, String value) throws Exception {
+    	if (value == null || value.length() == 0)
+    		return "";
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
         if ((databaseFlavour == DatabaseFlavour.ORACLE  || databaseFlavour == DatabaseFlavour.MSSQLSERVER) && "Boolean".equals(ref.javaType)) {
             // Oracle does not know booleans, convert it to numeric!

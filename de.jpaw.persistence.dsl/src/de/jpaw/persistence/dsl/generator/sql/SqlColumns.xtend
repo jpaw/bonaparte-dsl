@@ -37,10 +37,12 @@ class SqlColumns {
             (reqType == RequiredType::DEFAULT && (c.isRequired || c.properties.hasProperty(PROP_NOTNULL)) && !c.isASpecialEnumWithEmptyStringAsNull)) " NOT NULL" else ""
     }
     def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
-        if (hasProperty(c.properties, "currentUser"))
+        if (hasProperty(c.properties, PROP_CURRENT_USER))
             SqlMapping::getCurrentUser(databaseFlavour)
-        else if (hasProperty(c.properties, "currentTimestamp"))
+        else if (hasProperty(c.properties, PROP_CURRENT_TIMESTAMP))
             SqlMapping::getCurrentTimestamp(databaseFlavour)
+        else if (hasProperty(c.properties, PROP_SQL_DEFAULT))
+            SqlMapping::getDefault(c, databaseFlavour, c.properties.getProperty(PROP_SQL_DEFAULT))
         else if (c.defaultString != null)
             SqlMapping::getDefault(c, databaseFlavour, c.defaultString)
         else
