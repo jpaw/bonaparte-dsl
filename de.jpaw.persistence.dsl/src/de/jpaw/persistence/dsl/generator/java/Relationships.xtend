@@ -73,6 +73,9 @@ class MakeRelationships {
         '''
     }
     
+    // FT-1011: writeFGS should write setters.
+    // Changing last arg from false to true for first writeFGS
+    // Changing m.cascade to true for the second writeFGS
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
@@ -80,7 +83,7 @@ class MakeRelationships {
                 if (m.nonOptional(e)) '''optional=false'''
             )»
             «m.writeJoinColumns(true, m.childObject)»
-            «m.writeFGS(fieldVisibility, m.childObject.name, "", false)»
+            «m.writeFGS(fieldVisibility, m.childObject.name, "", true)»
         «ENDFOR»
         
         «FOR m : e.oneToOnes»
@@ -90,7 +93,7 @@ class MakeRelationships {
                 if (m.cascade) 'cascade=CascadeType.ALL' 
             )»
             «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", m.cascade)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true)»
         «ENDFOR»
         
         «FOR m : e.oneToManys»

@@ -149,13 +149,12 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val xmlNs = getXmlNs(d)
         val doExt = getExternalizable(d)
         val doBeanVal = getBeanValidation(d)
-    return
-    '''
+    return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(d)»;
-
+        
         «writeDefaultImports»
         «IF (xmlAccess != null && !d.isAbstract)»
             import javax.xml.bind.annotation.XmlAccessorType;
@@ -195,16 +194,17 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
 
         «IF d.javadoc != null»
-            «d.javadoc»
+           «d.javadoc»
         «ENDIF»
 
         «IF (xmlAccess != null && !d.isAbstract)»
-            @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
+           @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.pkClass != null»
             @RelatedKey(«JavaPackages::getPackageName(d.pkClass)».«d.pkClass.name».class)
         «ENDIF»
+        @SuppressWarnings("unused")
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
