@@ -247,7 +247,6 @@ class JavaFrozen {
                 «ENDIF»
             «ENDIF»
         }
-        @SuppressWarnings("all")
         @Override
         public «cd.name» get$FrozenClone() throws ObjectValidationException {
             «IF cd.abstract»
@@ -267,7 +266,6 @@ class JavaFrozen {
             «ENDIF»
         }
         «IF !cd.root.immutable && cd.isFreezable»
-            @SuppressWarnings("all")
             «IF cd.parent != null»
                 @Override
                 protected void frozenCloneSub(«cd.root.name» __new) throws ObjectValidationException {
@@ -285,7 +283,6 @@ class JavaFrozen {
                 «ENDIF»                    
             }
         «ENDIF»
-        @SuppressWarnings("all")
         @Override
         public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
             «IF cd.abstract»
@@ -301,7 +298,6 @@ class JavaFrozen {
             «ENDIF»
         }
         «IF !cd.root.immutable»
-            @SuppressWarnings("all")
             «IF cd.parent != null»
                 @Override
                 protected void mutableCloneSub(«cd.root.name» __new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {

@@ -204,7 +204,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.pkClass != null»
             @RelatedKey(«JavaPackages::getPackageName(d.pkClass)».«d.pkClass.name».class)
         «ENDIF»
-        @SuppressWarnings({"unused","unchecked","rawtypes"})
+        @SuppressWarnings("all")
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
