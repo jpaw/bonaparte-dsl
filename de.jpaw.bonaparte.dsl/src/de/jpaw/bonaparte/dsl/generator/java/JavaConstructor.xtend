@@ -107,7 +107,6 @@ class JavaConstructor {
         
         // copyOf clone method
         @Override
-        @SuppressWarnings("unchecked")
         public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {
             if (desiredSuperType == null || desiredSuperType == «d.name».class) {
                 «IF d.abstract»
