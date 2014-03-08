@@ -698,7 +698,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
             «ENDIF»
         «ENDIF»
-        @SuppressWarnings("unused")
+        @SuppressWarnings("all")
         «IF e.isDeprecated || e.pojoType.isDeprecated»
             @Deprecated
         «ENDIF»
@@ -758,7 +758,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
 
-        @SuppressWarnings("unused")
+        @SuppressWarnings("all")
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
 	        «FOR col : e.pk.columnName»
@@ -807,7 +807,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
 
-        @SuppressWarnings("unused")
+        @SuppressWarnings("all")
         @Embeddable
         public class «e.name» implements Serializable, Cloneable {
             «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
