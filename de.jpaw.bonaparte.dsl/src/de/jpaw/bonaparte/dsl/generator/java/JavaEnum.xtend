@@ -34,7 +34,9 @@ class JavaEnum {
         package «getPackageName(d)»;
 
         import de.jpaw.util.EnumException;
-        import de.jpaw.enums.TokenizableEnum;
+        «IF isAlphaEnum»
+            import de.jpaw.enums.TokenizableEnum;
+        «ENDIF»
 
         «IF d.javadoc != null»
             «d.javadoc»
