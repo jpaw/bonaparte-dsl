@@ -57,7 +57,7 @@ class MakeMapper {
                     «e.pojoType.name» _dd = («e.pojoType.name»)_d;
                     // auto-generated data setter for «e.pojoType.name»
                     «FOR i:e.pojoType.fields»
-                        «IF !hasProperty(i.properties, "noJava")»
+                        «IF !hasProperty(i.properties, PROP_NOJAVA) && !hasProperty(i.properties, PROP_REF)»
                             set«i.name.toFirstUpper»(_dd.get«i.name.toFirstUpper»());
                         «ENDIF»
                     «ENDFOR»

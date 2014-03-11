@@ -25,6 +25,8 @@ import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
+import de.jpaw.persistence.dsl.generator.YUtil;
+
 // mapping of database vendor specific information
 
 public class SqlMapping {
@@ -133,8 +135,8 @@ public class SqlMapping {
         int columnLength;
         int columnDecimals;
         if (ref.objectDataType != null) {
-            if (XUtil.hasProperty(c.getProperties(), "serialized")) {
-                String value = XUtil.getProperty(c.getProperties(), "serialized");
+            if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_SERIALIZED)) {
+                String value = XUtil.getProperty(c.getProperties(), YUtil.PROP_SERIALIZED);
                 datatype = "raw";  // assume artificial ID
                 columnLength = value == null ? 2000 : Integer.valueOf(value);
                 columnDecimals = 0;

@@ -92,7 +92,7 @@ class JavaFieldWriter {
     def private writeColumnType(FieldDefinition c, String myName) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType != null) {
-            if (c.properties.hasProperty("serialized")) {
+            if (c.properties.hasProperty(PROP_SERIALIZED)) {
                 // use byte[] Java type and assume same as Object
                 return '''
                     «fieldVisibility»byte [] «myName»;'''
@@ -200,7 +200,7 @@ class JavaFieldWriter {
     def public static writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
-        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, "serialized"))) {
+        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, PROP_SERIALIZED))) {
             return "throws MessageParserException "
         } else
             return ""
@@ -209,7 +209,7 @@ class JavaFieldWriter {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(ref, i)»{
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null)
                         return null;
                     ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
@@ -246,7 +246,7 @@ class JavaFieldWriter {
         val ref = DataTypeExtension::get(i.datatype);
         return '''
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, "serialized"))»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null) {
                         this.«myName» = null;
                     } else {

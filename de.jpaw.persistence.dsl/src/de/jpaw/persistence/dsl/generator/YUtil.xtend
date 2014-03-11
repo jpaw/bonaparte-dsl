@@ -38,6 +38,7 @@ class YUtil {
     public static final String PROP_LIACBY = "listActiveBy";
     public static final String PROP_ACTIVE = "active";
     public static final String PROP_VERSION = "version";
+    public static final String PROP_SERIALIZED = "serialized";
     public static final String PROP_REF = "ref";
     public static final String PROP_NOTNULL = "notNull";    // make a field optional in Java, but required on the DB
     public static final String PROP_CURRENT_USER = "currentUser";
@@ -234,9 +235,10 @@ class YUtil {
         )
     }
 
+	// methods are use for the classic get$Data / set$Data as well as get$Tracking / set$Tracking
     def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, true,
-                [ !properties.hasProperty(PROP_NODDL) ],
+                [ !properties.hasProperty(PROP_NODDL) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
                 embeddables,
                 [ '''// auto-generated data getter for «name»
                   '''],
@@ -247,7 +249,7 @@ class YUtil {
 
     def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, true,
-                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !properties.hasProperty(PROP_NOJAVA) ],
+                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
                 embeddables,
                 [ '''// auto-generated data setter for «name»
                   '''],
