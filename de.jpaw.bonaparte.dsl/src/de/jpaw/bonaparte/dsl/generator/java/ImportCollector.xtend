@@ -45,6 +45,8 @@ public class ImportCollector {
                 // referenced objects
                 if (ref.objectDataType != null)
                     addImport(ref.objectDataType)
+                if (ref.secondaryObjectDataType != null)
+                    addImport(ref.secondaryObjectDataType)
                 if (ref.genericsRef != null)
                     addImport(ref.genericsRef) // referenced enums
                 // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))

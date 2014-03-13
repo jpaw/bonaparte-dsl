@@ -131,6 +131,7 @@ public class DataTypeExtension {
     private boolean currentlyVisited = false;
     public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
     public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
+    public ClassDefinition secondaryObjectDataType;	// explicit secondary class reference (possibly with generics parameters)
     public boolean orSuperClass;                    // if subclasses are allowed
     public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
@@ -309,6 +310,7 @@ public class DataTypeExtension {
         r.elementaryDataType = key.getElementaryDataType();
         r.typedef = key.getReferenceDataType();
         r.objectDataType = null;
+        r.secondaryObjectDataType = null;
         r.genericsRef = key.getObjectDataType();
         if (key.getObjectDataType() != null) {
         	r.category = DataCategory.OBJECT;
@@ -320,7 +322,15 @@ public class DataTypeExtension {
         	// TODO: how to fill objectDataType when we have generics...
         	else
         		r.objectDataType = XUtil.getLowerBound(key.getObjectDataType());  // this call should also work with the other if() branch...
-        	
+
+      		if (key.getSecondaryObjectDataType() != null) {
+       			// same for the secondary
+       			if (key.getSecondaryObjectDataType().getClassRef() != null)
+       				r.secondaryObjectDataType = key.getSecondaryObjectDataType().getClassRef();
+       		        // TODO: how to fill secondaryObjectDataType when we have generics...
+       			else
+       				r.secondaryObjectDataType = XUtil.getLowerBound(key.getSecondaryObjectDataType());  // this call should also work with the other if() branch...
+        	}        	
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
         }
@@ -393,6 +403,7 @@ public class DataTypeExtension {
             DataTypeExtension resolvedReference = get(r.typedef.getDatatype());  // descend via DFS
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
+            r.secondaryObjectDataType = resolvedReference.secondaryObjectDataType;
             r.orSuperClass = resolvedReference.orSuperClass;
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;

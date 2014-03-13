@@ -96,11 +96,13 @@ class JavaMeta {
             classname = "ObjectReference"
             if (elem != null) {
                  // just "Object
-                ext = ''', true, "BonaPortable", null'''
+                ext = ''', true, "BonaPortable", null, null'''
             } else {
             	val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
             	val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
-                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta»'''
+            	val myLowerBound2 = ref.secondaryObjectDataType
+            	val meta2 = if (myLowerBound2 == null) "null" else '''«myLowerBound2.name».class$MetaData()'''
+                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta», «meta2»'''
             }
         }
         case DataCategory::BINARY: {
