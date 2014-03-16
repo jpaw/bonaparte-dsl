@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.persistence.dsl.ui
 Bundle-Vendor: My Company
-Bundle-Version: 1.7.3.qualifier
+Bundle-Version: 1.7.4.qualifier
 Bundle-SymbolicName: de.jpaw.persistence.dsl.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.persistence.dsl;visibility:=reexport,
@@ -17,8 +17,8 @@ Require-Bundle: de.jpaw.persistence.dsl;visibility:=reexport,
  org.eclipse.xtext.common.types.ui,
  org.eclipse.xtext.ui.codetemplates.ui,
  org.eclipse.compare,
- de.jpaw.bonaparte.dsl;bundle-version="1.7.3",
- de.jpaw.bonaparte.dsl.ui;bundle-version="1.7.3"
+ de.jpaw.bonaparte.dsl;bundle-version="1.7.4",
+ de.jpaw.bonaparte.dsl.ui;bundle-version="1.7.4"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.persistence.dsl.ui.contentassist,
