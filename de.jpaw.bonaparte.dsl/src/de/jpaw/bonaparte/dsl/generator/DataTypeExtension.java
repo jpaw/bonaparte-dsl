@@ -133,6 +133,7 @@ public class DataTypeExtension {
     public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
     public ClassDefinition secondaryObjectDataType;	// explicit secondary class reference (possibly with generics parameters)
     public boolean orSuperClass;                    // if subclasses are allowed
+    public Boolean orSecondarySuperClass;           // if subclasses are allowed for the secondary type
     public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
     public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference
@@ -311,6 +312,7 @@ public class DataTypeExtension {
         r.typedef = key.getReferenceDataType();
         r.objectDataType = null;
         r.secondaryObjectDataType = null;
+        r.orSecondarySuperClass = null;
         r.genericsRef = key.getObjectDataType();
         if (key.getObjectDataType() != null) {
         	r.category = DataCategory.OBJECT;
@@ -330,6 +332,7 @@ public class DataTypeExtension {
        		        // TODO: how to fill secondaryObjectDataType when we have generics...
        			else
        				r.secondaryObjectDataType = XUtil.getLowerBound(key.getSecondaryObjectDataType());  // this call should also work with the other if() branch...
+       			r.orSecondarySuperClass = key.isOrSecondarySuperClass();
         	}        	
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
@@ -404,6 +407,7 @@ public class DataTypeExtension {
             r.elementaryDataType = resolvedReference.elementaryDataType;
             r.objectDataType = resolvedReference.objectDataType;
             r.secondaryObjectDataType = resolvedReference.secondaryObjectDataType;
+            r.orSecondarySuperClass = resolvedReference.orSecondarySuperClass;
             r.orSuperClass = resolvedReference.orSuperClass;
             r.genericsRef = resolvedReference.genericsRef;
             r.wasUpperCase = resolvedReference.wasUpperCase;

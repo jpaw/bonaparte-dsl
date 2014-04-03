@@ -221,7 +221,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
 
 DataType:
     (elementaryDataType=ElementaryDataType
-        | ('(' objectDataType=ClassReference (orSuperClass?='...')? (',' secondaryObjectDataType=ClassReference)? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
+        | ('(' objectDataType=ClassReference (orSuperClass?='...')? (',' secondaryObjectDataType=ClassReference  (orSecondarySuperClass?='...')?)? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
         | referenceDataType=[TypeDefinition|QualifiedId]
     )  
 ;
