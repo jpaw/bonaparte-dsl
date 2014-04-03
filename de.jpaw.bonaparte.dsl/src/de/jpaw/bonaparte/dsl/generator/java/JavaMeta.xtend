@@ -102,7 +102,7 @@ class JavaMeta {
             	val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
             	val myLowerBound2 = ref.secondaryObjectDataType
             	val meta2 = if (myLowerBound2 == null) "null" else '''«myLowerBound2.name».class$MetaData()'''
-                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta», «meta2», «ref.orSecondarySuperClass»'''
+                ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta», «meta2», «B2A(ref.orSecondarySuperClass)»'''
             }
         }
         case DataCategory::BINARY: {

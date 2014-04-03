@@ -160,6 +160,12 @@ class XUtil {
         if (f) "true" else "false"
     }
 
+    // convert an Xtend boolean to Java source token
+    def public static B2A(Boolean f) {
+    	if (f == null) return "null"
+        if (f) "true" else "false"
+    }
+    
     // convert a String to Java source token, keeping nulls
     def public static s2A(String s) {
         if (s == null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
