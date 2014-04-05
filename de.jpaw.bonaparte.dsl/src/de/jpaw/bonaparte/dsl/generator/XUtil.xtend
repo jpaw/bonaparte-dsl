@@ -111,6 +111,18 @@ class XUtil {
     	if (r.genericsParameterRef != null)
     		return getLowerBound(r.genericsParameterRef.extends);
     	return r.classRef
+    }
+    
+    // determines of an instance of potentialSubClass can be assigned to superClass.
+    // in case of generics, lower bounds are used.
+    // superClass may not be null
+    def public static boolean isSuperClassOf(ClassDefinition superClass, ClassReference potentialSubClass) {
+    	val currentLowerBound = potentialSubClass?.lowerBound
+    	if (currentLowerBound == null)
+    		return false
+    	if (superClass == currentLowerBound)
+    		return true
+    	return superClass.isSuperClassOf(currentLowerBound.extendsClass)
     } 
     
     def public static String genericRef2String(ClassReference r) {

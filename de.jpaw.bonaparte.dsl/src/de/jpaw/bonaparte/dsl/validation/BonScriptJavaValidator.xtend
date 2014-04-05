@@ -34,6 +34,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.DataType
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -387,6 +388,19 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         if (mincount > maxcount)
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.MAP_MODIFIER__MINCOUNT);
+    }
+    
+    // if two ojbect references are provides, verify that the second is a subclass of the first, as the generated data type is
+    // provided by the first and the second must be storable in the same field
+    @Check
+    def public void checkDataType(DataType it) {
+    	val lowerBoundOfFirst = objectDataType?.lowerBound
+    	if (lowerBoundOfFirst != null && secondaryObjectDataType != null) {
+    		// the second must be a subtype of the first!
+    		if (!lowerBoundOfFirst.isSuperClassOf(secondaryObjectDataType)) {
+    			error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
+    		}
+    	} 
     }
 
 }
