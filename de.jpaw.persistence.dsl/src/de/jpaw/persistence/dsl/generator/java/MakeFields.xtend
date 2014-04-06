@@ -174,19 +174,23 @@ class JavaFieldWriter {
     } 
     
     // write the definition of a single column (entities or Embeddables)
-    def private singleColumn(FieldDefinition c, List <ElementCollectionRelationship> el, boolean withBeanVal, String myName) '''
-        «IF el != null && c.aggregate»
-            «ElementCollections::writePossibleCollectionOrRelation(c, el)»
-        «ENDIF»
-        @Column(name="«myName.java2sql»"«IF c.isRequired && !c.isPartOfVariableLengthList && !c.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
-        «c.properties.optionalAnnotation("version", "@Version")»
-        «c.properties.optionalAnnotation("lob",     "@Lob")»
-        «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
-        «IF !c.isASpecialEnumWithEmptyStringAsNull»
-            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
-        «ENDIF»
-        «c.writeColumnType(myName)»
-    '''
+    def private singleColumn(FieldDefinition c, List <ElementCollectionRelationship> el, boolean withBeanVal, String myName) {
+    	val relevantElementCollection = el?.findFirst[name == c]
+	    return '''
+	        «IF relevantElementCollection != null && c.aggregate»
+	            «ElementCollections::writePossibleCollectionOrRelation(c, relevantElementCollection)»
+	        «ELSE»
+		        @Column(name="«myName.java2sql»"«IF c.isRequired && !c.isPartOfVariableLengthList && !c.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
+		        «c.properties.optionalAnnotation("version", "@Version")»
+		        «c.properties.optionalAnnotation("lob",     "@Lob")»
+		        «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
+		        «IF !c.isASpecialEnumWithEmptyStringAsNull»
+		            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
+		        «ENDIF»
+	        «ENDIF»
+	        «c.writeColumnType(myName)»
+    	'''
+	}
 
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);

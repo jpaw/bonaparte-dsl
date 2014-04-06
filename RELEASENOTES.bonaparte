@@ -78,4 +78,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (a) extension: Allow to specify two references for class refs, for example to specify input and output types.
 - BON: (b) upgrade Xtend to 2.5.1
 - BIN: (c) improvement: additional plausi, the second reference must be a subclass of the first
+- BDDL: (d) bugfix: ElementCollection in conjunction with Embeddables did not work.
+
+
+
+
+Known restrictions / limitations:
+When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
+to the name of the primary key of the parent entity.
 

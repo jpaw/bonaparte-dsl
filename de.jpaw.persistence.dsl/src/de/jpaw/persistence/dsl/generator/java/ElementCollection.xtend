@@ -18,7 +18,6 @@ package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.List
 
 class ElementCollections {
     
@@ -33,15 +32,11 @@ class ElementCollections {
         }
     }
     
-    def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, List<ElementCollectionRelationship> el) {
-        if (el == null)
-            return ''''''
-        el.filter[name == c].map[ '''
-            @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
-            @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)
-            «IF mapKey != null»
-                @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
-            «ENDIF»
-        ''' ].join
-    }
+    def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, ElementCollectionRelationship it) '''
+        @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
+        @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)
+        «IF mapKey != null»
+            @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
+        «ENDIF»
+    '''
 }

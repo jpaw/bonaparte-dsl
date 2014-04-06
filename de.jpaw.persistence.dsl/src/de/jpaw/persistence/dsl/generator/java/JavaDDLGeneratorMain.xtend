@@ -161,9 +161,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDIF»
                 '''
         } else {
-            // see if we need embeddables expansion
+            // see if we need embeddables expansion, but only if it is either not an aggregate or it has "unroll loops" set. (Otherwise, it will be an ElementCollection!!!)
             val emb = embeddables.findFirst[field == f]
-            if (emb != null) {
+            if (emb != null && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) {
                 // expand embeddable, output it instead of the original column
                 val objectName = emb.name.pojoType.name
                 val nameLengthDiff = f.name.length - objectName.length
@@ -173,6 +173,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 val newPrefix = '''«prefix»«finalPrefix»'''
                 val newSuffix = '''«finalSuffix»«suffix»'''
                 val fields = emb.name.pojoType.allFields  // shorthand...
+                System::out.println('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
                 

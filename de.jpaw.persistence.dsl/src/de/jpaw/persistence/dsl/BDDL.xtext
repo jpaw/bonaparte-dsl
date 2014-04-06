@@ -169,6 +169,7 @@ ElementCollectionRelationship:
     (fetchType = ('LAZY' | 'EAGER'))?
     'in' tablename = ID
     '(' keyColumns += ID (',' keyColumns += ID )* ')'
+    ('extraKey' extraKeyColumns += ID (',' extraKeyColumns += ID )*)?
     ('mapKey' mapKey = ID (':' mapKeySize = INT)? )? 
     ('historytablename' historytablename = ID)? 
 ;

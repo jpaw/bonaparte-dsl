@@ -174,6 +174,16 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         val d = new Delimiter("  ", ", ")
+        val startOfPk =
+        	if (ec.keyColumns != null)
+        		ec.keyColumns.join(', ')
+        	else if (baseEntity.embeddablePk != null)
+            	baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql].join(',')
+            else if(baseEntity.pk != null)
+            	baseEntity.pk.columnName.map[name.java2sql].join(',')
+        	else
+        		'???'
+       	
         return '''
         -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
         -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -196,15 +206,9 @@ class SqlDDLGeneratorMain implements IGenerator {
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
-        «IF baseEntity.embeddablePk != null»
-            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.embeddablePk.name.pojoType.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
-            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ELSEIF baseEntity.pk != null»
-            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
-            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ENDIF»
+        ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
+        	«startOfPk»«IF ec.extraKeyColumns != null», «ec.extraKeyColumns.join(', ')»«ENDIF»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
+        )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
     
