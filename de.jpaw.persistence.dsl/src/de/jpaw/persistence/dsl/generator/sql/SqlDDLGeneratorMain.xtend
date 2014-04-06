@@ -207,7 +207,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
 
         ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-        	«startOfPk»«IF ec.extraKeyColumns != null», «ec.extraKeyColumns.join(', ')»«ENDIF»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
+        	«startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
         )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
