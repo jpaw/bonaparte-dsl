@@ -131,6 +131,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static interfaceOut(InterfaceListDefinition l) {
         '''«IF l != null»«FOR i : l.list», «i»«ENDFOR»«ENDIF»'''
     }
+    
+    def private void checkOrderedByList(ClassDefinition d) {
+    	
+    }
 
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -149,6 +153,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val xmlNs = getXmlNs(d)
         val doExt = getExternalizable(d)
         val doBeanVal = getBeanValidation(d)
+        if (d.orderedByList != null)
+        	d.checkOrderedByList()
     return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -210,7 +216,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortable«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
+          implements BonaPortable«IF d.orderedByList != null», Comparable<«d.name»>«ENDIF»«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaMeta::writeMetaData(d)»
@@ -225,6 +231,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaValidate::writeValidationCode(d)»
             «JavaCompare::writeHash(d)»
             «JavaCompare::writeComparisonCode(d)»
+            «IF d.orderedByList != null»
+                «JavaCompare::writeComparable(d)»
+            «ENDIF»
             «IF doExt»
             «JavaExternalize::writeExternalize(d)»
             «JavaDeexternalize::writeDeexternalize(d)»

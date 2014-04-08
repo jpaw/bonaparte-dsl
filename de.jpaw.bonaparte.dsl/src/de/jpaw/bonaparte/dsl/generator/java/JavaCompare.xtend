@@ -21,8 +21,53 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import org.apache.log4j.Logger
+import java.util.Map
 
 class JavaCompare {
+    private static final Logger logger = Logger.getLogger(JavaCompare)
+    private static final Map<String,String> JAVA_PRIMITIVE_TO_WRAPPER = #{
+		"byte" -> "Byte",
+		"short" -> "Short",
+        "int" -> "Integer",
+		"long" -> "Long",
+		"float" -> "Float",
+		"double" -> "Double",
+        "boolean" -> "Boolean",
+		"char" -> "Character"
+    }
+    
+	def private static writeCompareToField(ClassDefinition d, FieldDefinition f) {
+        val ref = DataTypeExtension::get(f.datatype)
+        if (!f.isRequired)
+        	logger.error("Field " + f.name + " of class " + d.name + " is not required, but used as a Comparable criteria")
+		if (ref.isPrimitive) {
+			// must use the wrapper. use some autoboxing here
+			return '''
+				_i = «JAVA_PRIMITIVE_TO_WRAPPER.get(f.datatype.getJavaDataType)».valueOf(«f.name»).compareTo(_o.«f.name»);
+				if (_i != 0)
+					return _i;
+			'''
+		} else {
+			// is an object anyway
+			return '''
+				_i = «f.name».compareTo(_o.«f.name»);
+				if (_i != 0)
+					return _i;
+			'''
+		}
+	}
+	// only invoked if d.orderedByList != null
+	def public static writeComparable(ClassDefinition d) '''
+		@Override
+		public int compareTo(«d.name» _o) {
+			int _i;
+			«FOR f: d.orderedByList.field»
+				«writeCompareToField(d, f)»
+			«ENDFOR»
+			return 0;  // objects are the same
+		}
+	'''
 
     def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
         switch (getJavaDataType(i.datatype)) {

@@ -35,6 +35,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ComparableFieldsList
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -390,7 +391,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                     BonScriptPackage.Literals.MAP_MODIFIER__MINCOUNT);
     }
     
-    // if two ojbect references are provides, verify that the second is a subclass of the first, as the generated data type is
+    // if two object references are provides, verify that the second is a subclass of the first, as the generated data type is
     // provided by the first and the second must be storable in the same field
     @Check
     def public void checkDataType(DataType it) {
@@ -401,6 +402,22 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     			error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
     		}
     	} 
+    }
+    
+    @Check
+    def public void checkComparableFields(ComparableFieldsList fl) {
+    	for (f : fl.field) {
+			// f may not be an aggregate, and may not be "Object", and not point to a Class which by itself is not a Comparable
+			// also, f must be "required"
+			// no check here for typedefs, as e resolve these later
+			if (f.aggregate)
+				error("orderedBy fields cannot be an aggregate (array / Map / List / Set): " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
+			if (f.datatype.elementaryDataType != null) {
+				val type = f.datatype.elementaryDataType.name.toFirstLower
+				if (type == "raw" || type == "binary" || type == "object")
+					error("orderedBy fields cannot be of type raw / binary / object: " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
+			}
+    	}
     }
 
 }

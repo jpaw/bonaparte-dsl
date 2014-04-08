@@ -26,7 +26,7 @@ import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport ja
 import javax.inject.Inject
 
 class BonScriptGenerator implements IGenerator {
-    private static Logger logger = Logger.getLogger(BonScriptGenerator)
+    private static final Logger logger = Logger.getLogger(BonScriptGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
     

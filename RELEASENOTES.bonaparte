@@ -79,6 +79,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (b) upgrade Xtend to 2.5.1
 - BIN: (c) improvement: additional plausi, the second reference must be a subclass of the first
 - BDDL: (d) bugfix: ElementCollection in conjunction with Embeddables did not work.
+- BDDL: (e) bugfix: ElementCollection in conjunction with Embeddables still did not work.
+- BON: (f) new feature: orderedBy(field list) implemented "Comparable"
 
 
 

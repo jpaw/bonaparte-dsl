@@ -169,6 +169,7 @@ ClassDefinition:
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
+    ('orderedBy' orderedByList=ComparableFieldsList)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     ('return' returnsClass = [ClassDefinition])?
     ('pk' pkClass = [ClassDefinition])?
@@ -179,6 +180,13 @@ ClassDefinition:
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
         fields += FieldDefinition*   
     '}'
+;
+
+ComparableFieldsList:
+       '('
+       field += [FieldDefinition]
+       (',' field += [FieldDefinition])*
+       ')'
 ;
 
 InterfaceListDefinition:
