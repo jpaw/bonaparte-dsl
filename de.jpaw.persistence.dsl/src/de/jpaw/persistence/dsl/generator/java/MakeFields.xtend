@@ -321,19 +321,32 @@ class JavaFieldWriter {
                 	if («f.name» == null || «f.name».isEmpty())
                 		return null;
                 	«f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
-                	for («embName» _i : «f.name»)
-                		_r.add(_i.get$Data());
+                    «IF f.isMap != null»
+                        for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
+                            _r.put(_i.getKey(), _i.getValue().get$Data());
+             		«ELSE»
+                        for («embName» _i : «f.name»)
+                            _r.add(_i.get$Data());
+               		«ENDIF»
                 	return _r;
                 }
                 // special setter to convert from embeddable entity type into DTO
                 public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) «writeException(ref, f)»{
                 	«f.name».clear();
                 	if (_d != null) {
-                        for («f.JavaDataTypeNoName(true)» _i : _d) {
-                            «embName» _ec = new «embName»();
-                            _ec.set$Data(_i);
-                            «f.name».add(_ec);
-                        }
+                        «IF f.isMap != null»
+                            for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
+                                «embName» _ec = new «embName»();
+                                _ec.set$Data(_i.getValue());
+                                «f.name».put(_i.getKey(), _ec);
+                            }
+             		    «ELSE»
+                            for («f.JavaDataTypeNoName(true)» _i : _d) {
+                                «embName» _ec = new «embName»();
+                                _ec.set$Data(_i);
+                                «f.name».add(_ec);
+                            }
+               		    «ENDIF»
                     }
                 }
             «ELSE»
