@@ -104,13 +104,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ""
     }
 
-    def private boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
-        for (i : pkColumns)
-            if (i == c)
-                return true
-        return false
-    }
-
     def private hasECin(FieldDefinition c, List <ElementCollectionRelationship> el) {
         el != null && el.map[name].contains(c)
         /*        
@@ -120,17 +113,17 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     // didn't work:
-    def private static CharSequence onlyLoopUnroll(List<FieldDefinition> l, String prefix, String suffix, (String, String) => CharSequence func) {
-        l.map[ f |
-            val myName = f.name.asEmbeddedName(prefix, suffix)
-            if (f.properties.hasProperty(PROP_UNROLL)) {
-                val indexPattern = f.indexPattern;
-                (1 .. f.isList.maxcount).map[String::format(indexPattern, it)].map[func.apply(f.name + it, myName + it)].join(',\n')
-            } else {
-                func.apply(f.name, myName)
-            }
-        ].join('\n')
-    }
+//    def private static CharSequence onlyLoopUnroll(List<FieldDefinition> l, String prefix, String suffix, (String, String) => CharSequence func) {
+//        l.map[ f |
+//            val myName = f.name.asEmbeddedName(prefix, suffix)
+//            if (f.properties.hasProperty(PROP_UNROLL)) {
+//                val indexPattern = f.indexPattern;
+//                (1 .. f.isList.maxcount).map[String::format(indexPattern, it)].map[func.apply(f.name + it, myName + it)].join(',\n')
+//            } else {
+//                func.apply(f.name, myName)
+//            }
+//        ].join('\n')
+//    }
     // «fields.onlyLoopUnroll(prefix, suffix, [ fldName, myName2 | '''@AttributeOverride(name="«fldName»", column=@Column(name="«myName2.java2sql»"))'''])»
     
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
@@ -204,6 +197,10 @@ class JavaDDLGeneratorMain implements IGenerator {
                         }
                     }
                 '''
+            } else if (emb != null) {
+            	// embeddable in a list, not unrolled: this must be an ElementCollection!
+            	// TODO: use special data types
+                func.apply(f, myName, currentIndex)
             } else {
                 // regular field
                 func.apply(f, myName, currentIndex)
@@ -251,7 +248,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     @Id
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-	    	        «fieldWriter.writeColStuff(fld, el, doBeanVal, myName)»
+	    	        «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
@@ -361,32 +358,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
 
-    def private writeInterfaceMethods(EntityDefinition e, String pkType, String trackingType) '''
-        «IF e.^extends == null»
-        public static Class<«trackingType»> class$TrackingClass() {
-            «IF e.tableCategory.trackingColumns == null»
-                return null;
-            «ELSE»
-                return «trackingType».class;
-            «ENDIF»
-        }
-        @Override
-        public String get$TrackingPQON() {
-            «IF e.tableCategory.trackingColumns == null»
-                return null;
-            «ELSE»
-                return "«getPartiallyQualifiedClassName(e.tableCategory.trackingColumns)»";
-            «ENDIF»
-        }
-        @Override
-        public Class<«trackingType»> get$TrackingClass() {
-            «IF e.tableCategory.trackingColumns == null»
-                return null;
-            «ELSE»
-                return «trackingType».class;
-            «ENDIF»
-        }
-
+    def private writeKeyInterfaceMethods(EntityDefinition e, String pkType) '''
         «IF !e.noDataKeyMapper»
         public static Class<«pkType»> class$KeyClass() {
             return «pkType».class;
@@ -427,24 +399,6 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ELSE»
                     set«e.pk.columnName.get(0).name.toFirstUpper»(_k);  // no direct assigned due to possible enum or temporal type, with implied conversions
                 «ENDIF»
-            «ENDIF»
-        }
-        «ENDIF»
-        
-        @Override
-        public «trackingType» get$Tracking() throws ApplicationException {
-            «IF e.tableCategory.trackingColumns == null»
-                return null;
-            «ELSE»
-                «e.tableCategory.trackingColumns.name» _r = new «e.tableCategory.trackingColumns.name»();
-                «recurseDataGetter(e.tableCategory.trackingColumns, null, e.embeddables)»
-                return _r;
-            «ENDIF»
-        }
-        @Override
-        public void set$Tracking(«trackingType» _d) {
-            «IF e.tableCategory.trackingColumns != null»
-                «recurseDataSetter(e.tableCategory.trackingColumns, null, null, e.embeddables)»
             «ENDIF»
         }
         «ENDIF»
@@ -712,9 +666,12 @@ class JavaDDLGeneratorMain implements IGenerator {
             «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType)»
             «IF stopper == null»«EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»«ENDIF»
             «writeStubs(e)»
-            «writeInterfaceMethods(e, pkType, trackingType)»
+            «IF e.^extends == null»
+            	«writeKeyInterfaceMethods(e, pkType)»
+            	«MakeMapper::writeTrackingMapperMethods(e.tableCategory.trackingColumns, trackingType)»
+            «ENDIF»
             «IF (!e.noDataMapper)»
-                «MakeMapper::writeMapperMethods(e, pkType, trackingType)»
+                «MakeMapper::writeDataMapperMethods(e.pojoType, e.^extends == null, e.getInheritanceRoot.pojoType, e.embeddables, e.pk?.columnName)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
             «e.writeCopyOf(pkType, trackingType)»
@@ -763,7 +720,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
 	        «FOR col : e.pk.columnName»
-    	        «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name)»
+    	        «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null)»
         	«ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
@@ -776,6 +733,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val String myPackageName = getPackageName(e)
         val String myName = e.name
         val ImportCollector imports = new ImportCollector(myPackageName)
+        imports.addImport(e.pojoType)  				// add underlying POJO as well (this is not done by the recursive one next line!)
         imports.recurseImports(e.pojoType, true)
         imports.addImport(myPackageName, e.name)  // add myself as well
 		fieldWriter = new JavaFieldWriter(e)
@@ -806,15 +764,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».ByteArrayParser;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
+        import de.jpaw.bonaparte.jpa.BonaData;
         «imports.createImports»
 
         @SuppressWarnings("all")
         @Embeddable
-        public class «e.name» implements Serializable, Cloneable {
+        public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
             «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
             «EqualsHash::writeHash(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
+            «MakeMapper::writeDataMapperMethods(e.pojoType, true, e.pojoType, e.embeddables, null)»
         }
         '''
     }

@@ -75,7 +75,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def public static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
+    def private static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
         List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
             [ !properties.hasProperty(PROP_NODDL) ],
@@ -190,8 +190,6 @@ class SqlDDLGeneratorMain implements IGenerator {
         -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
         CREATE TABLE «tablename» (
-            -- tenant
-            «baseEntity.tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, t.embeddables)»
             -- base table PK
             «IF baseEntity.pk != null»
                 «FOR c : baseEntity.pk.columnName»

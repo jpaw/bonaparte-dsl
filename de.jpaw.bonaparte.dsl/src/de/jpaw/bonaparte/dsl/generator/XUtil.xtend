@@ -258,6 +258,18 @@ class XUtil {
         d.doBeanNames?.x ?: getPackage(d).doBeanNames?.x ?: XBeanNames::BEAN_AND_SIMPLE_NAMES  // default to creation of no bean validation annotations
     }
     
+    def public static aggregateOf(FieldDefinition i, String dataClass) {
+         if (i.isArray != null)
+            dataClass + "[]"
+        else if (i.isSet != null)
+            "Set<" + dataClass + ">"
+        else if (i.isList != null)
+            "List<" + dataClass + ">"
+        else if (i.isMap != null)
+            "Map<" + i.isMap.indexType + "," + dataClass + ">"
+        else
+            dataClass
+    }
     // the same, more complex scenario
     def public static JavaDataTypeNoName(FieldDefinition i, boolean skipIndex) {
         var String dataClass
@@ -269,16 +281,8 @@ class XUtil {
         }
         if (skipIndex)
             dataClass
-        else if (i.isArray != null)
-            dataClass + "[]"
-        else if (i.isSet != null)
-            "Set<" + dataClass + ">"
-        else if (i.isList != null)
-            "List<" + dataClass + ">"
-        else if (i.isMap != null)
-            "Map<" + i.isMap.indexType + "," + dataClass + ">"
         else
-            dataClass
+        	i.aggregateOf(dataClass)
     }
 
     // checks if null can be assigned to a field. If the field is an aggregate, this relates to the aggregate itself, not its members.

@@ -31,6 +31,8 @@ import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class JavaFieldWriter {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -173,24 +175,6 @@ class JavaFieldWriter {
         c.isList != null && c.isList.mincount < c.isList.maxcount        
     } 
     
-    // write the definition of a single column (entities or Embeddables)
-    def private singleColumn(FieldDefinition c, List <ElementCollectionRelationship> el, boolean withBeanVal, String myName) {
-    	val relevantElementCollection = el?.findFirst[name == c]
-	    return '''
-	        «IF relevantElementCollection != null && c.aggregate»
-	            «ElementCollections::writePossibleCollectionOrRelation(c, relevantElementCollection)»
-	        «ELSE»
-		        @Column(name="«myName.java2sql»"«IF c.isRequired && !c.isPartOfVariableLengthList && !c.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«c.sizeSpec»«IF hasProperty(c.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(c.properties, "noupdate")», updatable=false«ENDIF»)
-		        «c.properties.optionalAnnotation("version", "@Version")»
-		        «c.properties.optionalAnnotation("lob",     "@Lob")»
-		        «c.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
-		        «IF !c.isASpecialEnumWithEmptyStringAsNull»
-		            «JavaBeanValidation::writeAnnotations(c, DataTypeExtension::get(c.datatype), withBeanVal)»
-		        «ENDIF»
-	        «ENDIF»
-	        «c.writeColumnType(myName)»
-    	'''
-	}
 
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
@@ -298,10 +282,65 @@ class JavaFieldWriter {
             }
         «ENDFOR»
 	'''
-
-    def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName) '''
-        «singleColumn(f, el, doBeanVal, myName)»
-        «f.writeGetter(myName)»
-        «f.writeSetter(myName)»
-    '''
+	
+    def private static getInitializer(FieldDefinition f, String name, String initialLength) {
+    	val past = f.aggregateOf(name) + initialLength
+    	if (f.isList != null)
+    		return "Array" + past
+    	else if (f.isSet != null)
+            return "LinkedHash" + past  // LinkedHashSet preferred over HashSet due to certain ordering guarantee
+        else if (f.isMap != null)
+        	return "Hash" + past
+        else
+        	return "ERROR, array not allowed here"
+    }
+    // write the definition of a single column (entities or Embeddables)
+    def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName, List<EmbeddableUse> embeddables) {
+    	val relevantElementCollection = el?.findFirst[name == f]
+    	val relevantEmbeddable = embeddables?.findFirst[field == f]
+    	val emb = relevantEmbeddable?.name?.pojoType
+    	val embName = relevantEmbeddable?.name?.name
+    	val ref = DataTypeExtension::get(f.datatype);
+    	
+	    return '''
+            «IF relevantElementCollection != null && f.aggregate»
+                «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
+            «ELSE»
+                @Column(name="«myName.java2sql»"«IF f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
+                «f.properties.optionalAnnotation("version", "@Version")»
+                «f.properties.optionalAnnotation("lob",     "@Lob")»
+                «f.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
+                «IF !f.isASpecialEnumWithEmptyStringAsNull»
+                    «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
+                «ENDIF»
+            «ENDIF»
+            «IF relevantElementCollection != null && f.aggregate && relevantEmbeddable != null»
+                «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
+                // special getter to convert from embeddable entity type into DTO
+                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() throws ApplicationException {
+                	if («f.name» == null || «f.name».isEmpty())
+                		return null;
+                	«f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
+                	for («embName» _i : «f.name»)
+                		_r.add(_i.get$Data());
+                	return _r;
+                }
+                // special setter to convert from embeddable entity type into DTO
+                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) «writeException(ref, f)»{
+                	«f.name».clear();
+                	if (_d != null) {
+                        for («f.JavaDataTypeNoName(true)» _i : _d) {
+                            «embName» _ec = new «embName»();
+                            _ec.set$Data(_i);
+                            «f.name».add(_ec);
+                        }
+                    }
+                }
+            «ELSE»
+                «f.writeColumnType(myName)»
+                «f.writeGetter(myName)»
+                «f.writeSetter(myName)»
+            «ENDIF»
+	    '''
+	}
 }

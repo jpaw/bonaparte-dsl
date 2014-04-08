@@ -235,38 +235,15 @@ class YUtil {
         )
     }
 
-	// methods are use for the classic get$Data / set$Data as well as get$Tracking / set$Tracking
-    def public static CharSequence recurseDataGetter(ClassDefinition cl, ClassDefinition stopAt, List<EmbeddableUse> embeddables) {
-        recurse(cl, stopAt, true,
-                [ !properties.hasProperty(PROP_NODDL) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
-                embeddables,
-                [ '''// auto-generated data getter for «name»
-                  '''],
-                [ fld, myName, req | '''_r.set«myName.toFirstUpper»(get«myName.toFirstUpper»());
-                  ''']
-        )
-    }
-
-    def public static CharSequence recurseDataSetter(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition avoidKeyOf, List<EmbeddableUse> embeddables) {
-        recurse(cl, stopAt, true,
-                [ (avoidKeyOf == null || !isKeyField(avoidKeyOf, it)) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
-                embeddables,
-                [ '''// auto-generated data setter for «name»
-                  '''],
-                [ fld, myName, req | '''set«myName.toFirstUpper»(_d.get«myName.toFirstUpper»());
-                  ''']
-        )
-    }
-
-    def public static isKeyField(EntityDefinition e, FieldDefinition f) {
-        if (e.pk != null) {
-            for (FieldDefinition i: e.pk.columnName) {
-                if (i == f)
-                    return true
-            }
-        }
+    def public static boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
+    	if (pkColumns == null)
+    		return false
+        for (i : pkColumns)
+            if (i == c)
+                return true
         return false
     }
+
 
     def public static String asEmbeddedName(String myName, String prefix, String suffix) {
         if (prefix == null)
