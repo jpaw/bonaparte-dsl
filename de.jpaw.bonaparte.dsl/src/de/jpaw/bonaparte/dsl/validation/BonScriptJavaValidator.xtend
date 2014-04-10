@@ -183,11 +183,11 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             var boolean haveAnchestorWithAbsoluteRtti = false;
             var anchestor = cd.getExtendsClass().getClassRef();
             while ((depth = depth + 1) < 100 && anchestor != null) {  // after 100 iterations we assume cyclicity
-                if (cd.getReturnsClass() != null && anchestor.getReturnsClass() != null) {
-                    if (!inheritsClass(cd.getReturnsClass(), anchestor.getReturnsClass())) {
+                if (cd.returnsClassRef != null && anchestor.returnsClassRef != null) {
+                    if (!inheritsClass(cd.returnsClassRef.lowerBound, anchestor.returnsClassRef.lowerBound)) {
                         error("return object of a subclass must inherit the return class of any superclass, which is not the case for return type "
-                                + anchestor.getReturnsClass().getName() + " of " + anchestor.getName(),
-                                BonScriptPackage.Literals.CLASS_DEFINITION__RETURNS_CLASS);
+                                + anchestor.returnsClassRef.lowerBound.name + " of " + anchestor.name,
+                                BonScriptPackage.Literals.CLASS_DEFINITION__RETURNS_CLASS_REF);
                     }
                 }
                 if ((anchestor.getRtti() > 0) && !anchestor.isAddRtti()) {

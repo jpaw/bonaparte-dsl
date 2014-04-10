@@ -171,7 +171,7 @@ ClassDefinition:
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('orderedBy' orderedByList=ComparableFieldsList)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
-    ('return' returnsClass = [ClassDefinition])?
+    ('return' returnsClassRef = ClassReference)?
     ('pk' pkClass = [ClassDefinition])?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     (publicMeta ?= 'public' 'type')?					// make field metadata public

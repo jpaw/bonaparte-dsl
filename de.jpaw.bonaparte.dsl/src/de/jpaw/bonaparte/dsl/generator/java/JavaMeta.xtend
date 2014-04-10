@@ -197,8 +197,8 @@ class JavaMeta {
             }
 
             static public Class<? extends BonaPortable> class$returns() {
-                «IF d.returnsClass != null»
-                    return «d.returnsClass.packageName».«d.returnsClass.name».class;
+                «IF d.returnsClassRef != null»
+                    return «XUtil::getLowerBound(d.returnsClassRef).name».class;
                 «ELSE»
                     return «IF d.parent != null»«d.parent.name».class$returns()«ELSE»null«ENDIF»;
                 «ENDIF»

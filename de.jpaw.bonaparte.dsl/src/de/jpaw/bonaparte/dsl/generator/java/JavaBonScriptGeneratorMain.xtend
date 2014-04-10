@@ -144,6 +144,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.recurseImports(d, true)
         imports.addImport(d)  // add myself as well
+        if (d.returnsClassRef != null)
+	        imports.addImport(d.returnsClassRef)
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
                 if (gp.^extends != null)
