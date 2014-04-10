@@ -82,6 +82,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: (e) bugfix: ElementCollection in conjunction with Embeddables still did not work.
 - BON: (f) new feature: orderedBy(field list) implemented "Comparable"
 - BDDL: (g) bugfix: ElementCollection in conjunction with Embeddables when using Maps still did not work.
+- BDDL: (h) bugfix: ElementCollection key column had a comma too much for Map type
 
 
 

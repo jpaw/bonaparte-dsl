@@ -198,7 +198,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «IF ec.mapKey != null»
                 -- element collection key
-                , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL,
+                , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
             «ENDIF»
             -- contents field
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
