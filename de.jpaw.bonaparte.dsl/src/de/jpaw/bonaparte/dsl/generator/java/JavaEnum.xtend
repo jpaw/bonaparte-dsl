@@ -41,7 +41,9 @@ class JavaEnum {
         «IF d.javadoc != null»
             «d.javadoc»
         «ENDIF»
-
+        «IF d.isDeprecated»
+        @Deprecated
+        «ENDIF»
         public enum «d.name» «IF isAlphaEnum»implements TokenizableEnum «ENDIF»{
             «IF !isAlphaEnum»
                 «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;

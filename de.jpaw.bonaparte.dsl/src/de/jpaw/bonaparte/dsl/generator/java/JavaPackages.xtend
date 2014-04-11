@@ -21,6 +21,7 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
@@ -36,6 +37,10 @@ class JavaPackages {
     }
     // create the package name for an enum object
     def public static getPackageName(EnumDefinition d) {
+        getPackageName(getPackage(d))
+    }
+    // create the package name for an xenum object
+    def public static getPackageName(XEnumDefinition d) {
         getPackageName(getPackage(d))
     }
 

@@ -129,6 +129,7 @@ PackageDefinition:
         ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')? 
         types   += TypeDefinition*
         enums   += EnumDefinition*
+		xenums  += XEnumDefinition*
         classes += ClassDefinition*
     '}'
 ;
@@ -194,8 +195,23 @@ InterfaceListDefinition:
     (',' list += QualifiedId)*  
 ;
 
+
+// a class corresponds to a Java class
+XEnumDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
+    (abstract?='abstract' | final?='final')?
+    'xenum'
+     name = ID
+    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+    (isExternalizable = Externalizable)?                // decide if implements Externalizable
+    'is' myEnum=[EnumDefinition]
+    ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition]))?
+;
+
 EnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
     'enum' name = ID '{'
         ((values += ID (',' values += ID)+) |
          (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)+))
@@ -256,6 +272,7 @@ ElementaryDataType:
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
               | "uuid"    | "Uuid"     | "object"    | "Object" )
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId] (enumDefault?='default')? )  // enums are not precisely elementary data types in Java, but they do not require recursing another class
+      | (name = ('xenum'| 'XEnum') xenumType = [XEnumDefinition|QualifiedId] (enumDefault?='default')? )  // xenums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name= ("timestamp" | "Timestamp" | "calendar" | "Calendar") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)

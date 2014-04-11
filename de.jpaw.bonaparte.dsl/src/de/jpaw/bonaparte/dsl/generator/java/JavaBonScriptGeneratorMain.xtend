@@ -35,6 +35,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -54,6 +55,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
+        for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition)))
+            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {

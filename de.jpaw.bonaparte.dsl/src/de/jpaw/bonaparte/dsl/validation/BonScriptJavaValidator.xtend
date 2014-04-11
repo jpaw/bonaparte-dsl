@@ -32,10 +32,12 @@ import de.jpaw.bonaparte.dsl.bonScript.PropertyUse;
 import de.jpaw.bonaparte.dsl.bonScript.SetModifier;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+
 import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ComparableFieldsList
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -113,7 +115,19 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
     }
-
+    
+    @Check
+    def public void checkEnumDeprecation(ElementaryDataType dt) {
+        if (dt.enumType != null) {
+        	if (dt.enumType.isDeprecated)
+        		warning(dt.enumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__ENUM_TYPE)
+		}
+        if (dt.xenumType != null) {
+        	if (dt.xenumType.isDeprecated)
+        		warning(dt.xenumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__XENUM_TYPE)
+		}
+	}
+	
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
         if (extendedBundle == null)
             return true;  // everything is a sub-bundle of the static data
@@ -228,6 +242,9 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
         
+        if (cd.pkClass != null && cd.pkClass.isDeprecated && !cd.isDeprecated)
+       		warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
+        
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice
             // may not have mutable fields
@@ -318,6 +335,8 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkGenericsParameterList(ClassReference ref) {
         if (ref.getClassRef() != null) {
+        	if (ref.classRef.isDeprecated)
+        		warning(ref.classRef.name + " is deprecated", BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF)
             // verify that the parameters given match the definition of the class referenced
             val requiredParameters = ref.getClassRef().getGenericParameters();
             val providedParameters = ref.getClassRefGenericParms();
@@ -419,5 +438,37 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 			}
     	}
     }
-
+     
+    @Check
+    def public void checkXEnum(XEnumDefinition e) {
+    	if (!e.isDeprecated) {
+    		if (e.myEnum != null && e.myEnum.isDeprecated)
+	       		warning(e.myEnum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+	       	if (e.extendsXenum != null && e.extendsXenum.isDeprecated)
+	       		warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
+    	}
+    	if (e.myEnum != null) {
+    		if (e.myEnum.avalues == null) {
+    			error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+    			return
+   			}
+   			if (e.extendsXenum != null) {
+   				// check that we don't exceed the length of the parent
+   				val mine = getInternalMaxLength(e.myEnum, 0)
+   				val old = getOverallMaxLength(e.extendsXenum)
+   				if (mine > old) {
+   					error("Token longer than parent allows: here " + mine + " parent has " + old, BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+   					return
+   				}
+   			} else if (e.maxlength > 0) {
+   				// have internal limit
+   				val mine = getInternalMaxLength(e.myEnum, 0)
+				if (mine > e.maxlength) {
+   					error("enum tokens are longer than specified: here " + mine + ", limit = " + e.maxlength, BonScriptPackage.Literals.XENUM_DEFINITION__MAXLENGTH)
+   					return
+				}   				
+   			}
+    	}
+    }
+   
 }
