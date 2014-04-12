@@ -51,6 +51,9 @@ class JavaPackages {
     def public static getPartiallyQualifiedClassName(EnumDefinition d) {
         getPackage(d).name + "." + d.name
     }
+    def public static getPartiallyQualifiedClassName(XEnumDefinition d) {
+        getPackage(d).name + "." + d.name
+    }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
     def public static long getSerialUID(ClassDefinition d) {
         var long myUID = getPartiallyQualifiedClassName(d).hashCode()

@@ -33,11 +33,11 @@ class JavaMeta {
     private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0 }
     
     def private static metaVisibility(ClassDefinition d) {
-    	if (d.publicMeta)
-    		'''public'''
-    	else
-    		'''protected'''
-	}
+        if (d.publicMeta)
+            '''public'''
+        else
+            '''protected'''
+    }
     
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
@@ -86,7 +86,16 @@ class JavaMeta {
                     «d.metaVisibility» static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
                         "int", true, «i.isAggregateRequired», false, 4, 0);  // assume 4 digits
                 '''
-            ext = ''', "«elem.enumType.partiallyQualifiedClassName»", null'''
+            ext = ''', «elem.enumType.name».enum$MetaData()'''
+        }
+        case DataCategory::XENUM: {
+            classname = "XEnumDataItem"
+            // separate item for the token. TODO: Do I need this here?
+            extraItem = '''
+                «d.metaVisibility» static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                    "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                '''
+            ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
         case DataCategory::TEMPORAL: {
             classname = "TemporalElementaryDataItem"
@@ -98,10 +107,10 @@ class JavaMeta {
                  // just "Object
                 ext = ''', true, "BonaPortable", null, null, null'''
             } else {
-            	val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
-            	val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
-            	val myLowerBound2 = ref.secondaryObjectDataType
-            	val meta2 = if (myLowerBound2 == null) "null" else '''«myLowerBound2.name».class$MetaData()'''
+                val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
+                val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
+                val myLowerBound2 = ref.secondaryObjectDataType
+                val meta2 = if (myLowerBound2 == null) "null" else '''«myLowerBound2.name».class$MetaData()'''
                 ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta», «meta2», «B2A(ref.orSecondarySuperClass)»'''
             }
         }
@@ -122,34 +131,25 @@ class JavaMeta {
     }
 
     def public static writeMetaData(ClassDefinition d) {
-        var int cnt2 = -1
         var myPackage = getPackage(d)
         var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null
         return '''
             // property map
-            private static final ConcurrentMap<String,String> property$Map = new ConcurrentHashMap<String,String>();
-
-            // initializer
-            protected static void class$fillProperties(ConcurrentMap<String,String> map) {
+            private static final ImmutableMap<String,String> property$Map = new ImmutableMap.Builder<String,String>()
                 «FOR p : d.properties»
-                    map.putIfAbsent("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
+                    .put("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»")
                 «ENDFOR»
                 «FOR f : d.fields»
                     «FOR p : f.properties»
-                        map.putIfAbsent("«f.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»");
+                        .put("«f.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»")
                     «ENDFOR»
                 «ENDFOR»
-                «IF propertiesInherited»
-                    // «d.getParent.name».class$fillProperties(map); // done anyway by static initializer of parent
-                «ENDIF»
-            }
-            static {
-                class$fillProperties(property$Map);
-            }
-            static public ConcurrentMap<String,String> class$PropertyMap() {
+                .build();
+                
+            static public Map<String,String> class$PropertyMap() {
                 return property$Map;
             }
-            public ConcurrentMap<String,String> get$PropertyMap() {
+            public Map<String,String> get$PropertyMap() {
                 return property$Map;
             }
             static public String get$Property(String propertyname, String fieldname) {
@@ -233,28 +233,32 @@ class JavaMeta {
                 «makeMeta(d, i)»
             «ENDFOR»
 
+            // private (immutable) List of fields
+            private static final ImmutableList<FieldDefinition> my$fields = ImmutableList.<FieldDefinition>of(
+                «d.fields.map['''meta$$«name»'''].join(', ')»
+            );
+            
             // extended meta data (for the enhanced interface)
-            private static final ClassDefinition my$MetaData = new ClassDefinition();
-            static {
-                my$MetaData.setIsAbstract(«d.isAbstract»);
-                my$MetaData.setIsFinal(«d.isFinal»);
-                my$MetaData.setName(PARTIALLY_QUALIFIED_CLASS_NAME);
-                my$MetaData.setRevision(REVISION);
-                my$MetaData.setParent(PARENT);
-                my$MetaData.setBundle(BUNDLE);
-                my$MetaData.setSerialUID(serialVersionUID);
-                my$MetaData.setNumberOfFields(«d.fields.size»);
-                FieldDefinition [] field$array = new FieldDefinition[«d.fields.size»];
-                «FOR i:d.fields»
-                    field$array[«(cnt2 = cnt2 + 1)»] = meta$$«i.name»;
-                «ENDFOR»
-                my$MetaData.setFields(field$array);
-                my$MetaData.setPropertiesInherited(«propertiesInherited»);
-                my$MetaData.setWhenLoaded(new LocalDateTime());
+            private static final ClassDefinition my$MetaData = new ClassDefinition(
+                «d.isAbstract»,
+                «d.isFinal»,
+                PARTIALLY_QUALIFIED_CLASS_NAME,
+                PARENT,
+                BUNDLE,
+                new LocalDateTime(),
                 «IF (d.extendsClass != null)»
-                	my$MetaData.setParentMeta(«d.getParent.name».class$MetaData());
+                    «d.getParent.name».class$MetaData(),
+                «ELSE»
+                    null,
                 «ENDIF»
-            };
+                // now specific class items
+                REVISION,
+                serialVersionUID,
+                «d.fields.size»,
+                my$fields,
+                property$Map,
+                «propertiesInherited»
+            );
 
             // get all the meta data in one go
             static public ClassDefinition class$MetaData() {
@@ -269,28 +273,33 @@ class JavaMeta {
             public ClassDefinition get$MetaData() {
                 return my$MetaData;
             }
-
-            // convenience functions for faster access if the metadata structure is not used
             @Override
-            public String get$PQON() {
-                return PARTIALLY_QUALIFIED_CLASS_NAME;
+            public long get$Serial() {
+                return serialVersionUID;
             }
             @Override
             public String get$Revision() {
                 return REVISION;
             }
-            @Override
-            public String get$Parent() {
-                return PARENT;
-            }
-            @Override
-            public String get$Bundle() {
-                return BUNDLE;
-            }
-            @Override
-            public long get$Serial() {
-                return serialVersionUID;
-            }
+
+            «writeCommonMetaData»
         '''
     }
+    
+    // write the access methods for the interface BonaMeta
+    def static public writeCommonMetaData() '''
+        // convenience functions for faster access if the metadata structure is not used
+        @Override
+        public String get$PQON() {
+            return PARTIALLY_QUALIFIED_CLASS_NAME;
+        }
+        @Override
+        public String get$Parent() {
+            return PARENT;
+        }
+        @Override
+        public String get$Bundle() {
+            return BUNDLE;
+        }
+    '''
 }

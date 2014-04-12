@@ -19,21 +19,30 @@ package de.jpaw.bonaparte.dsl.generator.java
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
 
+    def static boolean isAlpha(EnumDefinition d) {
+        d.avalues != null && !d.avalues.empty
+    }
     // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
-        val isAlphaEnum = d.avalues != null && d.avalues.size() != 0
+        val isAlphaEnum = d.isAlpha
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(d)»;
 
+        import com.google.common.collect.ImmutableList;
+        import org.joda.time.LocalDateTime;
+        
         import de.jpaw.util.EnumException;
+        import de.jpaw.bonaparte.core.BonaMeta;
+        import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         «IF isAlphaEnum»
             import de.jpaw.enums.TokenizableEnum;
         «ENDIF»
@@ -44,7 +53,7 @@ class JavaEnum {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public enum «d.name» «IF isAlphaEnum»implements TokenizableEnum «ENDIF»{
+        public enum «d.name» implements BonaMeta«IF isAlphaEnum», TokenizableEnum«ENDIF» {
             «IF !isAlphaEnum»
                 «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
             «ELSE»
@@ -83,6 +92,8 @@ class JavaEnum {
                 }
             «ENDIF»
 
+            «writeEnumMetaData(d)»
+            
             public static «d.name» valueOf(Integer ordinal) throws EnumException {
                 if (ordinal != null) {
                     switch (ordinal.intValue()) {
@@ -101,6 +112,62 @@ class JavaEnum {
                 return null;
             }
         }
+        '''
+    }
+    
+    def public static writeEnumMetaData(EnumDefinition d) {
+        val myPackage = d.package
+        return '''
+            // my name and revision
+            private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String PARENT = null;
+            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            
+            private static final ImmutableList<String> ids = new ImmutableList.Builder<String>()
+                «IF !d.isAlpha»
+                    «FOR id: d.values»
+                        .add("«id»")
+                    «ENDFOR»
+                «ELSE»
+                    «FOR id: d.avalues»
+                        .add("«id.name»")
+                    «ENDFOR»
+                «ENDIF»
+               .build();
+            «IF d.isAlpha»
+                private static final ImmutableList<String> tokens = new ImmutableList.Builder<String>()
+                    «FOR id: d.avalues»
+                        .add("«id.token»")
+                    «ENDFOR»
+                    .build();
+            «ENDIF»
+            
+            // extended meta data (for the enhanced interface)
+            private static final EnumDefinition my$MetaData = new EnumDefinition(
+                false,
+                true,
+                PARTIALLY_QUALIFIED_CLASS_NAME,
+                PARENT,
+                BUNDLE,
+                new LocalDateTime(),
+                null,
+                // now specific enum items
+                ids,
+                «IF d.isAlpha»
+                    tokens,
+                    «JavaXEnum.getInternalMaxLength(d, 0)»
+                «ELSE»
+                    null,
+                    -1
+                «ENDIF»
+            );
+
+            // get all the meta data in one go
+            static public EnumDefinition enum$MetaData() {
+                return my$MetaData;
+            }
+            
+            «JavaMeta.writeCommonMetaData»
         '''
     }
 }

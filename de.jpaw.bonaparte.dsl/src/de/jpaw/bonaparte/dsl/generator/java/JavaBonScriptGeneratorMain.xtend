@@ -185,11 +185,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import «bonaparteInterfacesPackage».ExternalizableComposer;
             import «bonaparteInterfacesPackage».ExternalizableParser;
         «ENDIF»
-        «IF d.isFreezable»
-            import com.google.common.collect.ImmutableList;
-            import com.google.common.collect.ImmutableSet;
-            import com.google.common.collect.ImmutableMap;
-        «ENDIF»
+        import com.google.common.collect.ImmutableList;
+        import com.google.common.collect.ImmutableSet;
+        import com.google.common.collect.ImmutableMap;
         «IF d.pkClass != null»
             import de.jpaw.bonaparte.annotation.RelatedKey;
         «ENDIF»
