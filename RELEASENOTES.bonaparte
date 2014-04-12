@@ -84,6 +84,14 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: (g) bugfix: ElementCollection in conjunction with Embeddables when using Maps still did not work.
 - BDDL: (h) bugfix: ElementCollection key column had a comma too much for Map type
 
+1.7.5:
+- BON: (a) improvement: allow use of generics for return class definition
+- BON: (b) improvement: support the @Deprecated annotation for enums
+- BON: (b) extension: support of the XEnum data type (only grammar part, no serialization yet)
+- BON: (b) improvement: issue warnings in BON editor if deprecated items are referenced
+- BON: (b) improvement: issue errors in BON editor if enum tokens or IDs are used twice
+- BON: (b) improvement: issue errors in BON editor if enum IDs or tokens exceed the maximum length of 63 characters
+
 
 
 

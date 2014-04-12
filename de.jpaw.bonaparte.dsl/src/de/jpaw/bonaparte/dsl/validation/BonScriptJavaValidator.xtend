@@ -38,6 +38,10 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ComparableFieldsList
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import java.util.HashSet
+import java.util.Set
+import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -439,6 +443,41 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     	}
     }
      
+    
+    @Check
+    def public void checkEnumIDsAndTokens(EnumDefinition e) {
+    	// any used ID or token may be 63 characters max length.
+    	val idSet = new HashSet<String>(50)
+    	if (e.values != null && !e.values.empty) {
+    		for (inst : e.values) {
+    			if (inst.length > 63) {
+    				error("ID is too long (max 63 characters allowed, found " + inst.length + ")", BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
+    			}
+    			if (!idSet.add(inst)) {
+    				error("duplicate ID in enum: " + inst, BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
+    			}
+    		}
+    	}
+    	// No ID or token may be used twice
+    	if (e.avalues != null && !e.avalues.empty) {
+	    	val tokenSet = new HashSet<String>(50)
+    		for (inst : e.avalues) {
+    			if (!idSet.add(inst.name))
+    				error("duplicate ID in enum: " + inst.name, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
+    			if (!tokenSet.add(inst.token))
+    				error("duplicate token in enum: " + inst.token, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
+    		}
+    	}
+    }
+    
+    @Check
+    def public void checkEnumAlphaValueDefinition(EnumAlphaValueDefinition aval) {
+    	if (aval.name.length > 63)
+			error("ID is too long (max 63 characters allowed, found " + aval.name.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__NAME)
+    	if (aval.token.length > 63)
+			error("Token is too long (max 63 characters allowed, found " + aval.token.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__TOKEN)
+    }
+    
     @Check
     def public void checkXEnum(XEnumDefinition e) {
     	if (!e.isDeprecated) {
@@ -458,6 +497,11 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
    				val old = getOverallMaxLength(e.extendsXenum)
    				if (mine > old) {
    					error("Token longer than parent allows: here " + mine + " parent has " + old, BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+   					return
+   				}
+   				// also, the extended one cannot be final
+   				if (e.extendsXenum.final) {
+   					error("Cannot extend a final xenum", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
    					return
    				}
    			} else if (e.maxlength > 0) {

@@ -81,7 +81,7 @@ class JavaXEnum {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public enum «d.name» extends «IF !subClass»AbstractXEnumBase<«d.name»>«ELSE»«d.extendsXenum.name»«ENDIF»{
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name» extends «IF !subClass»AbstractXEnumBase<«d.name»>«ELSE»«d.extendsXenum.name»«ENDIF» {
             public static final String PQON = "base.XAccountType1";
             public static final int NUM_VALUES_TOTAL = «IF subClass»«d.extendsXenum.name».NUM_VALUES_TOTAL + «ENDIF»«d.myEnum.name».values().length;
             «IF !subClass»
@@ -89,10 +89,9 @@ class JavaXEnum {
                 // root class builds the factory
                 public static final XEnumFactory<«d.name»> myFactory = new XEnumFactory<«d.name»>(MAX_TOKEN_LENGTH, «d.name».class, PQON);
             «ENDIF»
-    
+
             static {
                 // create all the instances
-                // create a factory instance
                 «d.myEnum.name» [] values = «d.myEnum.name».values();
                 for (int i = 0; i < values.length; ++i) {
                     «d.myEnum.name» e = values[i];
@@ -109,6 +108,7 @@ class JavaXEnum {
             protected «d.name»(Enum<?> enumVal, int ordinal, String name, String token, XEnumFactory<«rootClass.name»> myFactory) {
                 super(enumVal, ordinal, name, token, myFactory);
             }
+        }
         '''
     }
 }
