@@ -119,11 +119,11 @@ class JavaEnum {
         val myPackage = d.package
         return '''
             // my name and revision
-            private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String PARENT = null;
-            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String _PARENT = null;
+            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
-            private static final ImmutableList<String> ids = new ImmutableList.Builder<String>()
+            private static final ImmutableList<String> _ids = new ImmutableList.Builder<String>()
                 «IF !d.isAlpha»
                     «FOR id: d.values»
                         .add("«id»")
@@ -135,7 +135,7 @@ class JavaEnum {
                 «ENDIF»
                .build();
             «IF d.isAlpha»
-                private static final ImmutableList<String> tokens = new ImmutableList.Builder<String>()
+                private static final ImmutableList<String> _tokens = new ImmutableList.Builder<String>()
                     «FOR id: d.avalues»
                         .add("«id.token»")
                     «ENDFOR»
@@ -146,15 +146,15 @@ class JavaEnum {
             private static final EnumDefinition my$MetaData = new EnumDefinition(
                 false,
                 true,
-                PARTIALLY_QUALIFIED_CLASS_NAME,
-                PARENT,
-                BUNDLE,
+                _PARTIALLY_QUALIFIED_CLASS_NAME,
+                _PARENT,
+                _BUNDLE,
                 new LocalDateTime(),
                 null,
                 // now specific enum items
-                ids,
+                _ids,
                 «IF d.isAlpha»
-                    tokens,
+                    _tokens,
                     «JavaXEnum.getInternalMaxLength(d, 0)»
                 «ELSE»
                     null,

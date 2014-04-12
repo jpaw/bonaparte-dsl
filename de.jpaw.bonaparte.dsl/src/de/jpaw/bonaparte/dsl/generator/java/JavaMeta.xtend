@@ -224,10 +224,10 @@ class JavaMeta {
             }
 
             // my name and revision
-            private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
-            private static final String PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
-            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
+            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
 
             «FOR i : d.fields»
                 «makeMeta(d, i)»
@@ -242,9 +242,9 @@ class JavaMeta {
             private static final ClassDefinition my$MetaData = new ClassDefinition(
                 «d.isAbstract»,
                 «d.isFinal»,
-                PARTIALLY_QUALIFIED_CLASS_NAME,
-                PARENT,
-                BUNDLE,
+                _PARTIALLY_QUALIFIED_CLASS_NAME,
+                _PARENT,
+                _BUNDLE,
                 new LocalDateTime(),
                 «IF (d.extendsClass != null)»
                     «d.getParent.name».class$MetaData(),
@@ -291,15 +291,15 @@ class JavaMeta {
         // convenience functions for faster access if the metadata structure is not used
         @Override
         public String get$PQON() {
-            return PARTIALLY_QUALIFIED_CLASS_NAME;
+            return _PARTIALLY_QUALIFIED_CLASS_NAME;
         }
         @Override
         public String get$Parent() {
-            return PARENT;
+            return _PARENT;
         }
         @Override
         public String get$Bundle() {
-            return BUNDLE;
+            return _BUNDLE;
         }
     '''
 }

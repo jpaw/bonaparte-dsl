@@ -92,7 +92,7 @@ class JavaXEnum {
             «IF !subClass»
                 public static final int MAX_TOKEN_LENGTH = «d.getOverallMaxLength»;
                 // root class builds the factory
-                public static final XEnumFactory<«d.name»> myFactory = new XEnumFactory<«d.name»>(MAX_TOKEN_LENGTH, «d.name».class, PARTIALLY_QUALIFIED_CLASS_NAME);
+                public static final XEnumFactory<«d.name»> myFactory = new XEnumFactory<«d.name»>(MAX_TOKEN_LENGTH, «d.name».class, _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
 
             static {
@@ -102,7 +102,7 @@ class JavaXEnum {
                     «d.myEnum.name» e = values[i];
                     myFactory.publishInstance(new «d.name»(e, i«IF subClass» + «d.extendsXenum.name».NUM_VALUES_TOTAL«ENDIF», e.name(), e.getToken(), myFactory));
                 }
-                myFactory.register(PARTIALLY_QUALIFIED_CLASS_NAME);
+                myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME);
             }
             
             // constructor may not be accessible from the outside
@@ -117,17 +117,17 @@ class JavaXEnum {
         val myPackage = d.package
         return '''
             // my name and revision
-            private static final String PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String PARENT = «IF (d.extendsXenum != null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;;
-            private static final String BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String _PARENT = «IF (d.extendsXenum != null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;;
+            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
             // extended meta data (for the enhanced interface)
             private static final XEnumDefinition my$MetaData = new XEnumDefinition(
                 «d.isAbstract»,
                 «d.isFinal»,
-                PARTIALLY_QUALIFIED_CLASS_NAME,
-                PARENT,
-                BUNDLE,
+                _PARTIALLY_QUALIFIED_CLASS_NAME,
+                _PARENT,
+                _BUNDLE,
                 new LocalDateTime(),
                 «IF (d.extendsXenum != null)»
                     «d.extendsXenum.name».xenum$MetaData(),

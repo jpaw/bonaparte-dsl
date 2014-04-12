@@ -105,7 +105,7 @@ class JavaDeserialize {
                 «IF d.extendsClass != null»
                     super.deserialize(p);
                 «ENDIF»
-                p.setClassName(PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
+                p.setClassName(_PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
                     «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
                         try {  // for possible EnumExceptions
