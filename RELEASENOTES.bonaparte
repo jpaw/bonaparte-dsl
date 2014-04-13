@@ -77,7 +77,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.7.4
 - BON: (a) extension: Allow to specify two references for class refs, for example to specify input and output types.
 - BON: (b) upgrade Xtend to 2.5.1
-- BIN: (c) improvement: additional plausi, the second reference must be a subclass of the first
+- BON: (c) improvement: additional plausi, the second reference must be a subclass of the first
 - BDDL: (d) bugfix: ElementCollection in conjunction with Embeddables did not work.
 - BDDL: (e) bugfix: ElementCollection in conjunction with Embeddables still did not work.
 - BON: (f) new feature: orderedBy(field list) implemented "Comparable"
@@ -91,7 +91,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (b) improvement: issue warnings in BON editor if deprecated items are referenced
 - BON: (b) improvement: issue errors in BON editor if enum tokens or IDs are used twice
 - BON: (b) improvement: issue errors in BON editor if enum IDs or tokens exceed the maximum length of 63 characters
-
+- BON: (c) improvement: meta information restructure, use Lists instead of arrays, add meta data for enums and xenums
+- BON: (d) bugfix: check XEnum for cyclic inheritance. Allow the "class MyClass<E extends MyClass<E>>" construction 
 
 
 

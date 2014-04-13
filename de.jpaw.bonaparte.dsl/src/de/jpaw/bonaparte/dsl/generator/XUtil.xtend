@@ -436,14 +436,27 @@ class XUtil {
             ref.elementaryDataType.enumType.avalues.findFirst[token.empty]?.name
     }
 
-
+	// freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth
+	
+    def private static boolean isFreezable(ClassReference it, int remainingDepth) {
+    	if (remainingDepth <= 0)
+    		return true
+        classRef == null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
+    }
+    
     def public static boolean isFreezable(ClassReference it) {
-        classRef == null || (classRef.isFreezable && !classRefGenericParms.exists[!isFreezable])
+        it.isFreezable(100)
+    }
+    
+    def private static boolean isFreezable(ClassDefinition cd, int remainingDepth) {
+    	if (remainingDepth <= 0)
+    		return true
+        !cd.unfreezable && (cd.parent == null || cd.parent.isFreezable(remainingDepth-1)) && 
+            !cd.fields.exists[isArray != null || (datatype.elementaryDataType != null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
+            !cd.genericParameters.exists[extends != null && !extends.isFreezable(remainingDepth-1)]
     }
     
     def public static boolean isFreezable(ClassDefinition cd) {
-        !cd.unfreezable && (cd.parent == null || cd.parent.isFreezable) && 
-            !cd.fields.exists[isArray != null || (datatype.elementaryDataType != null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
-            !cd.genericParameters.exists[extends != null && !extends.isFreezable]
+    	cd.isFreezable(100)
     }
 }

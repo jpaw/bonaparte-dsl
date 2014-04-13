@@ -98,7 +98,7 @@ class JavaDeserialize {
 
     def public static writeDeserialize(ClassDefinition d) '''
             @Override
-            public <E extends Exception> void deserialize(MessageParser<E> p) throws E {
+            public <_E extends Exception> void deserialize(MessageParser<_E> p) throws _E {
             //public void deserialize(MessageParser p) throws MessageParserException {
                 int _length;
                 // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed

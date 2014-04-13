@@ -47,11 +47,14 @@ import de.jpaw.bonaparte.dsl.bonScript.XRequired;
 import de.jpaw.bonaparte.dsl.bonScript.XSignedness;
 import de.jpaw.bonaparte.dsl.bonScript.XSpecialCharsSetting;
 import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
+import de.jpaw.bonaparte.dsl.generator.java.JavaXEnum;
 
 public class DataTypeExtension {
     // constants for enumMaxTokenLength field
     public static final int NO_ENUM = -2;
     public static final int ENUM_NUMERIC = -1;
+    public static final String SPECIAL_DATA_TYPE_ENUM = "@";
+    public static final String SPECIAL_DATA_TYPE_XENUM = "#";
 
     // a lookup to determine if a data type can (should) be implemented as a Java primitive.
     // (LANGUAGE SPECIFIC: JAVA)
@@ -90,8 +93,9 @@ public class DataTypeExtension {
         dataCategory.put("lowercase", DataCategory.STRING);
         dataCategory.put("ascii",     DataCategory.STRING);
         dataCategory.put("unicode",   DataCategory.STRING);
-        dataCategory.put("enum",      DataCategory.ENUM);  // artificial entry for enum
-        dataCategory.put("object",    DataCategory.OBJECT);  // which is really an object reference instead of an elementary item...
+        dataCategory.put("enum",      DataCategory.ENUM);  		// artificial entry for enum
+        dataCategory.put("xenum",     DataCategory.XENUM);  	// artificial entry for xenum
+        dataCategory.put("object",    DataCategory.OBJECT);  	// which is really an object reference instead of an elementary item...
     }
 
     // a lookup to determine the Java data type to use for a given grammar type.
@@ -122,7 +126,8 @@ public class DataTypeExtension {
         dataTypeJava.put("lowercase", "String");
         dataTypeJava.put("ascii",     "String");
         dataTypeJava.put("unicode",   "String");
-        dataTypeJava.put("enum",      "@");  			// artificial entry for enum
+        dataTypeJava.put("enum",      SPECIAL_DATA_TYPE_ENUM);  			// artificial entry for enum
+        dataTypeJava.put("xenum",     SPECIAL_DATA_TYPE_XENUM);  			// artificial entry for xenum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
 
@@ -368,7 +373,7 @@ public class DataTypeExtension {
             // special handling for enums
             if (r.javaType == null)
                 throw new Exception("unmapped Java data type for " + e.getName());
-            else if (r.javaType.equals("@")) {  // special case for enum types: replace java type by referenced class
+            else if (r.javaType.equals(SPECIAL_DATA_TYPE_ENUM)) {  // special case for enum types: replace java type by referenced class
                 r.javaType = e.getEnumType().getName();
                 // also count the max length if alphanumeric
                 EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
@@ -383,8 +388,11 @@ public class DataTypeExtension {
                         }
                     }
                 }
+            } else if (r.javaType.equals(SPECIAL_DATA_TYPE_XENUM)) {  // special case for xenum types: replace java type by referenced class
+                r.javaType = e.getXenumType().getName();
+                r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(e.getXenumType());
             }
-
+            
             // special treatment for uppercase / lowercase shorthands
             if (r.javaType.equals("String"))
                 if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))

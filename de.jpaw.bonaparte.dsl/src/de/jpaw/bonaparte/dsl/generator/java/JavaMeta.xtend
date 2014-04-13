@@ -225,7 +225,7 @@ class JavaMeta {
 
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
+            private static final String _REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
             private static final String _PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
             private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
 
@@ -252,7 +252,7 @@ class JavaMeta {
                     null,
                 «ENDIF»
                 // now specific class items
-                REVISION,
+                _REVISION,
                 serialVersionUID,
                 «d.fields.size»,
                 my$fields,
@@ -279,7 +279,7 @@ class JavaMeta {
             }
             @Override
             public String get$Revision() {
-                return REVISION;
+                return _REVISION;
             }
 
             «writeCommonMetaData»

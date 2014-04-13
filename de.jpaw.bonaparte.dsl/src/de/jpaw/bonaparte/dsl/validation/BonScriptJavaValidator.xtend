@@ -143,7 +143,16 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         return (myBundle.length() == extendedBundle.length())
                 || ((myBundle.length() > extendedBundle.length()) && (myBundle.charAt(extendedBundle.length()) == '.'));
     }
-
+    
+	// a test for cyclic inheritance    
+    def static private void checkInheritance(ClassDefinition d, int remaining) {
+    	if (d.extendsClass?.classRef != null) {
+    		if (remaining <= 0)
+    			throw new Exception("Cyclic inheritance around " + d.name)
+    		d.extendsClass?.classRef.checkInheritance(remaining - 1)
+    	}
+    }
+    
     @Check
     def public void checkClassDefinition(ClassDefinition cd) {
         val s = cd.getName();
@@ -161,6 +170,13 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
             } else {
+            	// check for cyclic dependencies to avoid a stack overflow
+		    	try {
+		    		cd.checkInheritance(90)		// 90 levels of nesting should be sufficient
+		    	} catch (Exception ex) {
+		       		error("Cyclic inheritance", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
+		    		return
+		    	}            	
                 // check the number of generic parameters
                 val ClassDefinition parent = cd.getExtendsClass().getClassRef();
                 val EList<GenericsDef> args = parent.getGenericParameters();
@@ -477,9 +493,24 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     	if (aval.token.length > 63)
 			error("Token is too long (max 63 characters allowed, found " + aval.token.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__TOKEN)
     }
+
+	// a test for cyclic inheritance    
+    def static private void checkInheritance(XEnumDefinition e, int remaining) {
+    	if (e.extendsXenum != null) {
+    		if (remaining <= 0)
+    			throw new Exception("Cyclic inheritance around " + e.name)
+    		e.extendsXenum.checkInheritance(remaining - 1)
+    	}
+    }
     
     @Check
     def public void checkXEnum(XEnumDefinition e) {
+    	try {
+    		e.checkInheritance(20)		// 20 levels of nesting should be sufficient
+    	} catch (Exception ex) {
+       		error("Cyclic inheritance", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
+    		return
+    	}
     	if (!e.isDeprecated) {
     		if (e.myEnum != null && e.myEnum.isDeprecated)
 	       		warning(e.myEnum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)

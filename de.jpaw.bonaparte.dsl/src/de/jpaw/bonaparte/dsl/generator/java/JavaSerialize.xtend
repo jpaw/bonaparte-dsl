@@ -64,7 +64,7 @@ class JavaSerialize {
     def public static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
-        public <E extends Exception> void serializeSub(MessageComposer<E> w) throws E {
+        public <_E extends Exception> void serializeSub(MessageComposer<_E> w) throws _E {
             «IF d.extendsClass != null»
                 // recursive call of superclass first
                 super.serializeSub(w);
@@ -106,7 +106,7 @@ class JavaSerialize {
     def public static writeFoldedSerialize(ClassDefinition d) '''
         /* serialize selected fields of the object. */
         @Override
-        public <E extends Exception> void foldedOutput(MessageComposer<E> w, ParsedFoldingComponent pfc) throws E {
+        public <_E extends Exception> void foldedOutput(MessageComposer<_E> w, ParsedFoldingComponent pfc) throws _E {
             String _n = pfc.getFieldname();
             «FOR i:d.fields»
                 if (_n.equals("«i.name»")) {
