@@ -95,7 +95,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (d) bugfix: check XEnum for cyclic inheritance. Allow the "class MyClass<E extends MyClass<E>>" construction 
 
 
-- BON: (e) xenum almost working. Still Missing: reference / test for null token (store in metadata as well!), serializable (uuid & test), externalizable
+- BON: (e) xenum almost working. Still Missing: serializable (uuid & test), externalizable
 
 
 

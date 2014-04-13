@@ -107,6 +107,8 @@ class JavaXEnum {
                 }
                 myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME, «d.name».class);
             }
+            public void init() {		// stub method to call for class loading
+            }
             
             // constructor may not be accessible from the outside
             protected «d.name»(Enum<?> enumVal, int ordinal, String name, String token, XEnumFactory<«rootClass.name»> myFactory) {

@@ -93,6 +93,11 @@ class JavaEnum {
                     }
                     return null;
                 }
+                
+                // static method to return the instance with the null token, or null if no such exists
+                public static «d.name» getNullToken() {
+                	return «d.avalues.findFirst[token == ""]?.name ?: "null"»;
+                }
             «ENDIF»
 
             «writeEnumMetaData(d)»
