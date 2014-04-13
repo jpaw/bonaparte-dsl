@@ -518,7 +518,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 	       		warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
     	}
     	if (e.myEnum != null) {
-    		if (e.myEnum.avalues == null) {
+    		if (e.myEnum.avalues == null || e.myEnum.avalues.empty) {
     			error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
     			return
    			}

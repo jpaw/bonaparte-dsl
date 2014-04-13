@@ -24,14 +24,16 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
 
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
-    	if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
-    		return ''''''
-    		
+        if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
+            return ''''''
+            
         if (i.defaultString == null) {
             // check for enum defaults, these use a different mechanism.
             if (ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
@@ -110,7 +112,10 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
     // write the standard setter plus maybe some indexed one
-    def private static writeOneSetter(FieldDefinition i, String setterName, boolean isFreezable) '''
+    def private static writeOneSetter(FieldDefinition i, String setterName, boolean isFreezable) {
+        val ref = DataTypeExtension::get(i.datatype) 
+        return
+     '''
         public void «setterName»(«JavaDataTypeNoName(i, false)» «i.name») {
             «IF isFreezable»
                 verify$Not$Frozen();
@@ -122,6 +127,31 @@ class JavaFieldsGettersSetters {
                 this.«i.name»[_i] = «i.name»;
             }
         «ENDIF»
+        «IF ref.category == DataCategory.XENUM»
+            «IF !i.aggregate»
+                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
+             «ELSEIF i.isList != null»
+                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "List<Enum<?>>")»
+             «ELSEIF i.isSet != null»
+                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Set<Enum<?>>")»
+             «ELSEIF i.isArray != null»
+                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>[]")»
+                public void «setterName»(int _index, Enum<?> «i.name») {
+                    this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
+                }
+            «ENDIF»
+        «ENDIF»
+    '''
+    }
+    
+    def private static writeEnumSetterWithConverter(FieldDefinition i, String setterName, boolean isFreezable, DataTypeExtension ref, String type) '''
+        // mapping setter from enum to xenum
+        public void «setterName»(«type» _i) {
+            «IF isFreezable»
+                verify$Not$Frozen();
+            «ENDIF»
+            this.«i.name» = «XUtil.xEnumFactoryName(ref)».of(_i);
+        }
     '''
     
     def public static writeGettersSetters(ClassDefinition d) {

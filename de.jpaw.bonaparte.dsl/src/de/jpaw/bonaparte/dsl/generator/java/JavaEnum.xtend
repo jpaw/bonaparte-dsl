@@ -24,6 +24,9 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
 
+    def static public boolean hasNullToken(EnumDefinition ed) {
+    	ed.avalues != null && ed.avalues.exists[token == ""]
+    }
     def static boolean isAlpha(EnumDefinition d) {
         d.avalues != null && !d.avalues.empty
     }
@@ -152,13 +155,16 @@ class JavaEnum {
                 new LocalDateTime(),
                 null,
                 // now specific enum items
-                _ids,
                 «IF d.isAlpha»
-                    _tokens,
-                    «JavaXEnum.getInternalMaxLength(d, 0)»
+                    «JavaXEnum.getInternalMaxLength(d, 0)»,
+                    «d.hasNullToken»,
+                    _ids,
+                    _tokens
                 «ELSE»
-                    null,
-                    -1
+                    -1,
+                    false,
+                    _ids,
+                    null
                 «ENDIF»
             );
 

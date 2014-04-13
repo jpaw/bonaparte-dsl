@@ -95,8 +95,13 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (d) bugfix: check XEnum for cyclic inheritance. Allow the "class MyClass<E extends MyClass<E>>" construction 
 
 
+- BON: (e) xenum almost working. Still Missing: reference / test for null token (store in metadata as well!), serializable (uuid & test), externalizable
+
+
 
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
 
+Future plans:
+change grammar to avoid the ! for generic parameter references

@@ -25,6 +25,7 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaDeserialize {
     private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
@@ -60,6 +61,7 @@ class JavaDeserialize {
                           
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
+        case 'xenum':     '''p.readXEnum(meta$$«fieldname», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
         case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «!isRequired», true)'''
         }
     }

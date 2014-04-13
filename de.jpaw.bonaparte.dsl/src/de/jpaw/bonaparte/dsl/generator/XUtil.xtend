@@ -34,11 +34,15 @@ import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
+	def public static xEnumFactoryName(DataTypeExtension ref) {
+		ref.elementaryDataType.xenumType.getRoot.name + ".myFactory"
+	}
     def public static ClassDefinition getParent(ClassDefinition d) {
         d?.getExtendsClass?.getClassRef
     }
@@ -47,6 +51,12 @@ class XUtil {
         var dd = d
         while (dd.parent != null)
             dd = dd.parent
+        return dd
+    }
+    def public static XEnumDefinition getRoot(XEnumDefinition d) {
+        var dd = d
+        while (dd.extendsXenum != null)
+            dd = dd.extendsXenum
         return dd
     }
 

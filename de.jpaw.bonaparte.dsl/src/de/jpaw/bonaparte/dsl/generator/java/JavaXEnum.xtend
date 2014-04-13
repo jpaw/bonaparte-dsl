@@ -39,6 +39,9 @@ class JavaXEnum {
             max = 1
         return max
     }
+    def static public boolean hasNullToken(XEnumDefinition d) {
+    	JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum != null && d.extendsXenum.hasNullToken)
+    }
     
     def private static XEnumDefinition getRootXEnum(XEnumDefinition d) {
         if (d.extendsXenum == null)
@@ -102,7 +105,7 @@ class JavaXEnum {
                     «d.myEnum.name» e = values[i];
                     myFactory.publishInstance(new «d.name»(e, i«IF subClass» + «d.extendsXenum.name».NUM_VALUES_TOTAL«ENDIF», e.name(), e.getToken(), myFactory));
                 }
-                myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME);
+                myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME, «d.name».class);
             }
             
             // constructor may not be accessible from the outside
@@ -135,8 +138,9 @@ class JavaXEnum {
                     null,
                 «ENDIF»
                 // now specific xenum items
-                «d.myEnum.name».enum$MetaData(),
-                  «d.overallMaxLength»
+                «d.overallMaxLength»,
+                «d.hasNullToken»,
+                «d.myEnum.name».enum$MetaData()
             );
 
             // get all the meta data in one go

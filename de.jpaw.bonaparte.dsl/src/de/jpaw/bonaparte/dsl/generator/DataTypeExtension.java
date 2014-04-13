@@ -40,6 +40,7 @@ import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefaults;
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
 import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
@@ -141,7 +142,7 @@ public class DataTypeExtension {
     public Boolean orSecondarySuperClass;           // if subclasses are allowed for the secondary type
     public ClassReference genericsRef;				// a generic type argument
     public TypeDefinition typedef;
-    public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference
+    public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference. For xenums, it is the root xenum name
     public boolean isUpperCaseOrLowerCaseSpecialType = false;  // true for uppercase or lowercase (has extra built-in validation function)
     // parameters which cascade down from global defaults to package defaults to class defaults (grammar: FieldDefaultsDefinition)
     public boolean effectiveSigned = true;
@@ -389,8 +390,9 @@ public class DataTypeExtension {
                     }
                 }
             } else if (r.javaType.equals(SPECIAL_DATA_TYPE_XENUM)) {  // special case for xenum types: replace java type by referenced class
-                r.javaType = e.getXenumType().getName();
-                r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(e.getXenumType());
+            	XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
+                r.javaType = root.getName();
+                r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
             }
             
             // special treatment for uppercase / lowercase shorthands
