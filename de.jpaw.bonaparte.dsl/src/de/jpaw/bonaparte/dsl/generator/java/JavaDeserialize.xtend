@@ -109,7 +109,7 @@ class JavaDeserialize {
                 «ENDIF»
                 p.setClassName(_PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
-                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
+                    «IF (resolveElem(i.datatype) != null) && (resolveElem(i.datatype).enumType != null || resolveElem(i.datatype).xenumType != null)»
                         try {  // for possible EnumExceptions
                     «ENDIF»
                     «IF i.isArray != null»
@@ -165,8 +165,8 @@ class JavaDeserialize {
                     «ELSE»
                         «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»
-                    «IF (resolveElem(i.datatype) != null) && resolveElem(i.datatype).enumType != null»
-                         } catch (EnumException e) {
+                    «IF (resolveElem(i.datatype) != null) && (resolveElem(i.datatype).enumType != null || resolveElem(i.datatype).xenumType != null)»
+                         } catch (IllegalArgumentException e) {
                              // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
                              throw p.enumExceptionConverter(e);
                          }

@@ -422,7 +422,6 @@ class XUtil {
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;
         import java.math.BigDecimal;
-        import de.jpaw.util.EnumException;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.ToStringHelper;

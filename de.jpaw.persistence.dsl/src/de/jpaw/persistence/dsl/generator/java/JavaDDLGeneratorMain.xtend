@@ -136,11 +136,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
             val notNullElements = f.isRequired
-	        val ref = DataTypeExtension::get(f.datatype);
+	        // val ref = DataTypeExtension::get(f.datatype);
             return '''
                 «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
-                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»()«JavaFieldWriter::writeException(ref, f)» {
+                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
                         «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
                         «(1 .. f.isList.maxcount).map['''«IF notNullElements»if (get«myName.toFirstUpper»«String::format(indexPattern, it)»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
                         return _a;
@@ -368,7 +368,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             return «pkType».class;
         }
         @Override
-        public «pkType» get$Key() throws ApplicationException {
+        public «pkType» get$Key() {
             «IF pkType.equals("Serializable")»
                 return null;  // FIXME! not yet implemented!
             «ELSE»

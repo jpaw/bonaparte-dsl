@@ -30,7 +30,6 @@ class JavaEnum {
     def static boolean isAlpha(EnumDefinition d) {
         d.avalues != null && !d.avalues.empty
     }
-    // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
         val isAlphaEnum = d.isAlpha
@@ -43,7 +42,6 @@ class JavaEnum {
         import com.google.common.collect.ImmutableList;
         import org.joda.time.LocalDateTime;
         
-        import de.jpaw.util.EnumException;
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         «IF isAlphaEnum»
@@ -75,20 +73,20 @@ class JavaEnum {
                 }
 
                 // static factory method.«IF codegenJava7» Requires Java 7«ENDIF»
-                public static «d.name» factory(String _token) throws EnumException {
+                public static «d.name» factory(String _token) {
                     if (_token != null) {
                         «IF codegenJava7»
                             switch (_token) {
                             «FOR v:d.avalues»
                                 case "«v.token»": return «v.name»;
                             «ENDFOR»
-                            default: throw new EnumException(EnumException.INVALID_NUM, _token);
+                            default: throw new IllegalArgumentException("Enum «d.name» has no token " + _token + "!");
                             }
                         «ELSE»
                             «FOR v:d.avalues»
                                 if (_token.equals("«v.token»")) return «v.name»;
                             «ENDFOR»
-                            throw new EnumException(EnumException.INVALID_NUM, _token);
+                            throw new IllegalArgumentException("Enum «d.name» has no token " + _token + "!");
                         «ENDIF»
                     }
                     return null;
@@ -102,7 +100,7 @@ class JavaEnum {
 
             «writeEnumMetaData(d)»
             
-            public static «d.name» valueOf(Integer ordinal) throws EnumException {
+            public static «d.name» valueOf(Integer ordinal) {
                 if (ordinal != null) {
                     switch (ordinal.intValue()) {
                     «IF d.avalues == null || d.avalues.size() == 0»
@@ -114,7 +112,7 @@ class JavaEnum {
                             case «Integer::valueOf(counter = counter + 1).toString()»: return «v.name»;
                         «ENDFOR»
                     «ENDIF»
-                    default: throw new EnumException(EnumException.INVALID_NUM, ordinal.toString());
+                    default: throw new IllegalArgumentException("Enum «d.name» has no instance for ordinal " + ordinal.toString());
                     }
                 }
                 return null;

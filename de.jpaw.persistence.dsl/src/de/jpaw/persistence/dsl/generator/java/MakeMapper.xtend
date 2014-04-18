@@ -97,7 +97,7 @@ class MakeMapper {
         }
         «ENDIF»
         @Override
-        public «pojo.name» get$Data() throws ApplicationException {
+        public «pojo.name» get$Data() {
             «pojo.name» _r = new «pojo.name»();
             «recurseDataGetter(pojo, null, embeddables)»
             return _r;
@@ -143,7 +143,7 @@ class MakeMapper {
         }
         
         @Override
-        public «pojoname» get$Tracking() throws ApplicationException {
+        public «pojoname» get$Tracking() {
             «IF pojo == null»
                 return null;
             «ELSE»

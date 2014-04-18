@@ -31,7 +31,6 @@ import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class JavaFieldWriter {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -192,28 +191,21 @@ class JavaFieldWriter {
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
 
-    def public static writeException(DataTypeExtension ref, FieldDefinition c) {
-        if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
-            return "throws EnumException "
-        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) ||
-            (ref.objectDataType != null && hasProperty(c.properties, PROP_SERIALIZED))) {
-            return "throws MessageParserException "
-        } else
-            return ""
-    }
-
     def private writeGetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
         val theEnum = ref.enumForEnumOrXenum
         return '''
-            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(ref, i)»{
+            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
                 (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null)
                         return null;
-                    ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
-                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.
-                objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                    try {
+                        ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
+                        return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                    } catch (MessageParserException _e) {
+                    	throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + e.getSpecificDescription());
+                    }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
@@ -246,7 +238,7 @@ class JavaFieldWriter {
 
     def private writeSetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
-        val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
+        // val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
         return '''
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
@@ -316,9 +308,9 @@ class JavaFieldWriter {
         List<EmbeddableUse> embeddables) {
         val relevantElementCollection = el?.findFirst[name == f]
         val relevantEmbeddable = embeddables?.findFirst[field == f]
-        val emb = relevantEmbeddable?.name?.pojoType
+        // val emb = relevantEmbeddable?.name?.pojoType
         val embName = relevantEmbeddable?.name?.name
-        val ref = DataTypeExtension::get(f.datatype);
+        // val ref = DataTypeExtension::get(f.datatype);
 
         return '''
             «IF relevantElementCollection != null && f.aggregate»
@@ -337,7 +329,7 @@ class JavaFieldWriter {
             «IF relevantElementCollection != null && f.aggregate && relevantEmbeddable != null»
                 «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
                 // special getter to convert from embeddable entity type into DTO
-                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() throws ApplicationException {
+                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() {
                     if («f.name» == null || «f.name».isEmpty())
                         return null;
                     «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
@@ -351,7 +343,7 @@ class JavaFieldWriter {
                     return _r;
                 }
                 // special setter to convert from embeddable entity type into DTO
-                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) «writeException(ref, f)»{
+                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
                     «f.name».clear();
                     if (_d != null) {
                         «IF f.isMap != null»

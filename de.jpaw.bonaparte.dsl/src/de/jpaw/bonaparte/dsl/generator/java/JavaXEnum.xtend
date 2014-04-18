@@ -50,7 +50,6 @@ class JavaXEnum {
             return d.extendsXenum.getRootXEnum
     }
     
-    // TODO: some time de.jpaw.util.EnumException should move to package de.jpaw.enums.EnumException
     def static public writeXEnumDefinition(XEnumDefinition d) {
         val boolean subClass = d.extendsXenum != null
         val rootClass = d.getRootXEnum
@@ -69,9 +68,6 @@ class JavaXEnum {
         «ENDIF»
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.*;
-        // import de.jpaw.util.EnumException;
-        // import de.jpaw.enums.TokenizableEnum;
-        // import de.jpaw.enums.XEnum;
         
         «IF getPackageName(d.myEnum) != getPackageName(d)»
             import «getPackageName(d.myEnum)».«d.myEnum.name»;
