@@ -96,7 +96,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             for (i : citer.fields) {
                 val ref = DataTypeExtension::get(i.datatype)
                 if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
-                    enumsRequired.add(ref.elementaryDataType.enumType)
+                    enumsRequired.add(ref.enumForEnumOrXenum)
             }
             if (citer.extendsClass != null)
                 citer = citer.extendsClass.classRef

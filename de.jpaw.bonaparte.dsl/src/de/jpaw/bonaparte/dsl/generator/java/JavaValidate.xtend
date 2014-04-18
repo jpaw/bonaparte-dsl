@@ -40,12 +40,12 @@ class JavaValidate {
             «IF ref.javaType.equals("String")»
                 if («index».length() > «ref.elementaryDataType.length»)
                     throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
-                                                        "«index».length=" + «index».length() + " > «ref.elementaryDataType.length»",
+                                                        "«i.name».length=" + «index».length() + " > «ref.elementaryDataType.length»",
                                                         _PARTIALLY_QUALIFIED_CLASS_NAME);
                 «IF ref.elementaryDataType.minLength > 0»
                     if («index».length() < «ref.elementaryDataType.minLength»)
                         throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
-                                                            "«index».length=" + «index».length() + " < «ref.elementaryDataType.minLength»",
+                                                            "«i.name».length=" + «index».length() + " < «ref.elementaryDataType.minLength»",
                                                             _PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
             «ENDIF»
@@ -58,12 +58,12 @@ class JavaValidate {
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«index»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+                                                        "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
             «IF ref.isUpperCaseOrLowerCaseSpecialType»
                 if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«index»))
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«index»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+                                                        "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
         }
     '''
@@ -94,7 +94,7 @@ class JavaValidate {
                     «loopStart(i)»
                     if («indexedName(i)» == null)
                         throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                    "«indexedName(i)»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+                                                    "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
                 «IF i.aggregateMaxSize > 0»
                     «IF !i.isAggregateRequired»

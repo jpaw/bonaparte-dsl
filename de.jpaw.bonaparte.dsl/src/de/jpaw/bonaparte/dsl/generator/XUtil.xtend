@@ -434,16 +434,29 @@ class XUtil {
         import org.joda.time.LocalDateTime;
     '''
     
+    def public static enumForEnumOrXenum(DataTypeExtension ref) {
+    	if (ref.elementaryDataType?.xenumType != null)
+    		ref.elementaryDataType?.xenumType.myEnum
+        else 
+            ref.elementaryDataType?.enumType
+    }
+    
+    // returns true if this an enum or an xenum which can have an instance of null
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
-        ref.enumMaxTokenLength >= 0 && ref.elementaryDataType.enumType.avalues.map[token].contains("")
+        if (ref.enumMaxTokenLength < 0)
+        	return false
+       	val avalues = ref.enumForEnumOrXenum.avalues
+//        if (avalues == null)
+//        	return false
+       	return avalues.map[token].contains("")
     }
     def public static idForEnumTokenNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
         if (ref.enumMaxTokenLength < 0)
             null
         else
-            ref.elementaryDataType.enumType.avalues.findFirst[token.empty]?.name
+            ref.enumForEnumOrXenum.avalues.findFirst[token.empty]?.name
     }
 
 	// freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth

@@ -1,4 +1,4 @@
- /*
+/*
   * Copyright 2012 Michael Bischoff
   *
   * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-
 package de.jpaw.persistence.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.generator.DataCategory
@@ -39,7 +38,7 @@ class JavaFieldWriter {
     val static final String CALENDAR = "Calendar";
     final boolean useUserTypes;
     final String fieldVisibility;
-    
+
     def private static String makeVisibility(Visibility v) {
         var XVisibility fieldScope
         if (v != null && v.x != null)
@@ -50,19 +49,19 @@ class JavaFieldWriter {
             fieldScope.toString() + " "
     }
 
-	def public static final defineVisibility(EntityDefinition e) {
+    def public static final defineVisibility(EntityDefinition e) {
         val myPackage = e.eContainer as PackageDefinition
-        return makeVisibility(if (e.visibility != null) e.visibility else myPackage.visibility)
-	}
-
-        
-    new(EntityDefinition e) {
-    	this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
-    	this.fieldVisibility = defineVisibility(e);
+        return makeVisibility(if(e.visibility != null) e.visibility else myPackage.visibility)
     }
+
+    new(EntityDefinition e) {
+        this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
+        this.fieldVisibility = defineVisibility(e);
+    }
+
     new(EmbeddableDefinition e) {
-    	this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
-    	this.fieldVisibility = makeVisibility((e.eContainer as PackageDefinition).visibility);
+        this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
+        this.fieldVisibility = makeVisibility((e.eContainer as PackageDefinition).visibility);
     }
 
     // the same, more complex scenario
@@ -82,10 +81,12 @@ class JavaFieldWriter {
     }
 
     // temporal types for UserType mappings (OR mapper specific extensions)
-    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String extraAnnotationType, String fieldType, String myName) '''
+    def private writeTemporalFieldAndAnnotation(FieldDefinition c, String extraAnnotationType, String fieldType,
+        String myName) '''
         @Temporal(TemporalType.«extraAnnotationType»)
         «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»;
     '''
+
     // temporal types for UserType mappings (OR mapper specific extensions)
     def private writeField(FieldDefinition c, String fieldType, String myName, CharSequence defaultValue) '''
         «fieldVisibility»«c.JavaDataType2NoName(false, fieldType)» «myName»«defaultValue»;
@@ -95,67 +96,74 @@ class JavaFieldWriter {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType != null) {
             if (c.properties.hasProperty(PROP_SERIALIZED)) {
+
                 // use byte[] Java type and assume same as Object
                 return '''
-                    «fieldVisibility»byte [] «myName»;'''
+                «fieldVisibility»byte [] «myName»;'''
             } else if (c.properties.hasProperty(PROP_REF)) {
+
                 // plain old Long as an artificial key / referencing is done by application
                 // can optionally have a ManyToOne object mapping in a Java superclass, with insertable=false, updatable=false
                 return '''
-                    «fieldVisibility»Long «myName»;'''
+                «fieldVisibility»Long «myName»;'''
             } else if (c.properties.hasProperty("ManyToOne")) {
+
                 // child object, create single-sided many to one annotations as well
                 val params = c.properties.getProperty("ManyToOne")
                 return '''
-                    @ManyToOne«IF params != null»(«params»)«ENDIF»
-                    «IF c.properties.getProperty("JoinColumn") != null»
-                        @JoinColumn(«c.properties.getProperty("JoinColumn")»)
-                    «ELSEIF c.properties.getProperty("JoinColumnRO") != null»
-                        @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
-                    «ENDIF»
-                    «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
+                @ManyToOne«IF params != null»(«params»)«ENDIF»
+                «IF c.properties.getProperty("JoinColumn") != null»
+                    @JoinColumn(«c.properties.getProperty("JoinColumn")»)
+                «ELSEIF c.properties.getProperty("JoinColumnRO") != null»
+                    @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
+                «ENDIF»
+                «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
             }
         }
         switch (ref.enumMaxTokenLength) {
-        case DataTypeExtension::NO_ENUM:
-            switch (ref.javaType) {
-            case "Calendar":        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
-            case "DateTime":        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
-            case "LocalDateTime":   if (useUserTypes)
-                                        writeField(c, ref.javaType, myName, "")
-                                    else
-                                        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
-            case "LocalDate":       if (useUserTypes)
-                                        writeField(c, ref.javaType, myName, "")
-                                    else
-                                        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
-            case "ByteArray":       writeField(c, if (useUserTypes) "ByteArray" else "byte []", myName, "")
-            case JAVA_OBJECT_TYPE:  '''
-                                        // @Lob
-                                        «writeField(c, "byte []", myName, "")»
-                                    '''
-            default:                '''
-                                        «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
-                                    '''
-            }
-        case DataTypeExtension::ENUM_NUMERIC:   writeField(c, "Integer", myName, makeEnumNumDefault(c, ref))
-        default:                                writeField(c, if (ref.allTokensAscii) "String" else "Integer", myName, makeEnumAlphanumDefault(c, ref))
+            case DataTypeExtension::NO_ENUM:
+                switch (ref.javaType) {
+                    case "Calendar":
+                        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
+                    case "DateTime":
+                        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+                    case "LocalDateTime":
+                        if (useUserTypes)
+                            writeField(c, ref.javaType, myName, "")
+                        else
+                            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
+                    case "LocalDate":
+                        if (useUserTypes)
+                            writeField(c, ref.javaType, myName, "")
+                        else
+                            writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+                    case "ByteArray":
+                        writeField(c, if(useUserTypes) "ByteArray" else "byte []", myName, "")
+                    case JAVA_OBJECT_TYPE: '''
+                        // @Lob
+                        «writeField(c, "byte []", myName, "")»
+                    '''
+                    default: '''
+                        «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
+                    '''
+                }
+            case DataTypeExtension::ENUM_NUMERIC:
+                writeField(c, "Integer", myName, makeEnumNumDefault(c, ref))
+            default:
+                writeField(c, if(ref.allTokensAscii) "String" else "Integer", myName, makeEnumAlphanumDefault(c, ref))
         }
     }
-	def private static makeEnumNumDefault(FieldDefinition f, DataTypeExtension ref) {
-		if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL)))
-			''' = 0'''
-		else
-			''''''
-	}
-	def private static makeEnumAlphanumDefault(FieldDefinition f, DataTypeExtension ref) {
-		if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL)))
-			''' = "«ref.elementaryDataType.enumType.avalues.get(0).token.escapeString2Java»"'''
-		else
-			''''''
-	}
 
-    def private static optionalAnnotation(List <PropertyUse> properties, String key, String annotation) {
+    def private static makeEnumNumDefault(FieldDefinition f, DataTypeExtension ref) {
+        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) ''' = 0''' else ''''''
+    }
+
+    def private static makeEnumAlphanumDefault(FieldDefinition f, DataTypeExtension ref) {
+        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) ''' = "«ref.
+            elementaryDataType.enumType.avalues.get(0).token.escapeString2Java»"''' else ''''''
+    }
+
+    def private static optionalAnnotation(List<PropertyUse> properties, String key, String annotation) {
         '''«IF properties.hasProperty(key)»«annotation»«ENDIF»'''
     }
 
@@ -168,13 +176,12 @@ class JavaFieldWriter {
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         return ''''''
     }
-    
+
     // return true, if this is a list with lower number of elements strictly less than the upper bound.
     // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null
     def private static isPartOfVariableLengthList(FieldDefinition c) {
-        c.isList != null && c.isList.mincount < c.isList.maxcount        
-    } 
-    
+        c.isList != null && c.isList.mincount < c.isList.maxcount
+    }
 
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
@@ -188,20 +195,25 @@ class JavaFieldWriter {
     def public static writeException(DataTypeExtension ref, FieldDefinition c) {
         if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             return "throws EnumException "
-        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(c.properties, PROP_SERIALIZED))) {
+        else if (JAVA_OBJECT_TYPE.equals(ref.javaType) ||
+            (ref.objectDataType != null && hasProperty(c.properties, PROP_SERIALIZED))) {
             return "throws MessageParserException "
         } else
             return ""
     }
+
     def private writeGetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
+        val theEnum = ref.enumForEnumOrXenum
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() «writeException(ref, i)»{
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
+                (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null)
                         return null;
                     ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
-                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                    return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.
+                objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
@@ -218,12 +230,14 @@ class JavaFieldWriter {
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
                     return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
+                «ELSEIF ref.category == DataCategory.XENUM»
+                    return «ref.xEnumFactoryName».getByTokenWithNull(«myName»);
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
                         // special mapping of null to the enum value with the empty string token
-                        return «myName» == null ? «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull» : «ref.elementaryDataType.enumType.name».factory(«myName»);
+                        return «myName» == null ? «theEnum.name».«i.idForEnumTokenNull» : «theEnum.name».factory(«myName»);
                     «ELSE»
-                        return «ref.elementaryDataType.enumType.name».factory(«myName»);
+                        return «theEnum.name».factory(«myName»);
                     «ENDIF»
                 «ENDIF»
             }
@@ -232,9 +246,11 @@ class JavaFieldWriter {
 
     def private writeSetter(FieldDefinition i, String myName) {
         val ref = DataTypeExtension::get(i.datatype);
+        val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
         return '''
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
+                (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null) {
                         this.«myName» = null;
                     } else {
@@ -255,7 +271,9 @@ class JavaFieldWriter {
                         this.«myName» = «myName»;
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                     this.«myName» = «myName» == null ? null : «myName».ordinal();
+                    this.«myName» = «myName» == null ? null : «myName».ordinal();
+                «ELSEIF ref.category == DataCategory.XENUM»
+                    this.«myName» = («myName» == null || «myName» == «ref.xEnumFactoryName».getNullToken()) ? null : «myName».getToken();
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
                         this.«myName» = («myName» == null || «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull») ? null : «myName».getToken();
@@ -267,13 +285,11 @@ class JavaFieldWriter {
         '''
     }
 
-
-
-	def public buildEmbeddedId(EntityDefinition e) '''
+    def public buildEmbeddedId(EntityDefinition e) '''
         @EmbeddedId
         «fieldVisibility»«e.name»Key key;
         // forwarding getters and setters
-        «FOR i:e.pk.columnName»
+        «FOR i : e.pk.columnName»
             public void set«i.name.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
                 key.set«i.name.toFirstUpper»(_x);
             }
@@ -281,35 +297,39 @@ class JavaFieldWriter {
                 return key.get«i.name.toFirstUpper»();
             }
         «ENDFOR»
-	'''
-	
+    '''
+
     def private static getInitializer(FieldDefinition f, String name, String initialLength) {
-    	val past = f.aggregateOf(name) + initialLength
-    	if (f.isList != null)
-    		return "Array" + past
-    	else if (f.isSet != null)
-            return "LinkedHash" + past  // LinkedHashSet preferred over HashSet due to certain ordering guarantee
+        val past = f.aggregateOf(name) + initialLength
+        if (f.isList != null)
+            return "Array" + past
+        else if (f.isSet != null)
+            return "LinkedHash" + past // LinkedHashSet preferred over HashSet due to certain ordering guarantee
         else if (f.isMap != null)
-        	return "Hash" + past
+            return "Hash" + past
         else
-        	return "ERROR, array not allowed here"
+            return "ERROR, array not allowed here"
     }
+
     // write the definition of a single column (entities or Embeddables)
-    def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName, List<EmbeddableUse> embeddables) {
-    	val relevantElementCollection = el?.findFirst[name == f]
-    	val relevantEmbeddable = embeddables?.findFirst[field == f]
-    	val emb = relevantEmbeddable?.name?.pojoType
-    	val embName = relevantEmbeddable?.name?.name
-    	val ref = DataTypeExtension::get(f.datatype);
-    	
-	    return '''
+    def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
+        List<EmbeddableUse> embeddables) {
+        val relevantElementCollection = el?.findFirst[name == f]
+        val relevantEmbeddable = embeddables?.findFirst[field == f]
+        val emb = relevantEmbeddable?.name?.pojoType
+        val embName = relevantEmbeddable?.name?.name
+        val ref = DataTypeExtension::get(f.datatype);
+
+        return '''
             «IF relevantElementCollection != null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
             «ELSE»
-                @Column(name="«myName.java2sql»"«IF f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties, "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
+                @Column(name="«myName.java2sql»"«IF f.isRequired && !f.isPartOfVariableLengthList &&
+                !f.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
+                "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
                 «f.properties.optionalAnnotation("version", "@Version")»
-                «f.properties.optionalAnnotation("lob",     "@Lob")»
-                «f.properties.optionalAnnotation("lazy",    "@Basic(fetch=LAZY)")»
+                «f.properties.optionalAnnotation("lob", "@Lob")»
+                «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
                 «IF !f.isASpecialEnumWithEmptyStringAsNull»
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
                 «ENDIF»
@@ -318,35 +338,35 @@ class JavaFieldWriter {
                 «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
                 // special getter to convert from embeddable entity type into DTO
                 public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() throws ApplicationException {
-                	if («f.name» == null || «f.name».isEmpty())
-                		return null;
-                	«f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
+                    if («f.name» == null || «f.name».isEmpty())
+                        return null;
+                    «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
                     «IF f.isMap != null»
                         for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
                             _r.put(_i.getKey(), _i.getValue().get$Data());
-             		«ELSE»
+                    «ELSE»
                         for («embName» _i : «f.name»)
                             _r.add(_i.get$Data());
-               		«ENDIF»
-                	return _r;
+                    «ENDIF»
+                    return _r;
                 }
                 // special setter to convert from embeddable entity type into DTO
                 public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) «writeException(ref, f)»{
-                	«f.name».clear();
-                	if (_d != null) {
+                    «f.name».clear();
+                    if (_d != null) {
                         «IF f.isMap != null»
                             for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
                                 «embName» _ec = new «embName»();
                                 _ec.set$Data(_i.getValue());
                                 «f.name».put(_i.getKey(), _ec);
                             }
-             		    «ELSE»
+                        «ELSE»
                             for («f.JavaDataTypeNoName(true)» _i : _d) {
                                 «embName» _ec = new «embName»();
                                 _ec.set$Data(_i);
                                 «f.name».add(_ec);
                             }
-               		    «ENDIF»
+                        «ENDIF»
                     }
                 }
             «ELSE»
@@ -354,6 +374,6 @@ class JavaFieldWriter {
                 «f.writeGetter(myName)»
                 «f.writeSetter(myName)»
             «ENDIF»
-	    '''
-	}
+        '''
+    }
 }

@@ -8,6 +8,8 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.generator.XUtil
 
 public class ImportCollector {
     private Map<String, String> requiredImports
@@ -32,6 +34,11 @@ public class ImportCollector {
             addImport(getPackageName(cl), cl.name)
     }
 
+    def void addImport(XEnumDefinition cl) {
+        if (cl != null)
+            addImport(getPackageName(cl), cl.name)
+    }
+    
     // same code as in JavaBonScriptGenerator...
     def void recurseImports(ClassDefinition d, boolean recurseFields) {
         if (d == null)
@@ -52,6 +59,10 @@ public class ImportCollector {
                 // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
                 if (ref.category == DataCategory::ENUM)
                     addImport(ref.elementaryDataType.enumType)
+                if (ref.category == DataCategory::XENUM) {
+                    addImport(XUtil.getRoot(ref.elementaryDataType.xenumType))
+                    addImport(ref.elementaryDataType.xenumType.myEnum)
+                }
             }
         }
         // generic parameters

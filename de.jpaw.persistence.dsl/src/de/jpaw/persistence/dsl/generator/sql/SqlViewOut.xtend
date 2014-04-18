@@ -24,13 +24,14 @@ import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 import de.jpaw.persistence.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class SqlViewOut {
 
     def private static createColumn(FieldDefinition i, String prefix, String myName) {
         val ref = DataTypeExtension::get(i.datatype)
         val cn = myName.java2sql
-        if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+        if (ref.category == DataCategory.ENUM && ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
             '''«ref.elementaryDataType.enumType.name»2s(«prefix».«cn») AS «cn»'''
         else
             '''«prefix».«cn» AS «cn»'''
