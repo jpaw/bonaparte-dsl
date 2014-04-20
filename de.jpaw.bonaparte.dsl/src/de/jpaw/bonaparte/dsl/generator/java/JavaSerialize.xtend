@@ -77,17 +77,17 @@ class JavaSerialize {
                         w.writeNullCollection(meta$$«i.name»);
                     } else {
                         «IF i.isArray != null»
-                            w.startArray(«i.name».length, «i.isArray.maxcount», 0);
+                            w.startArray(meta$$«i.name», «i.name».length, 0);
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
                         «ELSEIF i.isList != null || i.isSet != null»
-                            w.startArray(«i.name».size(), «i.loopMaxCount», 0);
+                            w.startArray(meta$$«i.name», «i.name».size(), 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
                         «ELSE»
-                            w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                            w.startMap(meta$$«i.name», «i.name».size());
                             for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                 // write (key, value) tuples
                                 w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
@@ -120,7 +120,7 @@ class JavaSerialize {
                         } else {
                             «IF i.isArray != null»
                                 if (pfc.index < 0) {
-                                    w.startArray(«i.name».length, «i.isArray.maxcount», 0);
+                                    w.startArray(meta$$«i.name», «i.name».length, 0);
                                     for (int _i = 0; _i < «i.name».length; ++_i) {
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
@@ -133,7 +133,7 @@ class JavaSerialize {
                                 }
                             «ELSEIF i.isList != null»
                                 if (pfc.index < 0) {
-                                    w.startArray(«i.name».size(), «i.loopMaxCount», 0);
+                                    w.startArray(meta$$«i.name», «i.name».size(), 0);
                                     for («JavaDataTypeNoName(i, true)» _i : «i.name») {
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
@@ -145,7 +145,7 @@ class JavaSerialize {
                                     }
                                 }
                             «ELSEIF i.isSet != null»
-                                w.startArray(«i.name».size(), «i.loopMaxCount», 0);
+                                w.startArray(meta$$«i.name», «i.name».size(), 0);
                                 for («JavaDataTypeNoName(i, true)» _i : «i.name») {
                                     «makeFoldedWrite2(d, i, indexedName(i))»
                                 }
@@ -156,7 +156,7 @@ class JavaSerialize {
                                 «ELSE»
                                     if (pfc.index < 0) {
                                 «ENDIF»
-                                    w.startMap(«i.name».size(), «mapIndexID(i.isMap)»);
+                                    w.startMap(meta$$«i.name», «i.name».size());
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
                                         w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());

@@ -204,7 +204,7 @@ class JavaFieldWriter {
                         ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
                         return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                     } catch (MessageParserException _e) {
-                    	throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + _e.getSpecificDescription());
+                        throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + _e.getSpecificDescription());
                     }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
