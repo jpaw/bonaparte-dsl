@@ -627,8 +627,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @KeyClass(«pkType0».class)
             «ENDIF»
             @Entity
-            «IF e.tableCategory.autoSetter != null»
-                @EntityListeners({«e.tableCategory.autoSetter».class})
+            «IF e.tableCategory.autoSetter != null || e.autoSetter != null»
+                @EntityListeners({«e.autoSetter ?: e.tableCategory.autoSetter».class})
             «ENDIF»
             «IF e.cacheable»
                 @Cacheable(true)

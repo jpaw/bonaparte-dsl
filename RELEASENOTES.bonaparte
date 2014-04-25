@@ -97,7 +97,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 - BON: (e) xenum almost working. Still Missing: serializable (uuid & test), externalizable
 
+1.7.6:
 
+1.7.7:
+- BON: (a) improvement: supply MANIFEST.MF for some projects
+- BON: (a) supply field name for arrays (required for Json output)
+- BDDL: (b) allow to specify entity listeners per entity instead of per category only
 
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
