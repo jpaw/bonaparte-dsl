@@ -13,6 +13,7 @@ import de.jpaw.bonaparte.dsl.bonScript.DataType;
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.persistence.dsl.BDDLPreferences;
 import de.jpaw.persistence.dsl.bDDL.BDDLPackage;
 import de.jpaw.persistence.dsl.bDDL.CollectionDefinition;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
@@ -26,6 +27,19 @@ import de.jpaw.persistence.dsl.generator.YUtil;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
+   	private void checkTablenameLength(String s, EStructuralFeature where) {
+        // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
+   		if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
+   			error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
+                where);
+   	}
+   	private void checkFieldnameLength(String s, EStructuralFeature where) {
+        // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
+   		if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
+   			error("The field name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength + " characters and will not work for some database brands",
+                where);
+   	}
+   	
     // SQL reserved words - column names are checked against these
     static private final Map<String,String> RESERVED_SQL = new HashMap<String,String>(200);
     static {
@@ -187,18 +201,11 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         }
 
         String tablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, false);
-        if (tablename.length() > 27) {
-            // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
-            warning("The resulting SQL table name " + tablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
-                    e.getTablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__TABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
-        }
+        checkTablenameLength(tablename, e.getTablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__TABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+        
         if (e.getTableCategory().getHistoryCategory() != null) {
             String historytablename = de.jpaw.persistence.dsl.generator.YUtil.mkTablename(e, true);
-            if (tablename.length() > 27) {
-                // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
-                warning("The resulting SQL history table name " + historytablename + " exceeds 27 characters length and will not work for some database brands (Oracle)",
-                        e.getHistorytablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
-            }
+            checkTablenameLength(tablename, e.getHistorytablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
         } else if (e.getHistorytablename() != null) {
             error("History tablename provided, but table category does not specify use of history",
                   BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME);
@@ -309,6 +316,9 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             error("Collections component only allowed to reference fields which are a Map<>", BDDLPackage.Literals.COLLECTION_DEFINITION__MAP);
             return;
         }
+
+        if (c.getTablename() != null)
+        	checkTablenameLength(c.getTablename(), BDDLPackage.Literals.COLLECTION_DEFINITION__TABLENAME);
     }
 
     @Check
@@ -405,10 +415,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                         BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__MAP_KEY);
             }
 
-            if (ec.getMapKey().length() > 30) {
-                warning("The name exceeds 30 characters length and will not work for some database brands (Oracle)",
-                        BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__MAP_KEY);
-            }
+            checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__MAP_KEY);
         } else {
             // the referenced field must be of type list of set
             if (f.getIsSet() == null && f.getIsList() == null) {
@@ -422,10 +429,10 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
             }
         }
 
-        if (ec.getTablename() != null && ec.getTablename().length() > 30) {
-            warning("The resulting SQL table name exceeds 30 characters length and will not work for some database brands (Oracle)",
-                    BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
-        }
+        if (ec.getTablename() != null)
+        	checkTablenameLength(ec.getTablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
+        if (ec.getHistorytablename() != null)
+        	checkTablenameLength(ec.getHistorytablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__HISTORYTABLENAME);
         
         EntityDefinition e = getEntity(ec);
         if (e == null) {
@@ -444,9 +451,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                             BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
                 }
                 for (String kc : ec.getKeyColumns()) {
-                    if (kc.length() > 30)
-                        warning("Length of key column " + kc + " exceeds 30 characters length and will not work for some database brands (Oracle)",
-                                BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
+                	checkFieldnameLength(kc, BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
                 }
             }
         }
@@ -464,10 +469,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     @Check
     public void checkOneToMany(OneToMany ec) {
         if (ec.getMapKey() != null) {
-            if (ec.getMapKey().length() > 30) {
-                warning("The name exceeds 30 characters length and will not work for some database brands (Oracle)",
-                        BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
-            }
+        	checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
         }
     }
     

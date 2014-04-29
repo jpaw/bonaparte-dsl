@@ -16,32 +16,33 @@
 
 package de.jpaw.bonaparte.dsl.validation;
 
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.xtext.validation.Check;
-import de.jpaw.bonaparte.dsl.bonScript.ArrayModifier;
-import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage;
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.GenericsDef;
-import de.jpaw.bonaparte.dsl.bonScript.ListModifier;
-import de.jpaw.bonaparte.dsl.bonScript.MapModifier;
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse;
-import de.jpaw.bonaparte.dsl.bonScript.SetModifier;
-import de.jpaw.bonaparte.dsl.bonScript.XRequired;
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-
-import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.bonScript.ArrayModifier
+import de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.ComparableFieldsList
-import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
-import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import java.util.HashSet
-import java.util.Set
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
+import de.jpaw.bonaparte.dsl.bonScript.ListModifier
+import de.jpaw.bonaparte.dsl.bonScript.MapModifier
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import de.jpaw.bonaparte.dsl.bonScript.SetModifier
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import java.util.HashSet
+import org.eclipse.emf.common.util.EList
+import org.eclipse.xtext.validation.Check
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -67,7 +68,8 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 } else {
                     // not good anyway
-                    warning("The type \"Calendar\" is mapped to the mutable Java class (Gregorian)Calendar. Use of \"Day\" or \"Timestamp\" is preferred.",
+                    if (BonScriptPreferences.currentPrefs.warnDate)
+	                    warning("The type \"Calendar\" is mapped to the mutable Java class (Gregorian)Calendar. Use of \"Day\" or \"Timestamp\" is preferred.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 }
             case "timestamp": // similar to default, but allow 0 decimals and max. 3 digits precision
@@ -113,9 +115,18 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 } else {
                     // not good anyway
-                    warning("The type \"Raw\" is mapped to the mutable Java class byte []. Use of \"Binary\" is preferred.",
+                    if (BonScriptPreferences.currentPrefs.warnByte)
+	                    warning("The type \"Raw\" is mapped to the mutable Java class byte []. Use of \"Binary\" is preferred.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 }
+            case "float":
+                    if (BonScriptPreferences.currentPrefs.warnFloat)
+	                    warning("The type \"Float\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME)
+            case "double":
+                    if (BonScriptPreferences.currentPrefs.warnFloat)
+	                    warning("The type \"Double\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME)
             }
         }
     }

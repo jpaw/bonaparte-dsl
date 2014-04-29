@@ -20,6 +20,10 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
         super(plugin);
     }
 
+    public Class<? extends org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage> bindLanguageRootPreferencePage() {
+        return BonScriptConfiguration.class;
+    }
+
 	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
 		return Highlighter.class;
 	}

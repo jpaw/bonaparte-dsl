@@ -24,6 +24,7 @@ import org.apache.log4j.Logger
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class BonScriptGenerator implements IGenerator {
     private static final Logger logger = Logger.getLogger(BonScriptGenerator)
@@ -43,9 +44,10 @@ class BonScriptGenerator implements IGenerator {
         
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
-            
-            logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
-            generatorDebug.doGenerate(resource, fsa)
+            if (BonScriptPreferences.currentPrefs.doDebugOut) {
+	            logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+    	        generatorDebug.doGenerate(resource, fsa)
+    	    }
         
             logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
             generatorJava.doGenerate(resource, fsa)
