@@ -107,9 +107,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (c) bugfix: don't create convenience setters for xenums on collections, due to type erasure, this does not compile.
 - BON: (c) bugfix: allow enums with just 1 element, because this could make sense if they are used for xenums
 
-
-- BDDL: (d) improvement: add more plausi checks concerning history table name lengths
-- BON & BDDL: (d) new feature: configuration screens which allow to specify validations and output via Eclipse preferences, enviroment variables or system properties
+1.7.8:
+- BDDL: (a) improvement: add more plausi checks concerning history table name lengths
+- BON & BDDL: (a) new feature: configuration screens which allow to specify validations and output via Eclipse preferences, enviroment variables or system properties
 
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
