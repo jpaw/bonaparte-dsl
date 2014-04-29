@@ -192,7 +192,7 @@ class YUtil {
                 return null  // no default name, skip tablespace reference completely if not specified
             }
             // 2. have the pattern, apply substitution rules
-            return myPattern.replace("(category)", t.tableCategory.name)
+            return myPattern.replace("(category)", myCategory.name)
                             .replace("(entity)",   java2sql(t.name))
                             .replace("(prefix)",   myPackage.dbPrefix)
                             .replace("(owner)",    myPackage.schemaOwner)
