@@ -25,21 +25,26 @@ import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaTreeWalker {
 
-    def public static writeTreeWalkerCode(ClassDefinition d) '''
+    def public static writeTreeWalkerCode(ClassDefinition d) {
+    	d.writeGenericTreeWalkerCode("String", DataCategory::STRING)
+    	d.writeGenericTreeWalkerCode("BigDecimal", DataCategory::NUMERIC)
+    }
+    
+    def public static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, DataCategory category) '''
         @Override
-        public void treeWalkString(StringConverter _cvt) {
+        public void treeWalk«javaType»(«javaType»Converter _cvt) {
             «IF d.extendsClass != null»
-                super.treeWalkString(_cvt);
+                super.treeWalk«javaType»(_cvt);
             «ENDIF»
             «FOR i:d.fields»
-                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype))»
+                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype), javaType, category)»
             «ENDFOR»
         }
      '''
 
-     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref) {
-         if (ref.category == DataCategory::STRING) {
-             // String field, which must be processed. This still can be a List or an Array
+     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, DataCategory category) {
+         if (ref.category == category) {
+             // field which must be processed. This still can be a List or an Array
              if (i.isArray != null)
                 return '''«i.name» = _cvt.convertArray(«i.name», meta$$«i.name»);'''
              if (i.isList != null)
@@ -55,7 +60,7 @@ class JavaTreeWalker {
              return '''
                 «loopStart(i)»
                 if («indexedName(i)» != null)
-                    «indexedName(i)».treeWalkString(_cvt);
+                    «indexedName(i)».treeWalk«javaType»(_cvt);
              '''
          }
          // else nothing to do
