@@ -198,6 +198,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
         import «bonaparteInterfacesPackage».StringConverter;
+        import «bonaparteInterfacesPackage».BigDecimalConverter;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
