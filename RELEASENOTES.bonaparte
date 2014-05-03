@@ -111,6 +111,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: (a) improvement: add more plausi checks concerning history table name lengths
 - BON & BDDL: (a) new feature: configuration screens which allow to specify validations and output via Eclipse preferences, enviroment variables or system properties
 
+1.7.9:
+- BON: (a): generate treeWalkBigDecimal for scaling postwork
+
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.

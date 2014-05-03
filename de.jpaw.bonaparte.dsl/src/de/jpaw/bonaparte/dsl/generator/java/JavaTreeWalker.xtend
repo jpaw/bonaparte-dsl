@@ -25,12 +25,12 @@ import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaTreeWalker {
 
-    def public static writeTreeWalkerCode(ClassDefinition d) {
-    	d.writeGenericTreeWalkerCode("String", DataCategory::STRING)
-    	d.writeGenericTreeWalkerCode("BigDecimal", DataCategory::NUMERIC)
-    }
+    def public static writeTreeWalkerCode(ClassDefinition d) '''
+    	«d.writeGenericTreeWalkerCode("String", DataCategory::STRING)»
+    	«d.writeGenericTreeWalkerCode("BigDecimal", DataCategory::NUMERIC)»
+    '''
     
-    def public static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, DataCategory category) '''
+    def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, DataCategory category) '''
         @Override
         public void treeWalk«javaType»(«javaType»Converter _cvt) {
             «IF d.extendsClass != null»
