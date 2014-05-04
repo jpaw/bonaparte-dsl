@@ -26,41 +26,51 @@ import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 class JavaTreeWalker {
 
     def public static writeTreeWalkerCode(ClassDefinition d) '''
-    	«d.writeGenericTreeWalkerCode("String", DataCategory::STRING)»
-    	«d.writeGenericTreeWalkerCode("BigDecimal", DataCategory::NUMERIC)»
+        «d.writeGenericTreeWalkerCode("String",       "AlphanumericElementaryDataItem", true, DataCategory::STRING)»
+        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem", 		true, DataCategory::NUMERIC)»
+        «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference", 				false, DataCategory::OBJECT)»
+        «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition", 				false, null)»
+        @Override
+        @Deprecated  // compatibility function
+        public void treeWalkString(DataConverter<String,AlphanumericElementaryDataItem> _cvt) {
+        	treeWalkString(_cvt, true);
+        }
     '''
     
-    def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, DataCategory category) '''
+    def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
         @Override
-        public void treeWalk«javaType»(«javaType»Converter _cvt) {
+        public void treeWalk«javaType»(DataConverter<«javaType»,«metadataType»> _cvt, boolean _descend) {
             «IF d.extendsClass != null»
                 super.treeWalk«javaType»(_cvt);
             «ENDIF»
             «FOR i:d.fields»
-                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype), javaType, category)»
+                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype), javaType, doAssign, category)»
             «ENDFOR»
         }
      '''
 
-     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, DataCategory category) {
-         if (ref.category == category) {
+     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
+         if (category == null || ref.category == category) {
+         	 val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array
              if (i.isArray != null)
-                return '''«i.name» = _cvt.convertArray(«i.name», meta$$«i.name»);'''
+                return '''«target»_cvt.convertArray(«i.name», meta$$«i.name»);'''
              if (i.isList != null)
-                return '''«i.name» = _cvt.convertList(«i.name», meta$$«i.name»);'''
+                return '''«target»_cvt.convertList(«i.name», meta$$«i.name»);'''
              if (i.isSet != null)
-                return '''«i.name» = _cvt.convertSet(«i.name», meta$$«i.name»);'''
+                return '''«target»_cvt.convertSet(«i.name», meta$$«i.name»);'''
              if (i.isMap != null)
-                return '''«i.name» = _cvt.convertMap(«i.name», meta$$«i.name»);'''
-             return '''«i.name» = _cvt.convert(«i.name», meta$$«i.name»);'''
+                return '''«target»_cvt.convertMap(«i.name», meta$$«i.name»);'''
+             return '''«target»_cvt.convert(«i.name», meta$$«i.name»);'''
          }
          if (ref.category == DataCategory::OBJECT) {
              // subobjects. Here we run through the list or array, and invoke the method on any sub-object
              return '''
-                «loopStart(i)»
-                if («indexedName(i)» != null)
-                    «indexedName(i)».treeWalk«javaType»(_cvt);
+                 if (_descend) {
+                    «loopStart(i)»
+                    if («indexedName(i)» != null)
+                        «indexedName(i)».treeWalk«javaType»(_cvt, _descend);
+                 }
              '''
          }
          // else nothing to do
