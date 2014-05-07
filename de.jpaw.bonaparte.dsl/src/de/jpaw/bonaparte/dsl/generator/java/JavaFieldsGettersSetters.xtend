@@ -130,12 +130,7 @@ class JavaFieldsGettersSetters {
         «IF ref.category == DataCategory.XENUM»
             «IF !i.aggregate»
                 «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
-             «ELSEIF i.isList != null»
-                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "List<Enum<?>>")»
-             «ELSEIF i.isSet != null»
-                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Set<Enum<?>>")»
              «ELSEIF i.isArray != null»
-                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>[]")»
                 public void «setterName»(int _index, Enum<?> «i.name») {
                     this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
                 }
@@ -143,6 +138,24 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
     }
+    
+    // the following was not possible above, due to the dreaded Java type erasure:
+//        «IF ref.category == DataCategory.XENUM»
+//            «IF !i.aggregate»
+//                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
+//             «ELSEIF i.isList != null»
+//                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "List<Enum<?>>")»
+//             «ELSEIF i.isSet != null»
+//                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Set<Enum<?>>")»
+//             «ELSEIF i.isArray != null»
+//                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>[]")»
+//                public void «setterName»(int _index, Enum<?> «i.name») {
+//                    this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
+//                }
+//            «ENDIF»
+//        «ENDIF»
+    
+    
     
     def private static writeEnumSetterWithConverter(FieldDefinition i, String setterName, boolean isFreezable, DataTypeExtension ref, String type) '''
         // mapping setter from enum to xenum

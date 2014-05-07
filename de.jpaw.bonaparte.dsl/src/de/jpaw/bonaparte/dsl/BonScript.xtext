@@ -214,8 +214,8 @@ EnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'enum' name = ID '{'
-        ((values += ID (',' values += ID)+) |
-         (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)+))
+        ((values += ID (',' values += ID)*) |
+         (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)*))
     '}'   
 ;
 

@@ -16,42 +16,48 @@
 
 package de.jpaw.persistence.dsl.generator.sql
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.emf.ecore.EObject
-import de.jpaw.persistence.dsl.bDDL.Inheritance
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.persistence.dsl.generator.YUtil
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import org.apache.log4j.Logger
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import static extension de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
-import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.generator.Delimiter
-import java.util.Set
-import java.util.HashSet
-import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.Delimiter
+import de.jpaw.persistence.dsl.BDDLPreferences
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.persistence.dsl.generator.RequiredType
-import java.util.zip.Deflater
+import de.jpaw.persistence.dsl.generator.YUtil
 import java.util.ArrayList
+import java.util.HashSet
+import java.util.List
+import java.util.Set
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.persistence.dsl.generator.sql.SqlEnumOut.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.persistence.dsl.generator.sql.SqlViewOut.*
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
+   	var private BDDLPreferences prefs
+
     def makeSqlFilename(EObject e, DatabaseFlavour databaseFlavour, String basename, String object) {
         return "sql/" + databaseFlavour.toString + "/" + object + "/" + basename + ".sql";
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    	prefs = BDDLPreferences.currentPrefs
+    	System.out.println('''Settings are: max ID length = «prefs.maxTablenameLength», «prefs.maxFieldnameLength», output = «prefs.doDebugOut», «prefs.doPostgresOut», «prefs.doOracleOut», «prefs.doMsSQLServerOut»''')
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
@@ -111,9 +117,14 @@ class SqlDDLGeneratorMain implements IGenerator {
                 // no history here
             } else {
                 val tablename = if (doHistory) ec.historytablename else ec.tablename
-                for (dbf: DatabaseFlavour.values)
-                    fsa.generateFile(makeSqlFilename(e, dbf, tablename, "Table"), e.sqlEcOut(ec, tablename, dbf, doHistory))
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+        		if (prefs.doPostgresOut)
+                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory))
+        		if (prefs.doMsSQLServerOut)
+                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::MSSQLSERVER, doHistory))
+        		if (prefs.doOracleOut) {
+                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
+                	fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+              	}
             }
         }
     }
@@ -127,16 +138,23 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {
         var tablename = mkTablename(e, false) + suffix
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
+        if (prefs.doOracleOut)
+    	    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
+        if (prefs.doPostgresOut)
+	        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
     }
 
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
-        for (dbf: DatabaseFlavour.values)
-            fsa.generateFile(makeSqlFilename(e, dbf,   tablename, "Table"), e.sqlDdlOut(dbf, doHistory))
-        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+        if (prefs.doPostgresOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
+        if (prefs.doMsSQLServerOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory))
+        if (prefs.doOracleOut) {
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
+	        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+	    }
     }
 
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {

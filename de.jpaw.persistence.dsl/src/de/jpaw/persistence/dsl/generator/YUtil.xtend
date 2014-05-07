@@ -74,11 +74,11 @@ class YUtil {
     /** Returns the Entity in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
      * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
      */
-    def public static getBaseEntity(EObject ee) {
+    def public static EntityDefinition getBaseEntity(EObject ee) {
         var e = ee
         while (e != null) {
             if (e instanceof EntityDefinition)
-                return e as EntityDefinition
+                return e
             e = e.eContainer
         }
         if (ee == null)
@@ -192,7 +192,7 @@ class YUtil {
                 return null  // no default name, skip tablespace reference completely if not specified
             }
             // 2. have the pattern, apply substitution rules
-            return myPattern.replace("(category)", t.tableCategory.name)
+            return myPattern.replace("(category)", myCategory.name)
                             .replace("(entity)",   java2sql(t.name))
                             .replace("(prefix)",   myPackage.dbPrefix)
                             .replace("(owner)",    myPackage.schemaOwner)

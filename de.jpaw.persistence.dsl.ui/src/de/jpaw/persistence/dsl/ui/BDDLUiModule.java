@@ -11,6 +11,7 @@ import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
 
 import de.jpaw.bonaparte.dsl.ui.BonAntlrTokenToAttributeIdMapper;
 import de.jpaw.bonaparte.dsl.ui.Highlighter;
+//import de.jpaw.persistence.dsl.IBDDLPreferenceProvider;
 import de.jpaw.persistence.dsl.ui.help.BDDLEObjectDocumentationProvider;
 import de.jpaw.persistence.dsl.ui.help.BDDLEObjectHoverProvider;
 import de.jpaw.persistence.dsl.ui.scoping.BDDLGlobalScopeProvider;
@@ -23,6 +24,13 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
         super(plugin);
     }
 
+//	public Class<? extends IBDDLPreferenceProvider> bindPreferenceProvider() {
+//		System.out.println("BDDL config bound");
+//		return BDDLConfiguration.class;
+//	}
+    public Class<? extends org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage> bindLanguageRootPreferencePage() {
+        return BDDLConfiguration.class;
+    }
 	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
 		return Highlighter.class;
 	}

@@ -50,7 +50,7 @@
     <extension
             point="org.eclipse.ui.preferencePages">
         <page
-            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:de.jpaw.persistence.dsl.ui.BDDLConfiguration"
             id="de.jpaw.persistence.dsl.BDDL"
             name="BDDL">
             <keywordReference id="de.jpaw.persistence.dsl.ui.keyword_BDDL"/>
@@ -73,7 +73,7 @@
     <extension
             point="org.eclipse.ui.propertyPages">
         <page
-            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:de.jpaw.persistence.dsl.ui.BDDLConfiguration"
             id="de.jpaw.persistence.dsl.BDDL"
             name="BDDL">
             <keywordReference id="de.jpaw.persistence.dsl.ui.keyword_BDDL"/>

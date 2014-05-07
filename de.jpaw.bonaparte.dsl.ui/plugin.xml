@@ -50,7 +50,7 @@
     <extension
             point="org.eclipse.ui.preferencePages">
         <page
-            class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:de.jpaw.bonaparte.dsl.ui.BonScriptConfiguration"
             id="de.jpaw.bonaparte.dsl.BonScript"
             name="BonScript">
             <keywordReference id="de.jpaw.bonaparte.dsl.ui.keyword_BonScript"/>
@@ -73,7 +73,7 @@
     <extension
             point="org.eclipse.ui.propertyPages">
         <page
-            class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:de.jpaw.bonaparte.dsl.ui.BonScriptConfiguration"
             id="de.jpaw.bonaparte.dsl.BonScript"
             name="BonScript">
             <keywordReference id="de.jpaw.bonaparte.dsl.ui.keyword_BonScript"/>

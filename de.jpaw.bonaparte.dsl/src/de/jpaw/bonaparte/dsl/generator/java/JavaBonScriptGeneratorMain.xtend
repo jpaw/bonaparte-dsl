@@ -36,6 +36,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -123,7 +124,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
     // decision classes for the package level settings
     def private static getExternalizable(ClassDefinition d) {
-        val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: XExternalizable::EXT   // default to creation of externalization methods
+        val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: if (BonScriptPreferences.currentPrefs.defaultExternalize) XExternalizable::EXT else XExternalizable::NOEXT
         return t != null && t != XExternalizable::NOEXT
     }
     def private static getBeanValidation(ClassDefinition d) {
@@ -196,7 +197,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageComposer;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».ObjectValidationException;
-        import «bonaparteInterfacesPackage».StringConverter;
+        import «bonaparteInterfacesPackage».DataConverter;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
