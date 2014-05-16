@@ -101,16 +101,15 @@ class JavaDeserialize {
     def public static writeDeserialize(ClassDefinition d) '''
             @Override
             public <_E extends Exception> void deserialize(MessageParser<_E> p) throws _E {
-            //public void deserialize(MessageParser p) throws MessageParserException {
                 int _length;
-                // String embeddingObject = p.setCurrentClass(getPartiallyQualifiedClassName); // backup for the class name currently parsed
                 «IF d.extendsClass != null»
                     super.deserialize(p);
+                    p.eatParentSeparator();
                 «ENDIF»
                 p.setClassName(_PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
                     «IF (resolveElem(i.datatype) != null) && (resolveElem(i.datatype).enumType != null || resolveElem(i.datatype).xenumType != null)»
-                        try {  // for possible EnumExceptions
+                        try {  // for possible enum factory Exceptions
                     «ENDIF»
                     «IF i.isArray != null»
                         _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isArray.maxcount», 0);
@@ -172,8 +171,6 @@ class JavaDeserialize {
                          }
                     «ENDIF»
                 «ENDFOR»
-                p.eatParentSeparator();
-                // p.setCurrentClass(embeddingObject); // ignore result
             }
     '''
 

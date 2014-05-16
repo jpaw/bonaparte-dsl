@@ -70,6 +70,7 @@ class JavaSerialize {
             «IF d.extendsClass != null»
                 // recursive call of superclass first
                 super.serializeSub(w);
+                w.writeSuperclassSeparator();
             «ENDIF»
             «FOR i:d.fields»
                 «IF i.isAggregate»
@@ -100,7 +101,6 @@ class JavaSerialize {
                     «makeWrite2(d, i, indexedName(i))»
                 «ENDIF»
             «ENDFOR»
-            w.writeSuperclassSeparator();
         }
 
     '''
