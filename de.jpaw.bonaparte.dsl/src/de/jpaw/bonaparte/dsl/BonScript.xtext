@@ -74,6 +74,8 @@ enum XXmlAccess:
     NOXML = 'noXML' | NONE = 'NONE' | FIELD = 'FIELD' | PROPERTY = 'PROPERTY' | PUBLIC_MEMBER = 'PUBLIC_MEMBER'; // last two should be equivalent due to generated code
 enum XExternalizable:
     NOEXT = 'noExt' | EXT = 'Ext';
+enum XHazelcast:
+    NOHAZEL = 'noHazelcast' | DATA_SERIALIZABLE = 'DataSer' | IDENTIFIED_DATA_SERIALIZABLE = 'IdDataSer' | PORTABLE = 'Portable' | BOTH = 'IdDataSerAndPortable';
 enum XBeanValidation:
     NOBEAN_VAL = 'noBeanVal' | BEAN_VAL = 'BeanVal';
 enum XBeanNames:
@@ -95,6 +97,7 @@ AutoScale:           x = XAutoScale;
 
 XmlAccess:           x = XXmlAccess;
 Externalizable:      x = XExternalizable;
+Hazelcast:           x = XHazelcast;
 BeanValidation:      x = XBeanValidation;
 BeanNames:           x = XBeanNames;
 
@@ -121,9 +124,11 @@ PackageDefinition:
     'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable
+        (doHazelcast = Hazelcast)?								// decide if hazelcast support is added
         (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
         (doBeanNames = BeanNames)?                              // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
+        ('hazelcastId' hazelcastFactoryId = INT)?
     '{'  
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')? 
@@ -165,9 +170,11 @@ ClassDefinition:
      (noJava ?= 'nojava')?                              // suppress code generation (if only used for other purposes) 
     ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
+    (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added
     (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated
     (doBeanNames = BeanNames)?                          // create JavaBean compliant names, or plain firstUpperCase, or both (default)
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
+    ('hazelcastId' hazelcastId = INT)?
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
     ('orderedBy' orderedByList=ComparableFieldsList)?

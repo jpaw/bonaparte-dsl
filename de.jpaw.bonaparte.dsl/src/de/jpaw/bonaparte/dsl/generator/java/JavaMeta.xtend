@@ -149,6 +149,8 @@ class JavaMeta {
             static public Map<String,String> class$PropertyMap() {
                 return property$Map;
             }
+            @Override
+            @Deprecated
             public Map<String,String> get$PropertyMap() {
                 return property$Map;
             }
@@ -192,6 +194,8 @@ class JavaMeta {
                     return property$Map.containsKey(id);
                 «ENDIF»
             }
+            @Override
+            @Deprecated
             public String get$Property(String id) {
                 return class$Property(id);
             }
@@ -205,6 +209,7 @@ class JavaMeta {
             }
 
             @Override
+            @Deprecated
             public Class<? extends BonaPortable> get$returns() {
                 return class$returns();
             }
@@ -219,6 +224,7 @@ class JavaMeta {
             }
 
             @Override
+            @Deprecated
             public Class<? extends BonaPortable> get$pk() {
                 return class$pk();
             }
@@ -270,19 +276,56 @@ class JavaMeta {
             // must be repeated as a member method to make it available in the (extended) interface
             // feature of extended BonaPortable, not in the core interface
             @Override
+            @Deprecated
             public ClassDefinition get$MetaData() {
                 return my$MetaData;
             }
             @Override
+            @Deprecated
             public long get$Serial() {
                 return serialVersionUID;
             }
             @Override
+            @Deprecated
             public String get$Revision() {
                 return _REVISION;
             }
 
             «writeCommonMetaData»
+
+            // the metadata instance
+            public static enum Class implements BonaPortableClass<«d.name»> {
+                INSTANCE;
+
+                public static Class getInstance() {
+                    return INSTANCE;
+                }
+                
+                @Override
+                public «d.name» newInstance() {
+                    return new «d.name»;
+                }
+
+                @Override
+                public int getFactoryId() {
+                    return «d.effectiveFactoryId»;
+                }
+
+                @Override
+                public int getId() {
+                    «IF d.hazelcastId == 0»
+                        return MY_RTTI;        // reuse of the rtti
+                    «ELSE»
+                        return «d.hazelcastId»
+                    «ENDIF»
+                }
+            }
+            
+            @Override
+            public BonaPortableClass<«d.name»> get$BonaPortableClass() {
+                return Class.getInstance();
+            }
+            
         '''
     }
     
@@ -290,14 +333,17 @@ class JavaMeta {
     def static public writeCommonMetaData() '''
         // convenience functions for faster access if the metadata structure is not used
         @Override
+        @Deprecated
         public String get$PQON() {
             return _PARTIALLY_QUALIFIED_CLASS_NAME;
         }
         @Override
+        @Deprecated
         public String get$Parent() {
             return _PARENT;
         }
         @Override
+        @Deprecated
         public String get$Bundle() {
             return _BUNDLE;
         }

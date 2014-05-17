@@ -30,12 +30,12 @@ class JavaTreeWalker {
         «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem", 		true, DataCategory::NUMERIC)»
         «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference", 				false, DataCategory::OBJECT)»
         «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition", 				false, null)»
-        @Override
-        @Deprecated  // compatibility function
-        public void treeWalkString(DataConverter<String,AlphanumericElementaryDataItem> _cvt) {
-        	treeWalkString(_cvt, true);
-        }
     '''
+//        @Override
+//        @Deprecated  // compatibility function
+//        public void treeWalkString(DataConverter<String,AlphanumericElementaryDataItem> _cvt) {
+//        	treeWalkString(_cvt, true);
+//        }
     
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
         @Override

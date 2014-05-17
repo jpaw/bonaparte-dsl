@@ -35,6 +35,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
@@ -429,8 +430,8 @@ class XUtil {
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
         import de.jpaw.util.BigDecimalTools;
-        import org.joda.time.LocalDate;
-        import org.joda.time.LocalDateTime;
+        import «BonScriptPreferences.getDateTimePackage».LocalDate;
+        import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
     '''
     
     def public static enumForEnumOrXenum(DataTypeExtension ref) {
@@ -480,5 +481,12 @@ class XUtil {
     
     def public static boolean isFreezable(ClassDefinition cd) {
     	cd.isFreezable(100)
+    }
+    
+    def public static int getEffectiveFactoryId(ClassDefinition cd) {
+    	if (cd.hazelcastId == 0)
+    		return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
+    	else
+    		return cd.hazelcastId
     }
 }
