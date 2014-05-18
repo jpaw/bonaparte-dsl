@@ -294,16 +294,20 @@ class JavaMeta {
             «writeCommonMetaData»
 
             // the metadata instance
-            public static enum Class implements BonaPortableClass<«d.name»> {
+            public static enum BClass implements BonaPortableClass<«d.name»> {
                 INSTANCE;
 
-                public static Class getInstance() {
+                public static BClass getInstance() {
                     return INSTANCE;
                 }
                 
                 @Override
                 public «d.name» newInstance() {
-                    return new «d.name»;
+                    «IF d.abstract»
+                        throw new UnsupportedOperationException("«d.name» is abstract");
+                    «ELSE»
+                        return new «d.name»();
+                    «ENDIF»
                 }
 
                 @Override
@@ -319,11 +323,21 @@ class JavaMeta {
                         return «d.hazelcastId»
                     «ENDIF»
                 }
+                
+                @Override
+                public int getRtti() {
+                	return MY_RTTI;
+                }
+                
+                @Override
+                public String getPqon() {
+                	return _PARTIALLY_QUALIFIED_CLASS_NAME;
+                }
             }
             
             @Override
-            public BonaPortableClass<«d.name»> get$BonaPortableClass() {
-                return Class.getInstance();
+            public BonaPortableClass<? extends BonaPortable> get$BonaPortableClass() {
+                return BClass.getInstance();
             }
             
         '''
