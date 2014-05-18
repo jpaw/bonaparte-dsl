@@ -286,7 +286,6 @@ class JavaMeta {
                 return serialVersionUID;
             }
             @Override
-            @Deprecated
             public String get$Revision() {
                 return _REVISION;
             }
@@ -314,7 +313,6 @@ class JavaMeta {
                 public int getFactoryId() {
                     return «d.effectiveFactoryId»;
                 }
-
                 @Override
                 public int getId() {
                     «IF d.hazelcastId == 0»
@@ -323,16 +321,79 @@ class JavaMeta {
                         return «d.hazelcastId»
                     «ENDIF»
                 }
-                
                 @Override
                 public int getRtti() {
-                	return MY_RTTI;
+                    return MY_RTTI;
                 }
-                
                 @Override
                 public String getPqon() {
-                	return _PARTIALLY_QUALIFIED_CLASS_NAME;
+                    return _PARTIALLY_QUALIFIED_CLASS_NAME;
                 }
+                @Override
+                public boolean isFreezable() {
+                    return class$isFreezable();
+                }
+                @Override
+                public String getBundle() {
+                    return _BUNDLE;
+                }
+                @Override
+                public String getRevision() {
+                    return _REVISION;
+                }
+                @Override
+                public long getSerial() {
+                    return serialVersionUID;
+                }
+                @Override
+                public ClassDefinition getMetaData() {
+                    return my$MetaData;
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getParent() {
+                    «IF (d.extendsClass != null)»
+                        return «d.extendsClass.classRef.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getReturns() {
+                    «IF (d.returnsClassRef != null)»
+                        return «d.returnsClassRef.classRef.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getPrimaryKey() {
+                    «IF (d.pkClass != null)»
+                        return «d.pkClass.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public ImmutableMap<String,String> getPropertyMap() {
+                    return property$Map;
+                }
+                @Override
+                public String getClassProperty(String id) {
+                    return «d.name».class$Property(id);
+                }
+                @Override
+                public String getFieldProperty(String fieldname, String propertyname) {
+                    return «d.name».field$Property(fieldname, propertyname);
+                }
+                @Override
+                public boolean hasClassProperty(String id) {
+                    return «d.name».class$hasProperty(id);
+                }
+                @Override
+                public boolean hasFieldProperty(String fieldname, String propertyname) {
+                    return «d.name».field$hasProperty(fieldname, propertyname);
+                }
+
             }
             
             @Override
@@ -347,17 +408,14 @@ class JavaMeta {
     def static public writeCommonMetaData() '''
         // convenience functions for faster access if the metadata structure is not used
         @Override
-        @Deprecated
         public String get$PQON() {
             return _PARTIALLY_QUALIFIED_CLASS_NAME;
         }
         @Override
-        @Deprecated
         public String get$Parent() {
             return _PARENT;
         }
         @Override
-        @Deprecated
         public String get$Bundle() {
             return _BUNDLE;
         }
