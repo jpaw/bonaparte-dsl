@@ -114,6 +114,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.7.9:
 - BON: (a): generate treeWalkBigDecimal for scaling postwork
 
+1.7.10:
+- BDDL: (a) bugfix elementCollections
+
+1.7.11:
+- BON: (a) new feature: allow circular dependencies (IMPORTANT: changes serialization format slightly)
+
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
