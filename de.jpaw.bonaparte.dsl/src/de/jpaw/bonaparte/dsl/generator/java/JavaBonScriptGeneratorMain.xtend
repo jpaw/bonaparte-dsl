@@ -148,6 +148,25 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private void checkOrderedByList(ClassDefinition d) {
         
     }
+    
+    def private static intComparable(ClassDefinition d) {
+	    if (d.orderedByList != null)
+	    	''', Comparable<«d.name»>'''
+  	}
+    def private static intHazel(XHazelcast doHazel) {
+	    switch (doHazel) {
+            case NOHAZEL:
+            	null
+            case DATA_SERIALIZABLE:
+                ", DataSerializable"
+            case IDENTIFIED_DATA_SERIALIZABLE:
+                ", IdentifiedDataSerializable"
+            case PORTABLE:
+				", Portable"
+            case BOTH:					// does not make sense? 
+                ", Portable, IdentifiedDataSerializable"
+        }
+	}
 
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -228,7 +247,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortable«IF d.orderedByList != null», Comparable<«d.name»>«ENDIF»«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
+          implements BonaPortable«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaMeta::writeMetaData(d)»

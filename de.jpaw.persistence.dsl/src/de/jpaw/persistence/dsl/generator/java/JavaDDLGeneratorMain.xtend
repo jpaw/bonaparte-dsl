@@ -277,12 +277,12 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     
-    def public static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
-        (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
+    def private static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
+        (FieldDefinition, String, RequiredType) => CharSequence fieldOutput, EntityDefinition e) '''
         «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput)»
+            «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput, e)»
             «FOR c : cl.fields»
-                «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && (excludes == null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
+                «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL) || c.isInElementCollection(e)) && (excludes == null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
                     «c.writeFieldWithEmbeddedAndList(null, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
@@ -303,9 +303,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ENDFOR»
                 «ENDIF»
                 «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
-                    '''])»
+                    '''], e)»
                 «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
-                    '''])»
+                    '''], e)»
             }
             return this;
         }

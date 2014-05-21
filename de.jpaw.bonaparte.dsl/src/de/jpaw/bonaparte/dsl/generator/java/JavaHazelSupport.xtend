@@ -56,10 +56,10 @@ class JavaHazelSupport {
         }
     '''
     
-    def private static writeDataSerializable(ClassDefinition d) '''
+    def private static writeDataSerializable(ClassDefinition d, boolean recommendIdentifiable) '''
         @Override
         public void writeData(ObjectDataOutput _out) throws IOException { 
-            HazelcastComposer.serialize(this, _out);
+            HazelcastComposer.serialize(this, _out, «recommendIdentifiable»);
         }
         @Override
         public void readData(ObjectDataInput _in) throws IOException {
@@ -83,9 +83,9 @@ class JavaHazelSupport {
             case NOHAZEL:
             	null
             case DATA_SERIALIZABLE:
-                d.writeDataSerializable
+                d.writeDataSerializable(false)
             case IDENTIFIED_DATA_SERIALIZABLE: {
-                d.writeDataSerializable
+                d.writeDataSerializable(true)
                 d.writeHazelIds
             }
             case PORTABLE: {
@@ -93,7 +93,7 @@ class JavaHazelSupport {
                 d.writeHazelIds
             }
             case BOTH: {					// does not make sense? 
-                d.writeDataSerializable
+                d.writeDataSerializable(true)
 				d.writePortable           	
                 d.writeHazelIds
             }
