@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.persistence.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 1.7.11.qualifier
+Bundle-Version: 1.7.12.qualifier
 Bundle-SymbolicName: de.jpaw.persistence.dsl; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;visibility:=reexport,
@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.eclipse.emf.codegen.ecore;resolution:=optional,
  org.eclipse.emf.mwe.utils;resolution:=optional,
  org.eclipse.emf.mwe2.launch;resolution:=optional,
- de.jpaw.bonaparte.dsl;bundle-version="1.7.11",
+ de.jpaw.bonaparte.dsl;bundle-version="1.7.12",
  org.eclipse.xtext.util,
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
