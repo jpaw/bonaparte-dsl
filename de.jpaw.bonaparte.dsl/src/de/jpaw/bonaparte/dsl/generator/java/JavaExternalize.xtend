@@ -17,17 +17,28 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaExternalize {
-	// TODO: this isn't symmetrical (terminateObject without startObject, must be some bug... 
+    def public static writeExternalizeImports() '''
+        import java.io.Externalizable;
+        import java.io.IOException;
+        import java.io.ObjectInput;
+        import java.io.ObjectOutput;
+        import «bonaparteInterfacesPackage».ExternalizableConstants;
+        import «bonaparteInterfacesPackage».ExternalizableComposer;
+        import «bonaparteInterfacesPackage».ExternalizableParser;
+    '''
+    
     def public static writeExternalize(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {
-        	MessageComposer<IOException> _w = new ExternalizableComposer(_out);
-            serializeSub(_w);
-            _w.terminateObject(StaticMeta.OUTER_BONAPORTABLE, this);
+        	ExternalizableComposer.serialize(this, _out);
         }
-
+        @Override
+        public void readExternal(ObjectInput _in) throws IOException, ClassNotFoundException {
+        	ExternalizableParser.deserialize(this, _in);
+        }
+        
     '''
-
 }

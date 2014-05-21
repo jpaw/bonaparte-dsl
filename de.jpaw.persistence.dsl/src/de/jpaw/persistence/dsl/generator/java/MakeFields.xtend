@@ -303,6 +303,11 @@ class JavaFieldWriter {
             return "ERROR, array not allowed here"
     }
 
+	def private static nullableAnnotationPart(FieldDefinition f) {
+		if (f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull)
+			", nullable=false"
+	}
+	
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
         List<EmbeddableUse> embeddables) {
@@ -315,9 +320,49 @@ class JavaFieldWriter {
         return '''
             «IF relevantElementCollection != null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
+	            «IF relevantEmbeddable == null»
+	            	@Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
+	                «f.writeColumnType(myName)»
+    	            «f.writeGetter(myName)»
+        	        «f.writeSetter(myName)»
+	            «ELSE»
+	                «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
+	                // special getter to convert from embeddable entity type into DTO
+	                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() {
+	                    if («f.name» == null || «f.name».isEmpty())
+	                        return null;
+	                    «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
+	                    «IF f.isMap != null»
+	                        for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
+	                            _r.put(_i.getKey(), _i.getValue().get$Data());
+	                    «ELSE»
+	                        for («embName» _i : «f.name»)
+	                            _r.add(_i.get$Data());
+	                    «ENDIF»
+	                    return _r;
+	                }
+	                // special setter to convert from embeddable entity type into DTO
+	                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
+	                    «f.name».clear();
+	                    if (_d != null) {
+	                        «IF f.isMap != null»
+	                            for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
+	                                «embName» _ec = new «embName»();
+	                                _ec.set$Data(_i.getValue());
+	                                «f.name».put(_i.getKey(), _ec);
+	                            }
+	                        «ELSE»
+	                            for («f.JavaDataTypeNoName(true)» _i : _d) {
+	                                «embName» _ec = new «embName»();
+	                                _ec.set$Data(_i);
+	                                «f.name».add(_ec);
+	                            }
+	                        «ENDIF»
+	                    }
+	                }
+	            «ENDIF»
             «ELSE»
-                @Column(name="«myName.java2sql»"«IF f.isRequired && !f.isPartOfVariableLengthList &&
-                !f.isASpecialEnumWithEmptyStringAsNull», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
+                @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»«f.sizeSpec»«IF hasProperty(f.properties,
                 "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
                 «f.properties.optionalAnnotation("version", "@Version")»
                 «f.properties.optionalAnnotation("lob", "@Lob")»
@@ -325,43 +370,6 @@ class JavaFieldWriter {
                 «IF !f.isASpecialEnumWithEmptyStringAsNull»
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
                 «ENDIF»
-            «ENDIF»
-            «IF relevantElementCollection != null && f.aggregate && relevantEmbeddable != null»
-                «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
-                // special getter to convert from embeddable entity type into DTO
-                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() {
-                    if («f.name» == null || «f.name».isEmpty())
-                        return null;
-                    «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
-                    «IF f.isMap != null»
-                        for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
-                            _r.put(_i.getKey(), _i.getValue().get$Data());
-                    «ELSE»
-                        for («embName» _i : «f.name»)
-                            _r.add(_i.get$Data());
-                    «ENDIF»
-                    return _r;
-                }
-                // special setter to convert from embeddable entity type into DTO
-                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
-                    «f.name».clear();
-                    if (_d != null) {
-                        «IF f.isMap != null»
-                            for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
-                                «embName» _ec = new «embName»();
-                                _ec.set$Data(_i.getValue());
-                                «f.name».put(_i.getKey(), _ec);
-                            }
-                        «ELSE»
-                            for («f.JavaDataTypeNoName(true)» _i : _d) {
-                                «embName» _ec = new «embName»();
-                                _ec.set$Data(_i);
-                                «f.name».add(_ec);
-                            }
-                        «ENDIF»
-                    }
-                }
-            «ELSE»
                 «f.writeColumnType(myName)»
                 «f.writeGetter(myName)»
                 «f.writeSetter(myName)»

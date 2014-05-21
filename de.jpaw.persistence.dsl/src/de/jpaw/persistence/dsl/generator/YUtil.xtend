@@ -317,5 +317,17 @@ class YUtil {
         else
             PrimaryKeyType::NONE
     }
+    
+    // checks if the field f is an elementcollection for entity e
+    // this methods checks the definitions of the entity itself, as well as in any parent entity
+    def public static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
+    	var ee = e;
+    	while (ee != null) {
+    		if (ee.elementCollections != null && ee.elementCollections.exists[name == f])
+    			return true
+    		ee = e.^extends
+    	}
+    	return false
+    }
         
 }

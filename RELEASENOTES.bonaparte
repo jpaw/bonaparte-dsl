@@ -114,6 +114,52 @@ New features and bug fixes in Bonaparte / Persistence DSL
 1.7.9:
 - BON: (a): generate treeWalkBigDecimal for scaling postwork
 
+1.7.10:
+- BDDL: (a) bugfix elementCollections
+
+1.7.11:
+- BON: (a) new feature: allow circular dependencies (IMPORTANT: changes serialization format slightly)
+- BON: reintroduce different token OBJECT_TERMINATOR again, different from PARENT_SEPARATOR, to allow easier skipping of objects (improves compatibility for extended classes)
+
+1.7.12:
+- Xtext / Xtend: switch to 2.6.0 final release
+
+
+1.8.0:
+- all: switch to Java 1.8
+
+
+
+ROADMAP:
+2.0.0:
+- DSL: allow to generate for joda time or Java 8
+- start Hazelcast support: create static inner enum class for factory, add Id & factoryId
+
+2.0.1:
+- performance: check if performance gain by using factory class instead of reflection
+- performance improvements LocalDate/Time serializers
+- complete Hazelcast support
+
+2.0.2:
+- add new fast & compact binary serializer (FastComposer/FastParser) 
+  Goals:  fast, compact, portable, upgradeable (binary format)
+   (distinguish length encoded fields and implicit length fields)
+- pk class with Generics?
+- separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
+
+
+2.0.3:
+- remove support of Calendar data type
+- remove deprecated member functions which are now replaced by inner factory enum (& no backrefs) [switch to relative backrefs???]
+
+
+2.x:
+- cache serialized forms for frozen or immutable objects?
+
+
+2.0.1: New data types BigInteger, LocalTime
+
+
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
