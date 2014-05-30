@@ -318,7 +318,7 @@ class JavaMeta {
                     «IF d.hazelcastId == 0»
                         return MY_RTTI;        // reuse of the rtti
                     «ELSE»
-                        return «d.hazelcastId»
+                        return «d.hazelcastId»;
                     «ENDIF»
                 }
                 @Override

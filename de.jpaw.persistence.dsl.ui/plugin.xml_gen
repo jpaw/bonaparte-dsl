@@ -250,7 +250,9 @@
    <extension
          point="org.eclipse.xtext.builder.participant">
       <participant
-            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant">
+            class="de.jpaw.persistence.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+            fileExtensions="bddl"
+            >
       </participant>
    </extension>
    <extension

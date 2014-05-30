@@ -235,7 +235,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
 
         «IF (xmlAccess != null && !d.isAbstract)»
-           @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
+            @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.pkClass != null»
@@ -268,7 +268,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «IF doExt»
                 «JavaExternalize::writeExternalize(d)»
             «ENDIF»
-	        «JavaHazelSupport::writeHazelIO(d, doHazel)»
+            «JavaHazelSupport::writeHazelIO(d, doHazel)»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(d)»
 

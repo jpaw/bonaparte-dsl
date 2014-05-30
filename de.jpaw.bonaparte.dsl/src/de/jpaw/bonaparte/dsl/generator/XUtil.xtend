@@ -484,9 +484,10 @@ class XUtil {
     }
     
     def public static int getEffectiveFactoryId(ClassDefinition cd) {
-    	if (cd.hazelcastId == 0)
+    	val pkg = cd.getPackage
+    	if (pkg.hazelcastFactoryId == 0)
     		return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
     	else
-    		return cd.hazelcastId
+    		return pkg.hazelcastFactoryId
     }
 }

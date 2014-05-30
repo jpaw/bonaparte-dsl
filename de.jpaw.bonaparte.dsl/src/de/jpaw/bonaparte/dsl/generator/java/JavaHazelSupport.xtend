@@ -43,7 +43,7 @@ class JavaHazelSupport {
     
     def private static writeHazelIds(ClassDefinition d) '''
         @Override
-        public int getFactoryId() { 
+        public int getFactoryId() {
             return «d.effectiveFactoryId»;
         }
         @Override
@@ -51,7 +51,7 @@ class JavaHazelSupport {
             «IF d.hazelcastId == 0»
                 return MY_RTTI;        // reuse of the rtti
             «ELSE»
-                return «d.hazelcastId»
+                return «d.hazelcastId»;
             «ENDIF»
         }
     '''
@@ -81,22 +81,23 @@ class JavaHazelSupport {
     def public static writeHazelIO(ClassDefinition d, XHazelcast doHazel) {
         switch (doHazel) {
             case NOHAZEL:
-            	null
+                null
             case DATA_SERIALIZABLE:
                 d.writeDataSerializable(false)
-            case IDENTIFIED_DATA_SERIALIZABLE: {
-                d.writeDataSerializable(true)
-                d.writeHazelIds
-            }
-            case PORTABLE: {
-				d.writePortable           	
-                d.writeHazelIds
-            }
-            case BOTH: {					// does not make sense? 
-                d.writeDataSerializable(true)
-				d.writePortable           	
-                d.writeHazelIds
-            }
+            case IDENTIFIED_DATA_SERIALIZABLE: '''
+                «d.writeDataSerializable(true)»
+                «d.writeHazelIds»
+            '''
+            case PORTABLE: '''
+                «d.writePortable»
+                «d.writeHazelIds»
+            '''
+            case BOTH:                     // does not make sense?
+            ''' 
+                «d.writeDataSerializable(true)»
+                «d.writePortable»
+                «d.writeHazelIds»
+            '''
         }
     }
 }
