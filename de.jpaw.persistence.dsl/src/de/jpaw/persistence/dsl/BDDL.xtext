@@ -20,6 +20,7 @@ grammar de.jpaw.persistence.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
 generate bDDL "http://www.jpaw.de/persistence/dsl/BDDL"
 
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
 
 Model:
     includes        += IncludeDefinition*
@@ -66,7 +67,7 @@ GrantCategoryDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition] ('autoSetter' autoSetter=QualifiedId)? )?  
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition] ('autoSetter' entityListener=[jvmTypes::JvmGenericType|QualifiedId])? )?
     ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
@@ -120,13 +121,13 @@ EntityDefinition:
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
-        ('autoSetter' autoSetter=QualifiedId)?
+        ('autoSetter' entityListener=[jvmTypes::JvmGenericType|QualifiedId])?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
         (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?
-        ('implements' implementsInterface = QualifiedId )?
+        ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
     '{'
         ('fields' visibility=Visibility ';')?
         (cacheable ?= 'cacheable')?

@@ -16,29 +16,30 @@
 
 package de.jpaw.persistence.dsl.generator.java
 
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
-import de.jpaw.persistence.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.dsl.generator.Util
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
-import static extension de.jpaw.persistence.dsl.generator.YUtil.*
-import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
-import java.util.List
-import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
-import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship
-import java.util.ArrayList
-import de.jpaw.persistence.dsl.generator.RequiredType
+import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.bDDL.Inheritance
+import de.jpaw.persistence.dsl.bDDL.PackageDefinition
 import de.jpaw.persistence.dsl.generator.PrimaryKeyType
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.ArrayList
+import java.util.List
+import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -627,8 +628,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @KeyClass(«pkType0».class)
             «ENDIF»
             @Entity
-            «IF e.tableCategory.autoSetter != null || e.autoSetter != null»
-                @EntityListeners({«e.autoSetter ?: e.tableCategory.autoSetter».class})
+            «IF e.tableCategory.entityListener !== null || e.entityListener !== null»
+                @EntityListeners({«e.entityListener ?: e.tableCategory.entityListener.qualifiedName».class})
             «ENDIF»
             «IF e.cacheable»
                 @Cacheable(true)
@@ -657,7 +658,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
             @Deprecated
         «ENDIF»
-        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsInterface != null», «e.implementsInterface»«ENDIF»«ENDIF» {
+        public class «e.name»«IF e.extendsClass != null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava != null» extends «e.extendsJava»«ENDIF»«IF e.^extends != null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsJavaInterface != null», «e.implementsJavaInterface.qualifiedName»«ENDIF»«ENDIF» {
             «IF stopper == null && primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
 				«fieldWriter.buildEmbeddedId(e)»
             «ENDIF»

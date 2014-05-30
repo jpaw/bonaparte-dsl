@@ -134,6 +134,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - DSL: allow to generate for joda time or Java 8
 - start Hazelcast support: create static inner enum class for factory, add Id & factoryId
 - BON: improvement: perform validity check for referenced Java annotations and interfaces
+- BDDL: improvement: perform validity check for referenced Java annotations and interfaces
 
 
 ROADMAP:
