@@ -154,7 +154,7 @@ GenericsDef:
 
 ClassReference:
     (plainObject ?= 'Object') |
-    (=> genericsParameterRef = [GenericsDef|ID]) |
+    ('!' genericsParameterRef = [GenericsDef|ID]) |
     (classRef = [ClassDefinition|QualifiedId]
         ('<' classRefGenericParms += ClassReference (',' classRefGenericParms += ClassReference)* '>')?
     )
