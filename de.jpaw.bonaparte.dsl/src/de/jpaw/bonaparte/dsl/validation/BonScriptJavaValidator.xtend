@@ -43,6 +43,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -403,7 +404,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     def public void checkPropertyUse(PropertyUse pu) {
-        if (pu.getKey().getAnnotationName() == null)
+        if (pu.getKey().annotationReference == null)
             return; // no check for standard properties
         if (pu.getKey().isWithArg()) {
             if (pu.getValue() == null)
@@ -557,4 +558,12 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     	}
     }
    
+    @Check
+    def public void checkImplements(InterfaceListDefinition il) {
+    	if (il.ilist != null) {
+    		for (intrface : il.ilist)
+    			if (!intrface.isInterface)
+    				error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
+    	}
+    }
 }

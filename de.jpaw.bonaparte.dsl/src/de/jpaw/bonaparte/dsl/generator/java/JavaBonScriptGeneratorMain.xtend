@@ -142,7 +142,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }
 
     def private static interfaceOut(InterfaceListDefinition l) {
-        '''«IF l != null»«FOR i : l.list», «i»«ENDFOR»«ENDIF»'''
+        '''«IF l != null»«FOR i : l.ilist», «i.qualifiedName»«ENDFOR»«ENDIF»'''
     }
     
     def private void checkOrderedByList(ClassDefinition d) {
@@ -245,7 +245,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
+        «d.properties.filter[key.annotationReference != null].map['''@«key.annotationReference.qualifiedName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements BonaPortable«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;

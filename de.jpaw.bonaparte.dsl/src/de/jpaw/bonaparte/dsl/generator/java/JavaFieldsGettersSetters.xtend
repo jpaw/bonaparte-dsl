@@ -63,7 +63,7 @@ class JavaFieldsGettersSetters {
     '''
 
     def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
-        i.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
+        i.properties.filter[key.annotationReference != null].map['''@«key.annotationReference.qualifiedName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
     }
         
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {

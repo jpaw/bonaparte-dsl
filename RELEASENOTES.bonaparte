@@ -130,15 +130,18 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 
 
-ROADMAP:
 2.0.0:
 - DSL: allow to generate for joda time or Java 8
 - start Hazelcast support: create static inner enum class for factory, add Id & factoryId
+- BON: improvement: perform validity check for referenced Java annotations and interfaces
 
+
+ROADMAP:
 2.0.1:
 - performance: check if performance gain by using factory class instead of reflection
 - performance improvements LocalDate/Time serializers
 - complete Hazelcast support
+- New data types BigInteger, LocalTime
 
 2.0.2:
 - add new fast & compact binary serializer (FastComposer/FastParser) 
@@ -157,9 +160,10 @@ ROADMAP:
 - cache serialized forms for frozen or immutable objects?
 
 
-2.0.1: New data types BigInteger, LocalTime
 
 
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
+
+bug: referencing interfaces with bonaparte keywords (java.util.List) does not work, also not when using the caret as escaper. Must improve the value converter.

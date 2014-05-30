@@ -18,9 +18,10 @@ grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
 /* NEW: required for generics
 grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase // org.eclipse.xtext.common.Terminals
 
-import "http://www.eclipse.org/xtext/xbase/Xtype"        as xTypes
-import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes
- */
+import "http://www.eclipse.org/xtext/xbase/Xtype"        as xTypes */
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
+// used here are JvmAnnotationType and JvmGenericType
+
 generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
 
 Model:
@@ -140,7 +141,7 @@ PackageDefinition:
 ;
 
 PropertyDefinition:
-    name = ID ('is' annotationName=QualifiedId (withArg ?= '(' ')')? )?
+    name = ID ('is' annotationReference=[jvmTypes::JvmAnnotationType|QualifiedId] (withArg ?= '(' ')')? )?
 ;
 
 PropertyUse:
@@ -153,7 +154,7 @@ GenericsDef:
 
 ClassReference:
     (plainObject ?= 'Object') |
-    ('!' genericsParameterRef = [GenericsDef|ID]) |
+    (=> genericsParameterRef = [GenericsDef|ID]) |
     (classRef = [ClassDefinition|QualifiedId]
         ('<' classRefGenericParms += ClassReference (',' classRefGenericParms += ClassReference)* '>')?
     )
@@ -176,7 +177,7 @@ ClassDefinition:
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
     ('hazelcastId' hazelcastId = INT)?
     ('revision' revision = STRING)?
-    ('extends' extendsClass=ClassReference)?  // [ClassDefinition|QualifiedId])?     // TODO: extends generic reference: This is hard!
+    ('extends' extendsClass=ClassReference)?
     ('orderedBy' orderedByList=ComparableFieldsList)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     ('return' returnsClassRef = ClassReference)?
@@ -198,8 +199,8 @@ ComparableFieldsList:
 ;
 
 InterfaceListDefinition:
-    list += QualifiedId /*JvmParameterizedTypeReference*/
-    (',' list += QualifiedId)*  
+    ilist += [jvmTypes::JvmGenericType|QualifiedId] /*JvmParameterizedTypeReference*/
+    (',' ilist += [jvmTypes::JvmGenericType|QualifiedId])*  
 ;
 
 
