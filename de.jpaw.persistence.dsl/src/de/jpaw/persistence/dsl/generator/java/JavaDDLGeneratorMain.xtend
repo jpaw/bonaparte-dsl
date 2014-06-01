@@ -450,11 +450,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private static noDataMapper(EntityDefinition e) {
-        e.noMapper || (e.eContainer as PackageDefinition).noMapper || e.noDataKeyMapper
+        !e.doMapper && (e.noMapper || (e.eContainer as PackageDefinition).noMapper || e.noDataKeyMapper)
     }
 
     def private static noDataKeyMapper(EntityDefinition e) {
-        e.noKeyMapper || (e.eContainer as PackageDefinition).noKeyMapper
+        !e.doMapper && (e.noKeyMapper || (e.eContainer as PackageDefinition).noKeyMapper)
     }
     
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {

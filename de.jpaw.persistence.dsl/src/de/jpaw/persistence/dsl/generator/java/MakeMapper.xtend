@@ -26,60 +26,44 @@ import static de.jpaw.persistence.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class MakeMapper {
-	def private static simpleGetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
+    def private static simpleGetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
         «FOR i:pojo.fields»
-            «IF !hasProperty(i.properties, PROP_NOJAVA) && !hasProperty(i.properties, PROP_REF) &&!inList(fieldsToIgnore, i)»
-                «variable».set«i.name.toFirstUpper»(get«i.name.toFirstUpper»());
+            «IF !hasProperty(i.properties, PROP_NOJAVA) &&!inList(fieldsToIgnore, i)»
+                «IF !hasProperty(i.properties, PROP_REF)»
+                    «variable».set«i.name.toFirstUpper»(get«i.name.toFirstUpper»());
+                «ELSEIF hasProperty(i.properties, PROP_SIMPLEREF)»
+                    «variable».set«i.name.toFirstUpper»(new «i.JavaDataTypeNoName(true)»(get«i.name.toFirstUpper»()));
+                «ENDIF»
             «ENDIF»
         «ENDFOR»
-	'''
+    '''
     def private static CharSequence recurseDataGetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
-    	«IF cl.extendsClass?.classRef != null»
-    		«recurseDataGetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»
-    	«ENDIF»
-    	«simpleGetter("_r", cl, fieldsToIgnore)»
+        «IF cl.extendsClass?.classRef != null»
+            «recurseDataGetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»
+        «ENDIF»
+        «simpleGetter("_r", cl, fieldsToIgnore)»
     '''
-	def private static simpleSetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
+    def private static simpleSetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
         «FOR i:pojo.fields»
-            «IF !hasProperty(i.properties, PROP_NOJAVA) && !hasProperty(i.properties, PROP_REF) &&!inList(fieldsToIgnore, i)»
-                set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»());
+            «IF !hasProperty(i.properties, PROP_NOJAVA) && !inList(fieldsToIgnore, i)»
+                «IF !hasProperty(i.properties, PROP_REF)»
+                    set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»());
+                «ELSEIF hasProperty(i.properties, PROP_SIMPLEREF)»
+                    set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»().«i.properties.getProperty(PROP_SIMPLEREF)»);
+                «ENDIF»
             «ENDIF»
         «ENDFOR»
-	'''
-    def private static CharSequence recurseDataSetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
-    	«IF cl.extendsClass?.classRef != null»
-    		«recurseDataSetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»
-    	«ENDIF»
-    	«simpleSetter("_d", cl, fieldsToIgnore)»
     '''
-	
-	// methods are use for the classic get$Data / set$Data as well as get$Tracking / set$Tracking
-	// stopAt is currently not used!
-//    def private static CharSequence recurseDataGetter(ClassDefinition cl, List<EmbeddableUse> embeddables) {
-//        recurse(cl, null, true,
-//                [ !properties.hasProperty(PROP_NODDL) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
-//                embeddables,
-//                [ '''// auto-generated data getter for «name»
-//                  '''],
-//                [ fld, myName, req | '''_r.set«myName.toFirstUpper»(get«myName.toFirstUpper»());
-//                  ''']
-//        )
-//    }
-
-	// stopAt is currently not used!
-//    def private static CharSequence recurseDataSetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) {
-//        recurse(cl, null, true,
-//                [ (!inList(fieldsToIgnore, it)) && !properties.hasProperty(PROP_NOJAVA) && !properties.hasProperty(PROP_REF)],
-//                embeddables,
-//                [ '''// auto-generated data setter for «name»
-//                  '''],
-//                [ fld, myName, req | '''set«myName.toFirstUpper»(_d.get«myName.toFirstUpper»());
-//                  ''']
-//        )
-//    }
+    def private static CharSequence recurseDataSetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
+        «IF cl.extendsClass?.classRef != null»
+            «recurseDataSetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»
+        «ENDIF»
+        «simpleSetter("_d", cl, fieldsToIgnore)»
+    '''
+    
 
     def public static writeDataMapperMethods(ClassDefinition pojo, boolean isRootEntity, ClassDefinition rootPojo, List<EmbeddableUse> embeddables,
-    	List<FieldDefinition> fieldsNotToSet) '''
+        List<FieldDefinition> fieldsNotToSet) '''
         @Override
         public String get$DataPQON() {
             return "«getPartiallyQualifiedClassName(pojo)»";

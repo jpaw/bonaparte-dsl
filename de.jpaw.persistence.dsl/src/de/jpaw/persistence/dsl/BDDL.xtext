@@ -112,7 +112,7 @@ EmbeddableDefinition:
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper' | mappedSuperclass?='mappedSuperclass') ')')?
+    ('@Generator' '(' (doMapper?= 'doMapper' | noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper' | mappedSuperclass?='mappedSuperclass') ')')?
     (isAbstract?='abstract')?
     'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
