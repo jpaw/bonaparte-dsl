@@ -78,11 +78,12 @@
                     <artifactId>xtend-maven-plugin</artifactId>
                     <version>${xtend-version}</version>
                 </plugin>
+				<!--
                 <plugin>
                     <groupId>org.fornax.toolsupport</groupId>
                     <artifactId>fornax-oaw-m2-plugin</artifactId>
                     <version>${fornax-version}</version>
-                </plugin>
+                </plugin> -->
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-maven-plugin</artifactId>

@@ -48,7 +48,7 @@
 					</filesets>
 				</configuration>
 			</plugin>
-
+<!--
 			<plugin>
 				<groupId>org.fornax.toolsupport</groupId>
 				<artifactId>fornax-oaw-m2-plugin</artifactId>
@@ -74,6 +74,45 @@
 						</configuration>
 					</execution>
 				</executions>
+			</plugin> -->
+							<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<includeProjectDependencies>false</includeProjectDependencies>
+					<includePluginDependencies>true</includePluginDependencies>
+					<mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
+					<arguments>
+						<argument>${project.basedir}/src/de/jpaw/persistence/dsl/GenerateBDDL.mwe2</argument>
+						<argument>
+							-p
+						</argument>
+						<argument>
+							runtimeProject=${project.basedir}
+						</argument>
+					</arguments>
+				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>org.eclipse.xtext</groupId>
+						<artifactId>org.eclipse.xtext.xtext</artifactId>
+                    <version>${xtend-version}</version>
+					</dependency>
+					<dependency>
+						<groupId>org.eclipse.xtext</groupId>
+						<artifactId>org.eclipse.xtext.xbase</artifactId>
+                    <version>${xtend-version}</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 
 			<plugin>
