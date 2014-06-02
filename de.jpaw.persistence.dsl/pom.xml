@@ -92,12 +92,12 @@
 					<includePluginDependencies>true</includePluginDependencies>
 					<mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
 					<arguments>
-						<argument>${project.basedir}/src/de/jpaw/persistence/dsl/GenerateBDDL.mwe2</argument>
+						<argument>file://${project.basedir}/src/de/jpaw/persistence/dsl/GenerateBDDL.mwe2</argument>
 						<argument>
 							-p
 						</argument>
 						<argument>
-							runtimeProject=${project.basedir}
+							runtimeProject=/${project.basedir}
 						</argument>
 					</arguments>
 				</configuration>
