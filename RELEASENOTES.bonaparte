@@ -133,18 +133,25 @@ New features and bug fixes in Bonaparte / Persistence DSL
 2.0.0:
 - DSL: allow to generate for joda time or Java 8
 - start Hazelcast support: create static inner enum class for factory, add Id & factoryId
+- performance: check if performance gain by using factory class instead of reflection
+
+2.1.0:
 - BON: improvement: perform validity check for referenced Java annotations and interfaces
 - BDDL: improvement: perform validity check for referenced Java annotations and interfaces
+- BDDL: new option @Generator(doMapper) to override noMapper at package level
+- BDDL: new property simpleref to allow mapping in set$Data / get$Data for simple ref cases
 
-
-ROADMAP:
-2.0.1:
-- performance: check if performance gain by using factory class instead of reflection
-- performance improvements LocalDate/Time serializers
-- complete Hazelcast support
+2.2.0:
+- BON / BDDL: remove support for Calendar
 - New data types BigInteger, LocalTime
 
-2.0.2:
+ROADMAP:
+2.2.1:
+- performance improvements LocalDate/Time serializers
+- complete Hazelcast support
+- caching for hashCode() if the object has been frozen
+
+2.2.2:
 - add new fast & compact binary serializer (FastComposer/FastParser) 
   Goals:  fast, compact, portable, upgradeable (binary format)
    (distinguish length encoded fields and implicit length fields)
@@ -152,8 +159,7 @@ ROADMAP:
 - separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
 
 
-2.0.3:
-- remove support of Calendar data type
+2.2.3:
 - remove deprecated member functions which are now replaced by inner factory enum (& no backrefs) [switch to relative backrefs???]
 
 
