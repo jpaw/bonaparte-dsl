@@ -311,7 +311,7 @@ class JavaMeta {
 
                 @Override
                 public Class<«d.name»> getBonaPortableClass() {
-                    return new «d.name».class;
+                    return «d.name».class;
                 }
 
                 @Override
