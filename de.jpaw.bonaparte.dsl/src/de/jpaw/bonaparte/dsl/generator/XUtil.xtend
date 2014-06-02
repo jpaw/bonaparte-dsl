@@ -50,20 +50,20 @@ class XUtil {
 
     def public static ClassDefinition getRoot(ClassDefinition d) {
         var dd = d
-        while (dd.parent != null)
+        while (dd.parent !== null)
             dd = dd.parent
         return dd
     }
     def public static XEnumDefinition getRoot(XEnumDefinition d) {
         var dd = d
-        while (dd.extendsXenum != null)
+        while (dd.extendsXenum !== null)
             dd = dd.extendsXenum
         return dd
     }
 
     def public static PackageDefinition getPackageOrNull(EObject ee) {
         var e = ee
-        while (e != null) {
+        while (e !== null) {
             if (e.eIsProxy)
                 logger.warn("Is a proxy only: " + e.eClass.name)
             if (e instanceof PackageDefinition)
@@ -85,7 +85,7 @@ class XUtil {
      */
     def public static getPackage(EObject ee) {
         val e = ee.packageOrNull
-        if (e != null)
+        if (e !== null)
             return e
         throw new Exception("getPackage() called for " + (ee?.toString() ?: "NULL"))
     }
@@ -102,24 +102,24 @@ class XUtil {
         d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
     }
     def public static needsXmlObjectType(FieldDefinition f) {
-        if (f.datatype.objectDataType != null) {
+        if (f.datatype.objectDataType !== null) {
             f.datatype.objectDataType.needsXmlObjectType
         } else {
             val ref = DataTypeExtension::get(f.datatype)
-            ref != null && ref.elementaryDataType?.name == 'Object'
+            ref !== null && ref.elementaryDataType?.name == 'Object'
         }
     }
     def public static boolean needsXmlObjectType(ClassReference r) {
-        r.plainObject || (r.genericsParameterRef != null && r.genericsParameterRef.hasNoBound)
+        r.plainObject || (r.genericsParameterRef !== null && r.genericsParameterRef.hasNoBound)
     }
     def public static boolean hasNoBound(GenericsDef rd) {
-        rd.extends == null || rd.extends.needsXmlObjectType
+        rd.extends === null || rd.extends.needsXmlObjectType
     }
     // return null if the object is a generic BonaPortable, or the java type if it is bounded by a specific object
     def public static ClassDefinition getLowerBound(ClassReference r) {
-    	if (r == null || r.plainObject)
+    	if (r === null || r.plainObject)
     		return null;
-    	if (r.genericsParameterRef != null)
+    	if (r.genericsParameterRef !== null)
     		return getLowerBound(r.genericsParameterRef.extends);
     	return r.classRef
     }
@@ -129,7 +129,7 @@ class XUtil {
     // superClass may not be null
     def public static boolean isSuperClassOf(ClassDefinition superClass, ClassReference potentialSubClass) {
     	val currentLowerBound = potentialSubClass?.lowerBound
-    	if (currentLowerBound == null)
+    	if (currentLowerBound === null)
     		return false
     	if (superClass == currentLowerBound)
     		return true
@@ -139,9 +139,9 @@ class XUtil {
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
-        if (r.genericsParameterRef != null)
+        if (r.genericsParameterRef !== null)
             return r.genericsParameterRef.name
-        if (r.classRef != null)
+        if (r.classRef !== null)
             return r.classRef.name + genericArgs2String(r.classRefGenericParms)
 
         logger.error("*** FIXME: class reference with all null fields ***")
@@ -149,19 +149,19 @@ class XUtil {
     }
 
     def public static genericArgs2String(List<ClassReference> args) {
-        if (args == null)
+        if (args === null)
             return ""
         '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«genericRef2String(a)»«ENDFOR»'''
     }
 
     def public static genericDef2String(List<GenericsDef> args) {
-        if (args == null)
+        if (args === null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends != null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends !== null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''
     }
 
     def public static genericDef2StringAsParams(List<GenericsDef> args) {
-        if (args == null)
+        if (args === null)
             return ""
         '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«ENDFOR»'''
     }
@@ -185,17 +185,17 @@ class XUtil {
 
     // convert an Xtend boolean to Java source token
     def public static B2A(Boolean f) {
-    	if (f == null) return "null"
+    	if (f === null) return "null"
         if (f) "true" else "false"
     }
     
     // convert a String to Java source token, keeping nulls
     def public static s2A(String s) {
-        if (s == null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
+        if (s === null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
     }
 
     def public static indexedName(FieldDefinition i) {
-        if (i.isList != null || i.isSet != null) "_i" else if (i.isMap != null) "_i.getValue()" else if (i.isArray != null) i.name + "[_i]" else i.name
+        if (i.isList !== null || i.isSet !== null) "_i" else if (i.isMap !== null) "_i.getValue()" else if (i.isArray !== null) i.name + "[_i]" else i.name
     }
 
     def public static int mapIndexID(MapModifier i) {
@@ -218,26 +218,26 @@ class XUtil {
     }
 
     def public static loopStart(FieldDefinition i) '''
-        «IF i.isArray != null»
+        «IF i.isArray !== null»
             if («i.name» != null)
                 for (int _i = 0; _i < «i.name».length; ++_i)
-        «ELSEIF i.isList != null || i.isSet != null»
+        «ELSEIF i.isList !== null || i.isSet !== null»
             if («i.name» != null)
                 for («JavaDataTypeNoName(i, true)» _i : «i.name»)
-        «ELSEIF i.isMap != null»
+        «ELSEIF i.isMap !== null»
             if («i.name» != null)
                 for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet())
         «ENDIF»
         '''
 
     def public static loopMaxCount(FieldDefinition i) {
-        if (i.isArray != null)
+        if (i.isArray !== null)
             return i.isArray.maxcount
-        else if (i.isList != null)
+        else if (i.isList !== null)
             return i.isList.maxcount
-        else if (i.isSet != null)
+        else if (i.isSet !== null)
             return i.isSet.maxcount
-        else if (i.isMap != null)
+        else if (i.isMap !== null)
             return i.isMap.maxcount  // currently not yet supported
         return 0
     }
@@ -270,13 +270,13 @@ class XUtil {
     }
     
     def public static aggregateOf(FieldDefinition i, String dataClass) {
-         if (i.isArray != null)
+         if (i.isArray !== null)
             dataClass + "[]"
-        else if (i.isSet != null)
+        else if (i.isSet !== null)
             "Set<" + dataClass + ">"
-        else if (i.isList != null)
+        else if (i.isList !== null)
             "List<" + dataClass + ">"
-        else if (i.isMap != null)
+        else if (i.isMap !== null)
             "Map<" + i.isMap.indexType + "," + dataClass + ">"
         else
             dataClass
@@ -285,7 +285,7 @@ class XUtil {
     def public static JavaDataTypeNoName(FieldDefinition i, boolean skipIndex) {
         var String dataClass
         //fieldDebug(i)
-        if (resolveElem(i.datatype) != null)
+        if (resolveElem(i.datatype) !== null)
             dataClass = getJavaDataType(i.datatype)
         else {
             dataClass = DataTypeExtension::get(i.datatype).javaType
@@ -304,8 +304,8 @@ class XUtil {
 
     def public static boolean isRequired(FieldDefinition i) {
         var ref = DataTypeExtension::get(i.datatype)
-        if (ref.isRequired != null) {
-            if (i.required != null && i.required.x != null) {
+        if (ref.isRequired !== null) {
+            if (i.required !== null && i.required.x !== null) {
                 // both are defined. Check for consistency
                 if (ref.isRequired != i.required.x) {
                     // late plausi check:
@@ -317,7 +317,7 @@ class XUtil {
             return ref.isRequired == XRequired::REQUIRED
         }
         // now check if an explicit specification has been made
-		if (i.required != null)
+		if (i.required !== null)
             return i.required.x	== XRequired::REQUIRED
 			
         // neither ref.isRequired is set nor an explicit specification made.  Fall back to defaults of the embedding class or package
@@ -326,7 +326,7 @@ class XUtil {
         //if (i.name.equals("fields"))
         //    System::out.println("fields.required = " + i.required + ", defaultreq = " + ref.defaultRequired)
         // if we have an object, it is nullable by default, unless some explicit or
-        if (ref.defaultRequired != null)
+        if (ref.defaultRequired !== null)
             return ref.defaultRequired == XRequired::REQUIRED
         else
             return false  // no specification at all means optional
@@ -337,18 +337,18 @@ class XUtil {
     }
 
     def public static vlr(String text1, String l, String r, String otherwise) {
-        if (text1 != null) l + text1 + r else otherwise
+        if (text1 !== null) l + text1 + r else otherwise
     }
     def public static nvl(String text1, String otherwise) {
-        if (text1 != null) text1 else otherwise
+        if (text1 !== null) text1 else otherwise
     }
     def public static nnvl(String text1, String text2, String otherwise) {
-        if (text1 != null) text1 else if (text2 != null) text2 else otherwise
+        if (text1 !== null) text1 else if (text2 !== null) text2 else otherwise
     }
 
     // moved from persistence / YUtil:
     def public static boolean hasProperty(List <PropertyUse> properties, String key) {
-        if (properties != null)
+        if (properties !== null)
             for (p : properties)
                 if (key.equals(p.key.name))
                     return true
@@ -356,7 +356,7 @@ class XUtil {
     }
 
     def public static String getProperty(List <PropertyUse> properties, String key) {
-        if (properties != null)
+        if (properties !== null)
             for (p : properties)
                 if (key.equals(p.key.name))
                     return p.value
@@ -365,29 +365,29 @@ class XUtil {
 
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static boolean isAggregate(FieldDefinition c) {
-        return c.isArray != null || c.isList != null || c.isSet != null || c.isMap != null
+        return c.isArray !== null || c.isList !== null || c.isSet !== null || c.isMap !== null
     }
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static aggregateToken(FieldDefinition c) {
-        if (c.isArray != null)
+        if (c.isArray !== null)
             return "[]"
-        if (c.isList != null)
+        if (c.isList !== null)
             return "List"
-        if (c.isSet != null)
+        if (c.isSet !== null)
             return "Set"
-        if (c.isMap != null)
+        if (c.isMap !== null)
             return "Map"
         null       
     }
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static int aggregateMaxSize(FieldDefinition c) {
-        if (c.isArray != null)
+        if (c.isArray !== null)
             return c.isArray.maxcount
-        if (c.isList != null)
+        if (c.isList !== null)
             return c.isList.maxcount
-        if (c.isSet != null)
+        if (c.isSet !== null)
             return c.isSet.maxcount
-        if (c.isMap != null)
+        if (c.isMap !== null)
             return c.isMap.maxcount
         0        
     }
@@ -397,7 +397,7 @@ class XUtil {
     }
 
     def public static List<FieldDefinition> allFields(ClassDefinition cl) {
-        if (cl.extendsClass?.classRef == null)
+        if (cl.extendsClass?.classRef === null)
             return cl.fields;
         // at least 2 lists to combine
         val result = new ArrayList<FieldDefinition>(50)
@@ -412,8 +412,6 @@ class XUtil {
         import java.util.ArrayList;
         import java.util.regex.Pattern;
         import java.util.regex.Matcher;
-        import java.util.GregorianCalendar;
-        import java.util.Calendar;
         import java.util.UUID;
         import java.util.HashSet;
         import java.util.LinkedHashSet;
@@ -430,12 +428,13 @@ class XUtil {
         import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
         import de.jpaw.util.BigDecimalTools;
+        import «BonScriptPreferences.getDateTimePackage».LocalTime;
         import «BonScriptPreferences.getDateTimePackage».LocalDate;
         import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
     '''
     
     def public static enumForEnumOrXenum(DataTypeExtension ref) {
-    	if (ref.elementaryDataType?.xenumType != null)
+    	if (ref.elementaryDataType?.xenumType !== null)
     		ref.elementaryDataType?.xenumType.myEnum
         else 
             ref.elementaryDataType?.enumType
@@ -447,7 +446,7 @@ class XUtil {
         if (ref.enumMaxTokenLength < 0)
         	return false
        	val avalues = ref.enumForEnumOrXenum.avalues
-//        if (avalues == null)
+//        if (avalues === null)
 //        	return false
        	return avalues.map[token].contains("")
     }
@@ -464,7 +463,7 @@ class XUtil {
     def private static boolean isFreezable(ClassReference it, int remainingDepth) {
     	if (remainingDepth <= 0)
     		return true
-        classRef == null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
+        classRef === null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
     }
     
     def public static boolean isFreezable(ClassReference it) {
@@ -474,9 +473,9 @@ class XUtil {
     def private static boolean isFreezable(ClassDefinition cd, int remainingDepth) {
     	if (remainingDepth <= 0)
     		return true
-        !cd.unfreezable && (cd.parent == null || cd.parent.isFreezable(remainingDepth-1)) && 
-            !cd.fields.exists[isArray != null || (datatype.elementaryDataType != null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
-            !cd.genericParameters.exists[extends != null && !extends.isFreezable(remainingDepth-1)]
+        !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) && 
+            !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
+            !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
     }
     
     def public static boolean isFreezable(ClassDefinition cd) {

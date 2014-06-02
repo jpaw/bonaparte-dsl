@@ -142,6 +142,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: new property simpleref to allow mapping in set$Data / get$Data for simple ref cases
 
 2.2.0:
+- new method in BonaPortableClass to return the class of the corresponding BonaPortable
 - BON / BDDL: remove support for Calendar
 - New data types BigInteger, LocalTime
 - back to Java 1.7 for compatibility

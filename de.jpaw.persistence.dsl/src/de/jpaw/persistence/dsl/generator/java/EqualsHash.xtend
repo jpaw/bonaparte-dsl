@@ -32,7 +32,7 @@ class EqualsHash {
         case "BonaPortable":        '''Arrays.equals(«index», that.«index»)''' // mapped to byte []
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
         case "ByteArray":           '''Arrays.equals(«index», that.«index»)''' // '''«index».contentEquals(that.«index»)''' is mapped to byte[]
-        case "Calendar":            '''«index».compareTo(that.«index») == 0'''
+        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''
         case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // is mapped to calendar
         default:                    '''«index».equals(that.«index»)'''
@@ -54,7 +54,7 @@ class EqualsHash {
     '''
 
     def private static hashSub33(FieldDefinition i) '''
-        «IF i.isList != null && i.properties.hasProperty(PROP_UNROLL)»
+        «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
             «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n+ ')»
         «ELSE»
             («i.name» == null ? 0 : «i.name».hashCode())
@@ -63,7 +63,7 @@ class EqualsHash {
     
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
-            if (i.isArray != null)
+            if (i.isArray !== null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
             else if (i.aggregate)  // List, Map, Set
                 return i.hashSub33
@@ -79,13 +79,13 @@ class EqualsHash {
                 }
             }
         } else {
-            if (i.isArray != null)
+            if (i.isArray !== null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
             else if (i.aggregate)  // List, Map, Set
                 return i.hashSub33
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType != null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
+                if (ref.javaType !== null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
                     // special treatment required, again!
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
                 else
@@ -95,14 +95,14 @@ class EqualsHash {
     }
 
     def private static writeHashSub2(List<FieldDefinition> l) '''
-        «IF l != null»
+        «IF l !== null»
             «FOR i:l»
                 _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
             «ENDFOR»
         «ENDIF»
     '''
     def private static CharSequence writeHashSub(ClassDefinition d) '''
-        «IF d.extendsClass != null»
+        «IF d.extendsClass !== null»
             «writeHashSub(d.extendsClass.classRef)»
         «ENDIF»
         «writeHashSub2(d.fields)»
@@ -111,7 +111,7 @@ class EqualsHash {
         @Override
         public int hashCode() {
             int _hash = 997;
-            «IF d != null»
+            «IF d !== null»
                 «writeHashSub(d)»
             «ENDIF»
             «writeHashSub2(l)»
@@ -122,10 +122,10 @@ class EqualsHash {
 
     def private static writeEqualsSub(List<FieldDefinition> l) '''
         «FOR i: l»
-            «IF i.isArray != null»
+            «IF i.isArray !== null»
                 && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
             «ELSEIF i.aggregate»
-                «IF i.isList != null && i.properties.hasProperty(PROP_UNROLL)»
+                «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
                     «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''&& ((«it» == null && that.«it» == null) || («it» != null && «it».equals(that)))'''].join('\n')»
                 «ELSE»
                     && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && «i.name».equals(that)))
@@ -148,12 +148,12 @@ class EqualsHash {
             return equalsSub(_that);
         }
 
-        «IF e.extendsClass != null»
+        «IF e.extendsClass !== null»
         @Override
         «ENDIF»
         protected boolean equalsSub(Object _that) {
             «e.name» that = («e.name»)_that;
-            «IF e.extendsClass != null»
+            «IF e.extendsClass !== null»
                 return super.equalsSub(_that)
             «ELSE»
                 return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fiels as well

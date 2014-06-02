@@ -20,10 +20,10 @@ class Generics {
         var ClassDefinition superClass = XUtil::getParent(d)
         parent = myParent
         // System::out.println("new generics created for " + d.name + " START");
-        if (superClass != null) {
+        if (superClass !== null) {
             var args = superClass.genericParameters     // the symbolic names of the generics parameters in the superclass
             var argValues = d.extendsClass.classRefGenericParms
-            if (argValues != null && args != null && !argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
+            if (argValues !== null && args !== null && !argValues.empty && !args.empty) {  // actual values supplied, hope both are of same cardinality
                 // get the names to be substituted
                 for (int i : 0 .. args.size-1)
                     current.put(args.get(i).name, XUtil::genericRef2String(argValues.get(i)))
@@ -40,7 +40,7 @@ class Generics {
             worker = worker.replaceAll(WORD_BOUNDARY + e.key + WORD_BOUNDARY, e.value)
         }
         // System::out.println("replaced to <" + worker + ">");
-        if (parent != null)
+        if (parent !== null)
             return parent.replace(worker)
         return worker
     }

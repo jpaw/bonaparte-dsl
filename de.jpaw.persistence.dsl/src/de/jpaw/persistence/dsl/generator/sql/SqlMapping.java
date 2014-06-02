@@ -25,8 +25,6 @@ import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
-import de.jpaw.persistence.dsl.generator.YUtil;
-
 // mapping of database vendor specific information
 
 public class SqlMapping {
@@ -53,7 +51,7 @@ public class SqlMapping {
         dataTypeSqlOracle.put("raw",       "raw(#length)");                 // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlOracle.put("day",       "date");                         // Oracle has no day without a time field
         dataTypeSqlOracle.put("timestamp", "timestamp(#length)");           // timestamp(0) should become DATE
-        dataTypeSqlOracle.put("calendar",  "timestamp(#length)");           // timestamp(0) should become DATE
+        dataTypeSqlOracle.put("time",      "timestamp(#length)");           // timestamp(0) should become DATE
 
         dataTypeSqlOracle.put("uppercase", "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
         dataTypeSqlOracle.put("lowercase", "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
@@ -83,7 +81,7 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("raw",       "bytea");
         dataTypeSqlPostgres.put("day",       "date");
         dataTypeSqlPostgres.put("timestamp", "timestamp(#length)");
-        dataTypeSqlPostgres.put("calendar",  "timestamp(#length)");
+        dataTypeSqlPostgres.put("time",      "time(#length)");
 
         dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
         dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
@@ -113,7 +111,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("raw",       "varbinary(#length)");
         dataTypeSqlMsSQLServer.put("day",       "date");
         dataTypeSqlMsSQLServer.put("timestamp", "datetime2(#length)");
-        dataTypeSqlMsSQLServer.put("calendar",  "datetime2(#length)");
+        dataTypeSqlMsSQLServer.put("time",      "datetime2(#length)");
 
         dataTypeSqlMsSQLServer.put("uppercase", "varchar(#length)");
         dataTypeSqlMsSQLServer.put("lowercase", "varchar(#length)");

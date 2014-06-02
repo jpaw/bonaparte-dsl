@@ -50,7 +50,7 @@ class SqlViewOut {
 
     // TODO: lower part to be fixed to allow embeddables in joined parts
     def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level, Delimiter d) '''
-        «IF e.extends == null || !e.usesJoinInheritance»
+        «IF e.extends === null || !e.usesJoinInheritance»
             «IF includeTracking»
                 «createColumns(e.tableCategory.trackingColumns, "t" + level, d, e)»
             «ENDIF»
@@ -66,19 +66,19 @@ class SqlViewOut {
     '''
 
     def private static boolean usesJoinInheritance(EntityDefinition e) {
-        if (e.xinheritance != null && e.xinheritance == Inheritance::JOIN)
+        if (e.xinheritance !== null && e.xinheritance == Inheritance::JOIN)
             return true
-        return (e.extends != null) && e.extends.usesJoinInheritance
+        return (e.extends !== null) && e.extends.usesJoinInheritance
     }
     
     def private static CharSequence joinedTables(EntityDefinition e, int level) {
-        if (e.extends == null || !e.usesJoinInheritance)
+        if (e.extends === null || !e.usesJoinInheritance)
             return ''''''
         return ''', «mkTablename(e.extends, false)» t«level+1»«joinedTables(e.extends, level+1)»'''
     }
     
     def private static CharSequence joinConditions(EntityDefinition e, int level) {
-        if (e.extends == null || !e.usesJoinInheritance)
+        if (e.extends === null || !e.usesJoinInheritance)
             return ''''''
         return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.objectRef = t«level+1».objectRef«joinConditions(e.extends, level+1)»'''
     }

@@ -34,7 +34,7 @@ class JavaFieldsGettersSetters {
         if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
             return ''''''
             
-        if (i.defaultString == null) {
+        if (i.defaultString === null) {
             // check for enum defaults, these use a different mechanism.
             if (ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
                 switch (ref.enumMaxTokenLength) {
@@ -54,16 +54,16 @@ class JavaFieldsGettersSetters {
 
     // output regular as well as Javadoc style comments
     def public static writeFieldComments(FieldDefinition i) '''
-        «IF i.comment != null»
+        «IF i.comment !== null»
             // «i.comment» !
         «ENDIF»
-        «IF i.javadoc != null»
+        «IF i.javadoc !== null»
             «i.javadoc»
         «ENDIF»
     '''
 
     def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
-        i.properties.filter[key.annotationReference != null].map['''@«key.annotationReference.qualifiedName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
+        i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
     }
         
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
@@ -83,7 +83,7 @@ class JavaFieldsGettersSetters {
         '''
     }
 
-    // TODO: Setters might need to check string max length, and also clone for (Gregorian)Calendar and byte arrays?
+    // TODO: Setters might need to check string max length, and also clone for byte arrays?
     def public static writeFields(ClassDefinition d, boolean doBeanVal) '''
         // fields as defined in DSL
         «FOR i:d.fields»
@@ -105,7 +105,7 @@ class JavaFieldsGettersSetters {
         public «JavaDataTypeNoName(i, false)» «getterName»() {
             return «i.name»;
         }
-        «IF i.isArray != null»
+        «IF i.isArray !== null»
             public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
                 return «i.name»[_i];
             }
@@ -122,7 +122,7 @@ class JavaFieldsGettersSetters {
             «ENDIF»
             this.«i.name» = «i.name»;
         }
-        «IF i.isArray != null»
+        «IF i.isArray !== null»
             public void «setterName»(int _i, «JavaDataTypeNoName(i, true)» «i.name») {
                 this.«i.name»[_i] = «i.name»;
             }
@@ -130,7 +130,7 @@ class JavaFieldsGettersSetters {
         «IF ref.category == DataCategory.XENUM»
             «IF !i.aggregate»
                 «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
-             «ELSEIF i.isArray != null»
+             «ELSEIF i.isArray !== null»
                 public void «setterName»(int _index, Enum<?> «i.name») {
                     this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
                 }
@@ -143,11 +143,11 @@ class JavaFieldsGettersSetters {
 //        «IF ref.category == DataCategory.XENUM»
 //            «IF !i.aggregate»
 //                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
-//             «ELSEIF i.isList != null»
+//             «ELSEIF i.isList !== null»
 //                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "List<Enum<?>>")»
-//             «ELSEIF i.isSet != null»
+//             «ELSEIF i.isSet !== null»
 //                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Set<Enum<?>>")»
-//             «ELSEIF i.isArray != null»
+//             «ELSEIF i.isArray !== null»
 //                «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>[]")»
 //                public void «setterName»(int _index, Enum<?> «i.name») {
 //                    this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
@@ -179,7 +179,7 @@ class JavaFieldsGettersSetters {
             «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
                 «i.writeOneGetter(d, "get" + i.name.beanName)»
             «ENDIF»
-            «IF i.getter != null»
+            «IF i.getter !== null»
                 «i.writeOneGetter(d, i.getter)»
             «ENDIF»
             «IF !isImmutable(d)»
@@ -189,7 +189,7 @@ class JavaFieldsGettersSetters {
                 «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
                     «i.writeOneSetter("set" + i.name.beanName, isFreezable)»
                 «ENDIF»
-                «IF i.setter != null»
+                «IF i.setter !== null»
                     «i.writeOneSetter(i.setter, isFreezable)»
                 «ENDIF»
             «ENDIF»

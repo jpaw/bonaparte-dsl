@@ -24,8 +24,6 @@ import org.apache.log4j.Logger
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import java.util.List
 import de.jpaw.bonaparte.dsl.generator.Delimiter
-import de.jpaw.persistence.dsl.generator.YUtil
-import org.eclipse.xtext.generator.builder.BuilderIntegrationFragment
 import de.jpaw.persistence.dsl.generator.RequiredType
 
 class SqlColumns {
@@ -43,7 +41,7 @@ class SqlColumns {
             SqlMapping::getCurrentTimestamp(databaseFlavour)
         else if (hasProperty(c.properties, PROP_SQL_DEFAULT))
             SqlMapping::getDefault(c, databaseFlavour, c.properties.getProperty(PROP_SQL_DEFAULT))
-        else if (c.defaultString != null)
+        else if (c.defaultString !== null)
             SqlMapping::getDefault(c, databaseFlavour, c.defaultString)
         else
             ""

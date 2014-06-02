@@ -34,15 +34,15 @@ import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 
 class JavaFieldWriter {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
-    val static final String CALENDAR = "Calendar";
+    val static final String JDBC4TYPE = "Date";  // choose Calendar or Date
     final boolean useUserTypes;
     final String fieldVisibility;
 
     def private static String makeVisibility(Visibility v) {
         var XVisibility fieldScope
-        if (v != null && v.x != null)
+        if (v !== null && v.x !== null)
             fieldScope = v.x
-        if (fieldScope == null || fieldScope == XVisibility::DEFAULT)
+        if (fieldScope === null || fieldScope == XVisibility::DEFAULT)
             ""
         else
             fieldScope.toString() + " "
@@ -50,7 +50,7 @@ class JavaFieldWriter {
 
     def public static final defineVisibility(EntityDefinition e) {
         val myPackage = e.eContainer as PackageDefinition
-        return makeVisibility(if(e.visibility != null) e.visibility else myPackage.visibility)
+        return makeVisibility(if(e.visibility !== null) e.visibility else myPackage.visibility)
     }
 
     new(EntityDefinition e) {
@@ -67,13 +67,13 @@ class JavaFieldWriter {
     def private static JavaDataType2NoName(FieldDefinition i, boolean skipIndex, String dataClass) {
         if (skipIndex || i.properties.hasProperty(PROP_UNROLL))
             dataClass
-        else if (i.isArray != null)
+        else if (i.isArray !== null)
             dataClass + "[]"
-        else if (i.isSet != null)
+        else if (i.isSet !== null)
             "Set<" + dataClass + ">"
-        else if (i.isList != null)
+        else if (i.isList !== null)
             "List<" + dataClass + ">"
-        else if (i.isMap != null)
+        else if (i.isMap !== null)
             "Map<" + i.isMap.indexType + "," + dataClass + ">"
         else
             dataClass
@@ -93,7 +93,7 @@ class JavaFieldWriter {
 
     def private writeColumnType(FieldDefinition c, String myName) {
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
-        if (ref.objectDataType != null) {
+        if (ref.objectDataType !== null) {
             if (c.properties.hasProperty(PROP_SERIALIZED)) {
 
                 // use byte[] Java type and assume same as Object
@@ -110,10 +110,10 @@ class JavaFieldWriter {
                 // child object, create single-sided many to one annotations as well
                 val params = c.properties.getProperty("ManyToOne")
                 return '''
-                @ManyToOne«IF params != null»(«params»)«ENDIF»
-                «IF c.properties.getProperty("JoinColumn") != null»
+                @ManyToOne«IF params !== null»(«params»)«ENDIF»
+                «IF c.properties.getProperty("JoinColumn") !== null»
                     @JoinColumn(«c.properties.getProperty("JoinColumn")»)
-                «ELSEIF c.properties.getProperty("JoinColumnRO") != null»
+                «ELSEIF c.properties.getProperty("JoinColumnRO") !== null»
                     @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
                 «ENDIF»
                 «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
@@ -122,20 +122,21 @@ class JavaFieldWriter {
         switch (ref.enumMaxTokenLength) {
             case DataTypeExtension::NO_ENUM:
                 switch (ref.javaType) {
-                    case "Calendar":
-                        writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
-                    case "DateTime":
-                        writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+                    case "LocalTime":
+                        if (useUserTypes)
+                            writeField(c, ref.javaType, myName, "")
+                        else
+                            writeTemporalFieldAndAnnotation(c, "TIME", JDBC4TYPE, myName)
                     case "LocalDateTime":
                         if (useUserTypes)
                             writeField(c, ref.javaType, myName, "")
                         else
-                            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", CALENDAR, myName)
+                            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", JDBC4TYPE, myName)
                     case "LocalDate":
                         if (useUserTypes)
                             writeField(c, ref.javaType, myName, "")
                         else
-                            writeTemporalFieldAndAnnotation(c, "DATE", CALENDAR, myName)
+                            writeTemporalFieldAndAnnotation(c, "DATE", JDBC4TYPE, myName)
                     case "ByteArray":
                         writeField(c, if(useUserTypes) "ByteArray" else "byte []", myName, "")
                     case JAVA_OBJECT_TYPE: '''
@@ -171,7 +172,7 @@ class JavaFieldWriter {
         val ref = DataTypeExtension::get(c.datatype);
         if (ref.category == DataCategory::STRING)
             return ''', length=«ref.elementaryDataType.length»'''
-        if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
+        if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         return ''''''
     }
@@ -179,12 +180,12 @@ class JavaFieldWriter {
     // return true, if this is a list with lower number of elements strictly less than the upper bound.
     // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null
     def private static isPartOfVariableLengthList(FieldDefinition c) {
-        c.isList != null && c.isList.mincount < c.isList.maxcount
+        c.isList !== null && c.isList.mincount < c.isList.maxcount
     }
 
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
-        if (ref.objectDataType != null) {
+        if (ref.objectDataType !== null) {
             if (i.properties.hasProperty(PROP_REF))
                 return "Long"
         }
@@ -197,22 +198,24 @@ class JavaFieldWriter {
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
-                (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
+                (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null)
                         return null;
                     try {
                         ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
-                        return «IF ref.objectDataType != null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType != null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                        return «IF ref.objectDataType !== null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType !== null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                     } catch (MessageParserException _e) {
                         throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + _e.getSpecificDescription());
                     }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
+                    «ELSEIF ref.javaType.equals("LocalTime")»
+                        return «myName»«IF !useUserTypes» == null ? null : LocalTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «myName»«IF !useUserTypes» == null ? null : LocalDate.fromCalendarFields(«myName»)«ENDIF»;
+                        return «myName»«IF !useUserTypes» == null ? null : LocalDate.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «myName»«IF !useUserTypes» == null ? null : LocalDateTime.fromCalendarFields(«myName»)«ENDIF»;
+                        return «myName»«IF !useUserTypes» == null ? null : LocalDateTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
                         return «myName»«IF !useUserTypes» == null ? null : new ByteArray(«myName», 0, -1)«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
@@ -242,7 +245,7 @@ class JavaFieldWriter {
         return '''
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
-                (ref.objectDataType != null && hasProperty(i.properties, PROP_SERIALIZED))»
+                (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null) {
                         this.«myName» = null;
                     } else {
@@ -253,8 +256,8 @@ class JavaFieldWriter {
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         this.«myName» = «myName»;
-                    «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")»
-                        this.«myName» = «IF useUserTypes»«myName»«ELSE»DayTime.toGregorianCalendar(«myName»)«ENDIF»;
+                    «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime") || ref.javaType.equals("LocalTime")»
+                        this.«myName» = «IF useUserTypes»«myName»«ELSE»DayTime.to«JDBC4TYPE»(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
                         this.«myName» = «IF useUserTypes»«myName»«ELSE»«myName» == null ? null : «myName».getBytes()«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
@@ -293,11 +296,11 @@ class JavaFieldWriter {
 
     def private static getInitializer(FieldDefinition f, String name, String initialLength) {
         val past = f.aggregateOf(name) + initialLength
-        if (f.isList != null)
+        if (f.isList !== null)
             return "Array" + past
-        else if (f.isSet != null)
+        else if (f.isSet !== null)
             return "LinkedHash" + past // LinkedHashSet preferred over HashSet due to certain ordering guarantee
-        else if (f.isMap != null)
+        else if (f.isMap !== null)
             return "Hash" + past
         else
             return "ERROR, array not allowed here"
@@ -318,9 +321,9 @@ class JavaFieldWriter {
         // val ref = DataTypeExtension::get(f.datatype);
 
         return '''
-            «IF relevantElementCollection != null && f.aggregate»
+            «IF relevantElementCollection !== null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
-	            «IF relevantEmbeddable == null»
+	            «IF relevantEmbeddable === null»
 	            	@Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
 	                «f.writeColumnType(myName)»
     	            «f.writeGetter(myName)»
@@ -332,7 +335,7 @@ class JavaFieldWriter {
 	                    if («f.name» == null || «f.name».isEmpty())
 	                        return null;
 	                    «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
-	                    «IF f.isMap != null»
+	                    «IF f.isMap !== null»
 	                        for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
 	                            _r.put(_i.getKey(), _i.getValue().get$Data());
 	                    «ELSE»
@@ -345,7 +348,7 @@ class JavaFieldWriter {
 	                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
 	                    «f.name».clear();
 	                    if (_d != null) {
-	                        «IF f.isMap != null»
+	                        «IF f.isMap !== null»
 	                            for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
 	                                «embName» _ec = new «embName»();
 	                                _ec.set$Data(_i.getValue());

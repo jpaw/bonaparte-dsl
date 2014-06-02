@@ -48,13 +48,13 @@ class JavaMeta {
         var String ext = ""  // category specific data
         var String extraItem = null  // category specific data
 
-        if (i.isArray != null)
+        if (i.isArray !== null)
             multi = "Multiplicity.ARRAY, 0, " + i.isArray.mincount + ", " + i.isArray.maxcount
-        else if (i.isList != null)
+        else if (i.isList !== null)
             multi = "Multiplicity.LIST, 0, " + i.isList.mincount + ", " + i.isList.maxcount
-        else if (i.isSet != null)
+        else if (i.isSet !== null)
             multi = "Multiplicity.SET, 0, " + i.isSet.mincount + ", " + i.isSet.maxcount
-        else if (i.isMap != null)
+        else if (i.isMap !== null)
             multi = "Multiplicity.MAP, " + mapIndexID(i.isMap) + ", " + i.isMap.mincount + ", " + i.isMap.maxcount
         else
             multi = "Multiplicity.SCALAR, 0, 0, 0"
@@ -103,14 +103,14 @@ class JavaMeta {
             }
         case DataCategory::OBJECT: {
             classname = "ObjectReference"
-            if (elem != null) {
+            if (elem !== null) {
                  // just "Object
                 ext = ''', true, "BonaPortable", null, null, null'''
             } else {
                 val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
-                val meta = if (myLowerBound == null) "null" else '''«myLowerBound.name».class$MetaData()'''
+                val meta = if (myLowerBound === null) "null" else '''«myLowerBound.name».class$MetaData()'''
                 val myLowerBound2 = ref.secondaryObjectDataType
-                val meta2 = if (myLowerBound2 == null) "null" else '''«myLowerBound2.name».class$MetaData()'''
+                val meta2 = if (myLowerBound2 === null) "null" else '''«myLowerBound2.name».class$MetaData()'''
                 ext = ''', «b2A(ref.orSuperClass)», "«ref.javaType»", «meta», «meta2», «B2A(ref.orSecondarySuperClass)»'''
             }
         }
@@ -132,16 +132,16 @@ class JavaMeta {
 
     def public static writeMetaData(ClassDefinition d) {
         var myPackage = getPackage(d)
-        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent != null
+        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
         return '''
             // property map
             private static final ImmutableMap<String,String> property$Map = new ImmutableMap.Builder<String,String>()
                 «FOR p : d.properties»
-                    .put("«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»")
+                    .put("«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
                 «ENDFOR»
                 «FOR f : d.fields»
                     «FOR p : f.properties»
-                        .put("«f.name».«p.key.name»", "«IF p.value != null»«Util::escapeString2Java(p.value)»«ENDIF»")
+                        .put("«f.name».«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
                     «ENDFOR»
                 «ENDFOR»
                 .build();
@@ -201,10 +201,10 @@ class JavaMeta {
             }
 
             static public Class<? extends BonaPortable> class$returns() {
-                «IF d.returnsClassRef != null»
+                «IF d.returnsClassRef !== null»
                     return «XUtil::getLowerBound(d.returnsClassRef).name».class;
                 «ELSE»
-                    return «IF d.parent != null»«d.parent.name».class$returns()«ELSE»null«ENDIF»;
+                    return «IF d.parent !== null»«d.parent.name».class$returns()«ELSE»null«ENDIF»;
                 «ENDIF»
             }
 
@@ -216,10 +216,10 @@ class JavaMeta {
 
 
             static public Class<? extends BonaPortable> class$pk() {
-                «IF d.pkClass != null»
+                «IF d.pkClass !== null»
                     return «d.pkClass.packageName».«d.pkClass.name».class;
                 «ELSE»
-                    return «IF d.parent != null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
+                    return «IF d.parent !== null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
                 «ENDIF»
             }
 
@@ -231,9 +231,9 @@ class JavaMeta {
 
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String _REVISION = «IF d.revision != null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
-            private static final String _PARENT = «IF (d.extendsClass != null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
-            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _REVISION = «IF d.revision !== null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
+            private static final String _PARENT = «IF (d.extendsClass !== null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
+            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
 
             «FOR i : d.fields»
                 «makeMeta(d, i)»
@@ -252,7 +252,7 @@ class JavaMeta {
                 _PARENT,
                 _BUNDLE,
                 new LocalDateTime(),
-                «IF (d.extendsClass != null)»
+                «IF (d.extendsClass !== null)»
                     «d.getParent.name».class$MetaData(),
                 «ELSE»
                     null,
@@ -299,7 +299,7 @@ class JavaMeta {
                 public static BClass getInstance() {
                     return INSTANCE;
                 }
-                
+
                 @Override
                 public «d.name» newInstance() {
                     «IF d.abstract»
@@ -307,6 +307,11 @@ class JavaMeta {
                     «ELSE»
                         return new «d.name»();
                     «ENDIF»
+                }
+
+                @Override
+                public Class<«d.name»> getBonaPortableClass() {
+                    return new «d.name».class;
                 }
 
                 @Override
@@ -351,7 +356,7 @@ class JavaMeta {
                 }
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getParent() {
-                    «IF (d.extendsClass != null)»
+                    «IF (d.extendsClass !== null)»
                         return «d.extendsClass.classRef.name».BClass.getInstance();
                     «ELSE»
                         return null;
@@ -359,7 +364,7 @@ class JavaMeta {
                 }
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getReturns() {
-                    «IF (d.returnsClassRef != null)»
+                    «IF (d.returnsClassRef !== null)»
                         return «d.returnsClassRef.classRef.name».BClass.getInstance();
                     «ELSE»
                         return null;
@@ -367,7 +372,7 @@ class JavaMeta {
                 }
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getPrimaryKey() {
-                    «IF (d.pkClass != null)»
+                    «IF (d.pkClass !== null)»
                         return «d.pkClass.name».BClass.getInstance();
                     «ELSE»
                         return null;

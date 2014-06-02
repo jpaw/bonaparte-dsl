@@ -30,7 +30,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
 		validationGroup.setText("Data types and Validation");
 		validationGroup.setLayout(new GridLayout(1, false));
 		Composite compositeV = new Composite(validationGroup, SWT.NONE);
-		addField(new BooleanFieldEditor("WarnDate",	"Warn if mutable Calendar class is used?", compositeV));
 		addField(new BooleanFieldEditor("WarnByte", "Warn is mutable Raw type (byte []) is used?", compositeV));
 		addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used?", compositeV));
 		validationGroup.pack();
@@ -65,7 +64,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
 		// setPreferenceStore(BDDLActivator.getInstance().getPreferenceStore());
 		BonScriptPreferences defaults = new BonScriptPreferences();
 		IPreferenceStore store = getPreferenceStore();
-		store.setDefault("WarnDate", defaults.warnDate);
 		store.setDefault("WarnByte", defaults.warnByte);
 		store.setDefault("WarnFloat", defaults.warnFloat);
 		store.setDefault("DebugOut", defaults.doDebugOut);
@@ -76,7 +74,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
 		store.setDefault("HazelcastPo", defaults.defaultHazelcastPo);
 		store.setDefault("FactoryId", defaults.defaulthazelcastFactoryId);
 		BonScriptPreferences currentSettings = new BonScriptPreferences();
-		currentSettings.warnDate           = store.getBoolean("WarnDate");
 		currentSettings.warnByte           = store.getBoolean("WarnByte");
 		currentSettings.warnFloat          = store.getBoolean("WarnFloat");
 		currentSettings.doDebugOut         = store.getBoolean("DebugOut");
@@ -92,9 +89,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
 			    @Override
 			    public void propertyChange(PropertyChangeEvent event) {
 			      switch (event.getProperty()) {
-			      case "WarnDate":
-			    	  BonScriptPreferences.currentPrefs.warnDate = (boolean) event.getNewValue();
-			    	  break;
 			      case "WarnByte":
 			    	  BonScriptPreferences.currentPrefs.warnByte = (boolean) event.getNewValue();
 			    	  break;

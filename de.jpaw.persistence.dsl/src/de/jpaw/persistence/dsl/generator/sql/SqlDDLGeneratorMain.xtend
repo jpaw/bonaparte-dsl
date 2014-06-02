@@ -64,7 +64,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             LOGGER.info("start code output of main table for " + e.name)
             // System::out.println("start code output of main table for " + e.name)
             makeTables(fsa, e, false)
-            if (e.tableCategory != null && e.tableCategory.historyCategory != null) {
+            if (e.tableCategory !== null && e.tableCategory.historyCategory !== null) {
                 // do histories as well
                 LOGGER.info("    doing history table as well, due to category " + e.tableCategory.name);
                 // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
@@ -89,7 +89,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             [ '''-- table columns of java class «name»
               '''],
             [ fld, myName, reqType | 
-            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols != null && pkCols.contains(fld)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
+            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkCols.contains(fld)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
               ''']
         )
     }
@@ -98,13 +98,13 @@ class SqlDDLGeneratorMain implements IGenerator {
     // recurse through all
     def private void recurseEnumCollection(ClassDefinition c) {
         var ClassDefinition citer = c
-        while (citer != null) {
+        while (citer !== null) {
             for (i : citer.fields) {
                 val ref = DataTypeExtension::get(i.datatype)
                 if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
                     enumsRequired.add(ref.enumForEnumOrXenum)
             }
-            if (citer.extendsClass != null)
+            if (citer.extendsClass !== null)
                 citer = citer.extendsClass.classRef
             else
                 citer = null
@@ -113,7 +113,7 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     def private void makeElementCollectionTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         for (ec : e.elementCollections) {
-            if (doHistory && ec.historytablename == null) {
+            if (doHistory && ec.historytablename === null) {
                 // no history here
             } else {
                 val tablename = if (doHistory) ec.historytablename else ec.tablename
@@ -193,11 +193,11 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
         val d = new Delimiter("  ", ", ")
         val startOfPk =
-        	if (ec.keyColumns != null)
+        	if (ec.keyColumns !== null)
         		ec.keyColumns.join(', ')
-        	else if (baseEntity.embeddablePk != null)
+        	else if (baseEntity.embeddablePk !== null)
             	baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql].join(',')
-            else if(baseEntity.pk != null)
+            else if(baseEntity.pk !== null)
             	baseEntity.pk.columnName.map[name.java2sql].join(',')
         	else
         		'???'
@@ -209,28 +209,28 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             -- base table PK
-            «IF baseEntity.pk != null»
+            «IF baseEntity.pk !== null»
                 «FOR c : baseEntity.pk.columnName»
                     «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
-            «IF ec.mapKey != null»
+            «IF ec.mapKey !== null»
                 -- element collection key
                 , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
             «ENDIF»
             -- contents field
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
-        )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
+        )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
         ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-        	«startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey != null», «ec.mapKey.java2sql»«ENDIF»
-        )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        	«startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey !== null», «ec.mapKey.java2sql»«ENDIF»
+        )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
     
     def List<EmbeddableUse> combinedEmbeddables(EntityDefinition t, List<EmbeddableUse> work) {
         work.addAll(t.embeddables)
-        if (t.^extends != null)
+        if (t.^extends !== null)
             t.^extends.combinedEmbeddables(work)
         work
     }
@@ -266,55 +266,55 @@ class SqlDDLGeneratorMain implements IGenerator {
         -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
         CREATE TABLE «tablename» (
-            «IF stopAt == null»
+            «IF stopAt === null»
                 «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
             «ENDIF»
             «tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
-            «IF t.discname != null»
+            «IF t.discname !== null»
                 «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
-            «IF baseEntity.pk != null && stopAt != null»
+            «IF baseEntity.pk !== null && stopAt !== null»
                 «FOR c : baseEntity.pk.columnName»
                     «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables)»
                 «ENDFOR»
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
-        )«IF tablespaceData != null» TABLESPACE «tablespaceData»«ENDIF»;
+        )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
-        «IF baseEntity.embeddablePk != null»
+        «IF baseEntity.embeddablePk !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.embeddablePk.name.pojoType.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
-            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ELSEIF baseEntity.pk != null»
+            )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ELSEIF baseEntity.pk !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
-            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ELSEIF baseEntity.pkPojo != null»
+            )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+        «ELSEIF baseEntity.pkPojo !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
                 «FOR c : baseEntity.pkPojo.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
-            )«IF tablespaceIndex != null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
+            )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» ON «tablename»(
                     «FOR c : i.columns.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
-                )«IF tablespaceIndex != null» TABLESPACE «tablespaceIndex»«ENDIF»;
+                )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
-        «IF grantGroup != null && grantGroup.grants != null»
+        «IF grantGroup !== null && grantGroup.grants !== null»
             «FOR g : grantGroup.grants»
-                «IF g.permissions != null && g.permissions.permissions != null»
+                «IF g.permissions !== null && g.permissions.permissions !== null»
                     GRANT «FOR p : g.permissions.permissions SEPARATOR ','»«p.toString»«ENDFOR» ON «tablename» TO «g.roleOrUserName»;
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
 
         «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER»
-            «IF stopAt == null»
+            «IF stopAt === null»
                 «t.tableCategory.trackingColumns?.recurseComments(null, tablename, theEmbeddables)»
             «ENDIF»
             «tenantClass?.recurseComments(null, tablename, theEmbeddables)»
-            «IF t.discname != null»
+            «IF t.discname !== null»
                 COMMENT ON COLUMN «tablename».«t.discname» IS 'autogenerated JPA discriminator column';
             «ENDIF»
             «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables)»

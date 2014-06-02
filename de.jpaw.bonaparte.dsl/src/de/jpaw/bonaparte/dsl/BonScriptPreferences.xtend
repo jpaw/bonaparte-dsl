@@ -11,7 +11,7 @@ public class ConfigReader {
 		var String result
 		try {
 			result = System.getProperty(prefix + "." + name)
-			if (result != null)
+			if (result !== null)
 				return result
 		} catch (Exception e) {
 			System.out.println('''Exception «e» while accessing system property «prefix».«name»''')
@@ -35,7 +35,6 @@ public class ConfigReader {
 
 public class BonScriptPreferences {
 	static private final ConfigReader configReader = new ConfigReader("bonaparte")
-	static private final boolean warnDateDefault = configReader.getProp("WarnDate", true);
 	static private final boolean warnByteDefault = configReader.getProp("WarnByte", true);
 	static private final boolean warnFloatDefault = configReader.getProp("WarnFloat", false);
 	static private final boolean doDebugOutDefault = configReader.getProp("DebugOut", false);
@@ -46,8 +45,6 @@ public class BonScriptPreferences {
 	static private final boolean defaultHazelcastPoDefault = configReader.getProp("HazelcastPo", false);
 	static private final int defaulthazelcastFactoryIdDefault = configReader.getProp("FactoryId", 28);
 
-
-	public boolean warnDate = warnDateDefault;
 	public boolean warnByte = warnByteDefault;
 	public boolean warnFloat = warnFloatDefault;
 	public boolean doDebugOut = doDebugOutDefault;

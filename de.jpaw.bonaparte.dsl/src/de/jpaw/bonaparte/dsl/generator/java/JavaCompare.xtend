@@ -73,7 +73,6 @@ class JavaCompare {
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
         case "ByteArray":   '''«index».contentEquals(«tindex»)'''
-        case "Calendar":    '''«index».compareTo(«tindex») == 0'''
         case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''  // do not use equals!!!
         // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
@@ -98,7 +97,7 @@ class JavaCompare {
 
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
-            if (i.isArray != null)
+            if (i.isArray !== null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
             else {
                 // isMap, isSet and isList cannot be true, they don't work with primitives...
@@ -113,13 +112,13 @@ class JavaCompare {
                 }
             }
         } else {
-            if (i.isArray != null)
+            if (i.isArray !== null)
                 return '''(«i.name» == null ? 0 : Arrays.deepHashCode(«i.name»))'''
             else if (i.aggregate)
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map and Set have a usable implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType != null && ref.javaType.equals("byte []"))
+                if (ref.javaType !== null && ref.javaType.equals("byte []"))
                     // special treatment required, again!
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''     // straightforward recursion
                 else if ("BigDecimal".equals(ref.javaType))
@@ -133,7 +132,7 @@ class JavaCompare {
     def public static writeHash(ClassDefinition d) '''
         @Override
         public int hashCode() {
-            int _hash = «IF d.extendsClass != null»super.hashCode()«ELSE»997«ENDIF»;
+            int _hash = «IF d.extendsClass !== null»super.hashCode()«ELSE»997«ENDIF»;
             «FOR i:d.fields»
                 _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
             «ENDFOR»
@@ -167,12 +166,12 @@ class JavaCompare {
             return equalsSub(_that);
         }
 
-        «IF d.extendsClass != null»
+        «IF d.extendsClass !== null»
         @Override
         «ENDIF»
         protected boolean equalsSub(BonaPortable _that) {
             «d.name»«genericDef2StringAsParams(d.genericParameters)» that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)_that;
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 return super.equalsSub(_that)
             «ELSE»
                 return true
@@ -187,7 +186,7 @@ class JavaCompare {
             ;
         }
         «FOR i:d.fields»
-            «IF i.isArray != null»
+            «IF i.isArray !== null»
                 private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».length != that.«i.name».length)
@@ -198,7 +197,7 @@ class JavaCompare {
                     return true;
                 }
             «ENDIF»
-            «IF i.isList != null»
+            «IF i.isList !== null»
                 private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
@@ -210,7 +209,7 @@ class JavaCompare {
                     return true;
                 }
             «ENDIF»
-            «IF i.isSet != null»
+            «IF i.isSet !== null»
                 private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())
@@ -218,7 +217,7 @@ class JavaCompare {
                     return «i.name».equals(that.«i.name»);
                 }
             «ENDIF»
-            «IF i.isMap != null»
+            «IF i.isMap !== null»
                 private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
                     // both «i.name» and that «i.name» are known to be not null
                     if («i.name».size() != that.«i.name».size())

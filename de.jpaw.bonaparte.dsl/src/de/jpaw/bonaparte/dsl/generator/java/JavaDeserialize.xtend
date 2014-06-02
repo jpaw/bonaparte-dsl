@@ -55,7 +55,7 @@ class JavaDeserialize {
         case 'uuid':      '''p.readUUID      ("«fieldname»", «!isRequired»)'''
         case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
         case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
-        case 'calendar':  '''p.readCalendar  ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
+        case 'time':      '''p.readTime      ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'timestamp': '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
         case 'day':       '''p.readDay("«fieldname»", «!isRequired»)'''
                           
@@ -69,11 +69,11 @@ class JavaDeserialize {
     def private static String getKnownSupertype(ClassReference d) {
         if (d.plainObject)
             return "BonaPortable"
-        if (d.classRef != null)
+        if (d.classRef !== null)
             return d.classRef.name
         // this must be a generics ref. Return the static type for now, but later extend to the runtime type!
-        if (d.genericsParameterRef != null) {
-            if (d.genericsParameterRef.^extends != null)
+        if (d.genericsParameterRef !== null) {
+            if (d.genericsParameterRef.^extends !== null)
                 return getKnownSupertype(d.genericsParameterRef.^extends)
             else
                 return "BonaPortable"  // unspecified type
@@ -82,7 +82,7 @@ class JavaDeserialize {
     }
 
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
-        «IF resolveElem(i.datatype) != null»
+        «IF resolveElem(i.datatype) !== null»
             «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
         «ELSE»
             («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
@@ -102,30 +102,30 @@ class JavaDeserialize {
             @Override
             public <_E extends Exception> void deserialize(MessageParser<_E> p) throws _E {
                 int _length;
-                «IF d.extendsClass != null»
+                «IF d.extendsClass !== null»
                     super.deserialize(p);
                     p.eatParentSeparator();
                 «ENDIF»
                 p.setClassName(_PARTIALLY_QUALIFIED_CLASS_NAME);  // just for debug info
                 «FOR i:d.fields»
-                    «IF (resolveElem(i.datatype) != null) && (resolveElem(i.datatype).enumType != null || resolveElem(i.datatype).xenumType != null)»
+                    «IF (resolveElem(i.datatype) !== null) && (resolveElem(i.datatype).enumType !== null || resolveElem(i.datatype).xenumType !== null)»
                         try {  // for possible enum factory Exceptions
                     «ENDIF»
-                    «IF i.isArray != null»
+                    «IF i.isArray !== null»
                         _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isArray.maxcount», 0);
                         if (_length < 0) {
                             «i.name» = null;
                         } else {
-                            «IF resolveElem(i.datatype) != null && getJavaDataType(i.datatype).equals("byte []")»
+                            «IF resolveElem(i.datatype) !== null && getJavaDataType(i.datatype).equals("byte []")»
                                 «i.name» = new byte [«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»][];  // Java weirdness: dimension swapped to first pair of brackets!
                             «ELSE»
-                                «i.name» = new «if (resolveElem(i.datatype) != null) getJavaDataType(i.datatype) else DataTypeExtension::get(i.datatype).javaType»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»];
+                                «i.name» = new «if (resolveElem(i.datatype) !== null) getJavaDataType(i.datatype) else DataTypeExtension::get(i.datatype).javaType»[«if (i.isArray.maxcount > 0) i.isArray.maxcount else "_length"»];
                             «ENDIF»
                             for (int _i = 0; _i < _length; ++_i)
                                 «i.name»[_i] = «makeRead2(d, i, ";")»
                             p.parseArrayEnd();
                         }
-                    «ELSEIF i.isList != null»
+                    «ELSEIF i.isList !== null»
                         _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isList.maxcount», 0);
                         if (_length < 0) {
                             «i.name» = null;
@@ -135,7 +135,7 @@ class JavaDeserialize {
                                 «i.name».add(«makeRead2(d, i, ");")»
                             p.parseArrayEnd();
                         }
-                    «ELSEIF i.isSet != null»
+                    «ELSEIF i.isSet !== null»
                         _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isSet.maxcount», 0);
                         if (_length < 0) {
                             «i.name» = null;
@@ -145,7 +145,7 @@ class JavaDeserialize {
                                 «i.name».add(«makeRead2(d, i, ");")»
                             p.parseArrayEnd();
                         }
-                    «ELSEIF i.isMap != null»
+                    «ELSEIF i.isMap !== null»
                         _length = p.parseMapStart("«i.name»", «!i.isAggregateRequired», «mapIndexID(i.isMap)»);
                         if (_length < 0) {
                             «i.name» = null;
@@ -164,7 +164,7 @@ class JavaDeserialize {
                     «ELSE»
                         «i.name» = «makeRead2(d, i, ";")»
                     «ENDIF»
-                    «IF (resolveElem(i.datatype) != null) && (resolveElem(i.datatype).enumType != null || resolveElem(i.datatype).xenumType != null)»
+                    «IF (resolveElem(i.datatype) !== null) && (resolveElem(i.datatype).enumType !== null || resolveElem(i.datatype).xenumType !== null)»
                          } catch (IllegalArgumentException e) {
                              // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
                              throw p.enumExceptionConverter(e);

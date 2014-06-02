@@ -119,9 +119,9 @@ public class DataTypeExtension {
         dataTypeJava.put("raw",       "byte []");    	// not recommended because mutable. Also weird for 2nd level of array index
         dataTypeJava.put("binary",    "ByteArray");
         dataTypeJava.put("uuid",      "UUID");
-        dataTypeJava.put("calendar",  "Calendar");  	// not recommended because mutable
-        dataTypeJava.put("timestamp", "LocalDateTime"); // temporary solution until JSR 310 has been implemented
         dataTypeJava.put("day",       "LocalDate");     // temporary solution until JSR 310 has been implemented
+        dataTypeJava.put("time",      "LocalTime");     // temporary solution until JSR 310 has been implemented
+        dataTypeJava.put("timestamp", "LocalDateTime"); // temporary solution until JSR 310 has been implemented
 
         dataTypeJava.put("uppercase", "String");
         dataTypeJava.put("lowercase", "String");

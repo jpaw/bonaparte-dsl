@@ -61,17 +61,12 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     def public void checkElementaryDataTypeLength(ElementaryDataType dt) {
-        if (dt.getName() != null) {
+        if (dt.getName() !== null) {
             switch (dt.getName().toLowerCase()) {
-            case "calendar":
+            case "time":
                 if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
-                } else {
-                    // not good anyway
-                    if (BonScriptPreferences.currentPrefs.warnDate)
-	                    warning("The type \"Calendar\" is mapped to the mutable Java class (Gregorian)Calendar. Use of \"Day\" or \"Timestamp\" is preferred.",
-                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 }
             case "timestamp": // similar to default, but allow 0 decimals and max. 3 digits precision
                 if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
@@ -134,11 +129,11 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     
     @Check
     def public void checkEnumDeprecation(ElementaryDataType dt) {
-        if (dt.enumType != null) {
+        if (dt.enumType !== null) {
         	if (dt.enumType.isDeprecated)
         		warning(dt.enumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__ENUM_TYPE)
 		}
-        if (dt.xenumType != null) {
+        if (dt.xenumType !== null) {
         	if (dt.xenumType.isDeprecated)
         		warning(dt.xenumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__XENUM_TYPE)
 		}
@@ -158,7 +153,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     
 	// a test for cyclic inheritance    
     def static private void checkInheritance(ClassDefinition d, int remaining) {
-    	if (d.extendsClass?.classRef != null) {
+    	if (d.extendsClass?.classRef !== null) {
     		if (remaining <= 0)
     			throw new Exception("Cyclic inheritance around " + d.name)
     		d.extendsClass?.classRef.checkInheritance(remaining - 1)
@@ -168,7 +163,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkClassDefinition(ClassDefinition cd) {
         val s = cd.getName();
-        if (s != null) {
+        if (s !== null) {
             if (!Character.isUpperCase(s.charAt(0))) {
                 error("Class names should start with an upper case letter", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
             }
@@ -176,7 +171,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("Partially qualified class name cannot exceed 63 characters length", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
             }
         }
-        if (cd.getExtendsClass() != null) {
+        if (cd.getExtendsClass() !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
             if (cd.getExtendsClass().getClassRef() == null) {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
@@ -195,14 +190,14 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 val EList<ClassReference> argValues = cd.getExtendsClass().getClassRefGenericParms();
                 if ((args == null) && (argValues == null)) {
                      // fine
-                } else if ((args != null) && (argValues != null)) {
+                } else if ((args !== null) && (argValues !== null)) {
                     if (args.size() != argValues.size()) {
                         error("Parameter number mismatch for generics arguments: " + argValues.size() + " parameters found, but " + args.size() + " expected",
                                 BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                     }
-                } else if (argValues != null) {
+                } else if (argValues !== null) {
                     error("Generics arguments found, but extending non-generic class", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
-                } else if (args != null) {
+                } else if (args !== null) {
                     error("Extending generics class, but no generics arguments found", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 }
             }
@@ -214,7 +209,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             // the extended class must be in the same bundle or a superbundle
             val myPackage = cd.packageOrNull
             val extendedFromPackage = cd.extendsClass.classRef.packageOrNull
-            if (myPackage != null && extendedFromPackage != null) {
+            if (myPackage !== null && extendedFromPackage !== null) {
                 if (!isSubBundle(myPackage.getBundle(), extendedFromPackage.getBundle())) {
                     error("Parent classes must be in the same or a superbundle of the current package",
                             BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
@@ -228,8 +223,8 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             var int depth = 0;
             var boolean haveAnchestorWithAbsoluteRtti = false;
             var anchestor = cd.getExtendsClass().getClassRef();
-            while ((depth = depth + 1) < 100 && anchestor != null) {  // after 100 iterations we assume cyclicity
-                if (cd.returnsClassRef != null && anchestor.returnsClassRef != null) {
+            while ((depth = depth + 1) < 100 && anchestor !== null) {  // after 100 iterations we assume cyclicity
+                if (cd.returnsClassRef !== null && anchestor.returnsClassRef !== null) {
                     if (!inheritsClass(cd.returnsClassRef.lowerBound, anchestor.returnsClassRef.lowerBound)) {
                         error("return object of a subclass must inherit the return class of any superclass, which is not the case for return type "
                                 + anchestor.returnsClassRef.lowerBound.name + " of " + anchestor.name,
@@ -255,7 +250,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             // count the fields. We can have 255 at max, due to JVM limitations
             var int numFields = 0;
             var p = cd;
-            while (p != null) {
+            while (p !== null) {
                 // parent class may not have this directive, due to recursive implementation
                 if (p.isNoAllFieldsConstructor()) {
                     error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.getName() + " does not)",
@@ -274,27 +269,27 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
         
-        if (cd.pkClass != null && cd.pkClass.isDeprecated && !cd.isDeprecated)
+        if (cd.pkClass !== null && cd.pkClass.isDeprecated && !cd.isDeprecated)
        		warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
         
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice
             // may not have mutable fields
-            if (cd.fields.exists[datatype.elementaryDataType != null && #[ "raw", "calendar" ].contains(datatype.elementaryDataType.name.toLowerCase)])
+            if (cd.fields.exists[datatype.elementaryDataType !== null && #[ "raw", "calendar" ].contains(datatype.elementaryDataType.name.toLowerCase)])
                 warning("class is not freezable due to mutable fields", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
             // any type parameters must be freezable as well
-            if (cd.genericParameters.exists[extends != null && !extends.isFreezable])
+            if (cd.genericParameters.exists[extends !== null && !extends.isFreezable])
                 warning("class is not freezable due to unfreezable generic references", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
-            if (cd.fields.exists[isArray != null])
+            if (cd.fields.exists[isArray !== null])
                 warning("class is not freezable due to arrays", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
-            if (cd.extendsClass != null && !cd.extendsClass.freezable)
+            if (cd.extendsClass !== null && !cd.extendsClass.freezable)
                 warning("class is not freezable due to parent", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
         }
     }
     
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {
         var myReturnType = myInitialReturnType
-        while (myReturnType != null) {
+        while (myReturnType !== null) {
             if (myReturnType.equals(superclassReturnType))
                 return true;
             myReturnType = myReturnType.parent
@@ -310,7 +305,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkFieldDefinition(FieldDefinition fd) {
         val s = fd.name
-        if (s != null) {
+        if (s !== null) {
             if (!Character.isLowerCase(s.charAt(0))) {
                 error("field names should start with a lower case letter",
                         BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
@@ -321,10 +316,10 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             warning("Java beans specification for getter / setter name differs from standard get/setCapsFirst approach. Consider specifying alt names",
                     BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
         }
-        if (fd.getGetter() != null && s.equals("get" + StringExtensions.toFirstUpper(fd.getGetter()))) {
+        if (fd.getGetter() !== null && s.equals("get" + StringExtensions.toFirstUpper(fd.getGetter()))) {
             error("alternate name matches the default name", BonScriptPackage.Literals.FIELD_DEFINITION__GETTER);
         }
-        if (fd.getSetter() != null && s.equals("set" + StringExtensions.toFirstUpper(fd.getSetter()))) {
+        if (fd.getSetter() !== null && s.equals("set" + StringExtensions.toFirstUpper(fd.getSetter()))) {
             error("alternate name matches the default name", BonScriptPackage.Literals.FIELD_DEFINITION__SETTER);
         } */
 
@@ -336,7 +331,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         }
         // check parent classes as well
         var parentClass = cl.getParent
-        while (parentClass != null) {
+        while (parentClass !== null) {
             if (countSameName(parentClass, s) != 0) {
                 error("field occurs in inherited class "
                         + (parentClass.eContainer as PackageDefinition).getName() + "."
@@ -346,17 +341,17 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             parentClass = parentClass.getParent
         }
 
-        if (fd.getRequired() != null) {
+        if (fd.getRequired() !== null) {
             /*
             // System.out.println("Checking " + s + ": getRequired() = <" + fd.getRequired().toString() + ">");
             // not allowed for typedefs right now
-            if (fd.getDatatype() != null && fd.getDatatype().getReferenceDataType() != null) {
+            if (fd.getDatatype() !== null && fd.getDatatype().getReferenceDataType() !== null) {
                 error("required / optional attributes not allowed for type definitions: found <" + fd.getRequired().getX().toString() + "> for " + s,
                         BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
             } */
-            if ((fd.getRequired().getX() == XRequired.OPTIONAL) && (fd.getDatatype() != null)) {
+            if ((fd.getRequired().getX() == XRequired.OPTIONAL) && (fd.getDatatype() !== null)) {
                 val dt = fd.getDatatype().getElementaryDataType();
-                if ((dt != null) && (dt.getName() != null) && Character.isLowerCase(dt.getName().charAt(0))) {
+                if ((dt !== null) && (dt.getName() !== null) && Character.isLowerCase(dt.getName().charAt(0))) {
                     error("optional attribute conflicts implicit 'required' meaning of lower case data type",
                             BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
                 }
@@ -366,7 +361,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     def public void checkGenericsParameterList(ClassReference ref) {
-        if (ref.getClassRef() != null) {
+        if (ref.getClassRef() !== null) {
         	if (ref.classRef.isDeprecated)
         		warning(ref.classRef.name + " is deprecated", BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF)
             // verify that the parameters given match the definition of the class referenced
@@ -393,7 +388,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 return;
             }
 //            for (i:  0..< requiredParameters.size) {
-//                if (requiredParameters.get(i).getExtends() != null) {
+//                if (requiredParameters.get(i).getExtends() !== null) {
 //                    // provided parameter must be a subclass of the requested one
 //                    if (!isSuperClass(requiredParameters.get(i).getExtends(), providedParameters.get(i)))
 //                }
@@ -411,7 +406,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("the property " + pu.getKey().getName() + " has been defined to require a value",
                         BonScriptPackage.Literals.PROPERTY_USE__KEY);
         } else {
-            if (pu.getValue() != null)
+            if (pu.getValue() !== null)
                 error("the property " + pu.getKey().getName() + " has been defined to not accept a value",
                         BonScriptPackage.Literals.PROPERTY_USE__VALUE);
         }
@@ -447,7 +442,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkDataType(DataType it) {
     	val lowerBoundOfFirst = objectDataType?.lowerBound
-    	if (lowerBoundOfFirst != null && secondaryObjectDataType != null) {
+    	if (lowerBoundOfFirst !== null && secondaryObjectDataType !== null) {
     		// the second must be a subtype of the first!
     		if (!lowerBoundOfFirst.isSuperClassOf(secondaryObjectDataType)) {
     			error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
@@ -463,7 +458,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 			// no check here for typedefs, as e resolve these later
 			if (f.aggregate)
 				error("orderedBy fields cannot be an aggregate (array / Map / List / Set): " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
-			if (f.datatype.elementaryDataType != null) {
+			if (f.datatype.elementaryDataType !== null) {
 				val type = f.datatype.elementaryDataType.name.toFirstLower
 				if (type == "raw" || type == "binary" || type == "object")
 					error("orderedBy fields cannot be of type raw / binary / object: " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
@@ -476,7 +471,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     def public void checkEnumIDsAndTokens(EnumDefinition e) {
     	// any used ID or token may be 63 characters max length.
     	val idSet = new HashSet<String>(50)
-    	if (e.values != null && !e.values.empty) {
+    	if (e.values !== null && !e.values.empty) {
     		for (inst : e.values) {
     			if (inst.length > 63) {
     				error("ID is too long (max 63 characters allowed, found " + inst.length + ")", BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
@@ -487,7 +482,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     		}
     	}
     	// No ID or token may be used twice
-    	if (e.avalues != null && !e.avalues.empty) {
+    	if (e.avalues !== null && !e.avalues.empty) {
 	    	val tokenSet = new HashSet<String>(50)
     		for (inst : e.avalues) {
     			if (!idSet.add(inst.name))
@@ -508,7 +503,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
 	// a test for cyclic inheritance    
     def static private void checkInheritance(XEnumDefinition e, int remaining) {
-    	if (e.extendsXenum != null) {
+    	if (e.extendsXenum !== null) {
     		if (remaining <= 0)
     			throw new Exception("Cyclic inheritance around " + e.name)
     		e.extendsXenum.checkInheritance(remaining - 1)
@@ -524,17 +519,17 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     		return
     	}
     	if (!e.isDeprecated) {
-    		if (e.myEnum != null && e.myEnum.isDeprecated)
+    		if (e.myEnum !== null && e.myEnum.isDeprecated)
 	       		warning(e.myEnum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
-	       	if (e.extendsXenum != null && e.extendsXenum.isDeprecated)
+	       	if (e.extendsXenum !== null && e.extendsXenum.isDeprecated)
 	       		warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
     	}
-    	if (e.myEnum != null) {
+    	if (e.myEnum !== null) {
     		if (e.myEnum.avalues == null || e.myEnum.avalues.empty) {
     			error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
     			return
    			}
-   			if (e.extendsXenum != null) {
+   			if (e.extendsXenum !== null) {
    				// check that we don't exceed the length of the parent
    				val mine = getInternalMaxLength(e.myEnum, 0)
    				val old = getOverallMaxLength(e.extendsXenum)
@@ -560,7 +555,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
    
     @Check
     def public void checkImplements(InterfaceListDefinition il) {
-    	if (il.ilist != null) {
+    	if (il.ilist !== null) {
     		for (intrface : il.ilist)
     			if (!intrface.isInterface)
     				error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
