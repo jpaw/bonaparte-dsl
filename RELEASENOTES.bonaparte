@@ -144,6 +144,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 2.2.0:
 - BON / BDDL: remove support for Calendar
 - New data types BigInteger, LocalTime
+- back to Java 1.7 for compatibility
 
 ROADMAP:
 2.2.1:
