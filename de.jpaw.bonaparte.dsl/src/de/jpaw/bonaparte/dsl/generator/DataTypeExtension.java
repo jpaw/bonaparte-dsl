@@ -86,9 +86,9 @@ public class DataTypeExtension {
         dataCategory.put("raw",       DataCategory.BINARY);    // not recommended because mutable. Also weird for 2nd level of array index
         dataCategory.put("binary",    DataCategory.BINARY);
         dataCategory.put("uuid",      DataCategory.MISC);
-        dataCategory.put("calendar",  DataCategory.TEMPORAL);  // not recommended because mutable
-        dataCategory.put("timestamp", DataCategory.TEMPORAL);  // temporary solution until JSR 310 has been implemented
-        dataCategory.put("day",       DataCategory.TEMPORAL);      // temporary solution until JSR 310 has been implemented
+        dataCategory.put("time",      DataCategory.TEMPORAL);
+        dataCategory.put("timestamp", DataCategory.TEMPORAL);
+        dataCategory.put("day",       DataCategory.TEMPORAL);
 
         dataCategory.put("uppercase", DataCategory.STRING);
         dataCategory.put("lowercase", DataCategory.STRING);

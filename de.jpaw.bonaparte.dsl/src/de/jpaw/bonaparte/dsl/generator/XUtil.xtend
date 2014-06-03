@@ -474,7 +474,7 @@ class XUtil {
     	if (remainingDepth <= 0)
     		return true
         !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) && 
-            !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "calendar", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
+            !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
             !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
     }
     

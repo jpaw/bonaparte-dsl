@@ -275,7 +275,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice
             // may not have mutable fields
-            if (cd.fields.exists[datatype.elementaryDataType !== null && #[ "raw", "calendar" ].contains(datatype.elementaryDataType.name.toLowerCase)])
+            if (cd.fields.exists[datatype.elementaryDataType !== null && "raw".equals(datatype.elementaryDataType.name.toLowerCase)])
                 warning("class is not freezable due to mutable fields", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
             // any type parameters must be freezable as well
             if (cd.genericParameters.exists[extends !== null && !extends.isFreezable])
