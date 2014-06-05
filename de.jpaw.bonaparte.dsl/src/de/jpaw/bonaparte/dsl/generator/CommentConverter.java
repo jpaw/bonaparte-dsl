@@ -1,10 +1,13 @@
 package de.jpaw.bonaparte.dsl.generator;
 
+import javax.inject.Inject;
+
 import org.eclipse.xtext.common.services.DefaultTerminalConverters;
 import org.eclipse.xtext.conversion.IValueConverter;
 import org.eclipse.xtext.conversion.ValueConverter;
 import org.eclipse.xtext.conversion.ValueConverterException;
 import org.eclipse.xtext.conversion.impl.AbstractToStringConverter;
+import org.eclipse.xtext.conversion.impl.QualifiedNameValueConverter;
 import org.eclipse.xtext.nodemodel.INode;
 
 public class CommentConverter extends DefaultTerminalConverters {
@@ -28,6 +31,15 @@ public class CommentConverter extends DefaultTerminalConverters {
             }
 		};
 	}
+	
+	
+    @Inject QualifiedNameValueConverter mFQNValueConverter;
+    
+    @ValueConverter(rule = "QualifiedId")
+    public IValueConverter<String> FQN() {
+        return mFQNValueConverter;
+    }
+    
 /*
 	@Override
     public Object toValue(String string, String lexerRule, INode node) throws ValueConverterException {
@@ -42,3 +54,26 @@ public class CommentConverter extends DefaultTerminalConverters {
     }
 */
 }
+//
+//public class QualifiedIdConverter extends DefaultTerminalConverters {
+//    @ValueConverter(rule = "QualifiedId")
+//    public IValueConverter<String> QualifiedId() {
+//        return new AbstractToStringConverter<String>() {
+//            
+//        }
+//    }
+//}
+//
+//public IValueConverter<Integer> ElementBound() {
+//    return new IValueConverter<Integer>() {
+//        public Integer toValue(String string, AbstractNode node) {
+//            if (Strings.isEmpty(string))
+//                throw new ValueConverterException("Couldn't convert empty string to int", node, null);
+//            else if ("*".equals(string.trim()))
+//                return -1;
+//            try {
+//                return Integer.parseInt(string);
+//            } catch (NumberFormatException e) {
+//                throw new ValueConverterException("Couldn't convert '"+string+"' to int", node, e);
+//            }
+//        }

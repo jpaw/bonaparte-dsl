@@ -137,6 +137,11 @@ class JavaFieldWriter {
                             writeField(c, ref.javaType, myName, "")
                         else
                             writeTemporalFieldAndAnnotation(c, "DATE", JDBC4TYPE, myName)
+                    case "Instant":
+                        if (useUserTypes)
+                            writeField(c, ref.javaType, myName, "")
+                        else
+                            writeTemporalFieldAndAnnotation(c, "TIMESTAMP", JDBC4TYPE, myName)
                     case "ByteArray":
                         writeField(c, if(useUserTypes) "ByteArray" else "byte []", myName, "")
                     case JAVA_OBJECT_TYPE: '''

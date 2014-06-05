@@ -73,6 +73,11 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
+            case "instant": // similar to default, but allow 0 decimals and max. 3 digits precision
+                if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
+                    error("Fractional seconds must be at least 0 and at most 3 digits",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
+                }
             case "number":
                 if ((dt.getLength() <= 0) || (dt.getLength() > 9)) {
                     error("Mantissa must be at least 1 and at max 9",

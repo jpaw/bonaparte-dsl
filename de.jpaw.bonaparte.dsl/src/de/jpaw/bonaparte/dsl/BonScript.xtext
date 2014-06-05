@@ -282,7 +282,7 @@ ElementaryDataType:
               | "uuid"    | "Uuid"     | "object"    | "Object" )
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId] (enumDefault?='default')? )  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name = ('xenum'| 'XEnum') xenumType = [XEnumDefinition|QualifiedId] (enumDefault?='default')? )  // xenums are not precisely elementary data types in Java, but they do not require recursing another class
-      | (name= ("timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
+      | (name= ("instant" | "Instant" | "timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)
            "(" (minLength=INT '..')? length=INT ")"

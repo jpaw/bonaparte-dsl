@@ -144,7 +144,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 2.2.0:
 - new method in BonaPortableClass to return the class of the corresponding BonaPortable
 - BON / BDDL: remove support for Calendar
-- New data types BigInteger, LocalTime
+- New data types Instant, LocalTime
 - back to Java 1.7 for compatibility
 
 ROADMAP:
@@ -162,11 +162,12 @@ ROADMAP:
 
 
 2.2.3:
-- remove deprecated member functions which are now replaced by inner factory enum (& no backrefs) [switch to relative backrefs???]
+- remove deprecated member functions which are now replaced by inner factory enum 
 
 
 2.x:
 - cache serialized forms for frozen or immutable objects?
+- new data type BigInteger
 
 
 

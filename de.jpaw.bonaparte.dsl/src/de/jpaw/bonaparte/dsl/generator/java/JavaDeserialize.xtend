@@ -56,8 +56,9 @@ class JavaDeserialize {
         case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
         case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
         case 'time':      '''p.readTime      ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'timestamp': '''p.readDayTime("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'day':       '''p.readDay("«fieldname»", «!isRequired»)'''
+        case 'instant':   '''p.readInstant   ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
+        case 'timestamp': '''p.readDayTime   ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
+        case 'day':       '''p.readDay       ("«fieldname»", «!isRequired»)'''
                           
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''

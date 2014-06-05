@@ -89,6 +89,7 @@ public class DataTypeExtension {
         dataCategory.put("time",      DataCategory.TEMPORAL);
         dataCategory.put("timestamp", DataCategory.TEMPORAL);
         dataCategory.put("day",       DataCategory.TEMPORAL);
+        dataCategory.put("instant",   DataCategory.TEMPORAL);
 
         dataCategory.put("uppercase", DataCategory.STRING);
         dataCategory.put("lowercase", DataCategory.STRING);
@@ -122,6 +123,7 @@ public class DataTypeExtension {
         dataTypeJava.put("day",       "LocalDate");     // temporary solution until JSR 310 has been implemented
         dataTypeJava.put("time",      "LocalTime");     // temporary solution until JSR 310 has been implemented
         dataTypeJava.put("timestamp", "LocalDateTime"); // temporary solution until JSR 310 has been implemented
+        dataTypeJava.put("instant",   "LocalDateTime"); // temporary solution until JSR 310 has been implemented
 
         dataTypeJava.put("uppercase", "String");
         dataTypeJava.put("lowercase", "String");

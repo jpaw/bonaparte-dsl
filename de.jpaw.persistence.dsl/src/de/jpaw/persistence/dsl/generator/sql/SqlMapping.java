@@ -51,6 +51,7 @@ public class SqlMapping {
         dataTypeSqlOracle.put("raw",       "raw(#length)");                 // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlOracle.put("day",       "date");                         // Oracle has no day without a time field
         dataTypeSqlOracle.put("timestamp", "timestamp(#length)");           // timestamp(0) should become DATE
+        dataTypeSqlOracle.put("instant",   "timestamp(#length)");           // timestamp(0) should become DATE
         dataTypeSqlOracle.put("time",      "timestamp(#length)");           // timestamp(0) should become DATE
 
         dataTypeSqlOracle.put("uppercase", "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
@@ -80,6 +81,7 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("binary",    "bytea");
         dataTypeSqlPostgres.put("raw",       "bytea");
         dataTypeSqlPostgres.put("day",       "date");
+        dataTypeSqlPostgres.put("instant",   "timestamp(#length)");
         dataTypeSqlPostgres.put("timestamp", "timestamp(#length)");
         dataTypeSqlPostgres.put("time",      "time(#length)");
 
@@ -110,6 +112,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("binary",    "varbinary(#length)");
         dataTypeSqlMsSQLServer.put("raw",       "varbinary(#length)");
         dataTypeSqlMsSQLServer.put("day",       "date");
+        dataTypeSqlMsSQLServer.put("instant",   "datetime2(#length)");
         dataTypeSqlMsSQLServer.put("timestamp", "datetime2(#length)");
         dataTypeSqlMsSQLServer.put("time",      "datetime2(#length)");
 
