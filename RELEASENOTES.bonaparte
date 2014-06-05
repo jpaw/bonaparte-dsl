@@ -144,12 +144,15 @@ New features and bug fixes in Bonaparte / Persistence DSL
 2.2.0:
 - new method in BonaPortableClass to return the class of the corresponding BonaPortable
 - BON / BDDL: remove support for Calendar
-- New data types Instant, LocalTime
+- New data type LocalTime
 - back to Java 1.7 for compatibility
+- improve value converter for escaping of qualified IDs
+
 
 ROADMAP:
 2.2.1:
 - performance improvements LocalDate/Time serializers
+- New data type Instant
 - complete Hazelcast support
 - caching for hashCode() if the object has been frozen
 
