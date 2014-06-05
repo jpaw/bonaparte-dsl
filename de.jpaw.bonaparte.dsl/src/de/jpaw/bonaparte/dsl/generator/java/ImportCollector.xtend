@@ -25,38 +25,38 @@ public class ImportCollector {
     }
 
     def void addImport(ClassDefinition cl) {
-        if (cl != null)
+        if (cl !== null)
             addImport(getPackageName(cl), cl.name)
     }
 
     def void addImport(EnumDefinition cl) {
-        if (cl != null)
+        if (cl !== null)
             addImport(getPackageName(cl), cl.name)
     }
 
     def void addImport(XEnumDefinition cl) {
-        if (cl != null)
+        if (cl !== null)
             addImport(getPackageName(cl), cl.name)
     }
     
     // same code as in JavaBonScriptGenerator...
     def void recurseImports(ClassDefinition d, boolean recurseFields) {
-        if (d == null)
+        if (d === null)
             return;
         // collect all imports for this class (make sure we don't duplicate any)
         for (i : d.fields) {
             val ref = DataTypeExtension::get(i.datatype)
-            if (ref == null) {
+            if (ref === null) {
                 System::out.println('''recurseImports: NPE catch for «d.name».«i.name»''')
             } else {
                 // referenced objects
-                if (ref.objectDataType != null)
+                if (ref.objectDataType !== null)
                     addImport(ref.objectDataType)
-                if (ref.secondaryObjectDataType != null)
+                if (ref.secondaryObjectDataType !== null)
                     addImport(ref.secondaryObjectDataType)
-                if (ref.genericsRef != null)
+                if (ref.genericsRef !== null)
                     addImport(ref.genericsRef) // referenced enums
-                // if (ref.elementaryDataType != null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
+                // if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
                 if (ref.category == DataCategory::ENUM)
                     addImport(ref.elementaryDataType.enumType)
                 if (ref.category == DataCategory::XENUM) {
@@ -66,21 +66,21 @@ public class ImportCollector {
             }
         }
         // generic parameters
-        if (d.genericParameters != null)
+        if (d.genericParameters !== null)
             for (gp : d.genericParameters)
-                if (gp.^extends != null)
+                if (gp.^extends !== null)
                     addImport(gp.^extends)
         // finally, possibly the parent object
         addImport(d.extendsClass)
-        if (recurseFields && d.extendsClass != null && d.extendsClass.classRef != null)
+        if (recurseFields && d.extendsClass !== null && d.extendsClass.classRef !== null)
             recurseImports(d.extendsClass.classRef, true)
     }
 
 
     def void addImport(ClassReference r) {
-        if (r != null && r.classRef != null) {
+        if (r !== null && r.classRef !== null) {
             addImport(r.classRef)
-            if (r.classRefGenericParms != null)     // recursively add any args
+            if (r.classRefGenericParms !== null)     // recursively add any args
                 for (args : r.classRefGenericParms)
                     addImport(args)
         }
@@ -88,7 +88,7 @@ public class ImportCollector {
 
     def void addImport(String packageName, String objectName) {
         val String currentEntry = requiredImports.get(objectName)
-        if (currentEntry == null) // not yet in, fine, add it!
+        if (currentEntry === null) // not yet in, fine, add it!
             requiredImports.put(objectName, packageName)
         else
             if (!currentEntry.equals(packageName))  // not good, more than one entry!

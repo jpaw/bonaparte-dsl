@@ -38,7 +38,7 @@ class MakeRelationships {
         for (c : m.referencedFields.columnName)
             if (!XUtil::isRequired(c)) {
                 oneOptional = true
-                if (m.fetchType != null && m.fetchType == "LAZY")
+                if (m.fetchType !== null && m.fetchType == "LAZY")
                     logger.error("fetch type lazy not possible with optional join fields: " + e.name + "." + c.name);
             }
         return !oneOptional
@@ -52,9 +52,9 @@ class MakeRelationships {
     def public static optArgs(String arg1, String arg2) {
         if (arg1 == null && arg2 == null)
             return ''''''
-        if (arg1 != null && arg2 != null)
+        if (arg1 !== null && arg2 !== null)
             return '''(«arg1», «arg2»)'''
-        if (arg1 != null)
+        if (arg1 !== null)
             return '''(«arg1»)'''
         else        
             return '''(«arg2»)'''
@@ -79,7 +79,7 @@ class MakeRelationships {
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
-                if (m.fetchType != null) '''fetch=FetchType.«m.fetchType»''',
+                if (m.fetchType !== null) '''fetch=FetchType.«m.fetchType»''',
                 if (m.nonOptional(e)) '''optional=false'''
             )»
             «m.writeJoinColumns(true, m.childObject)»
@@ -88,7 +88,7 @@ class MakeRelationships {
         
         «FOR m : e.oneToOnes»
             @OneToOne«optArgs(
-                if (m.relationship.fetchType != null) '''fetch=FetchType.«m.relationship.fetchType»''',
+                if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) 'optional=false',
                 if (m.cascade) 'cascade=CascadeType.ALL' 
             )»
@@ -100,7 +100,7 @@ class MakeRelationships {
             @OneToMany«optArgs(
                 'orphanRemoval=true',
                 'cascade=CascadeType.ALL',
-                if (m.relationship.fetchType != null) '''fetch=FetchType.«m.relationship.fetchType»'''
+                if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»'''
             )»
             «m.relationship.writeJoinColumns(false, e)»
             «IF m.collectionType == 'Map'»

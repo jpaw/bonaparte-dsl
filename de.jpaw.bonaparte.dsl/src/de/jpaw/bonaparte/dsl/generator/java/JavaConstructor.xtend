@@ -30,14 +30,14 @@ import java.util.ArrayList
 class JavaConstructor {
     def private static typeWithGenericsReplacement(Generics g, ClassDefinition d, FieldDefinition i) {
         // check if the type is a generics argument, in which case it is replaced
-        if (g == null)
+        if (g === null)
             return JavaDataTypeNoName(i, false)
         else
             return g.replace(JavaDataTypeNoName(i, false))
     }
 
     def private static CharSequence allFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
-        «IF d.extendsClass != null && d.extendsClass.classRef != null»
+        «IF d.extendsClass !== null && d.extendsClass.classRef !== null»
             «allFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
         «ENDIF»
         «FOR i : d.fields»
@@ -46,7 +46,7 @@ class JavaConstructor {
     '''
 
     def private static CharSequence allRequiredFields(Delimiter s, Generics g, ClassDefinition d, boolean withTypes) '''
-        «IF d.extendsClass != null && d.extendsClass.classRef != null»
+        «IF d.extendsClass !== null && d.extendsClass.classRef !== null»
             «allRequiredFields(s, new Generics(g, d), d.extendsClass.classRef, withTypes)»
         «ENDIF»
         «FOR i : d.fields.filter[cannotBeNull]»
@@ -59,13 +59,13 @@ class JavaConstructor {
             d.fields.filter[cannotBeNull].size
         else
             d.fields.size
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
+        if (d.extendsClass !== null && d.extendsClass.classRef !== null)
             sum = sum + countAllFields(d.extendsClass.classRef, onlyRequired)
         return sum
     }
 
     def public static List<FieldDefinition> fieldsOfMeAndSuperClasses(ClassDefinition d) {
-        if (d.extendsClass?.classRef == null)
+        if (d.extendsClass?.classRef === null)
             return d.fields
         val result = new ArrayList<FieldDefinition>()
         result.addAll(d.extendsClass?.classRef.fieldsOfMeAndSuperClasses)
@@ -76,7 +76,7 @@ class JavaConstructor {
     def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
-            «IF d.extendsClass != null && d.extendsClass.classRef != null»
+            «IF d.extendsClass !== null && d.extendsClass.classRef !== null»
                 super();
             «ENDIF»
         }
@@ -84,7 +84,7 @@ class JavaConstructor {
         «IF !d.isNoAllFieldsConstructor && countAllFields(d, false) > 0»
             // default all-arguments constructor
             public «d.name»(«allFields(new Delimiter("", ", "), new Generics, d, true)») {
-                «IF d.extendsClass != null && d.extendsClass.classRef != null»
+                «IF d.extendsClass !== null && d.extendsClass.classRef !== null»
                     super(«allFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
                 «ENDIF»
                 «FOR i : d.fields»
@@ -96,7 +96,7 @@ class JavaConstructor {
         «IF !d.isNoAllFieldsConstructor && countAllFields(d, true) > 0 && countAllFields(d, false) > countAllFields(d, true)»
             // separate constructor with only required fields, as there is at least one optional field
             public «d.name»(«allRequiredFields(new Delimiter("", ", "), new Generics, d, true)») {
-                «IF d.extendsClass != null && d.extendsClass.classRef != null»
+                «IF d.extendsClass !== null && d.extendsClass.classRef !== null»
                     super(«allRequiredFields(new Delimiter("", ", "), null, d.extendsClass.classRef, false)»);
                 «ENDIF»
                 «FOR i : d.fields.filter[cannotBeNull]»
@@ -123,7 +123,7 @@ class JavaConstructor {
                     «ENDIF»
                 «ENDIF»
             }
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 return super.copyAs(desiredSuperType);
             «ELSE»
                 throw new IllegalArgumentException("«d.name» does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");

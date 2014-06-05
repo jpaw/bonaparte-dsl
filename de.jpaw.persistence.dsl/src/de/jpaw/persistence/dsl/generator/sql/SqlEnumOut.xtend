@@ -86,7 +86,7 @@ class SqlEnumOut {
         '''
 
     def public static postgresEnumFuncs(EnumDefinition e) {
-        if (e.avalues != null && !e.avalues.empty)
+        if (e.avalues !== null && !e.avalues.empty)
             postgresEnumFuncsAlpha(e)
         else
             postgresEnumFuncsNumeric(e)

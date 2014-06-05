@@ -251,7 +251,7 @@ class JavaMeta {
                 _PARTIALLY_QUALIFIED_CLASS_NAME,
                 _PARENT,
                 _BUNDLE,
-                new LocalDateTime(),
+                Instant.now(),
                 «IF (d.extendsClass !== null)»
                     «d.getParent.name».class$MetaData(),
                 «ELSE»

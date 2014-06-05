@@ -28,7 +28,7 @@ class JavaPackages {
     public static final String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
 
     def public static getPackageName(PackageDefinition p) {
-        (if (p.prefix == null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
+        (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
 
     // create the package name for a class definition object
@@ -57,9 +57,9 @@ class JavaPackages {
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
     def public static long getSerialUID(ClassDefinition d) {
         var long myUID = getPartiallyQualifiedClassName(d).hashCode()
-        if (d.revision != null)
+        if (d.revision !== null)
             myUID = 97L * myUID + d.revision.hashCode()
-        if (d.extendsClass != null && d.extendsClass.classRef != null)
+        if (d.extendsClass !== null && d.extendsClass.classRef !== null)
             myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
         return myUID
     }

@@ -41,7 +41,7 @@ class JavaSerialize {
     }
 
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) != null»
+        «IF resolveElem(i.datatype) !== null»
             «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
             w.addField(meta$$«i.name», (BonaPortable)«index»);
@@ -49,7 +49,7 @@ class JavaSerialize {
     '''
 
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) != null»
+        «IF resolveElem(i.datatype) !== null»
             «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
         «ELSE»
             if («index» == null) {
@@ -67,7 +67,7 @@ class JavaSerialize {
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
         public <_E extends Exception> void serializeSub(MessageComposer<_E> w) throws _E {
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 // recursive call of superclass first
                 super.serializeSub(w);
                 w.writeSuperclassSeparator();
@@ -77,12 +77,12 @@ class JavaSerialize {
                     if («i.name» == null) {
                         w.writeNullCollection(meta$$«i.name»);
                     } else {
-                        «IF i.isArray != null»
+                        «IF i.isArray !== null»
                             w.startArray(meta$$«i.name», «i.name».length, 0);
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
                             w.terminateArray();
-                        «ELSEIF i.isList != null || i.isSet != null»
+                        «ELSEIF i.isList !== null || i.isSet !== null»
                             w.startArray(meta$$«i.name», «i.name».size(), 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
@@ -118,7 +118,7 @@ class JavaSerialize {
                         if («i.name» == null) {
                             w.writeNullCollection(meta$$«i.name»);
                         } else {
-                            «IF i.isArray != null»
+                            «IF i.isArray !== null»
                                 if (pfc.index < 0) {
                                     w.startArray(meta$$«i.name», «i.name».length, 0);
                                     for (int _i = 0; _i < «i.name».length; ++_i) {
@@ -131,7 +131,7 @@ class JavaSerialize {
                                         «makeFoldedWrite2(d, i, i.name + "[pfc.index]")»
                                     }
                                 }
-                            «ELSEIF i.isList != null»
+                            «ELSEIF i.isList !== null»
                                 if (pfc.index < 0) {
                                     w.startArray(meta$$«i.name», «i.name».size(), 0);
                                     for («JavaDataTypeNoName(i, true)» _i : «i.name») {
@@ -144,7 +144,7 @@ class JavaSerialize {
                                         «makeFoldedWrite2(d, i, i.name + ".get(pfc.index)")»
                                     }
                                 }
-                            «ELSEIF i.isSet != null»
+                            «ELSEIF i.isSet !== null»
                                 w.startArray(meta$$«i.name», «i.name».size(), 0);
                                 for («JavaDataTypeNoName(i, true)» _i : «i.name») {
                                     «makeFoldedWrite2(d, i, indexedName(i))»
@@ -179,7 +179,7 @@ class JavaSerialize {
                 }
             «ENDFOR»
             // not found
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 super.foldedOutput(w, pfc);
             «ENDIF»
         }

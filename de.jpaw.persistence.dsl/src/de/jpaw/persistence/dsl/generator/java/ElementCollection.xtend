@@ -33,9 +33,9 @@ class ElementCollections {
     }
     
     def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, ElementCollectionRelationship it) '''
-        @ElementCollection«IF fetchType != null»(fetch=FetchType.«fetchType»)«ENDIF»
+        @ElementCollection«IF fetchType !== null»(fetch=FetchType.«fetchType»)«ENDIF»
         @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)
-        «IF mapKey != null»
+        «IF mapKey !== null»
             @MapKeyColumn(name="«mapKey»"«IF mapKeySize > 0 && c.isMap.indexType == "String"», length=«mapKeySize»«ENDIF»)
         «ENDIF»
     '''

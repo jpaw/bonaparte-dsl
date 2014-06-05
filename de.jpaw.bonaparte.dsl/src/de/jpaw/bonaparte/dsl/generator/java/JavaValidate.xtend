@@ -29,7 +29,7 @@ class JavaValidate {
 
     def public static writePatterns(ClassDefinition d) '''
         «FOR i: d.fields»
-            «IF resolveElem(i.datatype) != null && resolveElem(i.datatype).regexp != null»
+            «IF resolveElem(i.datatype) !== null && resolveElem(i.datatype).regexp !== null»
                 private static final Pattern regexp$«i.name» = Pattern.compile("\\A«Util::escapeString2Java(resolveElem(i.datatype).regexp)»\\z");
             «ENDIF»
         «ENDFOR»
@@ -54,7 +54,7 @@ class JavaValidate {
 
     def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
         «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
-            «IF ref.elementaryDataType.regexp != null»
+            «IF ref.elementaryDataType.regexp !== null»
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
                     throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
@@ -81,7 +81,7 @@ class JavaValidate {
         @Override
         public void validate() throws ObjectValidationException {
             // perform checks for required fields
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 super.validate();
             «ENDIF»
             «FOR i:d.fields»
@@ -115,7 +115,7 @@ class JavaValidate {
                     «loopStart(i)»
                     «makeLengthCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                 «ENDIF»
-                «IF resolveElem(i.datatype) != null && (resolveElem(i.datatype).regexp != null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
+                «IF resolveElem(i.datatype) !== null && (resolveElem(i.datatype).regexp !== null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
                     «loopStart(i)»
                     «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                 «ENDIF»
@@ -125,28 +125,28 @@ class JavaValidate {
 
     
     def private static writeSizeCheck(FieldDefinition i) {
-        if (i.isArray != null) '''
+        if (i.isArray !== null) '''
             «IF i.isArray.mincount > 0»
                 if («i.name».length < «i.isArray.mincount»)
                     throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isArray.mincount», " + «i.name».length, _PARTIALLY_QUALIFIED_CLASS_NAME);
                 if («i.name».length > «i.isArray.maxcount»)
                     throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isArray.maxcount», " + «i.name».length, _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
-        ''' else if (i.isList != null) '''
+        ''' else if (i.isList !== null) '''
             «IF i.isList.mincount > 0»
                 if («i.name».size() < «i.isList.mincount»)
                     throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isList.mincount», " + «i.name».size(), _PARTIALLY_QUALIFIED_CLASS_NAME);
                 if («i.name».size() > «i.isList.maxcount»)
                     throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isList.maxcount», " + «i.name».size(), _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
-        ''' else if (i.isSet != null) '''
+        ''' else if (i.isSet !== null) '''
             «IF i.isSet.mincount > 0»
                 if («i.name».size() < «i.isSet.mincount»)
                     throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isSet.mincount», " + «i.name».size(), _PARTIALLY_QUALIFIED_CLASS_NAME);
                 if («i.name».size() > «i.isSet.maxcount»)
                     throw new ObjectValidationException(ObjectValidationException.TOO_MANY_ELEMENTS, "«i.name»: «i.isSet.maxcount», " + «i.name».size(), _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
-        ''' else if (i.isMap != null) '''
+        ''' else if (i.isMap !== null) '''
             «IF i.isMap.mincount > 0»
                 if («i.name».size() < «i.isMap.mincount»)
                     throw new ObjectValidationException(ObjectValidationException.NOT_ENOUGH_ELEMENTS, "«i.name»: «i.isMap.mincount», " + «i.name».size(), _PARTIALLY_QUALIFIED_CLASS_NAME);

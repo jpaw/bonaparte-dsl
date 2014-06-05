@@ -20,7 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class GenericsTester {
     def public static int getGenericsParameterCount(ClassDefinition d) {
-        if (d.genericParameters == null)
+        if (d.genericParameters === null)
             return 0;
         return d.genericParameters.size
     }

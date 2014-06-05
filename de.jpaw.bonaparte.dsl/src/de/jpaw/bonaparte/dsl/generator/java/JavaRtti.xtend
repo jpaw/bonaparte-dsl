@@ -22,9 +22,9 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 class JavaRtti {
 
     def public static int getRttiRecursive(ClassDefinition d) {
-        if (d == null)
+        if (d === null)
             return 0
-        else if (d.getParent == null)
+        else if (d.getParent === null)
             return d.rtti
         else if (d.addRtti)
             return d.rtti + d.getParent.rttiRecursive

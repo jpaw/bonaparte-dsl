@@ -40,7 +40,7 @@ class JavaTreeWalker {
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
         @Override
         public void treeWalk«javaType»(DataConverter<«javaType»,«metadataType»> _cvt, boolean _descend) {
-            «IF d.extendsClass != null»
+            «IF d.extendsClass !== null»
                 super.treeWalk«javaType»(_cvt, _descend);
             «ENDIF»
             «FOR i:d.fields»
@@ -50,21 +50,21 @@ class JavaTreeWalker {
      '''
 
      def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
-         if (category == null || ref.category == category) {
+         if (category === null || ref.category == category) {
          	 val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array
              // for types as Object or BonaPortable, which are not final, we need type casts!
-             if (i.isArray != null) {
+             if (i.isArray !== null) {
              	// special: cannot work on arrays of primitive types, they are not objects
              	if (ref.isPrimitive)
              		return '''// skipping array of primitive type for «i.name»'''
                 return '''«target»_cvt.convertArray(«i.name», meta$$«i.name»);'''
              }
-             if (i.isList != null)
+             if (i.isList !== null)
                 return '''«target»_cvt.convertList(«IF !doAssign»(List)«ENDIF»«i.name», meta$$«i.name»);'''
-             if (i.isSet != null)
+             if (i.isSet !== null)
                 return '''«target»_cvt.convertSet(«IF !doAssign»(Set)«ENDIF»«i.name», meta$$«i.name»);'''
-             if (i.isMap != null)
+             if (i.isMap !== null)
                 return '''«target»_cvt.convertMap(«IF !doAssign»(Map)«ENDIF»«i.name», meta$$«i.name»);'''
              return '''«target»_cvt.convert(«i.name», meta$$«i.name»);'''
          }

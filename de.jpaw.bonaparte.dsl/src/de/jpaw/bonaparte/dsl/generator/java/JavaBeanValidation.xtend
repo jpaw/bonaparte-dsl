@@ -39,7 +39,7 @@ class JavaBeanValidation {
             «IF i.isRequired && !ref.isPrimitive»
                 @NotNull
             «ENDIF»
-            «IF ref.elementaryDataType != null && !i.aggregate»
+            «IF ref.elementaryDataType !== null && !i.aggregate»
                 «IF ref.elementaryDataType.name.toLowerCase().equals("number")»
                     @Digits(integer=«ref.elementaryDataType.length», fraction=0)
                 «ELSEIF ref.elementaryDataType.name.toLowerCase().equals("decimal")»
@@ -49,7 +49,7 @@ class JavaBeanValidation {
                     «IF ref.isUpperCaseOrLowerCaseSpecialType»
                         @javax.validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
                     «ENDIF»
-                    «IF ref.elementaryDataType.regexp != null»
+                    «IF ref.elementaryDataType.regexp !== null»
                         @javax.validation.constraints.Pattern(regexp="\\A«Util::escapeString2Java(ref.elementaryDataType.regexp)»\\z")
                     «ENDIF»
                 «ENDIF»

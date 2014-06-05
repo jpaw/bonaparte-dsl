@@ -145,9 +145,9 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 	}
 	
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
-        if (extendedBundle == null)
+        if (extendedBundle === null)
             return true;  // everything is a sub-bundle of the static data
-        if (myBundle == null)
+        if (myBundle === null)
             return false; // something not in a bundle cannot extend a bundle
         if (!myBundle.startsWith(extendedBundle))
             return false; // should be the bundle extended
@@ -178,7 +178,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         }
         if (cd.getExtendsClass() !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
-            if (cd.getExtendsClass().getClassRef() == null) {
+            if (cd.getExtendsClass().getClassRef() === null) {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
             } else {
@@ -193,7 +193,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 val ClassDefinition parent = cd.getExtendsClass().getClassRef();
                 val EList<GenericsDef> args = parent.getGenericParameters();
                 val EList<ClassReference> argValues = cd.getExtendsClass().getClassRefGenericParms();
-                if ((args == null) && (argValues == null)) {
+                if ((args === null) && (argValues === null)) {
                      // fine
                 } else if ((args !== null) && (argValues !== null)) {
                     if (args.size() != argValues.size()) {
@@ -220,7 +220,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 }
             } else {
-                warning("Cannot determine package of " + (if (myPackage == null) cd.getName() else cd.extendsClass.classRef.name)
+                warning("Cannot determine package of " + (if (myPackage === null) cd.getName() else cd.extendsClass.classRef.name)
                         + " +++ " + TreeView.getClassInfo(cd) + " *** " + TreeView.getClassInfo(cd.getExtendsClass().getClassRef()),
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
@@ -263,7 +263,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                     return;    
                 }
                 numFields = numFields + p.fields.size
-                if (p.getExtendsClass() == null)
+                if (p.getExtendsClass() === null)
                     p = null // break;
                 else
                     p = p.getExtendsClass().getClassRef();
@@ -317,7 +317,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             }
         }
         /*
-        if (s.length() > 1 && Character.isUpperCase(s.charAt(1)) && fd.getGetter() == null && fd.getSetter() == null) {
+        if (s.length() > 1 && Character.isUpperCase(s.charAt(1)) && fd.getGetter() === null && fd.getSetter() === null) {
             warning("Java beans specification for getter / setter name differs from standard get/setCapsFirst approach. Consider specifying alt names",
                     BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
         }
@@ -372,15 +372,15 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             // verify that the parameters given match the definition of the class referenced
             val requiredParameters = ref.getClassRef().getGenericParameters();
             val providedParameters = ref.getClassRefGenericParms();
-            if ((requiredParameters == null) && (providedParameters == null))
+            if ((requiredParameters === null) && (providedParameters === null))
                 return;  // OK, both have no parameters
-            if (requiredParameters == null) {
+            if (requiredParameters === null) {
                 // not ok, one is empty, the other not!
                 error("list of generic type attributes does not match definition of referenced class, which is a non-generic type",
                         BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF_GENERIC_PARMS);
                 return;
             }
-            if (providedParameters == null) {
+            if (providedParameters === null) {
                 // not ok, one is empty, the other not!
                 error("must provide a list of generic type attributes",
                         BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF);
@@ -404,10 +404,10 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     def public void checkPropertyUse(PropertyUse pu) {
-        if (pu.getKey().annotationReference == null)
+        if (pu.getKey().annotationReference === null)
             return; // no check for standard properties
         if (pu.getKey().isWithArg()) {
-            if (pu.getValue() == null)
+            if (pu.getValue() === null)
                 error("the property " + pu.getKey().getName() + " has been defined to require a value",
                         BonScriptPackage.Literals.PROPERTY_USE__KEY);
         } else {
@@ -530,7 +530,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 	       		warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
     	}
     	if (e.myEnum !== null) {
-    		if (e.myEnum.avalues == null || e.myEnum.avalues.empty) {
+    		if (e.myEnum.avalues === null || e.myEnum.avalues.empty) {
     			error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
     			return
    			}

@@ -59,7 +59,7 @@ class YUtil {
 
     def public static getInheritanceRoot(EntityDefinition e) {
         var EntityDefinition ee = e
-        while (ee.^extends != null)
+        while (ee.^extends !== null)
             ee = ee.^extends
         return ee
     }
@@ -77,12 +77,12 @@ class YUtil {
      */
     def public static EntityDefinition getBaseEntity(EObject ee) {
         var e = ee
-        while (e != null) {
+        while (e !== null) {
             if (e instanceof EntityDefinition)
                 return e
             e = e.eContainer
         }
-        if (ee == null)
+        if (ee === null)
             throw new Exception("getBaseEntity() called for NULL")
         else
             throw new Exception("getBaseEntity() called for " + ee.toString())
@@ -101,9 +101,9 @@ class YUtil {
     } */
 
     def public static String mkTablename(EntityDefinition t, boolean forHistory) {
-        if (!forHistory && t.tablename != null)
+        if (!forHistory && t.tablename !== null)
             t.tablename
-        else if (forHistory && t.historytablename != null)
+        else if (forHistory && t.historytablename !== null)
             t.historytablename
         else {
             // build the table name according to the template in the table category or the default
@@ -122,13 +122,13 @@ class YUtil {
             // 1. pattern of referenced category
             // 2. pattern of defaults of my model
             // 3. pattern of defaults of model which owns the category
-            if (myCategory.namePattern != null) {
+            if (myCategory.namePattern !== null) {
                 myPattern = myCategory.namePattern
                 dropSuffix = myCategory.dropSuffix
-            } else if (myModel.defaults != null && myModel.defaults.namePattern != null) {
+            } else if (myModel.defaults !== null && myModel.defaults.namePattern !== null) {
                 myPattern = myModel.defaults.namePattern
                 dropSuffix = myModel.defaults.dropSuffix
-            } else if (theOtherModel.defaults != null && theOtherModel.defaults.namePattern != null) {
+            } else if (theOtherModel.defaults !== null && theOtherModel.defaults.namePattern !== null) {
                 myPattern = theOtherModel.defaults.namePattern
                 dropSuffix = theOtherModel.defaults.dropSuffix
             } else {
@@ -142,7 +142,7 @@ class YUtil {
                                  .replace("(owner)",    myPackage.schemaOwner)
                                  .replace("(package)",  myPackage.name.replace('.', '_'))
             // if the name ends in the suffix to drop, remove the suffix
-            if (dropSuffix != null) {
+            if (dropSuffix !== null) {
                 var suffixLength = dropSuffix.length
                 if (tablename.length > suffixLength && tablename.endsWith(dropSuffix))
                     tablename = tablename.substring(0, tablename.length - suffixLength)
@@ -152,8 +152,8 @@ class YUtil {
     }
 
     def public static String mkTablespaceName(EntityDefinition t, boolean forIndex, TableCategoryDefinition myCategory) {
-        if (t.tablespaceName != null) {
-            return if (forIndex && t.indexTablespacename != null) t.indexTablespacename else t.tablespaceName
+        if (t.tablespaceName !== null) {
+            return if (forIndex && t.indexTablespacename !== null) t.indexTablespacename else t.tablespaceName
         } else {
             // no explicit advice, look in category or defaults definition
             // 1. get a suitable pattern
@@ -166,26 +166,26 @@ class YUtil {
             // 1. pattern of referenced category
             // 2. pattern of defaults of my model
             // 3. pattern of defaults of model which owns the category
-            if (myCategory.tablespacePattern != null) {
+            if (myCategory.tablespacePattern !== null) {
                 myPattern = myCategory.tablespacePattern
                 // fall through
-            } else if (myCategory.tablespaceName != null) {
-                return if (forIndex && myCategory.indexTablespacename != null) myCategory.indexTablespacename else myCategory.tablespaceName
-            } else if (myModel.defaults != null) {
-                if (myModel.defaults.tablespacePattern != null) {
+            } else if (myCategory.tablespaceName !== null) {
+                return if (forIndex && myCategory.indexTablespacename !== null) myCategory.indexTablespacename else myCategory.tablespaceName
+            } else if (myModel.defaults !== null) {
+                if (myModel.defaults.tablespacePattern !== null) {
                     myPattern = myModel.defaults.tablespacePattern
                     // fall through
-                } else if (myModel.defaults.tablespaceName != null) {
-                    return if (forIndex && myModel.defaults.indexTablespacename != null) myModel.defaults.indexTablespacename else myModel.defaults.tablespaceName
+                } else if (myModel.defaults.tablespaceName !== null) {
+                    return if (forIndex && myModel.defaults.indexTablespacename !== null) myModel.defaults.indexTablespacename else myModel.defaults.tablespaceName
                 } else {
                     return null
                 }
-            } else if (theOtherModel.defaults != null) {
-                if (theOtherModel.defaults.tablespacePattern != null) {
+            } else if (theOtherModel.defaults !== null) {
+                if (theOtherModel.defaults.tablespacePattern !== null) {
                     myPattern = theOtherModel.defaults.tablespacePattern
                     // fall through
-                } else if (theOtherModel.defaults.tablespaceName != null) {
-                    return if (forIndex && theOtherModel.defaults.indexTablespacename != null) theOtherModel.defaults.indexTablespacename else theOtherModel.defaults.tablespaceName
+                } else if (theOtherModel.defaults.tablespaceName !== null) {
+                    return if (forIndex && theOtherModel.defaults.indexTablespacename !== null) theOtherModel.defaults.indexTablespacename else theOtherModel.defaults.tablespaceName
                 } else {
                     return null
                 }
@@ -224,12 +224,12 @@ class YUtil {
 
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
-                [ comment != null && !properties.hasProperty(PROP_NODDL) ],
+                [ comment !== null && !properties.hasProperty(PROP_NODDL) ],
                 embeddables,
                 [ '''-- comments for columns of java class «name»
                   '''],
                 [ fld, myName, req | '''
-                    «IF fld.comment != null»
+                    «IF fld.comment !== null»
                         COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
                     «ENDIF»
                   ''']
@@ -237,7 +237,7 @@ class YUtil {
     }
 
     def public static boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
-    	if (pkColumns == null)
+    	if (pkColumns === null)
     		return false
         for (i : pkColumns)
             if (i == c)
@@ -247,7 +247,7 @@ class YUtil {
 
 
     def public static String asEmbeddedName(String myName, String prefix, String suffix) {
-        if (prefix == null)
+        if (prefix === null)
             '''«myName»«suffix»'''
         else
             '''«prefix»«myName.toFirstUpper»«suffix»'''
@@ -255,7 +255,7 @@ class YUtil {
     
     def public static indexPattern(FieldDefinition f) {
         val userPattern = f.properties.getProperty(PROP_UNROLL)
-        val p = if (userPattern != null && userPattern.length > 0) userPattern.indexOf('%') else -1
+        val p = if (userPattern !== null && userPattern.length > 0) userPattern.indexOf('%') else -1
         if (p >= 0) userPattern else "%02d"        
     }
     
@@ -265,7 +265,7 @@ class YUtil {
         boolean noListAtThisPoint, String separator, (FieldDefinition, String, RequiredType) => CharSequence func) {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
-        if (!noListAtThisPoint && f.isList != null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
+        if (!noListAtThisPoint && f.isList !== null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
             // lists almost always correspond to nullable fields because we don't know the number of elements
             val newRequired = if (reqType == RequiredType::FORCE_NOT_NULL /* || f.isAggregateRequired */) reqType else RequiredType::FORCE_NULL;
@@ -275,12 +275,12 @@ class YUtil {
         } else {
             // see if we need embeddables expansion
             val emb = embeddables?.findFirst[field == f]
-            // System.out.println('''****** Field «f.name»: found emb = «emb != null»''')
-            if (emb != null) {
+            // System.out.println('''****** Field «f.name»: found emb = «emb !== null»''')
+            if (emb !== null) {
                 // expand embeddable, output it instead of the original column
                 val objectName = emb.name.pojoType.name
                 val nameLengthDiff = f.name.length - objectName.length
-                val tryDefaults = emb.prefix == null && emb.suffix == null && nameLengthDiff > 0
+                val tryDefaults = emb.prefix === null && emb.suffix === null && nameLengthDiff > 0
                 val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
                 val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
                 val newPrefix = '''«prefix»«finalPrefix»'''
@@ -297,23 +297,23 @@ class YUtil {
     }
     
     def public static countEmbeddablePks(EntityDefinition e) {
-        if (e.embeddables == null)
+        if (e.embeddables === null)
             return 0
-        return e.embeddables.filter[isPk != null].size
+        return e.embeddables.filter[isPk !== null].size
     }
     def public static getEmbeddablePk(EntityDefinition e) {
-        return e?.embeddables.filter[isPk != null].head
+        return e?.embeddables.filter[isPk !== null].head
     }
     
     def public static determinePkType(EntityDefinition e) {
-        if (e.pk != null) {
+        if (e.pk !== null) {
             if (e.pk.columnName.size > 1)
                 PrimaryKeyType::IMPLICIT_EMBEDDABLE
             else
                 PrimaryKeyType::SINGLE_COLUMN
-        } else if (e.pkPojo != null) {
+        } else if (e.pkPojo !== null) {
             PrimaryKeyType::ID_CLASS
-        } else if (e.embeddablePk != null)
+        } else if (e.embeddablePk !== null)
             PrimaryKeyType::EXPLICIT_EMBEDDABLE
         else
             PrimaryKeyType::NONE
@@ -323,8 +323,8 @@ class YUtil {
     // this methods checks the definitions of the entity itself, as well as in any parent entity
     def public static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
     	var ee = e;
-    	while (ee != null) {
-    		if (ee.elementCollections != null && ee.elementCollections.exists[name == f])
+    	while (ee !== null) {
+    		if (ee.elementCollections !== null && ee.elementCollections.exists[name == f])
     			return true
     		ee = e.^extends
     	}

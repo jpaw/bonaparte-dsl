@@ -88,6 +88,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                             @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
                             @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
                             @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
+                            @XmlJavaTypeAdapter(type=Instant.class,         value=InstantAdapter.class),
                         «ENDIF»
                         @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
                     })
@@ -104,6 +105,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                             import org.joda.time.LocalDate;
                             import org.joda.time.LocalDateTime;
                             import org.joda.time.LocalTime;
+                            import org.joda.time.Instant;
+                            import de.jpaw.xml.jaxb.InstantAdapter;
                             import de.jpaw.xml.jaxb.LocalDateAdapter;
                             import de.jpaw.xml.jaxb.LocalTimeAdapter;
                             import de.jpaw.xml.jaxb.LocalDateTimeAdapter;

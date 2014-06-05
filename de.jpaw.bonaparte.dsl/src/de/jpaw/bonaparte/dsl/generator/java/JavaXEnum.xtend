@@ -27,7 +27,7 @@ class JavaXEnum {
         if (ed.maxlength > 0)
             return ed.maxlength
         else
-            return getInternalMaxLength(ed.myEnum, if (ed.extendsXenum != null) getOverallMaxLength(ed.extendsXenum) else ed.maxlength) 
+            return getInternalMaxLength(ed.myEnum, if (ed.extendsXenum !== null) getOverallMaxLength(ed.extendsXenum) else ed.maxlength) 
     }
     def static public int getInternalMaxLength(EnumDefinition ed, int priorMax) {
         var max = priorMax
@@ -40,18 +40,18 @@ class JavaXEnum {
         return max
     }
     def static public boolean hasNullToken(XEnumDefinition d) {
-    	JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum != null && d.extendsXenum.hasNullToken)
+    	JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
     
     def private static XEnumDefinition getRootXEnum(XEnumDefinition d) {
-        if (d.extendsXenum == null)
+        if (d.extendsXenum === null)
             return d
         else
             return d.extendsXenum.getRootXEnum
     }
     
     def static public writeXEnumDefinition(XEnumDefinition d) {
-        val boolean subClass = d.extendsXenum != null
+        val boolean subClass = d.extendsXenum !== null
         val rootClass = d.getRootXEnum
         
         return '''
@@ -60,7 +60,7 @@ class JavaXEnum {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(d)»;
 
-        import org.joda.time.LocalDateTime;
+        import org.joda.time.Instant;
         
         import de.jpaw.enums.XEnumFactory;
         «IF !subClass»
@@ -79,7 +79,7 @@ class JavaXEnum {
             import «getPackageName(rootClass)».«rootClass.name»;
         «ENDIF»
 
-        «IF d.javadoc != null»
+        «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
         «IF d.isDeprecated»
@@ -119,8 +119,8 @@ class JavaXEnum {
         return '''
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String _PARENT = «IF (d.extendsXenum != null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;;
-            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _PARENT = «IF (d.extendsXenum !== null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;;
+            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
             // extended meta data (for the enhanced interface)
             private static final XEnumDefinition my$MetaData = new XEnumDefinition(
@@ -129,8 +129,8 @@ class JavaXEnum {
                 _PARTIALLY_QUALIFIED_CLASS_NAME,
                 _PARENT,
                 _BUNDLE,
-                new LocalDateTime(),
-                «IF (d.extendsXenum != null)»
+                Instant.now(),
+                «IF (d.extendsXenum !== null)»
                     «d.extendsXenum.name».xenum$MetaData(),
                 «ELSE»
                     null,

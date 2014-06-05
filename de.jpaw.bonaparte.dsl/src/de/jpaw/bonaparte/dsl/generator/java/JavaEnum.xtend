@@ -26,10 +26,10 @@ class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
 
     def static public boolean hasNullToken(EnumDefinition ed) {
-    	ed.avalues != null && ed.avalues.exists[token == ""]
+    	ed.avalues !== null && ed.avalues.exists[token == ""]
     }
     def static boolean isAlpha(EnumDefinition d) {
-        d.avalues != null && !d.avalues.empty
+        d.avalues !== null && !d.avalues.empty
     }
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
@@ -41,7 +41,7 @@ class JavaEnum {
         package «getPackageName(d)»;
 
         import com.google.common.collect.ImmutableList;
-        import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
+        import «BonScriptPreferences.getDateTimePackage».Instant;
         
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
@@ -49,7 +49,7 @@ class JavaEnum {
             import de.jpaw.enums.TokenizableEnum;
         «ENDIF»
 
-        «IF d.javadoc != null»
+        «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
         «IF d.isDeprecated»
@@ -104,7 +104,7 @@ class JavaEnum {
             public static «d.name» valueOf(Integer ordinal) {
                 if (ordinal != null) {
                     switch (ordinal.intValue()) {
-                    «IF d.avalues == null || d.avalues.size() == 0»
+                    «IF d.avalues === null || d.avalues.size() == 0»
                         «FOR v:d.values»
                             case «Integer::valueOf(counter = counter + 1).toString()»: return «v»;
                         «ENDFOR»
@@ -128,7 +128,7 @@ class JavaEnum {
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
-            private static final String _BUNDLE = «IF (myPackage.bundle != null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
             private static final ImmutableList<String> _ids = new ImmutableList.Builder<String>()
                 «IF !d.isAlpha»
@@ -156,7 +156,7 @@ class JavaEnum {
                 _PARTIALLY_QUALIFIED_CLASS_NAME,
                 _PARENT,
                 _BUNDLE,
-                new LocalDateTime(),
+                Instant.now(),
                 null,
                 // now specific enum items
                 «IF d.isAlpha»
