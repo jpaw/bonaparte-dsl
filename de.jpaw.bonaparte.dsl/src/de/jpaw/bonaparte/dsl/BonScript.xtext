@@ -129,7 +129,7 @@ PackageDefinition:
         (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
         (doBeanNames = BeanNames)?                              // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
-        ('hazelcastId' hazelcastFactoryId = INT)?
+        ('factoryId' hazelcastFactoryId = INT)?
     '{'  
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')? 
@@ -175,13 +175,14 @@ ClassDefinition:
     (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated
     (doBeanNames = BeanNames)?                          // create JavaBean compliant names, or plain firstUpperCase, or both (default)
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
-    ('hazelcastId' hazelcastId = INT)?
+    ('classId' hazelcastId = INT)?
     ('revision' revision = STRING)?
     ('extends' extendsClass=ClassReference)?
     ('orderedBy' orderedByList=ComparableFieldsList)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     ('return' returnsClassRef = ClassReference)?
     ('pk' pkClass = [ClassDefinition])?
+    (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     (publicMeta ?= 'public' 'type')?					// make field metadata public
     '{'

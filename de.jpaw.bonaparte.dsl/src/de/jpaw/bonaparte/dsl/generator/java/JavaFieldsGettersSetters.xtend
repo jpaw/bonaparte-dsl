@@ -182,7 +182,7 @@ class JavaFieldsGettersSetters {
             «IF i.getter !== null»
                 «i.writeOneGetter(d, i.getter)»
             «ENDIF»
-            «IF !isImmutable(d)»
+            «IF !d.root.isImmutable»
                 «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
                     «i.writeOneSetter("set" + i.name.toFirstUpper, isFreezable)»
                 «ENDIF»

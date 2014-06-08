@@ -234,6 +234,7 @@ class JavaMeta {
             private static final String _REVISION = «IF d.revision !== null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
             private static final String _PARENT = «IF (d.extendsClass !== null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            private static final int PQON$HASH = _PARTIALLY_QUALIFIED_CLASS_NAME.hashCode();
 
             «FOR i : d.fields»
                 «makeMeta(d, i)»

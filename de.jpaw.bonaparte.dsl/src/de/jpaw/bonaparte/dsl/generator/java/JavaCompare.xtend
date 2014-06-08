@@ -23,51 +23,52 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import org.apache.log4j.Logger
 import java.util.Map
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class JavaCompare {
     private static final Logger logger = Logger.getLogger(JavaCompare)
     private static final Map<String,String> JAVA_PRIMITIVE_TO_WRAPPER = #{
-		"byte" -> "Byte",
-		"short" -> "Short",
+        "byte" -> "Byte",
+        "short" -> "Short",
         "int" -> "Integer",
-		"long" -> "Long",
-		"float" -> "Float",
-		"double" -> "Double",
+        "long" -> "Long",
+        "float" -> "Float",
+        "double" -> "Double",
         "boolean" -> "Boolean",
-		"char" -> "Character"
+        "char" -> "Character"
     }
     
-	def private static writeCompareToField(ClassDefinition d, FieldDefinition f) {
+    def private static writeCompareToField(ClassDefinition d, FieldDefinition f) {
         val ref = DataTypeExtension::get(f.datatype)
         if (!f.isRequired)
-        	logger.error("Field " + f.name + " of class " + d.name + " is not required, but used as a Comparable criteria")
-		if (ref.isPrimitive) {
-			// must use the wrapper. use some autoboxing here
-			return '''
-				_i = «JAVA_PRIMITIVE_TO_WRAPPER.get(f.datatype.getJavaDataType)».valueOf(«f.name»).compareTo(_o.«f.name»);
-				if (_i != 0)
-					return _i;
-			'''
-		} else {
-			// is an object anyway
-			return '''
-				_i = «f.name».compareTo(_o.«f.name»);
-				if (_i != 0)
-					return _i;
-			'''
-		}
-	}
-	// only invoked if d.orderedByList != null
-	def public static writeComparable(ClassDefinition d) '''
-		@Override
-		public int compareTo(«d.name» _o) {
-			int _i;
-			«FOR f: d.orderedByList.field»
-				«writeCompareToField(d, f)»
-			«ENDFOR»
-			return 0;  // objects are the same
-		}
-	'''
+            logger.error("Field " + f.name + " of class " + d.name + " is not required, but used as a Comparable criteria")
+        if (ref.isPrimitive) {
+            // must use the wrapper. use some autoboxing here
+            return '''
+                _i = «JAVA_PRIMITIVE_TO_WRAPPER.get(f.datatype.getJavaDataType)».valueOf(«f.name»).compareTo(_o.«f.name»);
+                if (_i != 0)
+                    return _i;
+            '''
+        } else {
+            // is an object anyway
+            return '''
+                _i = «f.name».compareTo(_o.«f.name»);
+                if (_i != 0)
+                    return _i;
+            '''
+        }
+    }
+    // only invoked if d.orderedByList != null
+    def public static writeComparable(ClassDefinition d) '''
+        @Override
+        public int compareTo(«d.name» _o) {
+            int _i;
+            «FOR f: d.orderedByList.field»
+                «writeCompareToField(d, f)»
+            «ENDFOR»
+            return 0;  // objects are the same
+        }
+    '''
 
     def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
         switch (getJavaDataType(i.datatype)) {
@@ -129,15 +130,43 @@ class JavaCompare {
         }
     }
 
+    def private static doCacheHashHere(ClassDefinition d) {
+        return !d.abstract && d.parentCacheHash && (d.isImmutable || d.freezable)
+    }
+    def private static writeHashSub(ClassDefinition d) '''
+        int _hash = «IF d.extendsClass !== null»super.hashCode() * 31 + «ENDIF»PQON$HASH;
+        «FOR i:d.fields»
+            _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
+        «ENDFOR»
+    '''
+    
     def public static writeHash(ClassDefinition d) '''
-        @Override
-        public int hashCode() {
-            int _hash = «IF d.extendsClass !== null»super.hashCode()«ELSE»997«ENDIF»;
-            «FOR i:d.fields»
-                _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
-            «ENDFOR»
-            return _hash;
-        }
+        «IF d.doCacheHashHere»
+            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
+                @XmlTransient
+            «ENDIF»
+            private transient int _hash$cache = 0;
+            
+            @Override
+            public int hashCode() {
+                if (_hash$cache != 0)
+                    return _hash$cache;
+                «d.writeHashSub»
+                «IF d.root.isImmutable»
+                    _hash$cache = _hash;  // store the value for subsequent invocations
+                «ELSE»
+                    if (_is$Frozen)
+                        _hash$cache = _hash;  // store the value for subsequent invocations
+                «ENDIF»
+                return _hash;
+            }
+        «ELSE»
+            @Override
+            public int hashCode() {
+                «d.writeHashSub»
+                return _hash;
+            }
+        «ENDIF»
 
         '''
 

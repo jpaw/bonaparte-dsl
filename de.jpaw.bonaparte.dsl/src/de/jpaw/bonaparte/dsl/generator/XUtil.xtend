@@ -90,8 +90,14 @@ class XUtil {
         throw new Exception("getPackage() called for " + (ee?.toString() ?: "NULL"))
     }
 
-    def public static boolean isImmutable(ClassDefinition d) {
+    def public static boolean isRootImmutable(ClassDefinition d) {
         return d.getRoot.immutable
+    }
+
+    def public static boolean parentCacheHash(ClassDefinition d) {
+    	if (d == null)
+    		return false
+        return d.doCacheHash || parentCacheHash(d.parent) 
     }
 
     def public static getRelevantXmlAccess(ClassDefinition d) {

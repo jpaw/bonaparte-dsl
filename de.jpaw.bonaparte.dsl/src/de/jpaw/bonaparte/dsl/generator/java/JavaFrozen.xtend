@@ -222,7 +222,7 @@ class JavaFrozen {
                 «IF cd.getRelevantXmlAccess == XXmlAccess::FIELD»
                     @XmlTransient
                 «ENDIF»
-                private boolean _is$Frozen = false;      // current state of this instance
+                private transient boolean _is$Frozen = false;      // current state of this instance
                 @Override
                 public final boolean is$Frozen() {
                     return _is$Frozen;

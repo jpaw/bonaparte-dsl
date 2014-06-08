@@ -148,15 +148,16 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - back to Java 1.7 for compatibility
 - improve value converter for escaping of qualified IDs
 
+2.2.1:
+- New data type Instant
+- caching for hashCode() if the object has been frozen or is immutable
+- empty instances of different classes have a different hashCode
+
 
 ROADMAP:
-2.2.1:
-- performance improvements LocalDate/Time serializers
-- New data type Instant
-- complete Hazelcast support
-- caching for hashCode() if the object has been frozen
-
 2.2.2:
+- complete Hazelcast support
+- performance improvements LocalDate/Time serializers
 - add new fast & compact binary serializer (FastComposer/FastParser) 
   Goals:  fast, compact, portable, upgradeable (binary format)
    (distinguish length encoded fields and implicit length fields)

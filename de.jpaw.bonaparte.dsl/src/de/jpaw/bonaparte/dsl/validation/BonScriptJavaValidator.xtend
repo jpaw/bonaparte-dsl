@@ -289,6 +289,11 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 warning("class is not freezable due to arrays", BonScriptPackage.Literals.CLASS_DEFINITION__NAME)
             if (cd.extendsClass !== null && !cd.extendsClass.freezable)
                 warning("class is not freezable due to parent", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
+        } else {
+        	if (cd.doCacheHash) {
+        		error("Caching the hashcode makes no sense if the class is neither immutable nor can be frozen", BonScriptPackage.Literals.CLASS_DEFINITION__DO_CACHE_HASH)
+        	}
+        	
         }
     }
     
