@@ -5,6 +5,7 @@ import org.eclipse.xtext.conversion.IValueConverter;
 import org.eclipse.xtext.conversion.ValueConverter;
 import org.eclipse.xtext.conversion.ValueConverterException;
 import org.eclipse.xtext.conversion.impl.AbstractToStringConverter;
+import org.eclipse.xtext.conversion.impl.QualifiedNameValueConverter;
 import org.eclipse.xtext.nodemodel.INode;
 
 public class CommentConverter extends DefaultTerminalConverters {
@@ -28,6 +29,14 @@ public class CommentConverter extends DefaultTerminalConverters {
             }
 		};
 	}
+
+    @Inject QualifiedNameValueConverter mFQNValueConverter;
+    
+    @ValueConverter(rule = "QualifiedId")
+    public IValueConverter<String> FQN() {
+        return mFQNValueConverter;
+    }
+ 
 /*
 	@Override
     public Object toValue(String string, String lexerRule, INode node) throws ValueConverterException {
