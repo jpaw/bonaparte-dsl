@@ -7,6 +7,7 @@ import org.eclipse.xtext.conversion.ValueConverterException;
 import org.eclipse.xtext.conversion.impl.AbstractToStringConverter;
 import org.eclipse.xtext.conversion.impl.QualifiedNameValueConverter;
 import org.eclipse.xtext.nodemodel.INode;
+import javax.inject.Inject;
 
 public class CommentConverter extends DefaultTerminalConverters {
 	@ValueConverter(rule = "SL_COMMENT")
