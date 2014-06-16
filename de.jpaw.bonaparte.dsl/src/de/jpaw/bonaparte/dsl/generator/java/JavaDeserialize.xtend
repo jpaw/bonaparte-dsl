@@ -167,7 +167,7 @@ class JavaDeserialize {
                     «ENDIF»
                     «IF (resolveElem(i.datatype) !== null) && (resolveElem(i.datatype).enumType !== null || resolveElem(i.datatype).xenumType !== null)»
                          } catch (IllegalArgumentException e) {
-                             // convert type of exception to the only one allowed (as indiated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
+                             // convert type of exception to the only one allowed (as indicated by interface generics parameter). Enrich with additional data useful to locate the error, if exception type allows.
                              throw p.enumExceptionConverter(e);
                          }
                     «ENDIF»
