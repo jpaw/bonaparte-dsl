@@ -37,6 +37,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -53,6 +54,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+        val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
@@ -82,9 +84,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
                     «IF d.xmlAccess != null»
                     @XmlJavaTypeAdapters({
-                        @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
-                        @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
-                        @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
+                        «IF needJoda»
+                            @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
+                            @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
+                            @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
+                        «ENDIF»
                         @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
                     })
                     «ENDIF»
@@ -94,15 +98,16 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
-                        import org.joda.time.LocalDate;
-                        import org.joda.time.LocalDateTime;
-                        import org.joda.time.LocalTime;
                         import de.jpaw.util.ByteArray;
-
                         import de.jpaw.xml.jaxb.ByteArrayAdapter;
-                        import de.jpaw.xml.jaxb.LocalDateAdapter;
-                        import de.jpaw.xml.jaxb.LocalTimeAdapter;
-                        import de.jpaw.xml.jaxb.LocalDateTimeAdapter;
+                        «IF needJoda»
+                            import org.joda.time.LocalDate;
+                            import org.joda.time.LocalDateTime;
+                            import org.joda.time.LocalTime;
+                            import de.jpaw.xml.jaxb.LocalDateAdapter;
+                            import de.jpaw.xml.jaxb.LocalTimeAdapter;
+                            import de.jpaw.xml.jaxb.LocalDateTimeAdapter;
+                        «ENDIF»
                     «ENDIF»
                 ''')
             }
@@ -124,8 +129,12 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
     // decision classes for the package level settings
     def private static getExternalizable(ClassDefinition d) {
-        val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: if (BonScriptPreferences.currentPrefs.defaultExternalize) XExternalizable::EXT else XExternalizable::NOEXT
+        val XExternalizable t = d.isExternalizable?.x ?: getPackage(d).isExternalizable?.x ?: BonScriptPreferences.getExternalizable
         return t != null && t != XExternalizable::NOEXT
+    }
+    // decision classes for the package level settings
+    def private static getHazelSupport(ClassDefinition d) {
+        return d.doHazelcast?.x ?: getPackage(d).doHazelcast?.x ?: BonScriptPreferences.getHazelSupport
     }
     def private static getBeanValidation(ClassDefinition d) {
         var XBeanValidation t = d.doBeanValidation?.x ?: getPackage(d).doBeanValidation?.x ?: XBeanValidation::NOBEAN_VAL  // default to creation of no bean validation annotations
@@ -137,8 +146,27 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }
     
     def private void checkOrderedByList(ClassDefinition d) {
-    	
+        
     }
+    
+    def private static intComparable(ClassDefinition d) {
+	    if (d.orderedByList != null)
+	    	''', Comparable<«d.name»>'''
+  	}
+    def private static intHazel(XHazelcast doHazel) {
+	    switch (doHazel) {
+            case NOHAZEL:
+            	null
+            case DATA_SERIALIZABLE:
+                ", DataSerializable"
+            case IDENTIFIED_DATA_SERIALIZABLE:
+                ", IdentifiedDataSerializable"
+            case PORTABLE:
+				", Portable"
+            case BOTH:					// does not make sense? 
+                ", Portable, IdentifiedDataSerializable"
+        }
+	}
 
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -149,18 +177,19 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         imports.recurseImports(d, true)
         imports.addImport(d)  // add myself as well
         if (d.returnsClassRef != null)
-	        imports.addImport(d.returnsClassRef)
+            imports.addImport(d.returnsClassRef)
         if (d.genericParameters != null)
             for (gp : d.genericParameters)
                 if (gp.^extends != null)
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
-        val xmlNs = getXmlNs(d)
-        val doExt = getExternalizable(d)
-        val doBeanVal = getBeanValidation(d)
+        val xmlNs = d.xmlNs
+        val doExt = d.externalizable
+        val doHazel = d.hazelSupport
+        val doBeanVal = d.beanValidation
         if (d.orderedByList != null)
-        	d.checkOrderedByList()
+            d.checkOrderedByList()
     return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -178,13 +207,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
-            import java.io.Externalizable;
-            import java.io.IOException;
-            import java.io.ObjectInput;
-            import java.io.ObjectOutput;
-            import «bonaparteInterfacesPackage».ExternalizableConstants;
-            import «bonaparteInterfacesPackage».ExternalizableComposer;
-            import «bonaparteInterfacesPackage».ExternalizableParser;
+	        «JavaExternalize::writeExternalizeImports»
+        «ENDIF»
+        «IF doHazel != XHazelcast.NOHAZEL»
+	        «JavaHazelSupport::writeHazelImports(doHazel)»
         «ENDIF»
         import com.google.common.collect.ImmutableList;
         import com.google.common.collect.ImmutableSet;
@@ -193,6 +219,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import de.jpaw.bonaparte.annotation.RelatedKey;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
+        import «bonaparteInterfacesPackage».BonaPortableClass;
         import «bonaparteInterfacesPackage».MessageParser;
         import «bonaparteInterfacesPackage».MessageComposer;
         import «bonaparteInterfacesPackage».MessageParserException;
@@ -208,7 +235,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
 
         «IF (xmlAccess != null && !d.isAbstract)»
-           @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
+            @XmlRootElement«IF xmlNs != null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.pkClass != null»
@@ -220,7 +247,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «d.properties.filter[key.annotationName != null].map['''@«key.annotationName»«IF value != null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent != null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortable«IF d.orderedByList != null», Comparable<«d.name»>«ENDIF»«IF doExt», Externalizable«ENDIF»«interfaceOut(d.implementsInterfaceList)» {
+          implements BonaPortable«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaMeta::writeMetaData(d)»
@@ -239,8 +266,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 «JavaCompare::writeComparable(d)»
             «ENDIF»
             «IF doExt»
-            «JavaExternalize::writeExternalize(d)»
+                «JavaExternalize::writeExternalize(d)»
             «ENDIF»
+            «JavaHazelSupport::writeHazelIO(d, doHazel)»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(d)»
 

@@ -203,7 +203,9 @@ class JavaFrozen {
         public static boolean class$isFreezable() {
             return «cd.isFreezable»;
         }
+        
         @Override
+        @Deprecated
         public boolean is$Freezable() {
             return «cd.isFreezable»;
         }

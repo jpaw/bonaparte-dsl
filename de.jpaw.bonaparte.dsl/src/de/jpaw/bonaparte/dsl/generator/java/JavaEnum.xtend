@@ -20,6 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
@@ -40,7 +41,7 @@ class JavaEnum {
         package «getPackageName(d)»;
 
         import com.google.common.collect.ImmutableList;
-        import org.joda.time.LocalDateTime;
+        import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
         
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;

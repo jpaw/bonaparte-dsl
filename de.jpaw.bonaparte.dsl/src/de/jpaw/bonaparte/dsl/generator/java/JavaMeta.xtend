@@ -149,6 +149,8 @@ class JavaMeta {
             static public Map<String,String> class$PropertyMap() {
                 return property$Map;
             }
+            @Override
+            @Deprecated
             public Map<String,String> get$PropertyMap() {
                 return property$Map;
             }
@@ -192,6 +194,8 @@ class JavaMeta {
                     return property$Map.containsKey(id);
                 «ENDIF»
             }
+            @Override
+            @Deprecated
             public String get$Property(String id) {
                 return class$Property(id);
             }
@@ -205,6 +209,7 @@ class JavaMeta {
             }
 
             @Override
+            @Deprecated
             public Class<? extends BonaPortable> get$returns() {
                 return class$returns();
             }
@@ -219,6 +224,7 @@ class JavaMeta {
             }
 
             @Override
+            @Deprecated
             public Class<? extends BonaPortable> get$pk() {
                 return class$pk();
             }
@@ -270,10 +276,12 @@ class JavaMeta {
             // must be repeated as a member method to make it available in the (extended) interface
             // feature of extended BonaPortable, not in the core interface
             @Override
+            @Deprecated
             public ClassDefinition get$MetaData() {
                 return my$MetaData;
             }
             @Override
+            @Deprecated
             public long get$Serial() {
                 return serialVersionUID;
             }
@@ -283,6 +291,116 @@ class JavaMeta {
             }
 
             «writeCommonMetaData»
+
+            // the metadata instance
+            public static enum BClass implements BonaPortableClass<«d.name»> {
+                INSTANCE;
+
+                public static BClass getInstance() {
+                    return INSTANCE;
+                }
+                
+                @Override
+                public «d.name» newInstance() {
+                    «IF d.abstract»
+                        throw new UnsupportedOperationException("«d.name» is abstract");
+                    «ELSE»
+                        return new «d.name»();
+                    «ENDIF»
+                }
+
+                @Override
+                public int getFactoryId() {
+                    return «d.effectiveFactoryId»;
+                }
+                @Override
+                public int getId() {
+                    «IF d.hazelcastId == 0»
+                        return MY_RTTI;        // reuse of the rtti
+                    «ELSE»
+                        return «d.hazelcastId»;
+                    «ENDIF»
+                }
+                @Override
+                public int getRtti() {
+                    return MY_RTTI;
+                }
+                @Override
+                public String getPqon() {
+                    return _PARTIALLY_QUALIFIED_CLASS_NAME;
+                }
+                @Override
+                public boolean isFreezable() {
+                    return class$isFreezable();
+                }
+                @Override
+                public String getBundle() {
+                    return _BUNDLE;
+                }
+                @Override
+                public String getRevision() {
+                    return _REVISION;
+                }
+                @Override
+                public long getSerial() {
+                    return serialVersionUID;
+                }
+                @Override
+                public ClassDefinition getMetaData() {
+                    return my$MetaData;
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getParent() {
+                    «IF (d.extendsClass != null)»
+                        return «d.extendsClass.classRef.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getReturns() {
+                    «IF (d.returnsClassRef != null)»
+                        return «d.returnsClassRef.classRef.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public BonaPortableClass<? extends BonaPortable> getPrimaryKey() {
+                    «IF (d.pkClass != null)»
+                        return «d.pkClass.name».BClass.getInstance();
+                    «ELSE»
+                        return null;
+                    «ENDIF»
+                }
+                @Override
+                public ImmutableMap<String,String> getPropertyMap() {
+                    return property$Map;
+                }
+                @Override
+                public String getClassProperty(String id) {
+                    return «d.name».class$Property(id);
+                }
+                @Override
+                public String getFieldProperty(String fieldname, String propertyname) {
+                    return «d.name».field$Property(fieldname, propertyname);
+                }
+                @Override
+                public boolean hasClassProperty(String id) {
+                    return «d.name».class$hasProperty(id);
+                }
+                @Override
+                public boolean hasFieldProperty(String fieldname, String propertyname) {
+                    return «d.name».field$hasProperty(fieldname, propertyname);
+                }
+
+            }
+            
+            @Override
+            public BonaPortableClass<? extends BonaPortable> get$BonaPortableClass() {
+                return BClass.getInstance();
+            }
+            
         '''
     }
     
