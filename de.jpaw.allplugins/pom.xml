@@ -42,8 +42,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho-version>0.19.0</tycho-version>
-        <fornax-version>3.4.0</fornax-version>
+        <tycho.version>0.19.0</tycho-version>
+        <fornax.version>3.4.0</fornax-version>
         <xtend.version>2.6.1</xtend.version>            <!-- UPTODATE 2014-06-14 -->
     </properties>
 
@@ -76,23 +76,23 @@
                 <plugin>
                     <groupId>org.eclipse.xtend</groupId>
                     <artifactId>xtend-maven-plugin</artifactId>
-                    <version>${xtend-version}</version>
+                    <version>${xtend.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.fornax.toolsupport</groupId>
                     <artifactId>fornax-oaw-m2-plugin</artifactId>
-                    <version>${fornax-version}</version>
+                    <version>${fornax.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-maven-plugin</artifactId>
-                    <version>${tycho-version}</version>
+                    <version>${tycho.version}</version>
                     <extensions>true</extensions>
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-p2-repository-plugin</artifactId>
-                    <version>${tycho-version}</version>
+                    <version>${tycho.version}</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
