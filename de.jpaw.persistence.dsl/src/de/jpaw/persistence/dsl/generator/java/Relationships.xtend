@@ -114,7 +114,7 @@ class MakeRelationships {
         «fieldVisibility»«type» «m.name»«initializer»;
 
         public «type» get«m.name.toFirstUpper»() {
-            return «m.name»;
+            return «m.name»«IF m.fetchType !== null && m.fetchType == "LAZY"».get$Self()«ENDIF»;
         }
         «IF doSetter»
             public void set«m.name.toFirstUpper»(«type» «m.name») {

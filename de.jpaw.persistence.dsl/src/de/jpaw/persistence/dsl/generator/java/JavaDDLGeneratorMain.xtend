@@ -440,6 +440,14 @@ class JavaDDLGeneratorMain implements IGenerator {
             ''']
         )
     }
+    
+    def private static writeGetSelf(EntityDefinition e) '''
+    	/** Method that allows generic proxy resolution by returning {@code this}. */
+    	@Override
+    	public «e.name» get$Self() {
+    		return this;
+    	}
+    '''
 
     def private i2s(Inheritance i) {
         switch (i) {
@@ -677,6 +685,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
             «e.writeCopyOf(pkType, trackingType)»
+            «e.writeGetSelf»
             «MakeRelationships::writeRelationships(e, JavaFieldWriter.defineVisibility(e))»
         }
         '''
