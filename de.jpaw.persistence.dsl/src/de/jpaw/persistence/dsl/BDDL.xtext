@@ -67,7 +67,7 @@ GrantCategoryDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition] ('autoSetter' entityListener=[jvmTypes::JvmGenericType|QualifiedId])? )?
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition] ('autoSetter' entityListener=QualifiedId)? )?
     ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
@@ -121,7 +121,7 @@ EntityDefinition:
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
-        ('autoSetter' entityListener=[jvmTypes::JvmGenericType|QualifiedId])?
+        ('autoSetter' entityListener=QualifiedId)?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
         (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable? or mapped superclass?

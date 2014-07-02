@@ -630,7 +630,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
             @Entity
             «IF e.tableCategory.entityListener !== null || e.entityListener !== null»
-                @EntityListeners({«e.entityListener ?: e.tableCategory.entityListener.qualifiedName».class})
+                @EntityListeners({«e.entityListener ?: e.tableCategory.entityListener».class})
             «ENDIF»
             «IF e.cacheable»
                 @Cacheable(true)
