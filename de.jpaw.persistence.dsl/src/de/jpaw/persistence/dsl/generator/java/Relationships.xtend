@@ -83,7 +83,7 @@ class MakeRelationships {
                 if (m.nonOptional(e)) '''optional=false'''
             )»
             «m.writeJoinColumns(true, m.childObject)»
-            «m.writeFGS(fieldVisibility, m.childObject.name, "", true)»
+            «m.writeFGS(fieldVisibility, m.childObject.name, "", true, true)»
         «ENDFOR»
         
         «FOR m : e.oneToOnes»
@@ -93,7 +93,7 @@ class MakeRelationships {
                 if (m.cascade) 'cascade=CascadeType.ALL' 
             )»
             «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
         «ENDFOR»
         
         «FOR m : e.oneToManys»
@@ -106,15 +106,15 @@ class MakeRelationships {
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»
-            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true)»
+            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true, false)»
         «ENDFOR»
     '''
     
-    def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter) '''
+    def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter, boolean doThis) '''
         «fieldVisibility»«type» «m.name»«initializer»;
 
         public «type» get«m.name.toFirstUpper»() {
-            return «m.name»«IF m.fetchType !== null && m.fetchType == "LAZY"».get$Self()«ENDIF»;
+            return «m.name»«IF doThis && m.fetchType !== null && m.fetchType == "LAZY"».get$Self()«ENDIF»;
         }
         «IF doSetter»
             public void set«m.name.toFirstUpper»(«type» «m.name») {
