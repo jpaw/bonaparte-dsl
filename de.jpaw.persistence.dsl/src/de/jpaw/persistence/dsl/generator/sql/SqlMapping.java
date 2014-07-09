@@ -204,6 +204,18 @@ public class SqlMapping {
         }
         return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
+    
+    static public String getFieldForJavaType(DatabaseFlavour databaseFlavour, String javaType) {
+        switch (databaseFlavour) {
+        case ORACLE:
+            return dataTypeSqlOracle.get(javaType);
+        case POSTGRES:
+            return dataTypeSqlPostgres.get(javaType);
+        case MSSQLSERVER:
+            return dataTypeSqlMsSQLServer.get(javaType);
+        }
+        return null;
+    }
 
     static boolean supportsTablespaces(DatabaseFlavour databaseFlavour) {
         switch (databaseFlavour) {

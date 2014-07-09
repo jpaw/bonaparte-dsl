@@ -7,6 +7,7 @@ package de.jpaw.persistence.dsl;
 
 import org.apache.log4j.Logger;
 
+import de.jpaw.bonaparte.dsl.generator.CommentConverter;
 import de.jpaw.persistence.dsl.scoping.BDDLScopeProvider;
 
 /**
@@ -17,12 +18,17 @@ public class BDDLRuntimeModule extends de.jpaw.persistence.dsl.AbstractBDDLRunti
     public BDDLRuntimeModule() {
         logger.info("BDDL Runtime module constructed");
     }
+
+    public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
+        logger.info("BON Value converter bound for BDDL");
+        return CommentConverter.class;
+    }
     
     // must bind my subclass of ImportedNamespaceAwareScopeProvider here!
     // for implicit importedNamespace
     @Override
     public Class<? extends org.eclipse.xtext.scoping.IScopeProvider> bindIScopeProvider() {
-        logger.info("BDDL Value converter bound");
+        logger.info("BDDL scope provider bound");
         return BDDLScopeProvider.class;
     }
 

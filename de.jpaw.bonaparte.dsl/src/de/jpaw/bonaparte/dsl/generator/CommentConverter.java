@@ -35,8 +35,15 @@ public class CommentConverter extends DefaultTerminalConverters {
 	
     @Inject QualifiedNameValueConverter mFQNValueConverter;
     
+    // a value converter for qualified IDs
     @ValueConverter(rule = "QualifiedId")
     public IValueConverter<String> FQN() {
+        return mFQNValueConverter;
+    }
+    
+    // a value converter for qualified IDs plus .* wildcard
+    @ValueConverter(rule = "QualifiedIdWithWildcard")
+    public IValueConverter<String> FQNwW() {
         return mFQNValueConverter;
     }
     

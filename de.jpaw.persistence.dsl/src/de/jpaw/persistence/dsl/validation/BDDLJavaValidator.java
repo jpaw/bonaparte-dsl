@@ -176,6 +176,15 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     @Check
     public void checkTableCategoryDefinition(TableCategoryDefinition c) {
         checkClassForReservedColumnNames(c.getTrackingColumns(), BDDLPackage.Literals.TABLE_CATEGORY_DEFINITION__TRACKING_COLUMNS);
+        if (c.getHistoryCategory() != null) {
+            // validate that the category requires a primary key, and that the history category defines history columns
+            if (!c.isRequiresPk())
+                error("table categories with a history must require a primary key", BDDLPackage.Literals.TABLE_CATEGORY_DEFINITION__HISTORY_CATEGORY);
+            TableCategoryDefinition hisCategory = c.getHistoryCategory();
+            if (hisCategory.getHistorySequenceColumn() == null)
+                error("references categories for history does not define a history sequence column", BDDLPackage.Literals.TABLE_CATEGORY_DEFINITION__HISTORY_CATEGORY);
+            // the prior check also implies that the history category does not request another history category (by grammar rule)
+        }
     }
     
     @Check

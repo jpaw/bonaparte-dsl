@@ -71,8 +71,8 @@ TableCategoryDefinition:
     ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
-    ('history' historyCategory=[TableCategoryDefinition])?
-    ('historyColumn' historyColumn = ID)?  // TODO: currently unchecked  
+    (('history' historyCategory=[TableCategoryDefinition] ('sequence' historySequenceName=ID)?) |
+     ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID))?  
     (requiresPk ?= 'requiresPK')?
     (doBeanVal ?= 'beanVal')?
     ('grants' grantGroup = [GrantCategoryDefinition])?
