@@ -619,6 +619,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
@@ -723,6 +725,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         «imports.createImports»
@@ -773,6 +777,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         import de.jpaw.bonaparte.jpa.BonaData;

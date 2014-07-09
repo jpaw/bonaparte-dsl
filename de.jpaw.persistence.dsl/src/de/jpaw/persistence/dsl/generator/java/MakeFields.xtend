@@ -207,7 +207,11 @@ class JavaFieldWriter {
                     if («myName» == null)
                         return null;
                     try {
-                        ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
+                        «IF hasProperty(i.properties, PROP_COMPACT)»
+                            CompactByteArrayParser _bap = new CompactByteArrayParser(«myName», 0, -1);
+                        «ELSE»
+                            ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
+                        «ENDIF»
                         return «IF ref.objectDataType !== null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType !== null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                     } catch (MessageParserException _e) {
                         throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + _e.getSpecificDescription());
@@ -254,7 +258,11 @@ class JavaFieldWriter {
                     if («myName» == null) {
                         this.«myName» = null;
                     } else {
-                        ByteArrayComposer _bac = new ByteArrayComposer();
+                        «IF hasProperty(i.properties, PROP_COMPACT)»
+                            CompactByteArrayComposer _bac = new CompactByteArrayComposer();
+                        «ELSE»
+                            ByteArrayComposer _bac = new ByteArrayComposer();
+                        «ENDIF»
                         _bac.addField(StaticMeta.OUTER_BONAPORTABLE, «myName»);
                         this.«myName» = _bac.getBytes();
                     }
@@ -311,11 +319,11 @@ class JavaFieldWriter {
             return "ERROR, array not allowed here"
     }
 
-	def private static nullableAnnotationPart(FieldDefinition f) {
-		if (f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull)
-			", nullable=false"
-	}
-	
+    def private static nullableAnnotationPart(FieldDefinition f) {
+        if (f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull)
+            ", nullable=false"
+    }
+    
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
         List<EmbeddableUse> embeddables) {
@@ -328,47 +336,47 @@ class JavaFieldWriter {
         return '''
             «IF relevantElementCollection !== null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
-	            «IF relevantEmbeddable === null»
-	            	@Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
-	                «f.writeColumnType(myName)»
-    	            «f.writeGetter(myName)»
-        	        «f.writeSetter(myName)»
-	            «ELSE»
-	                «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
-	                // special getter to convert from embeddable entity type into DTO
-	                public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() {
-	                    if («f.name» == null || «f.name».isEmpty())
-	                        return null;
-	                    «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
-	                    «IF f.isMap !== null»
-	                        for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
-	                            _r.put(_i.getKey(), _i.getValue().get$Data());
-	                    «ELSE»
-	                        for («embName» _i : «f.name»)
-	                            _r.add(_i.get$Data());
-	                    «ENDIF»
-	                    return _r;
-	                }
-	                // special setter to convert from embeddable entity type into DTO
-	                public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
-	                    «f.name».clear();
-	                    if (_d != null) {
-	                        «IF f.isMap !== null»
-	                            for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
-	                                «embName» _ec = new «embName»();
-	                                _ec.set$Data(_i.getValue());
-	                                «f.name».put(_i.getKey(), _ec);
-	                            }
-	                        «ELSE»
-	                            for («f.JavaDataTypeNoName(true)» _i : _d) {
-	                                «embName» _ec = new «embName»();
-	                                _ec.set$Data(_i);
-	                                «f.name».add(_ec);
-	                            }
-	                        «ENDIF»
-	                    }
-	                }
-	            «ENDIF»
+                «IF relevantEmbeddable === null»
+                    @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
+                    «f.writeColumnType(myName)»
+                    «f.writeGetter(myName)»
+                    «f.writeSetter(myName)»
+                «ELSE»
+                    «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
+                    // special getter to convert from embeddable entity type into DTO
+                    public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper»() {
+                        if («f.name» == null || «f.name».isEmpty())
+                            return null;
+                        «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
+                        «IF f.isMap !== null»
+                            for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
+                                _r.put(_i.getKey(), _i.getValue().get$Data());
+                        «ELSE»
+                            for («embName» _i : «f.name»)
+                                _r.add(_i.get$Data());
+                        «ENDIF»
+                        return _r;
+                    }
+                    // special setter to convert from embeddable entity type into DTO
+                    public void set«myName.toFirstUpper»(«f.JavaDataTypeNoName(false)» _d) {
+                        «f.name».clear();
+                        if (_d != null) {
+                            «IF f.isMap !== null»
+                                for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
+                                    «embName» _ec = new «embName»();
+                                    _ec.set$Data(_i.getValue());
+                                    «f.name».put(_i.getKey(), _ec);
+                                }
+                            «ELSE»
+                                for («f.JavaDataTypeNoName(true)» _i : _d) {
+                                    «embName» _ec = new «embName»();
+                                    _ec.set$Data(_i);
+                                    «f.name».add(_ec);
+                                }
+                            «ENDIF»
+                        }
+                    }
+                «ENDIF»
             «ELSE»
                 @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»«f.sizeSpec»«IF hasProperty(f.properties,
                 "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
