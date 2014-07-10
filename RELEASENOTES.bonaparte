@@ -162,6 +162,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
   Goals:  fast, compact, portable, upgradeable (binary format)
    (distinguish length encoded fields and implicit length fields)
 - improve value converter for escaping of qualified IDs also for BDDL
+- BDDL: autogenerate history triggers (for Oracle databases)
 
 
 
@@ -169,7 +170,6 @@ New features and bug fixes in Bonaparte / Persistence DSL
 PLANS:
 2.2.2:
 - complete Hazelcast support
-- autogenerate history triggers (at least for Oracle databases)
 
 
 ROADMAP:

@@ -25,6 +25,7 @@ class SqlTriggerOut {
         val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
         val historyCategory = e.tableCategory.historyCategory
         val myPrimaryKeyColumns = e.primaryKeyColumns
+        val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true)
         
         return '''
             -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
@@ -36,13 +37,13 @@ class SqlTriggerOut {
                 REFERENCING NEW AS NEW OLD AS OLD
                 FOR EACH ROW
             DECLARE
-                  next_seq_    NUMBER(20) := 0;
-                  change_type_ VARCHAR2(1 CHAR);
+                next_seq_    NUMBER(20) := 0;
+                change_type_ VARCHAR2(1 CHAR);
             BEGIN
-                  IF INSERTING THEN
+                IF INSERTING THEN
                     change_type_ := 'I';
-                  END IF;
-                  IF UPDATING THEN
+                END IF;
+                IF UPDATING THEN
                     change_type_ := 'U';
                     -- deny attempts to change a primary key column
                     IF FALSE
@@ -51,26 +52,49 @@ class SqlTriggerOut {
                         «ENDFOR»
                         THEN RAISE DUP_VAL_ON_INDEX;
                     END IF;
-                  END IF;
+                END IF;
                 SELECT «e.tableCategory.historySequenceName».NEXTVAL INTO next_seq_ FROM DUAL;
-                  IF INSERTING OR UPDATING THEN
+                IF INSERTING OR UPDATING THEN
                     INSERT INTO «tablename» (
-                          «historyCategory.historySequenceColumn»
-                          , «historyCategory.historyChangeTypeColumn»
-                      ) VALUES (
-                          next_seq_
-                          , change_type_
-                      );
-                  END IF;
-                  IF DELETING THEN
-                    INSERT INTO «tablename» (
-                          «historyCategory.historySequenceColumn»
-                          , «historyCategory.historyChangeTypeColumn»
-                      ) VALUES (
-                          next_seq_
-                          , 'D'
+                        «historyCategory.historySequenceColumn»
+                        , «historyCategory.historyChangeTypeColumn»
+                        «FOR c : myPrimaryKeyColumns»
+                            , «c.name.java2sql»
+                        «ENDFOR»
+                        «FOR c : nonPrimaryKeyColumns»
+                            , «c.name.java2sql»
+                        «ENDFOR»
+                    ) VALUES (
+                        next_seq_
+                        , change_type_
+                        «FOR c : myPrimaryKeyColumns»
+                            , :NEW.«c.name.java2sql»
+                        «ENDFOR»
+                        «FOR c : nonPrimaryKeyColumns»
+                            , :NEW.«c.name.java2sql»
+                        «ENDFOR»
                     );
-                  END IF;
+                END IF;
+                IF DELETING THEN
+                    INSERT INTO «tablename» (
+                        «historyCategory.historySequenceColumn»
+                        , «historyCategory.historyChangeTypeColumn»
+                        «FOR c : myPrimaryKeyColumns»
+                            , «c.name.java2sql»
+                        «ENDFOR»
+                        «FOR c : nonPrimaryKeyColumns»
+                            , «c.name.java2sql»
+                        «ENDFOR»                    ) VALUES (
+                        next_seq_
+                        , 'D'
+                        «FOR c : myPrimaryKeyColumns»
+                            , :OLD.«c.name.java2sql»
+                        «ENDFOR»
+                        «FOR c : nonPrimaryKeyColumns»
+                            , :OLD.«c.name.java2sql»
+                        «ENDFOR»
+                    );
+                END IF;
             END;
             /
         '''

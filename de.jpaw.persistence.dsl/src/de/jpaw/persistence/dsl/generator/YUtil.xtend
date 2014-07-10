@@ -27,6 +27,8 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import java.util.List
+import java.util.ArrayList
+import de.jpaw.persistence.dsl.bDDL.Inheritance
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -222,6 +224,22 @@ class YUtil {
             «ENDFOR»
         «ENDIF»
     '''
+    
+    def public static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
+    	if (cl !== null && cl != stopAt) {
+    		// add fields of subclasses
+    		if (cl.extendsClass?.classRef !== null) {
+            	bucket.recurseAdd(cl.extendsClass.classRef, stopAt, includeAggregates, filterCondition)
+            	for (c : cl.fields) {
+                	if ((includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c))
+                		bucket.add(c)
+              	}
+            }
+        }
+    }
+    def public static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
+    	recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
+    }
 
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
         recurse(cl, stopAt, false,
@@ -332,6 +350,12 @@ class YUtil {
     	return false
     }
     
+    /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
+     * The fields not included are:
+     * element collection map key,
+     * history sequence number
+     * 
+     */
     def public static primaryKeyColumns(EntityDefinition e) {
         val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
 		return if (baseEntity.embeddablePk !== null)
@@ -343,4 +367,25 @@ class YUtil {
 			else null
     }
         
+    /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.
+     * The non-included columns are:
+     * discriminators for inheritance, history change type
+     * 
+     */
+    def public static nonPrimaryKeyColumns(EntityDefinition t, boolean descendForTablePerClass) {
+    	val resultList = new ArrayList<FieldDefinition>(50)
+        val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
+        val myPrimaryKeyColumns = t.primaryKeyColumns
+        val ClassDefinition stopAt = if (t.inheritanceRoot.xinheritance == Inheritance::JOIN) t.^extends?.pojoType else null // stop column recursion for JOINed tables
+    	val tenantClass = if (t.tenantInJoinedTables || t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS)
+			baseEntity.tenantClass
+		else
+			t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
+			
+		if (stopAt === null)
+            recurseAddDDL(resultList, t.tableCategory.trackingColumns, null, myPrimaryKeyColumns)
+		recurseAddDDL(resultList, tenantClass, null, myPrimaryKeyColumns)
+		recurseAddDDL(resultList, t.pojoType, stopAt, myPrimaryKeyColumns)
+    	return resultList
+    }
 }
