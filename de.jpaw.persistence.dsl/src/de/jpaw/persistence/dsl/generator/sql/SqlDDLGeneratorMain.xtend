@@ -239,13 +239,6 @@ class SqlDDLGeneratorMain implements IGenerator {
         '''
     }
     
-    def List<EmbeddableUse> combinedEmbeddables(EntityDefinition t, List<EmbeddableUse> work) {
-        work.addAll(t.embeddables)
-        if (t.^extends !== null)
-            t.^extends.combinedEmbeddables(work)
-        work
-    }
-    
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
         val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
@@ -260,7 +253,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceData  = mkTablespaceName(t, false, myCategory)
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
-        val theEmbeddables = if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
+        val theEmbeddables = t.theEmbeddables
         // System::out.println("      tablename is " + tablename);
         // System::out.println('''ENTITY «t.name» (history? «doHistory», DB = «databaseFlavour»): embeddables used are «theEmbeddables.map[name.name + ':' + field.name].join(', ')»''');
 		val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''

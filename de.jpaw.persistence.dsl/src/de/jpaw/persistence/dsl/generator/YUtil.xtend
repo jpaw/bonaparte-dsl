@@ -228,13 +228,11 @@ class YUtil {
     def public static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
     	if (cl !== null && cl != stopAt) {
     		// add fields of subclasses
-    		if (cl.extendsClass?.classRef !== null) {
-            	bucket.recurseAdd(cl.extendsClass.classRef, stopAt, includeAggregates, filterCondition)
-            	for (c : cl.fields) {
-                	if ((includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c))
-                		bucket.add(c)
-              	}
-            }
+          	bucket.recurseAdd(cl.extendsClass?.classRef, stopAt, includeAggregates, filterCondition)
+        	for (c : cl.fields) {
+            	if ((includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c))
+            		bucket.add(c)
+          	}
         }
     }
     def public static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
@@ -387,5 +385,15 @@ class YUtil {
 		recurseAddDDL(resultList, tenantClass, null, myPrimaryKeyColumns)
 		recurseAddDDL(resultList, t.pojoType, stopAt, myPrimaryKeyColumns)
     	return resultList
+    }
+
+    def static private List<EmbeddableUse> combinedEmbeddables(EntityDefinition t, List<EmbeddableUse> work) {
+        work.addAll(t.embeddables)
+        if (t.^extends !== null)
+            t.^extends.combinedEmbeddables(work)
+        work
+    }
+    def static public theEmbeddables(EntityDefinition t) {
+    	return if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
     }
 }

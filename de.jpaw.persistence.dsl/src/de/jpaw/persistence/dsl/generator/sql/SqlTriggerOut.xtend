@@ -16,12 +16,35 @@
 
 package de.jpaw.persistence.dsl.generator.sql
 
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
+import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.List
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
-// still TODO: EC, unrolled loops, embeddables
 class SqlTriggerOut {
+	
+	def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
+		(FieldDefinition, String, RequiredType) => CharSequence func) {
+		// println('''trigger field for «f.name» in «e.name»''')
+		return f.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", func)
+	}
+	
+	def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> keys, List<FieldDefinition> data,
+		(FieldDefinition, String, RequiredType) => CharSequence func) {
+		val embeddables = e.theEmbeddables
+		return '''
+            «FOR c : keys»
+            	«e.recurseTrigger(c, embeddables, func)»
+            «ENDFOR»
+            «FOR c : data»
+            	«e.recurseTrigger(c, embeddables, func)»
+            «ENDFOR»		
+		'''
+	}
+	
     def public static triggerOutOracle(EntityDefinition e) {
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory
@@ -59,42 +82,22 @@ class SqlTriggerOut {
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «FOR c : myPrimaryKeyColumns»
-                            , «c.name.java2sql»
-                        «ENDFOR»
-                        «FOR c : nonPrimaryKeyColumns»
-                            , «c.name.java2sql»
-                        «ENDFOR»
+                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
                     ) VALUES (
                         next_seq_
                         , change_type_
-                        «FOR c : myPrimaryKeyColumns»
-                            , :NEW.«c.name.java2sql»
-                        «ENDFOR»
-                        «FOR c : nonPrimaryKeyColumns»
-                            , :NEW.«c.name.java2sql»
-                        «ENDFOR»
+                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', :NEW.«myName.java2sql»'''])»
                     );
                 END IF;
                 IF DELETING THEN
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «FOR c : myPrimaryKeyColumns»
-                            , «c.name.java2sql»
-                        «ENDFOR»
-                        «FOR c : nonPrimaryKeyColumns»
-                            , «c.name.java2sql»
-                        «ENDFOR»
+                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
                     ) VALUES (
                         next_seq_
                         , 'D'
-                        «FOR c : myPrimaryKeyColumns»
-                            , :OLD.«c.name.java2sql»
-                        «ENDFOR»
-                        «FOR c : nonPrimaryKeyColumns»
-                            , :OLD.«c.name.java2sql»
-                        «ENDFOR»
+                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', :OLD.«myName.java2sql»'''])»
                     );
                 END IF;
             END;
