@@ -20,9 +20,10 @@ import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
+// still TODO: EC, unrolled loops, embeddables
 class SqlTriggerOut {
-    def public static triggerOutOracle(EntityDefinition e, String tablename) {
-        val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
+    def public static triggerOutOracle(EntityDefinition e) {
+        val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory
         val myPrimaryKeyColumns = e.primaryKeyColumns
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true)
@@ -31,7 +32,7 @@ class SqlTriggerOut {
             -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
             -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
             -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-    
+
             CREATE OR REPLACE TRIGGER «tablename»_trg
                 AFTER INSERT OR DELETE OR UPDATE ON «tablename»
                 REFERENCING NEW AS NEW OLD AS OLD
@@ -84,7 +85,8 @@ class SqlTriggerOut {
                         «ENDFOR»
                         «FOR c : nonPrimaryKeyColumns»
                             , «c.name.java2sql»
-                        «ENDFOR»                    ) VALUES (
+                        «ENDFOR»
+                    ) VALUES (
                         next_seq_
                         , 'D'
                         «FOR c : myPrimaryKeyColumns»
