@@ -69,6 +69,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 LOGGER.info("    doing history table as well, due to category " + e.tableCategory.name);
                 // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
                 makeTables(fsa, e, true)
+                makeTriggers(fsa, e)
             }
             collectEnums(e)
             makeViews(fsa, e, false, "_nt")
@@ -144,6 +145,12 @@ class SqlDDLGeneratorMain implements IGenerator {
 	        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
     }
 
+    def private void makeTriggers(IFileSystemAccess fsa, EntityDefinition e) {
+        var tablename = mkTablename(e, false)
+        if (prefs.doOracleOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename + "_trg", "Trigger"), SqlTriggerOut.triggerOutOracle(e, tablename))
+    }
+    
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
@@ -241,7 +248,8 @@ class SqlDDLGeneratorMain implements IGenerator {
     
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
-        val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table
+        val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
+        val myPrimaryKeyColumns = t.primaryKeyColumns
         var myCategory = t.tableCategory
         if (doHistory)
             myCategory = myCategory.historyCategory
@@ -272,14 +280,14 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             «IF stopAt === null»
-                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
+                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
             «ENDIF»
-            «tenantClass?.recurseColumns(null, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
+            «tenantClass?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
             «IF t.discname !== null»
                 «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
-            «IF baseEntity.pk !== null && stopAt !== null»
-                «FOR c : baseEntity.pk.columnName»
+            «IF myPrimaryKeyColumns !== null && stopAt !== null»
+                «FOR c : myPrimaryKeyColumns»
                     «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables)»
                 «ENDFOR»
             «ENDIF»
@@ -287,20 +295,12 @@ class SqlDDLGeneratorMain implements IGenerator {
             	«d.get»«SqlMapping.getFieldForJavaType(databaseFlavour, "long")»    «myCategory.historySequenceColumn» NOT NULL
             	«d.get»«SqlMapping.getFieldForJavaType(databaseFlavour, "char")»    «myCategory.historyChangeTypeColumn» NOT NULL
             «ENDIF»
-            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, baseEntity.pk?.columnName, theEmbeddables)»
+            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
-        «IF baseEntity.embeddablePk !== null»
+        «IF myPrimaryKeyColumns !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.embeddablePk.name.pojoType.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
-            )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ELSEIF baseEntity.pk !== null»
-            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.pk.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
-            )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
-        «ELSEIF baseEntity.pkPojo !== null»
-            ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : baseEntity.pkPojo.fields SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
+                «FOR c : myPrimaryKeyColumns SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
             )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»

@@ -331,5 +331,16 @@ class YUtil {
     	}
     	return false
     }
+    
+    def public static primaryKeyColumns(EntityDefinition e) {
+        val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
+		return if (baseEntity.embeddablePk !== null)
+				baseEntity.embeddablePk.name.pojoType.fields
+			else if (baseEntity.pk !== null)
+                baseEntity.pk.columnName
+        	else if (baseEntity.pkPojo !== null)
+				baseEntity.pkPojo.fields
+			else null
+    }
         
 }

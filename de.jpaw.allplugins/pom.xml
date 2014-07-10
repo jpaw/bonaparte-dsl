@@ -160,9 +160,9 @@
             <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases</url>
         </repository>
         <repository>
-            <id>p2-kepler</id>
+            <id>p2-luna</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/kepler</url>
+            <url>http://download.eclipse.org/releases/luna</url>
         </repository>
         <repository>
             <id>fornax.repository</id>
