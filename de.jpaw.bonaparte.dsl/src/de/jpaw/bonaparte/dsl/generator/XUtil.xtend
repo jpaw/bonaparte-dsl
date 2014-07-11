@@ -102,7 +102,7 @@ class XUtil {
 
     def public static getRelevantXmlAccess(ClassDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
-        return if (t == XXmlAccess::NOXML) null else t
+        return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
     }
     def public static getXmlNs(ClassDefinition d) {
         d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations

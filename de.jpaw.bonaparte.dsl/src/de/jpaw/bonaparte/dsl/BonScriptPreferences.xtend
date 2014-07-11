@@ -39,6 +39,7 @@ public class BonScriptPreferences {
 	static private final boolean warnFloatDefault = configReader.getProp("WarnFloat", false);
 	static private final boolean doDebugOutDefault = configReader.getProp("DebugOut", false);
 	static private final boolean doDateTimeDefault = configReader.getProp("DateTime", false);
+	static private final boolean noXmlDefault = configReader.getProp("noXML", false);
 	static private final boolean defaultExternalizeDefault = configReader.getProp("Externalize", false);
 	static private final boolean defaultHazelcastDsDefault = configReader.getProp("HazelcastDs", false);
 	static private final boolean defaultHazelcastIdDefault = configReader.getProp("HazelcastId", false);
@@ -49,6 +50,7 @@ public class BonScriptPreferences {
 	public boolean warnFloat = warnFloatDefault;
 	public boolean doDebugOut = doDebugOutDefault;
 	public boolean doDateTime = doDateTimeDefault;
+	public boolean noXML = noXmlDefault;
 	public boolean defaultExternalize = defaultExternalizeDefault;
 	public boolean defaultHazelcastDs = defaultHazelcastDsDefault;
 	public boolean defaultHazelcastId = defaultHazelcastIdDefault;
@@ -80,5 +82,8 @@ public class BonScriptPreferences {
 			return XExternalizable.EXT
 		else
 			return XExternalizable.NOEXT
+	}
+	def public static getNoXML() {
+		return currentPrefs.noXML
 	}
 }

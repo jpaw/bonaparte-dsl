@@ -163,6 +163,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
    (distinguish length encoded fields and implicit length fields)
 - improve value converter for escaping of qualified IDs also for BDDL
 - BDDL: autogenerate history triggers (for Oracle databases)
+- new option: suppress JAXB annotation generation (for Android builds)
 
 
 

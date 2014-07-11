@@ -82,7 +82,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
-                    «IF d.xmlAccess !== null»
+                    «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
                     @XmlJavaTypeAdapters({
                         «IF needJoda»
                             @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
@@ -95,7 +95,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     «ENDIF»
                     «d.javadoc»
                     package «getPackageName(d)»;
-                    «IF d.xmlAccess !== null»
+                    «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
 
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
@@ -200,7 +200,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         package «getPackageName(d)»;
         
         «writeDefaultImports»
-        «IF (xmlAccess !== null && !d.isAbstract)»
+        «IF xmlAccess !== null && !d.isAbstract && !BonScriptPreferences.getNoXML»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
@@ -237,7 +237,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
            «d.javadoc»
         «ENDIF»
 
-        «IF (xmlAccess !== null && !d.isAbstract)»
+        «IF xmlAccess !== null && !d.isAbstract && !BonScriptPreferences.getNoXML»
             @XmlRootElement«IF xmlNs !== null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
