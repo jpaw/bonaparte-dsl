@@ -264,7 +264,9 @@ class JavaMeta {
                 «d.fields.size»,
                 my$fields,
                 property$Map,
-                «propertiesInherited»
+                «propertiesInherited»,
+                «d.root.immutable»,
+                «d.freezable»
             );
 
             // get all the meta data in one go
@@ -337,7 +339,11 @@ class JavaMeta {
                 }
                 @Override
                 public boolean isFreezable() {
-                    return class$isFreezable();
+                    return «d.freezable»;
+                }
+                @Override
+                public boolean isImmutable() {
+                    return «d.root.immutable»;
                 }
                 @Override
                 public String getBundle() {
