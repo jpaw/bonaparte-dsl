@@ -48,6 +48,8 @@ class JavaValidate {
                                                             "«i.name».length=" + «index».length() + " < «ref.elementaryDataType.minLength»",
                                                             _PARTIALLY_QUALIFIED_CLASS_NAME);
                 «ENDIF»
+            «ELSEIF ref.javaType.equals("BigDecimal")»
+                BigDecimalTools.validate(«index», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
         }
     '''
@@ -57,13 +59,11 @@ class JavaValidate {
             «IF ref.elementaryDataType.regexp !== null»
                 Matcher _m =  regexp$«i.name».matcher(«index»);
                 if (!_m.find())
-                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
             «IF ref.isUpperCaseOrLowerCaseSpecialType»
                 if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«index»))
-                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH,
-                                                        "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
         }
     '''
@@ -111,7 +111,7 @@ class JavaValidate {
                 «ENDIF»
             «ENDFOR»
             «FOR i:d.fields»
-                «IF DataTypeExtension::get(i.datatype).category == DataCategory::STRING»
+                «IF DataTypeExtension::get(i.datatype).category == DataCategory::STRING || DataTypeExtension::get(i.datatype).javaType == "BigDecimal"»
                     «loopStart(i)»
                     «makeLengthCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                 «ENDIF»
