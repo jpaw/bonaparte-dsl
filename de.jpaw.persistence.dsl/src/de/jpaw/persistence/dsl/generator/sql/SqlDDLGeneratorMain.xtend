@@ -285,8 +285,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
             «ENDIF»
             «IF doHistory»
-            	«d.get»«SqlMapping.getFieldForJavaType(databaseFlavour, "long")»    «myCategory.historySequenceColumn» NOT NULL
-            	«d.get»«SqlMapping.getFieldForJavaType(databaseFlavour, "char")»    «myCategory.historyChangeTypeColumn» NOT NULL
+            	«d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long")» NOT NULL
+            	«d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char")» NOT NULL
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
