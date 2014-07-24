@@ -114,7 +114,11 @@ class MakeRelationships {
         «fieldVisibility»«type» «m.name»«initializer»;
 
         public «type» get«m.name.toFirstUpper»() {
-            return «m.name»«IF doThis && m.fetchType !== null && m.fetchType == "LAZY"».get$Self()«ENDIF»;
+            «IF doThis && m.fetchType !== null && m.fetchType == "LAZY"»
+            	return «m.name» == null ? null : «m.name».get$Self();  // we want the resolved instance, not a proxy!
+            «ELSE»
+            	return «m.name»;
+            «ENDIF»
         }
         «IF doSetter»
             public void set«m.name.toFirstUpper»(«type» «m.name») {
