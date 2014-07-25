@@ -26,7 +26,7 @@ class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
 
     def static public boolean hasNullToken(EnumDefinition ed) {
-    	ed.avalues !== null && ed.avalues.exists[token == ""]
+        ed.avalues !== null && ed.avalues.exists[token == ""]
     }
     def static boolean isAlpha(EnumDefinition d) {
         d.avalues !== null && !d.avalues.empty
@@ -95,7 +95,7 @@ class JavaEnum {
                 
                 // static method to return the instance with the null token, or null if no such exists
                 public static «d.name» getNullToken() {
-                	return «d.avalues.findFirst[token == ""]?.name ?: "null"»;
+                    return «d.avalues.findFirst[token == ""]?.name ?: "null"»;
                 }
             «ENDIF»
 

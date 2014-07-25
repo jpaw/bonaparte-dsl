@@ -8,7 +8,7 @@
        uri = "http://www.jpaw.de/bonaparte/dsl/BonScript" 
        class = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
        genModel = "de/jpaw/bonaparte/dsl/BonScript.genmodel" /> 
-	
+    
   </extension>
 
 

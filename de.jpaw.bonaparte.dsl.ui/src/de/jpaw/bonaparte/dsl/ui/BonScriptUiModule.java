@@ -24,20 +24,20 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
         return BonScriptConfiguration.class;
     }
 
-	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
-		return Highlighter.class;
-	}
+    public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
+        return Highlighter.class;
+    }
 
-/*	// contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
-	public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
-		return AbstractTokenScanner.class;
-	} */
+/*  // contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
+    public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
+        return AbstractTokenScanner.class;
+    } */
 
-	public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
-		return BonAntlrTokenToAttributeIdMapper.class ;
-	}
-	
-	public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
-		return BonaparteGlobalScopeProvider.class;
-	}
+    public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+        return BonAntlrTokenToAttributeIdMapper.class ;
+    }
+    
+    public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
+        return BonaparteGlobalScopeProvider.class;
+    }
 }

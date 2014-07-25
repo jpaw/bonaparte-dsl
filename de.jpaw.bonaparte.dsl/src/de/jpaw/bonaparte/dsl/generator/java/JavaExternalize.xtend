@@ -33,11 +33,11 @@ class JavaExternalize {
     def public static writeExternalize(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {
-        	ExternalizableComposer.serialize(this, _out);
+            ExternalizableComposer.serialize(this, _out);
         }
         @Override
         public void readExternal(ObjectInput _in) throws IOException, ClassNotFoundException {
-        	ExternalizableParser.deserialize(this, _in);
+            ExternalizableParser.deserialize(this, _in);
         }
         
     '''

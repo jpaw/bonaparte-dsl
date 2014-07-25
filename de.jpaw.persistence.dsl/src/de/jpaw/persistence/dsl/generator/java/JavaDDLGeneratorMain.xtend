@@ -137,7 +137,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         if (!noListAtThisPoint && f.isList !== null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
             val indexPattern = f.indexPattern;
             val notNullElements = f.isRequired
-	        // val ref = DataTypeExtension::get(f.datatype);
+            // val ref = DataTypeExtension::get(f.datatype);
             return '''
                 «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
@@ -199,8 +199,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                     }
                 '''
             } else if (emb !== null) {
-            	// embeddable in a list, not unrolled: this must be an ElementCollection!
-            	// TODO: use special data types
+                // embeddable in a list, not unrolled: this must be an ElementCollection!
+                // TODO: use special data types
                 func.apply(f, myName, currentIndex)
             } else {
                 // regular field
@@ -249,7 +249,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     @Id
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-	    	        «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables)»
+                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
@@ -442,11 +442,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     def private static writeGetSelf(EntityDefinition e) '''
-    	/** Method that allows generic proxy resolution by returning {@code this}. */
-    	@Override
-    	public «e.name» get$Self() {
-    		return this;
-    	}
+        /** Method that allows generic proxy resolution by returning {@code this}. */
+        @Override
+        public «e.name» get$Self() {
+            return this;
+        }
     '''
 
     def private i2s(Inheritance i) {
@@ -672,7 +672,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         public class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF»«ENDIF» {
             «IF stopper === null && primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
-				«fieldWriter.buildEmbeddedId(e)»
+                «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
             «IF stopper === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType)»«ENDIF»
             «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType)»
@@ -680,8 +680,8 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF stopper === null»«EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»«ENDIF»
             «writeStubs(e)»
             «IF e.^extends === null»
-            	«writeKeyInterfaceMethods(e, pkType)»
-            	«MakeMapper::writeTrackingMapperMethods(e.tableCategory.trackingColumns, trackingType)»
+                «writeKeyInterfaceMethods(e, pkType)»
+                «MakeMapper::writeTrackingMapperMethods(e.tableCategory.trackingColumns, trackingType)»
             «ENDIF»
             «IF (!e.noDataMapper)»
                 «MakeMapper::writeDataMapperMethods(e.pojoType, e.^extends === null, e.getInheritanceRoot.pojoType, e.embeddables, e.pk?.columnName)»
@@ -700,8 +700,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         imports.recurseImports(e.pojoType, true)
 
         imports.addImport(myPackageName, myName)  // add myself as well
-		fieldWriter = new JavaFieldWriter(e)
-		
+        fieldWriter = new JavaFieldWriter(e)
+        
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -735,9 +735,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         @SuppressWarnings("all")
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
-	        «FOR col : e.pk.columnName»
-    	        «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null)»
-        	«ENDFOR»
+            «FOR col : e.pk.columnName»
+                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null)»
+            «ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
             «writeCloneable(myName)»
@@ -749,10 +749,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         val String myPackageName = getPackageName(e)
         val String myName = e.name
         val ImportCollector imports = new ImportCollector(myPackageName)
-        imports.addImport(e.pojoType)  				// add underlying POJO as well (this is not done by the recursive one next line!)
+        imports.addImport(e.pojoType)               // add underlying POJO as well (this is not done by the recursive one next line!)
         imports.recurseImports(e.pojoType, true)
         imports.addImport(myPackageName, e.name)  // add myself as well
-		fieldWriter = new JavaFieldWriter(e)
+        fieldWriter = new JavaFieldWriter(e)
 
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.

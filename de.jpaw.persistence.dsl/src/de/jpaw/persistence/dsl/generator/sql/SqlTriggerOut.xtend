@@ -25,26 +25,26 @@ import java.util.List
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
 
 class SqlTriggerOut {
-	
-	def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
-		(FieldDefinition, String, RequiredType) => CharSequence func) {
-		// println('''trigger field for «f.name» in «e.name»''')
-		return f.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", func)
-	}
-	
-	def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> keys, List<FieldDefinition> data,
-		(FieldDefinition, String, RequiredType) => CharSequence func) {
-		val embeddables = e.theEmbeddables
-		return '''
+    
+    def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
+        (FieldDefinition, String, RequiredType) => CharSequence func) {
+        // println('''trigger field for «f.name» in «e.name»''')
+        return f.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", func)
+    }
+    
+    def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> keys, List<FieldDefinition> data,
+        (FieldDefinition, String, RequiredType) => CharSequence func) {
+        val embeddables = e.theEmbeddables
+        return '''
             «FOR c : keys»
-            	«e.recurseTrigger(c, embeddables, func)»
+                «e.recurseTrigger(c, embeddables, func)»
             «ENDFOR»
             «FOR c : data»
-            	«e.recurseTrigger(c, embeddables, func)»
-            «ENDFOR»		
-		'''
-	}
-	
+                «e.recurseTrigger(c, embeddables, func)»
+            «ENDFOR»        
+        '''
+    }
+    
     def public static triggerOutOracle(EntityDefinition e) {
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory

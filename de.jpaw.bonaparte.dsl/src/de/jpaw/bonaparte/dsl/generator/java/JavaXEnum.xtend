@@ -40,7 +40,7 @@ class JavaXEnum {
         return max
     }
     def static public boolean hasNullToken(XEnumDefinition d) {
-    	JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
+        JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
     
     def private static XEnumDefinition getRootXEnum(XEnumDefinition d) {
@@ -103,7 +103,7 @@ class JavaXEnum {
                 }
                 myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME, «d.name».class);
             }
-            public void init() {		// stub method to call for class loading
+            public void init() {        // stub method to call for class loading
             }
             
             // constructor may not be accessible from the outside

@@ -27,14 +27,14 @@ class JavaTreeWalker {
 
     def public static writeTreeWalkerCode(ClassDefinition d) '''
         «d.writeGenericTreeWalkerCode("String",       "AlphanumericElementaryDataItem", true, DataCategory::STRING)»
-        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem", 		true, DataCategory::NUMERIC)»
-        «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference", 				false, DataCategory::OBJECT)»
-        «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition", 				false, null)»
+        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem",      true, DataCategory::NUMERIC)»
+        «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, DataCategory::OBJECT)»
+        «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, null)»
     '''
 //        @Override
 //        @Deprecated  // compatibility function
 //        public void treeWalkString(DataConverter<String,AlphanumericElementaryDataItem> _cvt) {
-//        	treeWalkString(_cvt, true);
+//          treeWalkString(_cvt, true);
 //        }
     
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
@@ -51,13 +51,13 @@ class JavaTreeWalker {
 
      def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
          if (category === null || ref.category == category) {
-         	 val target = if (doAssign) i.name + " = ";
+             val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array
              // for types as Object or BonaPortable, which are not final, we need type casts!
              if (i.isArray !== null) {
-             	// special: cannot work on arrays of primitive types, they are not objects
-             	if (ref.isPrimitive)
-             		return '''// skipping array of primitive type for «i.name»'''
+                // special: cannot work on arrays of primitive types, they are not objects
+                if (ref.isPrimitive)
+                    return '''// skipping array of primitive type for «i.name»'''
                 return '''«target»_cvt.convertArray(«i.name», meta$$«i.name»);'''
              }
              if (i.isList !== null)

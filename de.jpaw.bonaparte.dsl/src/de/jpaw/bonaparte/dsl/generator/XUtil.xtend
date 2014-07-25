@@ -41,9 +41,9 @@ class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage = "de.jpaw.bonaparte.core"
 
-	def public static xEnumFactoryName(DataTypeExtension ref) {
-		ref.elementaryDataType.xenumType.getRoot.name + ".myFactory"
-	}
+    def public static xEnumFactoryName(DataTypeExtension ref) {
+        ref.elementaryDataType.xenumType.getRoot.name + ".myFactory"
+    }
     def public static ClassDefinition getParent(ClassDefinition d) {
         d?.getExtendsClass?.getClassRef
     }
@@ -95,8 +95,8 @@ class XUtil {
     }
 
     def public static boolean parentCacheHash(ClassDefinition d) {
-    	if (d == null)
-    		return false
+        if (d == null)
+            return false
         return d.doCacheHash || parentCacheHash(d.parent) 
     }
 
@@ -123,23 +123,23 @@ class XUtil {
     }
     // return null if the object is a generic BonaPortable, or the java type if it is bounded by a specific object
     def public static ClassDefinition getLowerBound(ClassReference r) {
-    	if (r === null || r.plainObject)
-    		return null;
-    	if (r.genericsParameterRef !== null)
-    		return getLowerBound(r.genericsParameterRef.extends);
-    	return r.classRef
+        if (r === null || r.plainObject)
+            return null;
+        if (r.genericsParameterRef !== null)
+            return getLowerBound(r.genericsParameterRef.extends);
+        return r.classRef
     }
     
     // determines of an instance of potentialSubClass can be assigned to superClass.
     // in case of generics, lower bounds are used.
     // superClass may not be null
     def public static boolean isSuperClassOf(ClassDefinition superClass, ClassReference potentialSubClass) {
-    	val currentLowerBound = potentialSubClass?.lowerBound
-    	if (currentLowerBound === null)
-    		return false
-    	if (superClass == currentLowerBound)
-    		return true
-    	return superClass.isSuperClassOf(currentLowerBound.extendsClass)
+        val currentLowerBound = potentialSubClass?.lowerBound
+        if (currentLowerBound === null)
+            return false
+        if (superClass == currentLowerBound)
+            return true
+        return superClass.isSuperClassOf(currentLowerBound.extendsClass)
     } 
     
     def public static String genericRef2String(ClassReference r) {
@@ -191,7 +191,7 @@ class XUtil {
 
     // convert an Xtend boolean to Java source token
     def public static B2A(Boolean f) {
-    	if (f === null) return "null"
+        if (f === null) return "null"
         if (f) "true" else "false"
     }
     
@@ -299,7 +299,7 @@ class XUtil {
         if (skipIndex)
             dataClass
         else
-        	i.aggregateOf(dataClass)
+            i.aggregateOf(dataClass)
     }
 
     // checks if null can be assigned to a field. If the field is an aggregate, this relates to the aggregate itself, not its members.
@@ -323,11 +323,11 @@ class XUtil {
             return ref.isRequired == XRequired::REQUIRED
         }
         // now check if an explicit specification has been made
-		if (i.required !== null)
-            return i.required.x	== XRequired::REQUIRED
-			
+        if (i.required !== null)
+            return i.required.x == XRequired::REQUIRED
+            
         // neither ref.isRequired is set nor an explicit specification made.  Fall back to defaults of the embedding class or package
-		
+        
         // DEBUG
         //if (i.name.equals("fields"))
         //    System::out.println("fields.required = " + i.required + ", defaultreq = " + ref.defaultRequired)
@@ -441,8 +441,8 @@ class XUtil {
     '''
     
     def public static enumForEnumOrXenum(DataTypeExtension ref) {
-    	if (ref.elementaryDataType?.xenumType !== null)
-    		ref.elementaryDataType?.xenumType.myEnum
+        if (ref.elementaryDataType?.xenumType !== null)
+            ref.elementaryDataType?.xenumType.myEnum
         else 
             ref.elementaryDataType?.enumType
     }
@@ -451,11 +451,11 @@ class XUtil {
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
         if (ref.enumMaxTokenLength < 0)
-        	return false
-       	val avalues = ref.enumForEnumOrXenum.avalues
+            return false
+        val avalues = ref.enumForEnumOrXenum.avalues
 //        if (avalues === null)
-//        	return false
-       	return avalues.map[token].contains("")
+//          return false
+        return avalues.map[token].contains("")
     }
     def public static idForEnumTokenNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
@@ -465,11 +465,11 @@ class XUtil {
             ref.enumForEnumOrXenum.avalues.findFirst[token.empty]?.name
     }
 
-	// freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth
-	
+    // freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth
+    
     def private static boolean isFreezable(ClassReference it, int remainingDepth) {
-    	if (remainingDepth <= 0)
-    		return true
+        if (remainingDepth <= 0)
+            return true
         classRef === null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
     }
     
@@ -478,22 +478,22 @@ class XUtil {
     }
     
     def private static boolean isFreezable(ClassDefinition cd, int remainingDepth) {
-    	if (remainingDepth <= 0)
-    		return true
+        if (remainingDepth <= 0)
+            return true
         !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) && 
             !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
             !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
     }
     
     def public static boolean isFreezable(ClassDefinition cd) {
-    	cd.isFreezable(100)
+        cd.isFreezable(100)
     }
     
     def public static int getEffectiveFactoryId(ClassDefinition cd) {
-    	val pkg = cd.getPackage
-    	if (pkg.hazelcastFactoryId == 0)
-    		return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
-    	else
-    		return pkg.hazelcastFactoryId
+        val pkg = cd.getPackage
+        if (pkg.hazelcastFactoryId == 0)
+            return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
+        else
+            return pkg.hazelcastFactoryId
     }
 }

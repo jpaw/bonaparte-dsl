@@ -24,18 +24,18 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
         super(plugin);
     }
 
-//	public Class<? extends IBDDLPreferenceProvider> bindPreferenceProvider() {
-//		System.out.println("BDDL config bound");
-//		return BDDLConfiguration.class;
-//	}
+//  public Class<? extends IBDDLPreferenceProvider> bindPreferenceProvider() {
+//      System.out.println("BDDL config bound");
+//      return BDDLConfiguration.class;
+//  }
     public Class<? extends org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage> bindLanguageRootPreferencePage() {
         return BDDLConfiguration.class;
     }
-	public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
-		return Highlighter.class;
-	}
+    public Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
+        return Highlighter.class;
+    }
 
-	/* online help possibly causing issues, commenting out...
+    /* online help possibly causing issues, commenting out...
     public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
         return BDDLEObjectHoverProvider.class;
     }
@@ -44,14 +44,14 @@ public class BDDLUiModule extends de.jpaw.persistence.dsl.ui.AbstractBDDLUiModul
         return BDDLEObjectDocumentationProvider.class;
     } */
     
-/*	// contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
-	public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
-		return AbstractTokenScanner.class;
-	} */
+/*  // contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
+    public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
+        return AbstractTokenScanner.class;
+    } */
 
-	public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
-		return BonAntlrTokenToAttributeIdMapper.class ;
-	}
+    public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+        return BonAntlrTokenToAttributeIdMapper.class ;
+    }
     
     public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
         return BDDLGlobalScopeProvider.class;

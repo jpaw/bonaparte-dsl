@@ -95,9 +95,9 @@ public class DataTypeExtension {
         dataCategory.put("lowercase", DataCategory.STRING);
         dataCategory.put("ascii",     DataCategory.STRING);
         dataCategory.put("unicode",   DataCategory.STRING);
-        dataCategory.put("enum",      DataCategory.ENUM);  		// artificial entry for enum
-        dataCategory.put("xenum",     DataCategory.XENUM);  	// artificial entry for xenum
-        dataCategory.put("object",    DataCategory.OBJECT);  	// which is really an object reference instead of an elementary item...
+        dataCategory.put("enum",      DataCategory.ENUM);       // artificial entry for enum
+        dataCategory.put("xenum",     DataCategory.XENUM);      // artificial entry for xenum
+        dataCategory.put("object",    DataCategory.OBJECT);     // which is really an object reference instead of an elementary item...
     }
 
     // a lookup to determine the Java data type to use for a given grammar type.
@@ -117,7 +117,7 @@ public class DataTypeExtension {
         dataTypeJava.put("char",      "Character");
         dataTypeJava.put("character", "Character");
 
-        dataTypeJava.put("raw",       "byte []");    	// not recommended because mutable. Also weird for 2nd level of array index
+        dataTypeJava.put("raw",       "byte []");       // not recommended because mutable. Also weird for 2nd level of array index
         dataTypeJava.put("binary",    "ByteArray");
         dataTypeJava.put("uuid",      "UUID");
         dataTypeJava.put("day",       "LocalDate");     // temporary solution until JSR 310 has been implemented
@@ -129,20 +129,20 @@ public class DataTypeExtension {
         dataTypeJava.put("lowercase", "String");
         dataTypeJava.put("ascii",     "String");
         dataTypeJava.put("unicode",   "String");
-        dataTypeJava.put("enum",      SPECIAL_DATA_TYPE_ENUM);  			// artificial entry for enum
-        dataTypeJava.put("xenum",     SPECIAL_DATA_TYPE_XENUM);  			// artificial entry for xenum
+        dataTypeJava.put("enum",      SPECIAL_DATA_TYPE_ENUM);              // artificial entry for enum
+        dataTypeJava.put("xenum",     SPECIAL_DATA_TYPE_XENUM);             // artificial entry for xenum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
 
 
     // member variables
     private boolean currentlyVisited = false;
-    public ElementaryDataType elementaryDataType;  	// primitive type, enum, unspecified object or boxed type
-    public ClassDefinition objectDataType;			// explicit class reference (possibly with generics parameters)
-    public ClassDefinition secondaryObjectDataType;	// explicit secondary class reference (possibly with generics parameters)
+    public ElementaryDataType elementaryDataType;   // primitive type, enum, unspecified object or boxed type
+    public ClassDefinition objectDataType;          // explicit class reference (possibly with generics parameters)
+    public ClassDefinition secondaryObjectDataType; // explicit secondary class reference (possibly with generics parameters)
     public boolean orSuperClass;                    // if subclasses are allowed
     public Boolean orSecondarySuperClass;           // if subclasses are allowed for the secondary type
-    public ClassReference genericsRef;				// a generic type argument
+    public ClassReference genericsRef;              // a generic type argument
     public TypeDefinition typedef;
     public String javaType;  // resulting type after preprocessing, can be a java type or enum (always a boxed type) or a class reference. For xenums, it is the root xenum name
     public boolean isUpperCaseOrLowerCaseSpecialType = false;  // true for uppercase or lowercase (has extra built-in validation function)
@@ -323,25 +323,25 @@ public class DataTypeExtension {
         r.orSecondarySuperClass = null;
         r.genericsRef = key.getObjectDataType();
         if (key.getObjectDataType() != null) {
-        	r.category = DataCategory.OBJECT;
-        	r.orSuperClass = key.isOrSuperClass();
-        	// construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
-        	r.javaType = XUtil.genericRef2String(key.getObjectDataType());
-        	if (key.getObjectDataType().getClassRef() != null)
-        		r.objectDataType = key.getObjectDataType().getClassRef();
-        	// TODO: how to fill objectDataType when we have generics...
-        	else
-        		r.objectDataType = XUtil.getLowerBound(key.getObjectDataType());  // this call should also work with the other if() branch...
+            r.category = DataCategory.OBJECT;
+            r.orSuperClass = key.isOrSuperClass();
+            // construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
+            r.javaType = XUtil.genericRef2String(key.getObjectDataType());
+            if (key.getObjectDataType().getClassRef() != null)
+                r.objectDataType = key.getObjectDataType().getClassRef();
+            // TODO: how to fill objectDataType when we have generics...
+            else
+                r.objectDataType = XUtil.getLowerBound(key.getObjectDataType());  // this call should also work with the other if() branch...
 
-      		if (key.getSecondaryObjectDataType() != null) {
-       			// same for the secondary
-       			if (key.getSecondaryObjectDataType().getClassRef() != null)
-       				r.secondaryObjectDataType = key.getSecondaryObjectDataType().getClassRef();
-       		        // TODO: how to fill secondaryObjectDataType when we have generics...
-       			else
-       				r.secondaryObjectDataType = XUtil.getLowerBound(key.getSecondaryObjectDataType());  // this call should also work with the other if() branch...
-       			r.orSecondarySuperClass = key.isOrSecondarySuperClass();
-        	}        	
+            if (key.getSecondaryObjectDataType() != null) {
+                // same for the secondary
+                if (key.getSecondaryObjectDataType().getClassRef() != null)
+                    r.secondaryObjectDataType = key.getSecondaryObjectDataType().getClassRef();
+                    // TODO: how to fill secondaryObjectDataType when we have generics...
+                else
+                    r.secondaryObjectDataType = XUtil.getLowerBound(key.getSecondaryObjectDataType());  // this call should also work with the other if() branch...
+                r.orSecondarySuperClass = key.isOrSecondarySuperClass();
+            }           
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
         }
@@ -392,7 +392,7 @@ public class DataTypeExtension {
                     }
                 }
             } else if (r.javaType.equals(SPECIAL_DATA_TYPE_XENUM)) {  // special case for xenum types: replace java type by referenced class
-            	XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
+                XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
                 r.javaType = root.getName();
                 r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
             }

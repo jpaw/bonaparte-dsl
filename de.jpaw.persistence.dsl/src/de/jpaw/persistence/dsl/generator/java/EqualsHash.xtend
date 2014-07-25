@@ -29,12 +29,12 @@ import de.jpaw.persistence.dsl.generator.PrimaryKeyType
 class EqualsHash {
     def private static writeCompareSub(FieldDefinition i, String index) {
         switch (getJavaDataType(i.datatype)) {
-        case "BonaPortable":        '''Arrays.equals(«index», that.«index»)''' 	// mapped to byte []
+        case "BonaPortable":        '''Arrays.equals(«index», that.«index»)'''  // mapped to byte []
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "ByteArray":           '''Arrays.equals(«index», that.«index»)''' 	// '''«index».contentEquals(that.«index»)''' is mapped to byte[]
-        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''	// mapped to Calendar or Date or using userdata fields
-        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''	// mapped to Calendar or Date or using userdata fields
-        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''	// mapped to Calendar or Date or using userdata fields
+        case "ByteArray":           '''Arrays.equals(«index», that.«index»)'''  // '''«index».contentEquals(that.«index»)''' is mapped to byte[]
+        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
         default:                    '''«index».equals(that.«index»)'''
         }
     }

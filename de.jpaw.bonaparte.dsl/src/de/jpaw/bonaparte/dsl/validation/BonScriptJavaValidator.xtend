@@ -117,16 +117,16 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 } else {
                     // not good anyway
                     if (BonScriptPreferences.currentPrefs.warnByte)
-	                    warning("The type \"Raw\" is mapped to the mutable Java class byte []. Use of \"Binary\" is preferred.",
+                        warning("The type \"Raw\" is mapped to the mutable Java class byte []. Use of \"Binary\" is preferred.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME);
                 }
             case "float":
                     if (BonScriptPreferences.currentPrefs.warnFloat)
-	                    warning("The type \"Float\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
+                        warning("The type \"Float\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME)
             case "double":
                     if (BonScriptPreferences.currentPrefs.warnFloat)
-	                    warning("The type \"Double\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
+                        warning("The type \"Double\" is not guaranteed to be read as exactly as written and may be a bad choice in financial applications.",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__NAME)
             }
         }
@@ -135,15 +135,15 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkEnumDeprecation(ElementaryDataType dt) {
         if (dt.enumType !== null) {
-        	if (dt.enumType.isDeprecated)
-        		warning(dt.enumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__ENUM_TYPE)
-		}
+            if (dt.enumType.isDeprecated)
+                warning(dt.enumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__ENUM_TYPE)
+        }
         if (dt.xenumType !== null) {
-        	if (dt.xenumType.isDeprecated)
-        		warning(dt.xenumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__XENUM_TYPE)
-		}
-	}
-	
+            if (dt.xenumType.isDeprecated)
+                warning(dt.xenumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__XENUM_TYPE)
+        }
+    }
+    
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
         if (extendedBundle === null)
             return true;  // everything is a sub-bundle of the static data
@@ -156,13 +156,13 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 || ((myBundle.length() > extendedBundle.length()) && (myBundle.charAt(extendedBundle.length()) == '.'));
     }
     
-	// a test for cyclic inheritance    
+    // a test for cyclic inheritance    
     def static private void checkInheritance(ClassDefinition d, int remaining) {
-    	if (d.extendsClass?.classRef !== null) {
-    		if (remaining <= 0)
-    			throw new Exception("Cyclic inheritance around " + d.name)
-    		d.extendsClass?.classRef.checkInheritance(remaining - 1)
-    	}
+        if (d.extendsClass?.classRef !== null) {
+            if (remaining <= 0)
+                throw new Exception("Cyclic inheritance around " + d.name)
+            d.extendsClass?.classRef.checkInheritance(remaining - 1)
+        }
     }
     
     @Check
@@ -182,13 +182,13 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
             } else {
-            	// check for cyclic dependencies to avoid a stack overflow
-		    	try {
-		    		cd.checkInheritance(90)		// 90 levels of nesting should be sufficient
-		    	} catch (Exception ex) {
-		       		error("Cyclic inheritance", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
-		    		return
-		    	}            	
+                // check for cyclic dependencies to avoid a stack overflow
+                try {
+                    cd.checkInheritance(90)     // 90 levels of nesting should be sufficient
+                } catch (Exception ex) {
+                    error("Cyclic inheritance", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
+                    return
+                }               
                 // check the number of generic parameters
                 val ClassDefinition parent = cd.getExtendsClass().getClassRef();
                 val EList<GenericsDef> args = parent.getGenericParameters();
@@ -275,7 +275,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
         }
         
         if (cd.pkClass !== null && cd.pkClass.isDeprecated && !cd.isDeprecated)
-       		warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
+            warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
         
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice
@@ -290,10 +290,10 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             if (cd.extendsClass !== null && !cd.extendsClass.freezable)
                 warning("class is not freezable due to parent", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
         } else {
-        	if (cd.doCacheHash) {
-        		error("Caching the hashcode makes no sense if the class is neither immutable nor can be frozen", BonScriptPackage.Literals.CLASS_DEFINITION__DO_CACHE_HASH)
-        	}
-        	
+            if (cd.doCacheHash) {
+                error("Caching the hashcode makes no sense if the class is neither immutable nor can be frozen", BonScriptPackage.Literals.CLASS_DEFINITION__DO_CACHE_HASH)
+            }
+            
         }
     }
     
@@ -372,8 +372,8 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     @Check
     def public void checkGenericsParameterList(ClassReference ref) {
         if (ref.getClassRef() !== null) {
-        	if (ref.classRef.isDeprecated)
-        		warning(ref.classRef.name + " is deprecated", BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF)
+            if (ref.classRef.isDeprecated)
+                warning(ref.classRef.name + " is deprecated", BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF)
             // verify that the parameters given match the definition of the class referenced
             val requiredParameters = ref.getClassRef().getGenericParameters();
             val providedParameters = ref.getClassRefGenericParms();
@@ -451,124 +451,124 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     // provided by the first and the second must be storable in the same field
     @Check
     def public void checkDataType(DataType it) {
-    	val lowerBoundOfFirst = objectDataType?.lowerBound
-    	if (lowerBoundOfFirst !== null && secondaryObjectDataType !== null) {
-    		// the second must be a subtype of the first!
-    		if (!lowerBoundOfFirst.isSuperClassOf(secondaryObjectDataType)) {
-    			error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
-    		}
-    	} 
+        val lowerBoundOfFirst = objectDataType?.lowerBound
+        if (lowerBoundOfFirst !== null && secondaryObjectDataType !== null) {
+            // the second must be a subtype of the first!
+            if (!lowerBoundOfFirst.isSuperClassOf(secondaryObjectDataType)) {
+                error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
+            }
+        } 
     }
     
     @Check
     def public void checkComparableFields(ComparableFieldsList fl) {
-    	for (f : fl.field) {
-			// f may not be an aggregate, and may not be "Object", and not point to a Class which by itself is not a Comparable
-			// also, f must be "required"
-			// no check here for typedefs, as e resolve these later
-			if (f.aggregate)
-				error("orderedBy fields cannot be an aggregate (array / Map / List / Set): " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
-			if (f.datatype.elementaryDataType !== null) {
-				val type = f.datatype.elementaryDataType.name.toFirstLower
-				if (type == "raw" || type == "binary" || type == "object")
-					error("orderedBy fields cannot be of type raw / binary / object: " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
-			}
-    	}
+        for (f : fl.field) {
+            // f may not be an aggregate, and may not be "Object", and not point to a Class which by itself is not a Comparable
+            // also, f must be "required"
+            // no check here for typedefs, as e resolve these later
+            if (f.aggregate)
+                error("orderedBy fields cannot be an aggregate (array / Map / List / Set): " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
+            if (f.datatype.elementaryDataType !== null) {
+                val type = f.datatype.elementaryDataType.name.toFirstLower
+                if (type == "raw" || type == "binary" || type == "object")
+                    error("orderedBy fields cannot be of type raw / binary / object: " + f.name, BonScriptPackage.Literals.COMPARABLE_FIELDS_LIST__FIELD)
+            }
+        }
     }
      
     
     @Check
     def public void checkEnumIDsAndTokens(EnumDefinition e) {
-    	// any used ID or token may be 63 characters max length.
-    	val idSet = new HashSet<String>(50)
-    	if (e.values !== null && !e.values.empty) {
-    		for (inst : e.values) {
-    			if (inst.length > 63) {
-    				error("ID is too long (max 63 characters allowed, found " + inst.length + ")", BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
-    			}
-    			if (!idSet.add(inst)) {
-    				error("duplicate ID in enum: " + inst, BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
-    			}
-    		}
-    	}
-    	// No ID or token may be used twice
-    	if (e.avalues !== null && !e.avalues.empty) {
-	    	val tokenSet = new HashSet<String>(50)
-    		for (inst : e.avalues) {
-    			if (!idSet.add(inst.name))
-    				error("duplicate ID in enum: " + inst.name, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
-    			if (!tokenSet.add(inst.token))
-    				error("duplicate token in enum: " + inst.token, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
-    		}
-    	}
+        // any used ID or token may be 63 characters max length.
+        val idSet = new HashSet<String>(50)
+        if (e.values !== null && !e.values.empty) {
+            for (inst : e.values) {
+                if (inst.length > 63) {
+                    error("ID is too long (max 63 characters allowed, found " + inst.length + ")", BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
+                }
+                if (!idSet.add(inst)) {
+                    error("duplicate ID in enum: " + inst, BonScriptPackage.Literals.ENUM_DEFINITION__VALUES)
+                }
+            }
+        }
+        // No ID or token may be used twice
+        if (e.avalues !== null && !e.avalues.empty) {
+            val tokenSet = new HashSet<String>(50)
+            for (inst : e.avalues) {
+                if (!idSet.add(inst.name))
+                    error("duplicate ID in enum: " + inst.name, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
+                if (!tokenSet.add(inst.token))
+                    error("duplicate token in enum: " + inst.token, BonScriptPackage.Literals.ENUM_DEFINITION__AVALUES)
+            }
+        }
     }
     
     @Check
     def public void checkEnumAlphaValueDefinition(EnumAlphaValueDefinition aval) {
-    	if (aval.name.length > 63)
-			error("ID is too long (max 63 characters allowed, found " + aval.name.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__NAME)
-    	if (aval.token.length > 63)
-			error("Token is too long (max 63 characters allowed, found " + aval.token.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__TOKEN)
+        if (aval.name.length > 63)
+            error("ID is too long (max 63 characters allowed, found " + aval.name.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__NAME)
+        if (aval.token.length > 63)
+            error("Token is too long (max 63 characters allowed, found " + aval.token.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__TOKEN)
     }
 
-	// a test for cyclic inheritance    
+    // a test for cyclic inheritance    
     def static private void checkInheritance(XEnumDefinition e, int remaining) {
-    	if (e.extendsXenum !== null) {
-    		if (remaining <= 0)
-    			throw new Exception("Cyclic inheritance around " + e.name)
-    		e.extendsXenum.checkInheritance(remaining - 1)
-    	}
+        if (e.extendsXenum !== null) {
+            if (remaining <= 0)
+                throw new Exception("Cyclic inheritance around " + e.name)
+            e.extendsXenum.checkInheritance(remaining - 1)
+        }
     }
     
     @Check
     def public void checkXEnum(XEnumDefinition e) {
-    	try {
-    		e.checkInheritance(20)		// 20 levels of nesting should be sufficient
-    	} catch (Exception ex) {
-       		error("Cyclic inheritance", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
-    		return
-    	}
-    	if (!e.isDeprecated) {
-    		if (e.myEnum !== null && e.myEnum.isDeprecated)
-	       		warning(e.myEnum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
-	       	if (e.extendsXenum !== null && e.extendsXenum.isDeprecated)
-	       		warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
-    	}
-    	if (e.myEnum !== null) {
-    		if (e.myEnum.avalues === null || e.myEnum.avalues.empty) {
-    			error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
-    			return
-   			}
-   			if (e.extendsXenum !== null) {
-   				// check that we don't exceed the length of the parent
-   				val mine = getInternalMaxLength(e.myEnum, 0)
-   				val old = getOverallMaxLength(e.extendsXenum)
-   				if (mine > old) {
-   					error("Token longer than parent allows: here " + mine + " parent has " + old, BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
-   					return
-   				}
-   				// also, the extended one cannot be final
-   				if (e.extendsXenum.final) {
-   					error("Cannot extend a final xenum", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
-   					return
-   				}
-   			} else if (e.maxlength > 0) {
-   				// have internal limit
-   				val mine = getInternalMaxLength(e.myEnum, 0)
-				if (mine > e.maxlength) {
-   					error("enum tokens are longer than specified: here " + mine + ", limit = " + e.maxlength, BonScriptPackage.Literals.XENUM_DEFINITION__MAXLENGTH)
-   					return
-				}   				
-   			}
-    	}
+        try {
+            e.checkInheritance(20)      // 20 levels of nesting should be sufficient
+        } catch (Exception ex) {
+            error("Cyclic inheritance", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
+            return
+        }
+        if (!e.isDeprecated) {
+            if (e.myEnum !== null && e.myEnum.isDeprecated)
+                warning(e.myEnum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+            if (e.extendsXenum !== null && e.extendsXenum.isDeprecated)
+                warning(e.extendsXenum.name + " is deprecated", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
+        }
+        if (e.myEnum !== null) {
+            if (e.myEnum.avalues === null || e.myEnum.avalues.empty) {
+                error(e.myEnum.name + " does not implement Tokenizable", BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+                return
+            }
+            if (e.extendsXenum !== null) {
+                // check that we don't exceed the length of the parent
+                val mine = getInternalMaxLength(e.myEnum, 0)
+                val old = getOverallMaxLength(e.extendsXenum)
+                if (mine > old) {
+                    error("Token longer than parent allows: here " + mine + " parent has " + old, BonScriptPackage.Literals.XENUM_DEFINITION__MY_ENUM)
+                    return
+                }
+                // also, the extended one cannot be final
+                if (e.extendsXenum.final) {
+                    error("Cannot extend a final xenum", BonScriptPackage.Literals.XENUM_DEFINITION__EXTENDS_XENUM)
+                    return
+                }
+            } else if (e.maxlength > 0) {
+                // have internal limit
+                val mine = getInternalMaxLength(e.myEnum, 0)
+                if (mine > e.maxlength) {
+                    error("enum tokens are longer than specified: here " + mine + ", limit = " + e.maxlength, BonScriptPackage.Literals.XENUM_DEFINITION__MAXLENGTH)
+                    return
+                }                   
+            }
+        }
     }
    
     @Check
     def public void checkImplements(InterfaceListDefinition il) {
-    	if (il.ilist !== null) {
-    		for (intrface : il.ilist)
-    			if (!intrface.isInterface)
-    				error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
-    	}
+        if (il.ilist !== null) {
+            for (intrface : il.ilist)
+                if (!intrface.isInterface)
+                    error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
+        }
     }
 }

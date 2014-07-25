@@ -11,28 +11,28 @@ import org.eclipse.xtext.conversion.impl.QualifiedNameValueConverter;
 import org.eclipse.xtext.nodemodel.INode;
 
 public class CommentConverter extends DefaultTerminalConverters {
-	@ValueConverter(rule = "SL_COMMENT")
-	public IValueConverter<String> SL_COMMENT() {
-		return new AbstractToStringConverter<String>() {
+    @ValueConverter(rule = "SL_COMMENT")
+    public IValueConverter<String> SL_COMMENT() {
+        return new AbstractToStringConverter<String>() {
 
-			@Override
+            @Override
             protected String internalToValue(String string, INode node) throws ValueConverterException {
-				final String START_SEQUENCE = "//";
+                final String START_SEQUENCE = "//";
 
-				if (string.startsWith(START_SEQUENCE)) {
-					string = string.substring(START_SEQUENCE.length()).trim();
-				}
-				int end = -1;
-				if ((end = string.indexOf('\r')) < 0)
-					end = string.indexOf('\n');
-				if (end >= 0)
-					string = string.substring(0, end).trim();
-				return string;
+                if (string.startsWith(START_SEQUENCE)) {
+                    string = string.substring(START_SEQUENCE.length()).trim();
+                }
+                int end = -1;
+                if ((end = string.indexOf('\r')) < 0)
+                    end = string.indexOf('\n');
+                if (end >= 0)
+                    string = string.substring(0, end).trim();
+                return string;
             }
-		};
-	}
-	
-	
+        };
+    }
+    
+    
     @Inject QualifiedNameValueConverter mFQNValueConverter;
     
     // a value converter for qualified IDs
@@ -48,16 +48,16 @@ public class CommentConverter extends DefaultTerminalConverters {
     }
     
 /*
-	@Override
+    @Override
     public Object toValue(String string, String lexerRule, INode node) throws ValueConverterException {
-	    // TODO Auto-generated method stub
-	    return "toValue";
+        // TODO Auto-generated method stub
+        return "toValue";
     }
 
-	@Override
+    @Override
     public String toString(Object value, String lexerRule) {
-	    // TODO Auto-generated method stub
-	    return "toString";
+        // TODO Auto-generated method stub
+        return "toString";
     }
 */
 }

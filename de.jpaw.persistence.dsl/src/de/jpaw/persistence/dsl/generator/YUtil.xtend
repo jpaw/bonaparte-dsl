@@ -41,7 +41,7 @@ class YUtil {
     public static final String PROP_ACTIVE = "active";
     public static final String PROP_VERSION = "version";
     public static final String PROP_SERIALIZED = "serialized";
-    public static final String PROP_COMPACT = "compact";		// compact serialized form (addon attribute to serialized)  
+    public static final String PROP_COMPACT = "compact";        // compact serialized form (addon attribute to serialized)  
     public static final String PROP_REF = "ref";
     public static final String PROP_SIMPLEREF = "simpleref";
     public static final String PROP_NOTNULL = "notNull";    // make a field optional in Java, but required on the DB
@@ -226,17 +226,17 @@ class YUtil {
     '''
     
     def public static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
-    	if (cl !== null && cl != stopAt) {
-    		// add fields of subclasses
-          	bucket.recurseAdd(cl.extendsClass?.classRef, stopAt, includeAggregates, filterCondition)
-        	for (c : cl.fields) {
-            	if ((includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c))
-            		bucket.add(c)
-          	}
+        if (cl !== null && cl != stopAt) {
+            // add fields of subclasses
+            bucket.recurseAdd(cl.extendsClass?.classRef, stopAt, includeAggregates, filterCondition)
+            for (c : cl.fields) {
+                if ((includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c))
+                    bucket.add(c)
+            }
         }
     }
     def public static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
-    	recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
+        recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
     }
 
     def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
@@ -254,8 +254,8 @@ class YUtil {
     }
 
     def public static boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
-    	if (pkColumns === null)
-    		return false
+        if (pkColumns === null)
+            return false
         for (i : pkColumns)
             if (i == c)
                 return true
@@ -339,13 +339,13 @@ class YUtil {
     // checks if the field f is an elementcollection for entity e
     // this methods checks the definitions of the entity itself, as well as in any parent entity
     def public static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
-    	var ee = e;
-    	while (ee !== null) {
-    		if (ee.elementCollections !== null && ee.elementCollections.exists[name == f])
-    			return true
-    		ee = e.^extends
-    	}
-    	return false
+        var ee = e;
+        while (ee !== null) {
+            if (ee.elementCollections !== null && ee.elementCollections.exists[name == f])
+                return true
+            ee = e.^extends
+        }
+        return false
     }
     
     /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
@@ -356,13 +356,13 @@ class YUtil {
      */
     def public static primaryKeyColumns(EntityDefinition e) {
         val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
-		return if (baseEntity.embeddablePk !== null)
-				baseEntity.embeddablePk.name.pojoType.fields
-			else if (baseEntity.pk !== null)
+        return if (baseEntity.embeddablePk !== null)
+                baseEntity.embeddablePk.name.pojoType.fields
+            else if (baseEntity.pk !== null)
                 baseEntity.pk.columnName
-        	else if (baseEntity.pkPojo !== null)
-				baseEntity.pkPojo.fields
-			else null
+            else if (baseEntity.pkPojo !== null)
+                baseEntity.pkPojo.fields
+            else null
     }
         
     /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.
@@ -371,20 +371,20 @@ class YUtil {
      * 
      */
     def public static nonPrimaryKeyColumns(EntityDefinition t, boolean descendForTablePerClass) {
-    	val resultList = new ArrayList<FieldDefinition>(50)
+        val resultList = new ArrayList<FieldDefinition>(50)
         val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
         val myPrimaryKeyColumns = t.primaryKeyColumns
         val ClassDefinition stopAt = if (t.inheritanceRoot.xinheritance == Inheritance::JOIN) t.^extends?.pojoType else null // stop column recursion for JOINed tables
-    	val tenantClass = if (t.tenantInJoinedTables || t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS)
-			baseEntity.tenantClass
-		else
-			t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
-			
-		if (stopAt === null)
+        val tenantClass = if (t.tenantInJoinedTables || t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS)
+            baseEntity.tenantClass
+        else
+            t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
+            
+        if (stopAt === null)
             recurseAddDDL(resultList, t.tableCategory.trackingColumns, null, myPrimaryKeyColumns)
-		recurseAddDDL(resultList, tenantClass, null, myPrimaryKeyColumns)
-		recurseAddDDL(resultList, t.pojoType, stopAt, myPrimaryKeyColumns)
-    	return resultList
+        recurseAddDDL(resultList, tenantClass, null, myPrimaryKeyColumns)
+        recurseAddDDL(resultList, t.pojoType, stopAt, myPrimaryKeyColumns)
+        return resultList
     }
 
     def static private List<EmbeddableUse> combinedEmbeddables(EntityDefinition t, List<EmbeddableUse> work) {
@@ -394,6 +394,6 @@ class YUtil {
         work
     }
     def static public theEmbeddables(EntityDefinition t) {
-    	return if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
+        return if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
     }
 }

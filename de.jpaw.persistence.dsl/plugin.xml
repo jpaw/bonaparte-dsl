@@ -8,7 +8,7 @@
        uri = "http://www.jpaw.de/persistence/dsl/BDDL" 
        class = "de.jpaw.persistence.dsl.bDDL.BDDLPackage"
        genModel = "de/jpaw/persistence/dsl/BDDL.genmodel" /> 
-	
+    
   </extension>
 
 

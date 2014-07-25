@@ -153,23 +153,23 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     }
     
     def private static intComparable(ClassDefinition d) {
-	    if (d.orderedByList !== null)
-	    	''', Comparable<«d.name»>'''
-  	}
+        if (d.orderedByList !== null)
+            ''', Comparable<«d.name»>'''
+    }
     def private static intHazel(XHazelcast doHazel) {
-	    switch (doHazel) {
+        switch (doHazel) {
             case NOHAZEL:
-            	null
+                null
             case DATA_SERIALIZABLE:
                 ", DataSerializable"
             case IDENTIFIED_DATA_SERIALIZABLE:
                 ", IdentifiedDataSerializable"
             case PORTABLE:
-				", Portable"
-            case BOTH:					// does not make sense? 
+                ", Portable"
+            case BOTH:                  // does not make sense? 
                 ", Portable, IdentifiedDataSerializable"
         }
-	}
+    }
 
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
@@ -210,10 +210,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
-	        «JavaExternalize::writeExternalizeImports»
+            «JavaExternalize::writeExternalizeImports»
         «ENDIF»
         «IF doHazel != XHazelcast.NOHAZEL»
-	        «JavaHazelSupport::writeHazelImports(doHazel)»
+            «JavaHazelSupport::writeHazelImports(doHazel)»
         «ENDIF»
         import com.google.common.collect.ImmutableList;
         import com.google.common.collect.ImmutableSet;

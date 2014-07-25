@@ -45,9 +45,9 @@ class BonScriptGenerator implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
             if (BonScriptPreferences.currentPrefs.doDebugOut) {
-	            logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
-    	        generatorDebug.doGenerate(resource, fsa)
-    	    }
+                logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+                generatorDebug.doGenerate(resource, fsa)
+            }
         
             logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
             generatorJava.doGenerate(resource, fsa)

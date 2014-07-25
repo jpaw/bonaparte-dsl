@@ -49,15 +49,15 @@ class SqlDDLGeneratorMain implements IGenerator {
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
-   	var private BDDLPreferences prefs
+    var private BDDLPreferences prefs
 
     def makeSqlFilename(EObject e, DatabaseFlavour databaseFlavour, String basename, String object) {
         return "sql/" + databaseFlavour.toString + "/" + object + "/" + basename + ".sql";
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-    	prefs = BDDLPreferences.currentPrefs
-    	System.out.println('''Settings are: max ID length = «prefs.maxTablenameLength», «prefs.maxFieldnameLength», output = «prefs.doDebugOut», «prefs.doPostgresOut», «prefs.doOracleOut», «prefs.doMsSQLServerOut»''')
+        prefs = BDDLPreferences.currentPrefs
+        System.out.println('''Settings are: max ID length = «prefs.maxTablenameLength», «prefs.maxFieldnameLength», output = «prefs.doDebugOut», «prefs.doPostgresOut», «prefs.doOracleOut», «prefs.doMsSQLServerOut»''')
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
@@ -118,14 +118,14 @@ class SqlDDLGeneratorMain implements IGenerator {
                 // no history here
             } else {
                 val tablename = if (doHistory) ec.historytablename else ec.tablename
-        		if (prefs.doPostgresOut)
+                if (prefs.doPostgresOut)
                     fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory))
-        		if (prefs.doMsSQLServerOut)
+                if (prefs.doMsSQLServerOut)
                     fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::MSSQLSERVER, doHistory))
-        		if (prefs.doOracleOut) {
+                if (prefs.doOracleOut) {
                     fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
-                	fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
-              	}
+                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+                }
             }
         }
     }
@@ -140,9 +140,9 @@ class SqlDDLGeneratorMain implements IGenerator {
     def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {
         val tablename = mkTablename(e, false) + suffix
         if (prefs.doOracleOut)
-    	    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
         if (prefs.doPostgresOut)
-	        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
     }
 
     def private void makeTriggers(IFileSystemAccess fsa, EntityDefinition e) {
@@ -160,8 +160,8 @@ class SqlDDLGeneratorMain implements IGenerator {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory))
         if (prefs.doOracleOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
-	        fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
-	    }
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+        }
     }
 
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
@@ -199,17 +199,17 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         val d = new Delimiter("  ", ", ")
-		val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
+        val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
         val startOfPk =
-        	if (ec.keyColumns !== null)
-        		ec.keyColumns.join(', ')
-        	else if (baseEntity.embeddablePk !== null)
-            	baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql].join(',')
+            if (ec.keyColumns !== null)
+                ec.keyColumns.join(', ')
+            else if (baseEntity.embeddablePk !== null)
+                baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql].join(',')
             else if(baseEntity.pk !== null)
-            	baseEntity.pk.columnName.map[name.java2sql].join(',')
-        	else
-        		'???'
-       	
+                baseEntity.pk.columnName.map[name.java2sql].join(',')
+            else
+                '???'
+        
         return '''
         -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
         -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -227,14 +227,14 @@ class SqlDDLGeneratorMain implements IGenerator {
                 , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
             «ENDIF»
             «IF doHistory»
-            	, «SqlMapping.getFieldForJavaType(databaseFlavour, "long")»    «myCategory.historySequenceColumn» NOT NULL
+                , «SqlMapping.getFieldForJavaType(databaseFlavour, "long")»    «myCategory.historySequenceColumn» NOT NULL
             «ENDIF»
             -- contents field
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
         ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-        	«startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey !== null», «ec.mapKey.java2sql»«ENDIF»«optionalHistoryKeyPart»
+            «startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey !== null», «ec.mapKey.java2sql»«ENDIF»«optionalHistoryKeyPart»
         )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
@@ -256,13 +256,13 @@ class SqlDDLGeneratorMain implements IGenerator {
         val theEmbeddables = t.theEmbeddables
         // System::out.println("      tablename is " + tablename);
         // System::out.println('''ENTITY «t.name» (history? «doHistory», DB = «databaseFlavour»): embeddables used are «theEmbeddables.map[name.name + ':' + field.name].join(', ')»''');
-		val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
+        val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
 
-		val tenantClass = if (t.tenantInJoinedTables || t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS)
-			baseEntity.tenantClass
-		else
-			t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
-		
+        val tenantClass = if (t.tenantInJoinedTables || t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS)
+            baseEntity.tenantClass
+        else
+            t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
+        
         var grantGroup = myCategory.grantGroup
         val d = new Delimiter("  ", ", ")
         indexCount = 0
@@ -285,8 +285,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
             «ENDIF»
             «IF doHistory»
-            	«d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long")» NOT NULL
-            	«d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char")» NOT NULL
+                «d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long")» NOT NULL
+                «d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char")» NOT NULL
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
@@ -320,8 +320,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 COMMENT ON COLUMN «tablename».«t.discname» IS 'autogenerated JPA discriminator column';
             «ENDIF»
             «IF doHistory»
-            	COMMENT ON COLUMN «tablename».«myCategory.historySequenceColumn» IS 'current sequence number of history entry';
-            	COMMENT ON COLUMN «tablename».«myCategory.historyChangeTypeColumn» IS 'type of change (C=create/insert, U=update, D=delete)';
+                COMMENT ON COLUMN «tablename».«myCategory.historySequenceColumn» IS 'current sequence number of history entry';
+                COMMENT ON COLUMN «tablename».«myCategory.historyChangeTypeColumn» IS 'type of change (C=create/insert, U=update, D=delete)';
             «ENDIF»
             «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables)»
         «ENDIF»

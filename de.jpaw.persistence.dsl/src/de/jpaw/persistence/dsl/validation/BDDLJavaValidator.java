@@ -27,19 +27,19 @@ import de.jpaw.persistence.dsl.generator.YUtil;
 
 public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
 
-   	private void checkTablenameLength(String s, EStructuralFeature where) {
+    private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
-   		if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
-   			error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
+        if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
+            error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
                 where);
-   	}
-   	private void checkFieldnameLength(String s, EStructuralFeature where) {
+    }
+    private void checkFieldnameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
-   		if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
-   			error("The field name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength + " characters and will not work for some database brands",
+        if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
+            error("The field name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength + " characters and will not work for some database brands",
                 where);
-   	}
-   	
+    }
+    
     // SQL reserved words - column names are checked against these
     static private final Map<String,String> RESERVED_SQL = new HashMap<String,String>(200);
     static {
@@ -327,7 +327,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         }
 
         if (c.getTablename() != null)
-        	checkTablenameLength(c.getTablename(), BDDLPackage.Literals.COLLECTION_DEFINITION__TABLENAME);
+            checkTablenameLength(c.getTablename(), BDDLPackage.Literals.COLLECTION_DEFINITION__TABLENAME);
     }
 
     @Check
@@ -439,9 +439,9 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
         }
 
         if (ec.getTablename() != null)
-        	checkTablenameLength(ec.getTablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
+            checkTablenameLength(ec.getTablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
         if (ec.getHistorytablename() != null)
-        	checkTablenameLength(ec.getHistorytablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__HISTORYTABLENAME);
+            checkTablenameLength(ec.getHistorytablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__HISTORYTABLENAME);
         
         EntityDefinition e = getEntity(ec);
         if (e == null) {
@@ -460,7 +460,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
                             BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
                 }
                 for (String kc : ec.getKeyColumns()) {
-                	checkFieldnameLength(kc, BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
+                    checkFieldnameLength(kc, BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__KEY_COLUMNS);
                 }
             }
         }
@@ -478,7 +478,7 @@ public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
     @Check
     public void checkOneToMany(OneToMany ec) {
         if (ec.getMapKey() != null) {
-        	checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
+            checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
         }
     }
     
