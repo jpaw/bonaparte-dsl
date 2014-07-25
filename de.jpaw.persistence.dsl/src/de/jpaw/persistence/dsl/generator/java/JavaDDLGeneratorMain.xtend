@@ -616,6 +616,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.bonaparte.jpa.DataClass;
         import de.jpaw.bonaparte.jpa.TrackingClass;
         import de.jpaw.bonaparte.jpa.BonaPersistable;
+        import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
@@ -782,6 +783,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         import de.jpaw.bonaparte.jpa.BonaData;
+        import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         «imports.createImports»
 
         @SuppressWarnings("all")

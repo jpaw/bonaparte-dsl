@@ -214,7 +214,8 @@ class JavaFieldWriter {
                         «ENDIF»
                         return «IF ref.objectDataType !== null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType !== null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
                     } catch (MessageParserException _e) {
-                        throw new IllegalArgumentException("Cannot parse serialized data for «myName»: " + _e.getSpecificDescription());
+                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
+                        return null;
                     }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
