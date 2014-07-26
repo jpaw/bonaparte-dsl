@@ -27,7 +27,7 @@ public class Util {
     public static boolean isAsciiString(String s) {
         if (s != null) {
             for (int i = 0; i < s.length(); ++i) {
-                int c = (int)s.charAt(i);
+                int c = s.charAt(i);
                 if (c < 0x20 || c > 0x7f)
                     return false;
             }

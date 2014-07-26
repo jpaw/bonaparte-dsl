@@ -95,7 +95,7 @@ class XUtil {
     }
 
     def public static boolean parentCacheHash(ClassDefinition d) {
-        if (d == null)
+        if (d === null)
             return false
         return d.doCacheHash || parentCacheHash(d.parent) 
     }

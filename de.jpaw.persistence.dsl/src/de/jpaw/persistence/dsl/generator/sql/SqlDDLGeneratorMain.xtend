@@ -28,7 +28,6 @@ import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.bDDL.Inheritance
 import de.jpaw.persistence.dsl.generator.RequiredType
 import de.jpaw.persistence.dsl.generator.YUtil
-import java.util.ArrayList
 import java.util.HashSet
 import java.util.List
 import java.util.Set

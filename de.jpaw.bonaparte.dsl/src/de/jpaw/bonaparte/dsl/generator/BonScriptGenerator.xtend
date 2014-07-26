@@ -22,7 +22,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 
 import org.apache.log4j.Logger
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
-import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport java.util.concurrent.atomic.AtomicInteger
+import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMainimport java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
