@@ -164,17 +164,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - improve value converter for escaping of qualified IDs also for BDDL
 - BDDL: autogenerate history triggers (for Oracle databases)
 - new option: suppress JAXB annotation generation (for Android builds)
-
-
-
-
-PLANS:
-2.2.2:
-- complete Hazelcast support
+- Final 2.2.2 released on 2014-07-29
 
 
 ROADMAP:
 2.x:
+- complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
 - performance improvements LocalDate/Time serializers (really required?)
 - separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
