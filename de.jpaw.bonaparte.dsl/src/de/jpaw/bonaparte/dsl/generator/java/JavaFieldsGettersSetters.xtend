@@ -26,10 +26,16 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.XUtil
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
 
+    def private static xmlAnnotation(XEnumDefinition d) '''
+        @XmlJavaTypeAdapter(«d.root.packageName».«d.root.name»XmlAdapter.class)
+    '''
+     
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
         if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
             return ''''''
@@ -79,6 +85,9 @@ class JavaFieldsGettersSetters {
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && i.needsXmlObjectType»
                 «xmlInterfaceAnnotation»
             «ENDIF»
+            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && ref.category == DataCategory.XENUM»
+                «ref.elementaryDataType.xenumType.xmlAnnotation»
+            «ENDIF»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
         '''
     }
@@ -101,6 +110,9 @@ class JavaFieldsGettersSetters {
     def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
         «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && i.needsXmlObjectType»
             «xmlInterfaceAnnotation»
+        «ENDIF»
+        «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && DataTypeExtension::get(i.datatype).category == DataCategory.XENUM»
+            «DataTypeExtension::get(i.datatype).elementaryDataType.xenumType.xmlAnnotation»
         «ENDIF»
         public «JavaDataTypeNoName(i, false)» «getterName»() {
             return «i.name»;

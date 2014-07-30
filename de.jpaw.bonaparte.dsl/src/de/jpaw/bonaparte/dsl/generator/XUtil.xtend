@@ -107,6 +107,13 @@ class XUtil {
     def public static getXmlNs(ClassDefinition d) {
         d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
     }
+    def public static getRelevantXmlAccess(XEnumDefinition d) {
+        var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
+        return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
+    }
+    def public static getXmlNs(XEnumDefinition d) {
+        d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
+    }
     def public static needsXmlObjectType(FieldDefinition f) {
         if (f.datatype.objectDataType !== null) {
             f.datatype.objectDataType.needsXmlObjectType

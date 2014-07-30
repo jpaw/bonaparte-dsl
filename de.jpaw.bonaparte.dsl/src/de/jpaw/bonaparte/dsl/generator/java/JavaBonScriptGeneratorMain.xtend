@@ -58,20 +58,32 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
-        for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition)))
+        for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
+            if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
+                print('''output of xml adpater for «d.name»''')
+                fsa.generateFile(getJavaFilename(getPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
+            }
+        }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
             for (cl : d.classes)
-                if (!cl.isAbstract && getRelevantXmlAccess(cl) !== null)
+                if (!cl.isAbstract && cl.getRelevantXmlAccess !== null)
                     classList.add(cl)
-            if (classList.size() > 0)
+            var List<XEnumDefinition> xenumList = new ArrayList<XEnumDefinition>()
+            for (xl : d.xenums)
+                if (!xl.isAbstract && xl.getRelevantXmlAccess !== null)
+                    xenumList.add(xl)
+            if (classList.size > 0 || xenumList.size > 0)
                 fsa.generateFile(getJaxbResourceFilename(getPackageName(d)), '''
                 «FOR cl : classList»
                     «cl.name»
+                «ENDFOR»
+                «FOR xl : xenumList»
+                    «xl.name»
                 «ENDFOR»
                 ''')
 
@@ -207,6 +219,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlElement;
             import javax.xml.bind.annotation.XmlTransient;
             import javax.xml.bind.annotation.XmlAnyElement;
+            import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»

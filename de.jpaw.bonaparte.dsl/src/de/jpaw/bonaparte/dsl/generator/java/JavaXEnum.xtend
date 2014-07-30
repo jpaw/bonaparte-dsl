@@ -43,16 +43,9 @@ class JavaXEnum {
         JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
     
-    def private static XEnumDefinition getRootXEnum(XEnumDefinition d) {
-        if (d.extendsXenum === null)
-            return d
-        else
-            return d.extendsXenum.getRootXEnum
-    }
-    
     def static public writeXEnumDefinition(XEnumDefinition d) {
         val boolean subClass = d.extendsXenum !== null
-        val rootClass = d.getRootXEnum
+        val rootClass = d.root
         
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -147,6 +140,33 @@ class JavaXEnum {
             }
             
             «JavaMeta.writeCommonMetaData»
+        '''
+    }
+    
+    def public static writeXEnumTypeAdapter(XEnumDefinition d) {
+        if (d.extendsXenum !== null)
+            return null
+            
+        return '''
+        // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
+        // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+        // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+        package «getPackageName(d)»;
+
+        import javax.xml.bind.annotation.adapters.XmlAdapter;
+
+        public class «d.name»XmlAdapter extends XmlAdapter<String, «d.name»>{
+
+            @Override
+            public «d.name» unmarshal(String v) throws Exception {
+                return «d.name».myFactory.getByToken(v);
+            }
+
+            @Override
+                public String marshal(«d.name» v) throws Exception {
+                return v.getToken();
+            }
+        }
         '''
     }
 }

@@ -212,7 +212,7 @@ XEnumDefinition:
     (abstract?='abstract' | final?='final')?
     'xenum'
      name = ID
-//    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
 //    (isExternalizable = Externalizable)?                // decide if implements Externalizable
 //    ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
     'is' myEnum=[EnumDefinition]
