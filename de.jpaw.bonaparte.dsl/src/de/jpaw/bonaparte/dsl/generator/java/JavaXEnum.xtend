@@ -98,9 +98,7 @@ class JavaXEnum {
                 }
                 myFactory.register(_PARTIALLY_QUALIFIED_CLASS_NAME, «d.name».class);
             }
-            public void init() {        // stub method to call for class loading
-            }
-            
+
             /** Constructor, it may not be accessible from the outside but must be accessible from inherited classes. */
             protected «d.name»(Enum<?> enumVal, int ordinal, String name, String token, XEnumFactory<«rootClass.name»> myFactory) {
                 super(enumVal, ordinal, name, token, myFactory);
@@ -119,7 +117,7 @@ class JavaXEnum {
                     return myFactory.getByName(name);
                 }
             }
-            
+
             /** Returns a Serializer object to be used with Serialization. */
             private Object writeReplace() {
                 return new Serializer(name());
@@ -133,7 +131,7 @@ class JavaXEnum {
         return '''
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String _PARENT = «IF (d.extendsXenum !== null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;;
+            private static final String _PARENT = «IF (d.extendsXenum !== null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
             // extended meta data (for the enhanced interface)
