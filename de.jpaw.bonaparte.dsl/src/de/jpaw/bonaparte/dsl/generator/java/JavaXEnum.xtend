@@ -54,6 +54,7 @@ class JavaXEnum {
         package «getPackageName(d)»;
 
         import org.joda.time.Instant;
+        import java.io.Serializable;
         
         import de.jpaw.enums.XEnumFactory;
         «IF !subClass»
@@ -79,6 +80,7 @@ class JavaXEnum {
         @Deprecated
         «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name» extends «IF !subClass»AbstractXEnumBase<«d.name»>«ELSE»«d.extendsXenum.name»«ENDIF» implements BonaMeta {
+            private static final long serialVersionUID = «getSerialUID(d)»L;
             «writeXEnumMetaData(d)»
             public static final int NUM_VALUES_TOTAL = «IF subClass»«d.extendsXenum.name».NUM_VALUES_TOTAL + «ENDIF»«d.myEnum.name».values().length;
             «IF !subClass»
@@ -105,7 +107,8 @@ class JavaXEnum {
             }
 
             /** Inner class with the single purpose to provide a serializable substitution for the xenum. */
-            private static class Serializer {
+            private static class Serializer implements Serializable {
+                private static final long serialVersionUID = «getSerialUID(d)»L ^ 6751L;
                 private String name;
                 private Serializer () {
                 }
@@ -113,7 +116,7 @@ class JavaXEnum {
                     this.name = name;
                 }
                 private Object readResolve() {
-                    return myFactory.getByToken(name);
+                    return myFactory.getByName(name);
                 }
             }
             

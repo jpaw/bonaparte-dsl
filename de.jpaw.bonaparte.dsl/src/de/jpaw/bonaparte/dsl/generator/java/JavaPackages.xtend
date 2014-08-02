@@ -63,6 +63,13 @@ class JavaPackages {
             myUID = 131L * myUID + getSerialUID(d.extendsClass.classRef)   // recurse parent classes
         return myUID
     }
+    // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
+    def public static long getSerialUID(XEnumDefinition d) {
+        var long myUID = getPartiallyQualifiedClassName(d).hashCode()
+        if (d.extendsXenum !== null)
+            myUID = 131L * myUID + getSerialUID(d.extendsXenum)   // recurse parent xenums
+        return myUID
+    }
 
     // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class
     // TODO: do this in dependence of the import list

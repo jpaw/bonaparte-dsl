@@ -166,6 +166,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - new option: suppress JAXB annotation generation (for Android builds)
 - Final 2.2.2 released on 2014-07-29
 
+2.2.3:
+- generate XmlAdapters for xenum classes
+- allow serializing xenums via readResolve / writeReplace
 
 ROADMAP:
 2.x:
