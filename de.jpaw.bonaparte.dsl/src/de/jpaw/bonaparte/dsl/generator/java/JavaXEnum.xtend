@@ -99,9 +99,27 @@ class JavaXEnum {
             public void init() {        // stub method to call for class loading
             }
             
-            // constructor may not be accessible from the outside
+            /** Constructor, it may not be accessible from the outside but must be accessible from inherited classes. */
             protected «d.name»(Enum<?> enumVal, int ordinal, String name, String token, XEnumFactory<«rootClass.name»> myFactory) {
                 super(enumVal, ordinal, name, token, myFactory);
+            }
+
+            /** Inner class with the single purpose to provide a serializable substitution for the xenum. */
+            private static class Serializer {
+                private String name;
+                private Serializer () {
+                }
+                private Serializer (String name) {
+                    this.name = name;
+                }
+                private Object readResolve() {
+                    return myFactory.getByToken(name);
+                }
+            }
+            
+            /** Returns a Serializer object to be used with Serialization. */
+            private Object writeReplace() {
+                return new Serializer(name());
             }
         }
         '''
