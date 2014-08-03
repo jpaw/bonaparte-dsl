@@ -38,7 +38,7 @@ class JavaDeserialize {
         case 'long':      '''p.readLong      ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
         case 'int':       '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
         case 'integer':   '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'number':    '''p.readNumber    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveSigned»)'''
+        case 'number':    '''p.readBigInteger("«fieldname»", «!isRequired», «i.length», «ref.effectiveSigned»)'''
         case 'decimal':   '''p.readBigDecimal("«fieldname»", «!isRequired», «i.length», «i.decimals», «ref.effectiveSigned», «ref.effectiveRounding», «ref.effectiveAutoScale»)'''
         // float/double, char and boolean
         case 'float':     '''p.readFloat     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''

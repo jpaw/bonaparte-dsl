@@ -433,6 +433,7 @@ class XUtil {
         import java.util.Map;
         import java.util.concurrent.ConcurrentHashMap;
         import java.util.concurrent.ConcurrentMap;
+        import java.math.BigInteger;
         import java.math.BigDecimal;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;

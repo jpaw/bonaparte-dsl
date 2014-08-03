@@ -110,7 +110,7 @@ public class DataTypeExtension {
         dataTypeJava.put("long",      "Long");
         dataTypeJava.put("float",     "Float");
         dataTypeJava.put("double",    "Double");
-        dataTypeJava.put("number",    "Integer");
+        dataTypeJava.put("number",    "BigInteger");
         dataTypeJava.put("decimal",   "BigDecimal");
         dataTypeJava.put("byte",      "Byte");
         dataTypeJava.put("short",     "Short");
