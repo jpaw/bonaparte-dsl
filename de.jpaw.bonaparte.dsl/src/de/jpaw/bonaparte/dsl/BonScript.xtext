@@ -298,13 +298,17 @@ ElementaryDataType:
         )
       | (
            (signed = Signedness)?
-           ((name=("decimal"|"Decimal")
+           ((name=("decimal"|"Decimal")             // BigDecimal data type
                  "(" length=INT ("," decimals=INT)? ")"
                  (rounding = Rounding)?
                  (autoScale = AutoScale)?
             )
-             | (name=("number"|"Number")       "(" length=INT ")")  // maps to int, long, BigInteger (currently only int)
-             | name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long"|"float"|"Float"|"double"|"Double")  // numeric primitives with sign only
+             | (name=("number"|"Number")       "(" length=INT ")")  // Deprecated until BigInteger is implemented... maps to int, long, BigInteger (currently only int)
+             | (name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long")
+                 ("(" length=INT ("," decimals=INT)? ")")?
+                 (rounding = Rounding)?  // silently ignore decimals (or too many decimals...)?
+               )  // int or long, possibly with number of digits limitation, and implicit fixed scale
+             | name=("float"|"Float"|"double"|"Double")  // numeric primitives with sign only
            )
          )
       | (name=("raw"|"Raw"|"binary"|"Binary")      "(" length=INT ")")  // byte array (raw = mutable, binary = immutable)

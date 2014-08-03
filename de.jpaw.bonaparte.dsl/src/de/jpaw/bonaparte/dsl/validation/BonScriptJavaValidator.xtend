@@ -44,11 +44,20 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
+import java.util.Map
+import java.util.HashMap
 
 class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
     static public final int MAX_PQON_LENGTH = 63;     // keep in sync with length in bonaparte-java/StaticMeta
-
+    static Map<String,Integer> maxDigitsIfLimited = new HashMap<String,Integer>(10) => [
+        put("byte",    2)
+        put("short",   4)
+        put("int",     9)
+        put("integer", 9)
+        put("long",   18)
+        put("decimal",18)
+    ]
     /* Must change MANIFEST.MF to contain
      * Bundle-RequiredExecutionEnvironment: JavaSE-1.7
      * Otherwise, Eclipse will complain:
@@ -61,8 +70,20 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
 
     @Check
     def public void checkElementaryDataTypeLength(ElementaryDataType dt) {
-        if (dt.getName() !== null) {
-            switch (dt.getName().toLowerCase()) {
+        val lowerName = dt.name?.toLowerCase
+        if (lowerName !== null) {
+            val maxDigits = maxDigitsIfLimited.get(lowerName)
+            if (maxDigits !== null) {
+                if ((dt.length > maxDigits)) {
+                    error("Mantissa max be " + maxDigits + " at most for this data type",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
+                }
+                if (dt.decimals > dt.length) {
+                    error("Number of decimals digits cannot exceed number of total digits",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__DECIMALS);
+                }
+            }
+            switch (lowerName) {
             case "time":
                 if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
@@ -84,16 +105,13 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "decimal": {
-                if ((dt.getLength() <= 0) || (dt.getLength() > 18)) {
-                    error("Mantissa must be at least 1 and at max 18",
+                if ((dt.getLength() <= 0)) {
+                    error("Mantissa must be specified and cannot be 0 for this data type",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
-                if ((dt.getDecimals() < 0) || (dt.getDecimals() > dt.getLength())) {
-                    error("Decimals may not be negative and must be at max length of mantissa",
-                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__DECIMALS);
-                }}
+                }
                 // String types and binary data types
-            case #[ "ascii", "unicode", "uppercase", "lowercase", "binary" ].contains(dt.name.toLowerCase):
+            case #[ "ascii", "unicode", "uppercase", "lowercase", "binary" ].contains(lowerName):
             {
                 if (dt.getMinLength() < 0) {
                     error("Field min length cannot be negative",

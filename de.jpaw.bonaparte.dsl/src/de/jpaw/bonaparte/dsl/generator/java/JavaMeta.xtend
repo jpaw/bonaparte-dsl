@@ -63,7 +63,9 @@ class JavaMeta {
         case DataCategory::BASICNUMERIC: {
             classname = "BasicNumericElementaryDataItem"
             val type = ref.javaType.toLowerCase
-            ext = ''', «b2A(ref.effectiveSigned)», «TOTAL_DIGITS.get(type)», «DECIMAL_DIGITS.get(type)»'''
+            val len = if (elem.length > 0) elem.length else TOTAL_DIGITS.get(type)
+            val frac = if (elem.length > 0) elem.decimals else DECIMAL_DIGITS.get(type)
+            ext = ''', «b2A(ref.effectiveSigned)», «len», «frac», «b2A(ref.effectiveRounding)»'''
             }
         case DataCategory::NUMERIC: {
             classname = "NumericElementaryDataItem"
