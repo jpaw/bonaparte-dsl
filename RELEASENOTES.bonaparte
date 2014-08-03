@@ -170,6 +170,10 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - generate XmlAdapters for xenum classes
 - allow serializing xenums via readResolve / writeReplace
 
+2.3.0:
+- remove datatypes number(n) / Number(n), instead allow int and long to specify maximum number of digits as well as implicit decimals, as well as possible rounding
+
+
 ROADMAP:
 2.x:
 - complete Hazelcast support

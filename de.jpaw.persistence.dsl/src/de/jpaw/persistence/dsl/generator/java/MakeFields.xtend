@@ -172,13 +172,15 @@ class JavaFieldWriter {
         '''«IF properties.hasProperty(key)»«annotation»«ENDIF»'''
     }
 
-    // write a @Size annotation for string based types
+    // write a @Size annotation for string based types and limited integral types
     def private static sizeSpec(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype);
         if (ref.category == DataCategory::STRING)
             return ''', length=«ref.elementaryDataType.length»'''
         if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
+        if (ref.category == DataCategory::BASICNUMERIC && ref.elementaryDataType !== null && ref.elementaryDataType.length > 0)
+            return ''', precision=«ref.elementaryDataType.length»'''  // stored fixed point numbers as integral numbers on the DB, but refer to their max number of digits
         return ''''''
     }
 
