@@ -29,8 +29,9 @@ import java.util.Map
 import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaMeta {
-    private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 2, 'short' -> 4, 'int' -> 9, 'long' -> 18, 'float' -> 9, 'double' -> 15, 'integer' -> 9 }
-    private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0 }
+    // defines the maximum number of digits which could be encountered for a given number
+    private static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 3, 'short' -> 5, 'int' -> 10, 'long' -> 19, 'float' -> 9, 'double' -> 15, 'integer' -> 10, 'biginteger' -> 4000 }
+    private static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0, 'biginteger' -> 0 }
     
     def private static metaVisibility(ClassDefinition d) {
         if (d.publicMeta)

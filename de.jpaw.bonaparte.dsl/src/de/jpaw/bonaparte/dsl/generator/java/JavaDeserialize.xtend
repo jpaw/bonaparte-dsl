@@ -33,32 +33,32 @@ class JavaDeserialize {
     def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref, boolean isRequired) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
-        case 'byte':      '''p.readByte      ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'short':     '''p.readShort     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'long':      '''p.readLong      ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'int':       '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'integer':   '''p.readInteger   ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'number':    '''p.readBigInteger("«fieldname»", «!isRequired», «i.length», «ref.effectiveSigned»)'''
-        case 'decimal':   '''p.readBigDecimal("«fieldname»", «!isRequired», «i.length», «i.decimals», «ref.effectiveSigned», «ref.effectiveRounding», «ref.effectiveAutoScale»)'''
+        case 'byte':      '''p.readByte      (meta$$«fieldname»)'''
+        case 'short':     '''p.readShort     (meta$$«fieldname»)'''
+        case 'long':      '''p.readLong      (meta$$«fieldname»)'''
+        case 'int':       '''p.readInteger   (meta$$«fieldname»)'''
+        case 'integer':   '''p.readInteger   (meta$$«fieldname»)'''
+        case 'number':    '''p.readBigInteger(meta$$«fieldname»)'''
+        case 'decimal':   '''p.readBigDecimal(meta$$«fieldname»)'''
         // float/double, char and boolean
-        case 'float':     '''p.readFloat     ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'double':    '''p.readDouble    ("«fieldname»", «!isRequired», «ref.effectiveSigned»)'''
-        case 'boolean':   '''p.readBoolean   ("«fieldname»", «!isRequired»)'''
-        case 'char':      '''p.readCharacter ("«fieldname»", «!isRequired»)'''
-        case 'character': '''p.readCharacter ("«fieldname»", «!isRequired»)'''
+        case 'float':     '''p.readFloat     (meta$$«fieldname»)'''
+        case 'double':    '''p.readDouble    (meta$$«fieldname»)'''
+        case 'boolean':   '''p.readBoolean   (meta$$«fieldname»)'''
+        case 'char':      '''p.readCharacter (meta$$«fieldname»)'''
+        case 'character': '''p.readCharacter (meta$$«fieldname»)'''
         // text
-        case 'uppercase': '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'lowercase': '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'ascii':     '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», false, false)'''
-        case 'unicode':   '''p.readString    ("«fieldname»", «!isRequired», «i.length», «ref.effectiveTrim», «ref.effectiveTruncate», «ref.effectiveAllowCtrls», true)'''
+        case 'uppercase': '''p.readString    (meta$$«fieldname»)'''
+        case 'lowercase': '''p.readString    (meta$$«fieldname»)'''
+        case 'ascii':     '''p.readString    (meta$$«fieldname»)'''
+        case 'unicode':   '''p.readString    (meta$$«fieldname»)'''
         // special
-        case 'uuid':      '''p.readUUID      ("«fieldname»", «!isRequired»)'''
-        case 'binary':    '''p.readByteArray ("«fieldname»", «!isRequired», «i.length»)'''
-        case 'raw':       '''p.readRaw       ("«fieldname»", «!isRequired», «i.length»)'''
-        case 'time':      '''p.readTime      ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'instant':   '''p.readInstant   ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'timestamp': '''p.readDayTime   ("«fieldname»", «!isRequired», «i.doHHMMSS», «i.length»)'''
-        case 'day':       '''p.readDay       ("«fieldname»", «!isRequired»)'''
+        case 'uuid':      '''p.readUUID      (meta$$«fieldname»)'''
+        case 'binary':    '''p.readByteArray (meta$$«fieldname»)'''
+        case 'raw':       '''p.readRaw       (meta$$«fieldname»)'''
+        case 'time':      '''p.readTime      (meta$$«fieldname»)'''
+        case 'instant':   '''p.readInstant   (meta$$«fieldname»)'''
+        case 'timestamp': '''p.readDayTime   (meta$$«fieldname»)'''
+        case 'day':       '''p.readDay       (meta$$«fieldname»)'''
                           
         // enum
         case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
@@ -113,7 +113,7 @@ class JavaDeserialize {
                         try {  // for possible enum factory Exceptions
                     «ENDIF»
                     «IF i.isArray !== null»
-                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isArray.maxcount», 0);
+                        _length = p.parseArrayStart(meta$$«i.name», 0);
                         if (_length < 0) {
                             «i.name» = null;
                         } else {
@@ -127,7 +127,7 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isList !== null»
-                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isList.maxcount», 0);
+                        _length = p.parseArrayStart(meta$$«i.name», 0);
                         if (_length < 0) {
                             «i.name» = null;
                         } else {
@@ -137,7 +137,7 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isSet !== null»
-                        _length = p.parseArrayStart("«i.name»", «!i.isAggregateRequired», «i.isSet.maxcount», 0);
+                        _length = p.parseArrayStart(meta$$«i.name», 0);
                         if (_length < 0) {
                             «i.name» = null;
                         } else {
@@ -147,16 +147,16 @@ class JavaDeserialize {
                             p.parseArrayEnd();
                         }
                     «ELSEIF i.isMap !== null»
-                        _length = p.parseMapStart("«i.name»", «!i.isAggregateRequired», «mapIndexID(i.isMap)»);
+                        _length = p.parseMapStart(meta$$«i.name»);
                         if (_length < 0) {
                             «i.name» = null;
                         } else {
                             «i.name» = new HashMap<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»>(_length);
                             for (int _i = 0; _i < _length; ++_i) {
                                 «IF i.isMap.indexType == "String"»
-                                    «i.isMap.indexType» _key = p.readString("«i.name»", false, 255, false, false, true, true);
+                                    «i.isMap.indexType» _key = p.readString(StaticMeta.MAP_INDEX_META_STRING);
                                 «ELSE»
-                                    «i.isMap.indexType» _key = p.read«i.isMap.indexType»("«i.name»", false, true);
+                                    «i.isMap.indexType» _key = p.read«i.isMap.indexType»(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase»);
                                 «ENDIF»
                                 «i.name».put(_key, «makeRead2(d, i, ");")»
                             }
