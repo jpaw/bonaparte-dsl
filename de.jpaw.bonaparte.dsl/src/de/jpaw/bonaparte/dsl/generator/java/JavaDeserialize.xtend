@@ -61,9 +61,9 @@ class JavaDeserialize {
         case 'day':       '''p.readDay       (meta$$«fieldname»)'''
                           
         // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString("«fieldname»", «!isRequired», «ref.enumMaxTokenLength», true, false, false, true))«ELSE»valueOf(p.readInteger("«fieldname»", «!isRequired», false))«ENDIF»'''
+        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(p.readString(meta$$«fieldname»$token))«ELSE»valueOf(p.readInteger(meta$$«fieldname»$token))«ENDIF»'''
         case 'xenum':     '''p.readXEnum(meta$$«fieldname», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
-        case 'object':    '''p.readObject("«fieldname»", BonaPortable.class, «!isRequired», true)'''
+        case 'object':    '''p.readObject(meta$$«fieldname», BonaPortable.class)'''
         }
     }
 
@@ -86,7 +86,7 @@ class JavaDeserialize {
         «IF resolveElem(i.datatype) !== null»
             «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
         «ELSE»
-            («DataTypeExtension::get(i.datatype).javaType»)p.readObject("«i.name»", «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class, «b2A(!i.isRequired)», «b2A(DataTypeExtension::get(i.datatype).orSuperClass)»)«end»
+            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class)»)«end»
         «ENDIF»
     '''
 

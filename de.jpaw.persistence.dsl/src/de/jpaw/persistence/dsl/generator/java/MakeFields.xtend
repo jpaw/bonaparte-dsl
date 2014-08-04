@@ -204,8 +204,7 @@ class JavaFieldWriter {
         val theEnum = ref.enumForEnumOrXenum
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
-                (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
+                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
                     if («myName» == null)
                         return null;
                     try {
@@ -214,7 +213,11 @@ class JavaFieldWriter {
                         «ELSE»
                             ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
                         «ENDIF»
-                        return «IF ref.objectDataType !== null»(«JavaDataTypeNoName(i, false)»)«ENDIF»_bap.readObject("«myName»", «IF ref.objectDataType !== null»«JavaDataTypeNoName(i, false)»«ELSE»BonaPortable«ENDIF».class, true, true);
+                        «IF ref.objectDataType !== null»
+                            return («JavaDataTypeNoName(i, false)»)_bap.readObject(meta$$«myName», «JavaDataTypeNoName(i, false)».class);
+                        «ELSE»
+                            return _bap.readObject(meta$$«myName», BonaPortable.class);
+                        «ENDIF»
                     } catch (MessageParserException _e) {
                         DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
                         return null;
