@@ -86,7 +86,7 @@ class JavaDeserialize {
         «IF resolveElem(i.datatype) !== null»
             «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
         «ELSE»
-            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class)»)«end»
+            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class)«end»
         «ENDIF»
     '''
 
