@@ -171,8 +171,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - allow serializing xenums via readResolve / writeReplace
 
 2.3.0:
-- remove datatypes number(n) / Number(n), instead allow int and long to specify maximum number of digits as well as implicit decimals, as well as possible rounding
-
+- change datatypes number(n) / Number(n) to map to BigInteger (up to 1 million digits) (38 if persisting to Oracle database)
+- support limit to specific number of digits as well as implicit scale for integral data types byte, short, int, long and their wrapped equivalents
+- implicit fractional digits supported for XML, CSV, fixed width, Android composer / parsers
 
 ROADMAP:
 2.x:

@@ -199,6 +199,11 @@ class JavaFrozen {
     }
 
     
+    // removed:
+    //                «IF cd.getRelevantXmlAccess == XXmlAccess::FIELD»
+    //                    @XmlTransient
+    //                «ENDIF»
+    // before field _is$Frozen, as transient field do not allow XmlTransient as well
     def public static writeFreezingCode(ClassDefinition cd) '''
         public static boolean class$isFreezable() {
             return «cd.isFreezable»;
@@ -219,9 +224,6 @@ class JavaFrozen {
                 protected final void verify$Not$Frozen() {
                 }
             «ELSE»
-                «IF cd.getRelevantXmlAccess == XXmlAccess::FIELD»
-                    @XmlTransient
-                «ENDIF»
                 private transient boolean _is$Frozen = false;      // current state of this instance
                 @Override
                 public final boolean is$Frozen() {

@@ -28,13 +28,32 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
+import java.util.Map
+import java.util.HashMap
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
-
+    val static Map<String,String> xmlAdapterMap = new HashMap<String,String> => [
+        put("byte", "Byte")
+        put("short", "Short")
+        put("int", "Integer")
+        put("integer", "Integer")
+        put("long", "Long")
+    ]
+    
     def private static xmlAnnotation(XEnumDefinition d) '''
         @XmlJavaTypeAdapter(«d.root.packageName».«d.root.name»XmlAdapter.class)
     '''
+    
+    def private static xmlAnnotation(DataTypeExtension ref) {
+        val namePart = xmlAdapterMap.get(ref.javaType.toFirstLower)
+        val decimals = ref.elementaryDataType.decimals
+        if (decimals > 0 && namePart !== null)
+            return '''
+                @XmlJavaTypeAdapter(Scaled«namePart»Adapter«decimals»«IF ref.effectiveRounding»Round«ELSE»Exact«ENDIF».class)
+            '''
+    }
      
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
         if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
@@ -82,11 +101,16 @@ class JavaFieldsGettersSetters {
             «writeFieldComments(i)»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
             «i.writeAnnotationProperties(d)»
-            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && i.needsXmlObjectType»
-                «xmlInterfaceAnnotation»
-            «ENDIF»
-            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD && ref.category == DataCategory.XENUM»
-                «ref.elementaryDataType.xenumType.xmlAnnotation»
+            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
+                «IF i.needsXmlObjectType»
+                    «xmlInterfaceAnnotation»
+                «ENDIF»
+                «IF ref.category == DataCategory.XENUM»
+                    «ref.elementaryDataType.xenumType.xmlAnnotation»
+                «ENDIF»
+                «IF ref.category == DataCategory.BASICNUMERIC»
+                    «ref.xmlAnnotation»
+                «ENDIF»
             «ENDIF»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
         '''
@@ -107,22 +131,31 @@ class JavaFieldsGettersSetters {
     '''
 
     // write the standard getter plus maybe some indexed one
-    def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) '''
-        «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && i.needsXmlObjectType»
-            «xmlInterfaceAnnotation»
-        «ENDIF»
-        «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY && DataTypeExtension::get(i.datatype).category == DataCategory.XENUM»
-            «DataTypeExtension::get(i.datatype).elementaryDataType.xenumType.xmlAnnotation»
-        «ENDIF»
-        public «JavaDataTypeNoName(i, false)» «getterName»() {
-            return «i.name»;
-        }
-        «IF i.isArray !== null»
-            public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
-                return «i.name»[_i];
+    def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) {
+        val ref = DataTypeExtension::get(i.datatype)
+        return '''
+            «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
+                «IF i.needsXmlObjectType»
+                    «xmlInterfaceAnnotation»
+                «ENDIF»
+                «IF ref.category == DataCategory.XENUM»
+                    «ref.elementaryDataType.xenumType.xmlAnnotation»
+                «ENDIF»
+                «IF ref.category == DataCategory.BASICNUMERIC»
+                    «ref.xmlAnnotation»
+                «ENDIF»
+            «ENDIF»
+            public «JavaDataTypeNoName(i, false)» «getterName»() {
+                return «i.name»;
             }
-        «ENDIF»
-    '''
+            «IF i.isArray !== null»
+                public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
+                    return «i.name»[_i];
+                }
+            «ENDIF»
+        '''
+    }
+    
     // write the standard setter plus maybe some indexed one
     def private static writeOneSetter(FieldDefinition i, String setterName, boolean isFreezable) {
         val ref = DataTypeExtension::get(i.datatype) 

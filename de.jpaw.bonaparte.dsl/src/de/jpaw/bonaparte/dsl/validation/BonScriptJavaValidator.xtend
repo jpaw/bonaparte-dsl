@@ -100,8 +100,8 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "number":
-                if ((dt.getLength() <= 0) || (dt.getLength() > 9)) {
-                    error("Mantissa must be at least 1 and at max 9",
+                if ((dt.getLength() <= 0) || (dt.getLength() > 38)) {
+                    error("Mantissa must be at least 1 and cannot exceed 38 (currently)",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "decimal": {
