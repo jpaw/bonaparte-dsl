@@ -249,7 +249,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     @Id
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables)»
+                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
@@ -739,7 +739,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
             «FOR col : e.pk.columnName»
-                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null)»
+                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null)»
             «ENDFOR»
             «EqualsHash::writeHash(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»

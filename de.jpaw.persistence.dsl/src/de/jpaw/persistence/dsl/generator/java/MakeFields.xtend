@@ -31,6 +31,7 @@ import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.persistence.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 
 class JavaFieldWriter {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -199,9 +200,10 @@ class JavaFieldWriter {
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
 
-    def private writeGetter(FieldDefinition i, String myName) {
+    def private writeGetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val ref = DataTypeExtension::get(i.datatype);
         val theEnum = ref.enumForEnumOrXenum
+        val dtoName = if (optionalClass !== null) optionalClass.name else "NO_SERIALIZED_DATA_IN_PK_ALLOWED"  // optionalClass will be null if we are creating data for a PK. That should be OK
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
@@ -214,9 +216,9 @@ class JavaFieldWriter {
                             ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
                         «ENDIF»
                         «IF ref.objectDataType !== null»
-                            return («JavaDataTypeNoName(i, false)»)_bap.readObject(meta$$«myName», «JavaDataTypeNoName(i, false)».class);
+                            return («JavaDataTypeNoName(i, false)»)_bap.readObject(«dtoName».meta$$«myName», «JavaDataTypeNoName(i, false)».class);
                         «ELSE»
-                            return _bap.readObject(meta$$«myName», BonaPortable.class);
+                            return _bap.readObject(«dtoName».meta$$«myName», BonaPortable.class);
                         «ENDIF»
                     } catch (MessageParserException _e) {
                         DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
@@ -332,7 +334,7 @@ class JavaFieldWriter {
     
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
-        List<EmbeddableUse> embeddables) {
+        List<EmbeddableUse> embeddables, ClassDefinition optionalClass) {
         val relevantElementCollection = el?.findFirst[name == f]
         val relevantEmbeddable = embeddables?.findFirst[field == f]
         // val emb = relevantEmbeddable?.name?.pojoType
@@ -345,7 +347,7 @@ class JavaFieldWriter {
                 «IF relevantEmbeddable === null»
                     @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
                     «f.writeColumnType(myName)»
-                    «f.writeGetter(myName)»
+                    «f.writeGetter(myName, optionalClass)»
                     «f.writeSetter(myName)»
                 «ELSE»
                     «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
@@ -393,7 +395,7 @@ class JavaFieldWriter {
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
                 «ENDIF»
                 «f.writeColumnType(myName)»
-                «f.writeGetter(myName)»
+                «f.writeGetter(myName, optionalClass)»
                 «f.writeSetter(myName)»
             «ENDIF»
         '''

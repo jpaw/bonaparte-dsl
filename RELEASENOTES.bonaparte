@@ -169,20 +169,24 @@ New features and bug fixes in Bonaparte / Persistence DSL
 2.2.3:
 - generate XmlAdapters for xenum classes
 - allow serializing xenums via readResolve / writeReplace
+- Final 2.2.3 released on 2014-08-03
 
 2.3.0:
+*** NOT COMPATIBLE WITH EARLIER VERSIONS for Number(n) or fixed width formats!!! *** (but easily convertible)
 - change datatypes number(n) / Number(n) to map to BigInteger (up to 1 million digits) (38 if persisting to Oracle database)
 - support limit to specific number of digits as well as implicit scale for integral data types byte, short, int, long and their wrapped equivalents
 - implicit fractional digits supported for XML, CSV, fixed width, Android composer / parsers
+- new data type BigInteger (see first topic)
 
-ROADMAP:
+
+
+ROADMAP / PLANS:
 2.x:
 - complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
 - performance improvements LocalDate/Time serializers (really required?)
 - separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
 - cache serialized forms for frozen or immutable objects?
-- new data type BigInteger
 - pk class with Generics?
 
 
