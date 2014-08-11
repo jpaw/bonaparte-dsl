@@ -22,6 +22,7 @@ import java.util.Map;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
+import de.jpaw.bonaparte.dsl.generator.java.JavaMeta;
 import de.jpaw.persistence.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
@@ -34,15 +35,15 @@ public class SqlMapping {
     static {  // see http://docs.oracle.com/cd/E11882_01/server.112/e26088/sql_elements001.htm#i45441 for reference
         // we avoid the ANSI data types for Oracle, because I think the native ones have better performance
         dataTypeSqlOracle.put("boolean",   "number(1)");                // Oracle has no boolean type
-        dataTypeSqlOracle.put("int",       "number(10)");               // no specific type available for Oracle
-        dataTypeSqlOracle.put("integer",   "number(10)");               // no specific type available for Oracle
-        dataTypeSqlOracle.put("long",      "number(20)");               // no specific type available for Oracle
+        dataTypeSqlOracle.put("int",       "number(#length)");          // no specific type available for Oracle
+        dataTypeSqlOracle.put("integer",   "number(#length)");          // no specific type available for Oracle
+        dataTypeSqlOracle.put("long",      "number(#length)");          // no specific type available for Oracle
         dataTypeSqlOracle.put("float",     "binary_float");
         dataTypeSqlOracle.put("double",    "binary_double");
         dataTypeSqlOracle.put("number",    "number(#length)");
         dataTypeSqlOracle.put("decimal",   "number(#length,#precision)");
-        dataTypeSqlOracle.put("byte",      "number(3)");
-        dataTypeSqlOracle.put("short",     "number(5)");
+        dataTypeSqlOracle.put("byte",      "number(#length)");
+        dataTypeSqlOracle.put("short",     "number(#length)");
         dataTypeSqlOracle.put("char",      "varchar2(1 char)");
         dataTypeSqlOracle.put("character", "varchar2(1 char)");
 
@@ -150,6 +151,16 @@ public class SqlMapping {
             datatype = ref.elementaryDataType.getName().toLowerCase();
             columnLength = ref.elementaryDataType.getLength();
             columnDecimals = ref.elementaryDataType.getDecimals();
+            if (columnLength == 0) {
+                // get some meaningful default for integral values
+                Integer maxLength = JavaMeta.TOTAL_DIGITS.get(datatype);
+                if (maxLength != null) {
+                    // yes, we got some default!
+                    if (maxLength == 19)
+                        maxLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
+                    columnLength = maxLength;
+                }
+            }
         }
         if (ref.enumMaxTokenLength >= 0) {
             // alphanumeric enum! use other type!
