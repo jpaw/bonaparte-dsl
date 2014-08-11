@@ -173,6 +173,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 2.3.0:
 *** NOT COMPATIBLE WITH EARLIER VERSIONS for Number(n) or fixed width formats!!! *** (but easily convertible)
+- MessageParser interface now similar to MessageComposer (i.e. uses meta data reference instead of specialized parameters)
 - change datatypes number(n) / Number(n) to map to BigInteger (up to 1 million digits) (38 if persisting to Oracle database)
 - support limit to specific number of digits as well as implicit scale for integral data types byte, short, int, long and their wrapped equivalents
 - implicit fractional digits supported for XML, CSV, fixed width, Android composer / parsers

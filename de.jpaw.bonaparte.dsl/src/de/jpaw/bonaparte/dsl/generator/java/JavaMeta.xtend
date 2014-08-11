@@ -39,6 +39,12 @@ class JavaMeta {
         else
             '''protected'''
     }
+    def private static metaVisibility(ClassDefinition d, boolean forcePublic) {
+        if (forcePublic || d.publicMeta)
+            '''public'''
+        else
+            '''protected'''
+    }
     
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
@@ -48,6 +54,7 @@ class JavaMeta {
         var String visibility = getFieldVisibility(d, i).getName()
         var String ext = ""  // category specific data
         var String extraItem = null  // category specific data
+        var boolean forcePublicMeta = false
 
         if (i.isArray !== null)
             multi = "Multiplicity.ARRAY, 0, " + i.isArray.mincount + ", " + i.isArray.maxcount
@@ -107,9 +114,11 @@ class JavaMeta {
         case DataCategory::OBJECT: {
             classname = "ObjectReference"
             if (elem !== null) {
-                 // just "Object
+                 // just "Object"
+                forcePublicMeta = true        // hack required by BDDL: serialized fields need to access the metadata, as they invoke special serializers  
                 ext = ''', true, "BonaPortable", null, null, null'''
             } else {
+                forcePublicMeta = i.properties.hasProperty("serialized")        // hack required by BDDL: serialized fields need to access the metadata, as they invoke special serializers  
                 val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
                 val meta = if (myLowerBound === null) "null" else '''«myLowerBound.name».class$MetaData()'''
                 val myLowerBound2 = ref.secondaryObjectDataType
@@ -128,7 +137,7 @@ class JavaMeta {
         }
         return '''
             «extraItem»
-            «d.metaVisibility» static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+            «d.metaVisibility(forcePublicMeta)» static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
                 "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
             '''
     }
