@@ -226,7 +226,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
             «ENDIF»
             «IF doHistory»
-                , «SqlMapping.getFieldForJavaType(databaseFlavour, "long")»    «myCategory.historySequenceColumn» NOT NULL
+                , «SqlMapping.getFieldForJavaType(databaseFlavour, "long", "20")»    «myCategory.historySequenceColumn» NOT NULL
             «ENDIF»
             -- contents field
             «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
@@ -284,8 +284,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDFOR»
             «ENDIF»
             «IF doHistory»
-                «d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long")» NOT NULL
-                «d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char")» NOT NULL
+                «d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long", "20")» NOT NULL
+                «d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char", "1")» NOT NULL
             «ENDIF»
             «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;

@@ -144,7 +144,7 @@ public class SqlMapping {
                 columnDecimals = 0;
             } else {
                 datatype = "long";  // assume artificial ID
-                columnLength = 18;
+                columnLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
                 columnDecimals = 0;
             }
         } else {
@@ -216,16 +216,22 @@ public class SqlMapping {
         return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
     
-    static public String getFieldForJavaType(DatabaseFlavour databaseFlavour, String javaType) {
+    static public String getFieldForJavaType(DatabaseFlavour databaseFlavour, String javaType, String lengthString) {
+        String rawType = null;
         switch (databaseFlavour) {
         case ORACLE:
-            return dataTypeSqlOracle.get(javaType);
+            rawType = dataTypeSqlOracle.get(javaType);
+            break;
         case POSTGRES:
-            return dataTypeSqlPostgres.get(javaType);
+            rawType = dataTypeSqlPostgres.get(javaType);
+            break;
         case MSSQLSERVER:
-            return dataTypeSqlMsSQLServer.get(javaType);
+            rawType = dataTypeSqlMsSQLServer.get(javaType);
+            break;
+        default:
+            return null;
         }
-        return null;
+        return rawType == null ? null : rawType.replace("#length", lengthString);
     }
 
     static boolean supportsTablespaces(DatabaseFlavour databaseFlavour) {
