@@ -178,6 +178,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - support limit to specific number of digits as well as implicit scale for integral data types byte, short, int, long and their wrapped equivalents
 - implicit fractional digits supported for XML, CSV, fixed width, Android composer / parsers
 - new data type BigInteger (see first topic)
+- Final 2.3.0 released on 2014-08-11
+
+2.3.1:
 
 
 

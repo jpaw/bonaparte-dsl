@@ -2,7 +2,7 @@
 <feature
       id="de.jpaw.bonaparte.dsl.sdk"
       label="BonScript SDK Feature "
-      version="2.3.0">
+      version="2.3.1.qualifier">
 
    <copyright>
       Copyright 2012 Michael Bischoff
