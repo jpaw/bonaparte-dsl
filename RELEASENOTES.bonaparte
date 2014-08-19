@@ -185,6 +185,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - Final 2.3.1 released on 2014-08-11
 
 2.3.2:
+- BON: new feature: add customValidator attribute
+- updated documentation (in bonaparte-java)
+- improved error messages for time / date parsing errors
+- added record type ID to data type maps to allow "readRecord()" method for CSV / fixed width parsers
+- compact format: allow upgrading of int to float or double. Store integral float / doubles as integers, resulting in a more compact storage
 
 
 

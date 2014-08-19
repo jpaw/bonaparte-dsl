@@ -81,6 +81,10 @@ class JavaValidate {
         @Override
         public void validate() throws ObjectValidationException {
             // perform checks for required fields
+            «IF d.haveCustomValidator»
+                if («d.name»Validator.validate(this))
+                    return;
+            «ENDIF»
             «IF d.extendsClass !== null»
                 super.validate();
             «ENDIF»

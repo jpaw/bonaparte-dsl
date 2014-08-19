@@ -19,6 +19,7 @@ public class BDDLRuntimeModule extends de.jpaw.persistence.dsl.AbstractBDDLRunti
         logger.info("BDDL Runtime module constructed");
     }
 
+    @Override
     public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
         logger.info("BON Value converter bound for BDDL");
         return CommentConverter.class;

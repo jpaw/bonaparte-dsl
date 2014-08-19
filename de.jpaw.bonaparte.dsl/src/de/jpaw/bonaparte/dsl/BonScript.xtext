@@ -180,6 +180,7 @@ ClassDefinition:
     ('extends' extendsClass=ClassReference)?
     ('orderedBy' orderedByList=ComparableFieldsList)?
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
+    (haveCustomValidator ?= 'customValidator')?
     ('return' returnsClassRef = ClassReference)?
     ('pk' pkClass = [ClassDefinition])?
     (doCacheHash ?= 'cacheHash')?

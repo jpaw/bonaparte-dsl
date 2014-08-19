@@ -18,7 +18,6 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtension.*

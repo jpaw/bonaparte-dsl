@@ -18,19 +18,19 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import static extension de.jpaw.bonaparte.dsl.generator.Util.*
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.XUtil
-import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
-import java.util.Map
 import java.util.HashMap
+import java.util.Map
+
+import static extension de.jpaw.bonaparte.dsl.generator.Util.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
