@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>2.3.2-SNAPSHOT</version>
+        <version>2.3.2</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
 
