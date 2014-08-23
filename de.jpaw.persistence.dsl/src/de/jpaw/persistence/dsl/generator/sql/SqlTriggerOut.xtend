@@ -33,15 +33,11 @@ class SqlTriggerOut {
         return f.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", func)
     }
     
-    def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> keys, List<FieldDefinition> data,
+    def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> columns,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
         val embeddables = e.theEmbeddables
-        // create an additional list to provide an ordered collection of both lists, but without repeated field names,
-        // in the ordering of the original lists
-        val mergedList = new ArrayList<FieldDefinition>(keys)
-        data.filter[!keys.contains(it)].forEach[mergedList.add(it)]
         return '''
-            «FOR c : mergedList»
+            «FOR c : columns»
                 «e.recurseTrigger(c, embeddables, func)»
             «ENDFOR»
         '''
@@ -54,6 +50,11 @@ class SqlTriggerOut {
         val myPrimaryKeyColumns = e.primaryKeyColumns
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true)
         println('''Creating trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
+        // create an additional list to provide an ordered collection of both lists, but without repeated field names,
+        // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
+        val keyFieldNames = myPrimaryKeyColumns.map[name]
+        val allColumns = new ArrayList<FieldDefinition>(myPrimaryKeyColumns)
+        nonPrimaryKeyColumns.filter[!keyFieldNames.contains(it.name)].forEach[allColumns.add(it)]
         
         return '''
             -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
@@ -86,22 +87,22 @@ class SqlTriggerOut {
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
                     ) VALUES (
                         next_seq_
                         , change_type_
-                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', :NEW.«myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', :NEW.«myName.java2sql»'''])»
                     );
                 END IF;
                 IF DELETING THEN
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
                     ) VALUES (
                         next_seq_
                         , 'D'
-                        «e.recurseTrigger(myPrimaryKeyColumns, nonPrimaryKeyColumns, [ fld, myName, reqType | ''', :OLD.«myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', :OLD.«myName.java2sql»'''])»
                     );
                 END IF;
             END;
