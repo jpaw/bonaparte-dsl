@@ -81,9 +81,8 @@ class JavaValidate {
         @Override
         public void validate() throws ObjectValidationException {
             // perform checks for required fields
-            «IF d.haveCustomValidator»
-                if («d.name»Validator.validate(this))
-                    return;
+            «IF d.haveCustomAddons»
+                «d.name»Addons.preprocess(this);
             «ENDIF»
             «IF d.extendsClass !== null»
                 super.validate();
@@ -124,6 +123,9 @@ class JavaValidate {
                     «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
                 «ENDIF»
             «ENDFOR»
+            «IF d.haveCustomAddons»
+                «d.name»Addons.validate(this);
+            «ENDIF»
         }
     '''
 

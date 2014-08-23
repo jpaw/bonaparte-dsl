@@ -191,6 +191,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - added record type ID to data type maps to allow "readRecord()" method for CSV / fixed width parsers
 - compact format: allow upgrading of int to float or double. Store integral float / doubles as integers, resulting in a more compact storage
 
+- 2.3.3:
+- BDDL: bugfix Oracle Trigger creation. Generated triggers now have _tr suffix instead of _trg in order to shorten names to max. 30 characters
+- BON: rename customValidator token to customAddons, rename validate to preprocess, rename validateAfter to validate
 
 
 ROADMAP / PLANS:
