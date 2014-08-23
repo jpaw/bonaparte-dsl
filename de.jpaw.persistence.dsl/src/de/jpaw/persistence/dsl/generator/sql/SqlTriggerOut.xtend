@@ -20,6 +20,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.persistence.dsl.bDDL.EmbeddableUse
 import de.jpaw.persistence.dsl.bDDL.EntityDefinition
 import de.jpaw.persistence.dsl.generator.RequiredType
+import java.util.ArrayList
 import java.util.List
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
@@ -35,29 +36,32 @@ class SqlTriggerOut {
     def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> keys, List<FieldDefinition> data,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
         val embeddables = e.theEmbeddables
+        // create an additional list to provide an ordered collection of both lists, but without repeated field names,
+        // in the ordering of the original lists
+        val mergedList = new ArrayList<FieldDefinition>(keys)
+        data.filter[!keys.contains(it)].forEach[mergedList.add(it)]
         return '''
-            «FOR c : keys»
+            «FOR c : mergedList»
                 «e.recurseTrigger(c, embeddables, func)»
             «ENDFOR»
-            «FOR c : data»
-                «e.recurseTrigger(c, embeddables, func)»
-            «ENDFOR»        
         '''
     }
     
     def public static triggerOutOracle(EntityDefinition e) {
+        val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory
         val myPrimaryKeyColumns = e.primaryKeyColumns
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true)
+        println('''Creating trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         
         return '''
             -- This source has been automatically created by the bonaparte DSL (persistence addon). Do not modify, changes will be lost.
             -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
             -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
-            CREATE OR REPLACE TRIGGER «tablename»_trg
-                AFTER INSERT OR DELETE OR UPDATE ON «tablename»
+            CREATE OR REPLACE TRIGGER «tablename»_tr
+                AFTER INSERT OR DELETE OR UPDATE ON «baseTablename»
                 REFERENCING NEW AS NEW OLD AS OLD
                 FOR EACH ROW
             DECLARE
