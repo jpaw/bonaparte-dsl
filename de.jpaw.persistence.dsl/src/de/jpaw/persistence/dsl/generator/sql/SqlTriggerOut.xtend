@@ -24,6 +24,8 @@ import java.util.ArrayList
 import java.util.List
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class SqlTriggerOut {
     
@@ -41,6 +43,27 @@ class SqlTriggerOut {
                 «e.recurseTrigger(c, embeddables, func)»
             «ENDFOR»
         '''
+    }
+    
+    def private static buildNvl(FieldDefinition f) {
+        val colname = f.name.java2sql
+        val ref = DataTypeExtension::get(f.datatype)
+        var nullReplacement = "' '"
+        // find out the cases when we need a different default
+        // TODO: unsure which default to use for UUID
+        switch (ref.category) {
+        case DataCategory.BASICNUMERIC: nullReplacement = "0"
+        case DataCategory.NUMERIC: nullReplacement = "0"
+        case DataCategory.ENUM: if (ref.enumMaxTokenLength == -1) nullReplacement = "0"  // only numeric enums
+        case DataCategory.MISC: if (ref.javaType.toLowerCase == "boolean") nullReplacement = "0" else if (ref.javaType.toLowerCase == "uuid") nullReplacement = null
+        case DataCategory.TEMPORAL: nullReplacement = "TO_DATE('19700101', 'YYYYMMDD')"
+        case DataCategory.BINARY: nullReplacement = null
+        default: {}
+        }
+        if (nullReplacement === null)
+            return ''':OLD.«colname» <> :NEW.«colname»'''
+        else
+            return '''NVL(:OLD.«colname», «nullReplacement») <> NVL(:NEW.«colname», «nullReplacement»)'''
     }
     
     def public static triggerOutOracle(EntityDefinition e) {
@@ -74,13 +97,12 @@ class SqlTriggerOut {
                 END IF;
                 IF UPDATING THEN
                     change_type_ := 'U';
-                    -- deny attempts to change a primary key column
-                    IF FALSE
-                        «FOR c : myPrimaryKeyColumns»
-                             OR NVL(:OLD.«c.name.java2sql», ' ') <> NVL(:NEW.«c.name.java2sql», ' ')
-                        «ENDFOR»
-                        THEN RAISE DUP_VAL_ON_INDEX;
-                    END IF;
+                    «IF myPrimaryKeyColumns.size > 0»
+                        -- deny attempts to change a primary key column
+                        IF «FOR c : myPrimaryKeyColumns SEPARATOR ' OR '»«c.buildNvl»«ENDFOR» THEN
+                            RAISE DUP_VAL_ON_INDEX;
+                        END IF;
+                    «ENDIF»
                 END IF;
                 SELECT «e.tableCategory.historySequenceName».NEXTVAL INTO next_seq_ FROM DUAL;
                 IF INSERTING OR UPDATING THEN

@@ -195,6 +195,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: bugfix Oracle Trigger creation. Generated triggers now have _tr suffix instead of _trg in order to shorten names to max. 30 characters
 - BON: rename customValidator token to customAddons, rename validate to preprocess, rename validateAfter to validate
 
+- 2.3.4:
+- BDDL: bugfix Oracle Trigger creation. Support numeric types for update condition.
 
 ROADMAP / PLANS:
 2.x:
