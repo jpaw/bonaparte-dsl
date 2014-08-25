@@ -47,8 +47,8 @@ class SqlTriggerOut {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory
-        val myPrimaryKeyColumns = e.primaryKeyColumns
-        val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true)
+        val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
+        val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
         println('''Creating trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         // create an additional list to provide an ordered collection of both lists, but without repeated field names,
         // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
