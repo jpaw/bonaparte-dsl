@@ -74,7 +74,7 @@ TableCategoryDefinition:
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
     (('history' historyCategory=[TableCategoryDefinition] ('sequence' historySequenceName=ID)?) |
-     ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID))?  
+     ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID (actualData?='actualData')?))?  
     (requiresPk ?= 'requiresPK')?
     (doBeanVal ?= 'beanVal')?
     ('grants' grantGroup = [GrantCategoryDefinition])?

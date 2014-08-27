@@ -24,6 +24,7 @@ import java.util.ArrayList
 import java.util.List
 
 import static extension de.jpaw.persistence.dsl.generator.YUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
@@ -64,6 +65,27 @@ class SqlTriggerOut {
             return ''':OLD.«colname» <> :NEW.«colname»'''
         else
             return '''NVL(:OLD.«colname», «nullReplacement») <> NVL(:NEW.«colname», «nullReplacement»)'''
+    }
+    
+    def private static v(FieldDefinition f, boolean categorySetting, CharSequence regularData) {
+        val ref = DataTypeExtension::get(f.datatype)
+        val isTechUser = f.properties.hasProperty(PROP_CURRENT_USER) && ref.category == DataCategory.STRING
+        val isTimestamp = f.properties.hasProperty(PROP_CURRENT_TIMESTAMP) && ref.category == DataCategory.TEMPORAL
+        if (categorySetting && !f.properties.hasProperty(PROP_NOUPDATE) && (isTechUser || isTimestamp)) {
+            // is special field
+            if (isTechUser) {
+                return ''', SUBSTR(USER, 1, «ref.elementaryDataType.length»)'''
+            } else if (ref.elementaryDataType.length == 0) {
+                // temporal field with seconds precision
+                return ''', SYSDATE'''
+            } else {
+                // temporal field with sub-second precision
+                return ''', SYSTIMESTAMP'''
+            }
+        } else {
+            // regular field
+            return regularData
+        }
     }
     
     def public static triggerOutOracle(EntityDefinition e) {
@@ -113,7 +135,7 @@ class SqlTriggerOut {
                     ) VALUES (
                         next_seq_
                         , change_type_
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', :NEW.«myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :NEW.«myName.java2sql»''') ])»
                     );
                 END IF;
                 IF DELETING THEN
@@ -124,7 +146,7 @@ class SqlTriggerOut {
                     ) VALUES (
                         next_seq_
                         , 'D'
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', :OLD.«myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :OLD.«myName.java2sql»''') ])»
                     );
                 END IF;
             END;

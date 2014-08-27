@@ -48,6 +48,7 @@ class YUtil {
     public static final String PROP_CURRENT_USER = "currentUser";
     public static final String PROP_CURRENT_TIMESTAMP = "currentTimestamp";
     public static final String PROP_SQL_DEFAULT = "SQLdefault";
+    public static final String PROP_NOUPDATE = "noupdate";    // do not update existing fields (create user / timestamp)
     
     
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
