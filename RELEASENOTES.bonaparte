@@ -198,6 +198,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - 2.3.4:
 - BDDL: bugfix Oracle Trigger creation. Support numeric types for update condition.
 
+- 2.3.5:
+- BON: bugfix: for abstract classes, JAXB imports were missing
+- BON: bugfix: generic parameters without lower bounds should generate "extends BonaPortable" in Java
+- persistence-java: upgrade EclipseLink to 2.5.2
+
+
 ROADMAP / PLANS:
 2.x:
 - complete Hazelcast support

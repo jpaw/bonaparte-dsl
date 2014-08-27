@@ -212,7 +212,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         package «getPackageName(d)»;
         
         «writeDefaultImports»
-        «IF xmlAccess !== null && !d.isAbstract && !BonScriptPreferences.getNoXML»
+        «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;

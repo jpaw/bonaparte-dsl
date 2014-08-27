@@ -170,7 +170,7 @@ class XUtil {
     def public static genericDef2String(List<GenericsDef> args) {
         if (args === null)
             return ""
-        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name»«IF a.^extends !== null» extends «genericRef2String(a.^extends)»«ENDIF»«ENDFOR»'''
+        '''«FOR a : args BEFORE '<' SEPARATOR ', ' AFTER '>'»«a.name» extends «IF a.^extends !== null»«genericRef2String(a.^extends)»«ELSE»BonaPortable«ENDIF»«ENDFOR»'''
     }
 
     def public static genericDef2StringAsParams(List<GenericsDef> args) {
