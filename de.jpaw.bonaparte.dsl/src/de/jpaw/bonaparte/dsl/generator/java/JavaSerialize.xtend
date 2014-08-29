@@ -41,7 +41,7 @@ class JavaSerialize {
     }
 
     def private static makeWrite(FieldDefinition i, String indexedName, ClassDefinition objectType, DataTypeExtension ref) {
-        if (objectType.externalType === null) {
+        if (objectType?.externalType === null) {
             // regular bonaportable
             return '''w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
         } else {

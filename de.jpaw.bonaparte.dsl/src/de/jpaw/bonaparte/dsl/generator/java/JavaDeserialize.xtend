@@ -28,8 +28,6 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaDeserialize {
-    private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
-
     def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
@@ -83,9 +81,9 @@ class JavaDeserialize {
     }
 
     def private static makeRead(FieldDefinition i, ClassDefinition objectType, DataTypeExtension ref) {
-        if (objectType.externalType === null) {
+        if (objectType?.externalType === null) {
             // regular bonaportable
-            return '''(«ref.javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(ref.genericsRef)».class)'''
+            return '''(«ref.javaType»)p.readObject(meta$$«i.name», «getKnownSupertype(ref.genericsRef)».class)'''
         } else {
             if (objectType.singleField) { 
                 // can use the adapter directly, without type information

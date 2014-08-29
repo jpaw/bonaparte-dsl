@@ -327,11 +327,13 @@ public class DataTypeExtension {
             r.orSuperClass = key.isOrSuperClass();
             // construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
             r.javaType = XUtil.genericRef2String(key.getObjectDataType());
-            if (key.getObjectDataType().getClassRef() != null)
+            if (key.getObjectDataType().getClassRef() != null) {
                 r.objectDataType = key.getObjectDataType().getClassRef();
-            // TODO: how to fill objectDataType when we have generics...
-            else
+                // TODO: how to fill objectDataType when we have generics...
+            } else {
                 r.objectDataType = XUtil.getLowerBound(key.getObjectDataType());  // this call should also work with the other if() branch...
+                // here, r.objectDataType may still be null, in case of a generics ref with no lower bound (or Object), which basically is a Bonaportable.
+            }
 
             if (key.getSecondaryObjectDataType() != null) {
                 // same for the secondary
