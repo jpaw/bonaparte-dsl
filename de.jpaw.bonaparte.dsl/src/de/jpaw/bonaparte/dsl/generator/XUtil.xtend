@@ -154,8 +154,12 @@ class XUtil {
             return "BonaPortable"
         if (r.genericsParameterRef !== null)
             return r.genericsParameterRef.name
-        if (r.classRef !== null)
-            return r.classRef.name + genericArgs2String(r.classRefGenericParms)
+        if (r.classRef !== null) {
+            if (r.classRef.externalType !== null)
+                return r.classRef.externalType.class.canonicalName
+            else
+                return r.classRef.name + genericArgs2String(r.classRefGenericParms)
+        }
 
         logger.error("*** FIXME: class reference with all null fields ***")
         return "*** FIXME: class reference with all null fields ***"
@@ -504,5 +508,9 @@ class XUtil {
             return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
         else
             return pkg.hazelcastFactoryId
+    }
+    
+    def public static String getAdapterClassName(ClassDefinition cd) {
+        return cd.bonaparteAdapterClass ?: cd.externalType.class.canonicalName
     }
 }

@@ -143,8 +143,9 @@ class JavaMeta {
     }
 
     def public static writeMetaData(ClassDefinition d) {
-        var myPackage = getPackage(d)
-        var propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
+        val myPackage = getPackage(d)
+        val propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
+        val externalPrefix = if (d.externalType !== null) 'External'
         return '''
             // property map
             private static final ImmutableMap<String,String> property$Map = new ImmutableMap.Builder<String,String>()
@@ -258,7 +259,7 @@ class JavaMeta {
             );
             
             // extended meta data (for the enhanced interface)
-            private static final ClassDefinition my$MetaData = new ClassDefinition(
+            private static final «externalPrefix»ClassDefinition my$MetaData = new «externalPrefix»ClassDefinition(
                 «d.isAbstract»,
                 «d.isFinal»,
                 _PARTIALLY_QUALIFIED_CLASS_NAME,
@@ -279,6 +280,11 @@ class JavaMeta {
                 «propertiesInherited»,
                 «d.root.immutable»,
                 «d.freezable»
+                «IF d.externalType !== null»
+                    , «d.singleField»,
+                    "«d.externalType.class.canonicalName»",
+                    "«d.adapterClassName»"
+                «ENDIF»
             );
 
             // get all the meta data in one go

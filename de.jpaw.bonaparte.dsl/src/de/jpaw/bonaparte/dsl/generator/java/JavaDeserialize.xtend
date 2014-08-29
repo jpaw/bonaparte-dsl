@@ -30,7 +30,7 @@ import de.jpaw.bonaparte.dsl.generator.XUtil
 class JavaDeserialize {
     private static String interfaceDowncast = ""; // don't need it any more: "(Class <? extends BonaPortable>)"  // objects implementing BonaPortableWithMeta
 
-    def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref, boolean isRequired) {
+    def private static makeRead(String fieldname, ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
         // numeric (non-float) types
         case 'byte':      '''p.readByte      (meta$$«fieldname»)'''
@@ -82,22 +82,27 @@ class JavaDeserialize {
         return "FIXME! no supertype resolved!"
     }
 
-    def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) '''
-        «IF resolveElem(i.datatype) !== null»
-            «makeRead(i.name, resolveElem(i.datatype), DataTypeExtension::get(i.datatype), i.isRequired)»«end»
-        «ELSE»
-            («DataTypeExtension::get(i.datatype).javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(DataTypeExtension::get(i.datatype).genericsRef)».class)«end»
-        «ENDIF»
-    '''
-
-/*
-    def private static exceptionOrNull(ClassDefinition d, FieldDefinition i) {
-        if (i.isAggregateRequired)
-            '''throw new MessageParserException(MessageParserException.ILLEGAL_EXPLICIT_NULL, "«i.name»", 0, "«d.name»");'''
-        else
-            '''«i.name» = null;'''      // just a regular assignment
+    def private static makeRead(FieldDefinition i, ClassDefinition objectType, DataTypeExtension ref) {
+        if (objectType.externalType === null) {
+            // regular bonaportable
+            return '''(«ref.javaType»)p.readObject(meta$$«i.name», «interfaceDowncast»«getKnownSupertype(ref.genericsRef)».class)'''
+        } else {
+            if (objectType.singleField) { 
+                // can use the adapter directly, without type information
+                return '''«objectType.adapterClassName».unmarshal(meta$$«i.name», p);'''
+            } else {
+                return 'FIXME! Not yet implemented;'
+            }
+        }
     }
-   */
+    
+    def private static makeRead2(ClassDefinition d, FieldDefinition i, String end) {
+        val ref = DataTypeExtension::get(i.datatype)
+        if (ref.elementaryDataType !== null)
+            return makeRead(i.name, ref.elementaryDataType, ref) + end
+        else        
+            return makeRead(i, ref.objectDataType, ref) + end
+    }
 
     def public static writeDeserialize(ClassDefinition d) '''
             @Override

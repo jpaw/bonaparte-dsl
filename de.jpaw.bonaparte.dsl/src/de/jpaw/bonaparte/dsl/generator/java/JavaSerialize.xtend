@@ -40,28 +40,45 @@ class JavaSerialize {
         }
     }
 
-    def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) !== null»
-            «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
-        «ELSE»
-            w.addField(meta$$«i.name», (BonaPortable)«index»);
-        «ENDIF»
-    '''
-
-    def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index) '''
-        «IF resolveElem(i.datatype) !== null»
-            «makeWrite(i, index, resolveElem(i.datatype), DataTypeExtension::get(i.datatype))»
-        «ELSE»
-            if («index» == null) {
-                w.writeNull(meta$$«i.name»);
-            } else if (pfc.getComponent() == null) {
-                w.addField(meta$$«i.name», (BonaPortable)«index»);             // full / recursive object output
+    def private static makeWrite(FieldDefinition i, String indexedName, ClassDefinition objectType, DataTypeExtension ref) {
+        if (objectType.externalType === null) {
+            // regular bonaportable
+            return '''w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
+        } else {
+            if (objectType.singleField) { 
+                // can use the adapter directly, without type information
+                return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», w);'''
             } else {
-                // write a specific subcomponent
-                «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+                return 'FIXME! Not yet implemented;'
             }
-        «ENDIF»
-    '''
+        }
+    }
+    
+    def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) {
+        val ref = DataTypeExtension::get(i.datatype)
+        if (ref.elementaryDataType !== null)
+            return makeWrite(i, index, ref.elementaryDataType, ref)
+        else
+            return makeWrite(i, index, ref.objectDataType, ref)
+    }
+
+    def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index)  {
+        val ref = DataTypeExtension::get(i.datatype)
+        if (ref.elementaryDataType !== null)
+            return makeWrite(i, index, ref.elementaryDataType, ref)
+        else
+            return '''
+                if («index» == null) {
+                    w.writeNull(meta$$«i.name»);
+                } else if (pfc.getComponent() == null) {
+                    // full / recursive object output
+                    «makeWrite(i, index, ref.objectDataType, ref)»
+                } else {
+                    // write a specific subcomponent
+                    «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+                }
+            '''
+    }
 
     def public static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
