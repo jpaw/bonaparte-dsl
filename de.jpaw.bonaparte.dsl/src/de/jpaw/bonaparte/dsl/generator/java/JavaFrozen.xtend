@@ -47,7 +47,7 @@ class JavaFrozen {
         if (ref.supportsNoFreeze)
             return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
         else
-            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections)) : «applyOnWhat»'''       
+            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''       
     }
     
     // write the code to freeze one field.
