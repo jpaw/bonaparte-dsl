@@ -74,8 +74,12 @@ class JavaSerialize {
                     // full / recursive object output
                     «makeWrite(i, index, ref.objectDataType, ref)»
                 } else {
-                    // write a specific subcomponent
-                    «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+                    «IF ref.objectDataType?.externalType === null»
+                        // write a specific subcomponent
+                        «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+                    «ELSE»
+                        // no op. Cannot output components of external data types
+                    «ENDIF»
                 }
             '''
     }

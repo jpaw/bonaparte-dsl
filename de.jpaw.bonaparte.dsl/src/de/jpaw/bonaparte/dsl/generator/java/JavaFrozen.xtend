@@ -22,8 +22,33 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtension.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaFrozen {
+    def private static boolean supportsNoFreeze(DataTypeExtension ref) {
+        return ref.objectDataType !== null && (ref.objectDataType.immutable || ref.objectDataType.externalType !== null)
+    }
+    
+    def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.supportsNoFreeze)
+            return null  // no .freeze() required / exists
+        else
+            return '''«applyOnWhat».freeze();'''       
+    }
+    
+    def private static getFrozenClone(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.supportsNoFreeze)
+            return applyOnWhat  // no .freeze() required / exists, return the identity
+        else
+            return '''(«applyOnWhat» == null ? null : «applyOnWhat».get$FrozenClone())'''       
+    }
+    
+    def private static getMutableClone(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.supportsNoFreeze)
+            return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
+        else
+            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections)) : «applyOnWhat»'''       
+    }
     
     // write the code to freeze one field.
     def private static writeFreezeField(FieldDefinition i, ClassDefinition cd) {
@@ -38,7 +63,7 @@ class JavaFrozen {
                 '''
             } else {
                 // nothing to do
-                ''''''
+                return null
             }
         } else {
             if (i.isList !== null || i.isSet !== null) {
@@ -48,7 +73,7 @@ class JavaFrozen {
                     Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
                     for («ref.javaType» _i: «i.name»)
                         if (_i != null) {
-                            _i.freeze();
+                            «ref.invokeFreezeMethod("_i")»
                             _b.add(_i);
                         }
                     «i.name» = _b.build();
@@ -61,19 +86,23 @@ class JavaFrozen {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
                         if (_i.getValue() != null) {
-                            _i.getValue().freeze();
+                            «ref.invokeFreezeMethod("_i.getValue()")»
                             _b.put(_i);
                         }
                     «i.name» = _b.build();
                 }
                 '''
             } else {
-                // scalar object
-                '''
-                if («i.name» != null) {
-                    «i.name».freeze();
-                }
-                '''
+                // scalar object. Do nothing if it is external or immutable
+                // TODO: if this is a BonaPortable, need to distinguish if it is immutable, freezable, or unfreezable
+                if (ref.supportsNoFreeze)
+                    return null
+                else
+                    return '''
+                        if («i.name» != null) {
+                            «i.name».freeze();
+                        }
+                    '''
             }
         }                
 
@@ -105,7 +134,7 @@ class JavaFrozen {
                     Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
                     for («ref.javaType» _i: «i.name»)
                         if (_i != null) {
-                            _b.add(_i.get$FrozenClone());
+                            _b.add(«ref.getFrozenClone("_i")»);
                         }
                     _new.«i.name» = _b.build();
                 } else {
@@ -118,7 +147,7 @@ class JavaFrozen {
                 if («i.name» != null) {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
-                        _b.put(_i.getKey(), _i.getValue() != null ? _i.getValue().get$FrozenClone() : null); 
+                        _b.put(_i.getKey(), «ref.getFrozenClone("_i.getValue()")»); 
                     _new.«i.name» = _b.build();
                 } else {
                     _new.«i.name» = null;
@@ -126,13 +155,7 @@ class JavaFrozen {
                 '''
             } else {
                 // scalar object
-                '''
-                if («i.name» != null) {
-                    _new.«i.name» = «i.name».get$FrozenClone();
-                } else {
-                    _new.«i.name» = null;
-                }
-                '''
+                return '''_new.«i.name» = «ref.getFrozenClone(i.name)»;'''
             }
         }                
     }
@@ -147,7 +170,7 @@ class JavaFrozen {
                 '''
             } else {
                 '''
-                _new.«i.name» = («i.name» == null || !_deepCopy) ? «i.name» : «i.name».get$MutableClone(_deepCopy, _unfreezeCollections);
+                _new.«i.name» = «ref.getMutableClone(i.name)»;
                 '''
             }
         } else {
@@ -173,23 +196,25 @@ class JavaFrozen {
                 «ELSE»
                     «IF i.isArray !== null»
                         _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
-                        if (_deepCopy) {
-                            for (int _i = 0; _i < «i.name».length; ++_i)
-                                if (_new.«i.name»[_i] != null)
-                                    _new.«i.name»[_i] = _new.«i.name»[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
-                        }
+                        «IF !ref.supportsNoFreeze»
+                            if (_deepCopy) {
+                                for (int _i = 0; _i < «i.name».length; ++_i)
+                                    if (_new.«i.name»[_i] != null)
+                                        _new.«i.name»[_i] = _new.«i.name»[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
+                            }
+                        «ENDIF»
                     «ELSEIF i.isList !== null»
                         _new.«i.name» = new ArrayList<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
-                            _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
+                            _new.«i.name».add(«ref.getMutableClone("_e")»);
                     «ELSEIF i.isSet !== null»
                         _new.«i.name» = new HashSet<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
-                            _new.«i.name».add(_deepCopy ? _e.get$MutableClone(_deepCopy, _unfreezeCollections) : _e);
+                            _new.«i.name».add(«ref.getMutableClone("_e")»);
                     «ELSEIF i.isMap !== null»
                         _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
                         for (Map.Entry<«i.isMap.indexType», «ref.javaType»> _e : «i.name».entrySet())
-                            _new.«i.name».put(_e.getKey(), _deepCopy && _e.getValue() != null ? _e.getValue().get$MutableClone(_deepCopy, _unfreezeCollections) : _e.getValue());
+                            _new.«i.name».put(_e.getKey(), «ref.getMutableClone("_e.getValue()")»);
                     «ENDIF»
                 «ENDIF»
             }

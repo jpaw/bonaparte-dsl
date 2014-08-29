@@ -108,7 +108,7 @@ class JavaValidate {
                         «i.writeSizeCheck»
                     «ENDIF»
                 «ENDIF»
-                «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
+                «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT && resolveObj(i.datatype)?.externalType === null»
                     «loopStart(i)»
                     «makeValidate(i, indexedName(i))»
                 «ENDIF»

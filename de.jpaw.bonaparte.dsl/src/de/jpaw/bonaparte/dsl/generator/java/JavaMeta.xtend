@@ -282,7 +282,7 @@ class JavaMeta {
                 «d.freezable»
                 «IF d.externalType !== null»
                     , «d.singleField»,
-                    "«d.externalType.class.canonicalName»",
+                    "«d.externalType.qualifiedName»",
                     "«d.adapterClassName»"
                 «ENDIF»
             );

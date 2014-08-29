@@ -31,11 +31,6 @@ class JavaTreeWalker {
         «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, DataCategory::OBJECT)»
         «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, null)»
     '''
-//        @Override
-//        @Deprecated  // compatibility function
-//        public void treeWalkString(DataConverter<String,AlphanumericElementaryDataItem> _cvt) {
-//          treeWalkString(_cvt, true);
-//        }
     
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
         @Override
@@ -50,6 +45,8 @@ class JavaTreeWalker {
      '''
 
      def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
+         if (ref.objectDataType?.externalType !== null) // skip external types for all tree walk methods
+            return null
          if (category === null || ref.category == category) {
              val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array

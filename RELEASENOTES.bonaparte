@@ -204,6 +204,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - persistence-java: upgrade EclipseLink to 2.5.2
 - BDDL: new feature: actualData setting for history categories: then SYSDATE / USER will be written instead of predefined data
 
+- 2.4.0:
+- dependency updates: Joda-Time to 2.4, guava to 18.0, jaxb removed (is part of JDK)
+- BON: syntax: classes without fields no not need to specify curly braces any more, a semicolon is accepted as well.
+- BON: experimental feature: external types (working via adapter)
+
 
 ROADMAP / PLANS:
 2.x:

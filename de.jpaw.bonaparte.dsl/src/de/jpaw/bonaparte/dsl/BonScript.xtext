@@ -186,15 +186,16 @@ ClassDefinition:
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     (publicMeta ?= 'public' 'type')?					// make field metadata public
+    ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
+        ('adapter' bonaparteAdapterClass = QualifiedId)?  // if not specified, the type is assumed to be its own adapter
+        (singleField ?= 'singleField')?
+        (useCompareToInsteadOfEquals ?= 'ordered')?
+    )?
     ('{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
         fields += FieldDefinition*   
-     '}') |
-    ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
-        ('adapter' bonaparteAdapterClass = QualifiedId)?  // if not specified, the type is assumed to be its own adapter
-        (singleField ?= 'singleField')?
-    )
+     '}')
 ;
 
 ComparableFieldsList:

@@ -70,7 +70,21 @@ class JavaCompare {
         }
     '''
 
+    // FIXME: there is an issue here, as elements of Lists will always be compared using equals(), also for types where we want to use compareTo()!
     def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
+        if (ref.category == DataCategory::OBJECT) {
+            if (ref.objectDataType?.externalType !== null) {
+                // external type. use equals() or compareTo()
+                if (ref.objectDataType.useCompareToInsteadOfEquals)
+                    return '''«index».compareTo(«tindex») == 0'''
+                else
+                    return '''«index».equals(«tindex»)'''
+            } else {
+                // regular bonaportable. use "sameContents" method
+                return '''«index».hasSameContentsAs(«tindex»)'''
+            }
+        }
+        // not object. treat elementary data types next
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
         case "ByteArray":   '''«index».contentEquals(«tindex»)'''
@@ -84,14 +98,10 @@ class JavaCompare {
     def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) {
         val ref = DataTypeExtension::get(i.datatype)
         return '''
-            «IF ref.category == DataCategory::OBJECT»
-                ((«index» == null && «tindex» == null) || («index» != null && «index».hasSameContentsAs(«tindex»)))«end»
+            «IF ref.isPrimitive»
+                «index» == «tindex»«end»
             «ELSE»
-                «IF DataTypeExtension::get(i.datatype).isPrimitive»
-                    «index» == «tindex»«end»
-                «ELSE»
-                    ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, ref, index, tindex)»))«end»
-                «ENDIF»
+                ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, ref, index, tindex)»))«end»
             «ENDIF»
         '''
     }

@@ -156,7 +156,7 @@ class XUtil {
             return r.genericsParameterRef.name
         if (r.classRef !== null) {
             if (r.classRef.externalType !== null)
-                return r.classRef.externalType.class.canonicalName
+                return r.classRef.externalType.qualifiedName
             else
                 return r.classRef.name + genericArgs2String(r.classRefGenericParms)
         }
@@ -486,6 +486,10 @@ class XUtil {
         classRef === null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
     }
     
+    // a class is considered to be freezable if it does not contain any mutable and non freezable subtypes.
+    // by deduction, this means that immutable classes must also be considered as freezable, because they are immutable itself.
+    // (the recursive definition of freezable would not work otherwise).
+    // Therefore, in order to determine if a class can have both states, frozen and unfrozen, the correct condition is (freezable && !immutable)  
     def public static boolean isFreezable(ClassReference it) {
         it.isFreezable(100)
     }
@@ -511,6 +515,6 @@ class XUtil {
     }
     
     def public static String getAdapterClassName(ClassDefinition cd) {
-        return cd.bonaparteAdapterClass ?: cd.externalType.class.canonicalName
+        return cd.bonaparteAdapterClass ?: cd.externalType.qualifiedName
     }
 }

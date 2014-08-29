@@ -194,7 +194,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 error("Partially qualified class name cannot exceed 63 characters length", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
             }
         }
-        if (cd.getExtendsClass() !== null) {
+        if (cd.extendsClass !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
             if (cd.getExtendsClass().getClassRef() === null) {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
@@ -225,7 +225,7 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
                 }
             }
             // the extended class may not be final
-            if (cd.getExtendsClass().getClassRef().isFinal()) {
+            if (cd.extendsClass.classRef.isFinal()) {
                 error("Classes max not extend a final class",
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
@@ -265,6 +265,17 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             // check that relative rtti may only be given if there is a parent class with a fixed rtti
             if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti()) {
                 error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
+            }
+            
+            // an custom class cannot extend a non-custom class and vice versa, as the freezing stuff etc won't work
+            if (cd.externalType !== null) {
+                if (cd.extendsClass.classRef.externalType === null)
+                    error("Parent classes of external JVM classes must also be external JVM classes",
+                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+            } else {
+                if (cd.extendsClass.classRef.externalType !== null)
+                    error("Parent classes of regular classes cannot be external JVM classes",
+                            BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
         }
         
