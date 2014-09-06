@@ -81,15 +81,26 @@ class JavaDeserialize {
     }
 
     def private static makeRead(FieldDefinition i, ClassDefinition objectType, DataTypeExtension ref) {
+        val defaultExpression = '''p.readObject(meta$$«i.name», «getKnownSupertype(ref.genericsRef)».class)'''
         if (objectType?.externalType === null) {
             // regular bonaportable
-            return '''(«ref.javaType»)p.readObject(meta$$«i.name», «getKnownSupertype(ref.genericsRef)».class)'''
+            return '''(«ref.javaType»)«defaultExpression»'''
         } else {
-            if (objectType.singleField) { 
-                // can use the adapter directly, without type information
-                return '''«objectType.adapterClassName».unmarshal(meta$$«i.name», p);'''
+            // custom types (external types)
+            if (objectType.singleField) {
+                if (objectType.staticExternalMethods) {
+                    // can use the adapter directly, without type information
+                    return '''«objectType.adapterClassName».unmarshal(meta$$«i.name», p)'''
+                } else {
+                    // use the instance itself / and no adapter
+                    return '''«objectType.externalType.qualifiedName».unmarshal(meta$$«i.name», p)'''
+                }
             } else {
-                return 'FIXME! Not yet implemented;'
+                if (objectType.staticExternalMethods) {
+                    return '''«objectType.adapterClassName».fromBonaPortable(«defaultExpression»)'''
+                } else {
+                    return '''«objectType.externalType.qualifiedName».fromBonaPortable(«defaultExpression»)'''
+                }
             }
         }
     }

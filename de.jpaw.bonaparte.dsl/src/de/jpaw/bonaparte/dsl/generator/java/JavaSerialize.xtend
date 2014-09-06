@@ -45,11 +45,22 @@ class JavaSerialize {
             // regular bonaportable
             return '''w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
         } else {
-            if (objectType.singleField) { 
-                // can use the adapter directly, without type information
-                return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», w);'''
+            // custom types (external types)
+            if (objectType.singleField) {
+                if (objectType.staticExternalMethods) {
+                    // can use the adapter directly, without type information
+                    return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», w);'''
+                } else {
+                    // use the instance itself / and no adapter
+                    return '''«indexedName».marshal(meta$$«i.name», w);'''
+                }
             } else {
-                return 'FIXME! Not yet implemented;'
+                if (objectType.staticExternalMethods) {
+                    return '''w.addField(meta$$«i.name», «objectType.adapterClassName».toBonaPortable(«indexedName»));'''
+                } else {
+                    // use the instance itself / and no adapter, write a converted object
+                    return '''w.addField(meta$$«i.name», «indexedName».toBonaPortable());'''
+                }
             }
         }
     }

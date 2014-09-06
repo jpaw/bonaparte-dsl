@@ -322,7 +322,18 @@ class BonScriptJavaValidator extends AbstractBonScriptJavaValidator {
             if (cd.doCacheHash) {
                 error("Caching the hashcode makes no sense if the class is neither immutable nor can be frozen", BonScriptPackage.Literals.CLASS_DEFINITION__DO_CACHE_HASH)
             }
-            
+        }
+        
+        // verify settings for custom types. These limitations may be lifted in some future extension
+        if (cd.externalType !== null) {
+            // currently, if specifying an adpater, "static" must be set, and vice versa
+            if (cd.staticExternalMethods) {
+                if (cd.bonaparteAdapterClass === null)
+                    error("Currently static external types require an adapter", BonScriptPackage.Literals.CLASS_DEFINITION__STATIC_EXTERNAL_METHODS)
+            } else {
+                if (cd.bonaparteAdapterClass !== null)
+                    error("Currently adapters are only supported when specified as static", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
+            }
         }
     }
     

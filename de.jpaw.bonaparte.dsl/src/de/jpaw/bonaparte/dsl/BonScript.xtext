@@ -187,7 +187,8 @@ ClassDefinition:
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     (publicMeta ?= 'public' 'type')?					// make field metadata public
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
-        ('adapter' bonaparteAdapterClass = QualifiedId)?  // if not specified, the type is assumed to be its own adapter
+        (staticExternalMethods?='static')?                  // adapter methods are static?
+        ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
         (singleField ?= 'singleField')?
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?

@@ -206,8 +206,15 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 - 2.4.0:
 - dependency updates: Joda-Time to 2.4, guava to 18.0, jaxb removed (is part of JDK)
-- BON: syntax: classes without fields no not need to specify curly braces any more, a semicolon is accepted as well.
-- BON: experimental feature: external types (working via adapter)
+- BON: experimental feature: external types (working via adapter): first part, supporting only static adapters which map to a single field (no enhancement of MessageParser / MessageComposer)
+- BON: fix: copy bon files to JARs, remove src/main/resources where not required.
+
+- 2.4.1:
+- custom types, part II: types which are replaced by different types (requires enhanced MessageParser / MessageComposer interfaces)
+- move part of bonaparte-core into a separate repo (jpaw), with project jpaw-{base,util,enums}
+- cleanup: remove MoneySetter / Getter, move Price with tax to example project
+- cleanup: remove duplicate code in bonaparte-money{-test}, which is available in xtendsions. (And also did not really belong into bonaparte-money)
+- upgraded tycho to 0.21
 
 
 ROADMAP / PLANS:
@@ -220,6 +227,9 @@ ROADMAP / PLANS:
 - pk class with Generics?
 
 
+additional plausis:
+- immutable / freezable classes: all fields must be private
+- warn if optional fields used in collections (except Lists with precise length, and error in Set)
 
 
 Known restrictions / limitations:
