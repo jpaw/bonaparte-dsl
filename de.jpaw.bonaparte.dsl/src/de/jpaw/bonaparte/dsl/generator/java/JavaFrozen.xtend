@@ -233,12 +233,6 @@ class JavaFrozen {
             return «cd.isFreezable»;
         }
         
-        @Override
-        @Deprecated
-        public boolean is$Freezable() {
-            return «cd.isFreezable»;
-        }
-        
         «IF cd.extendsClass === null»
             «IF cd.unfreezable || cd.root.immutable»
                 @Override

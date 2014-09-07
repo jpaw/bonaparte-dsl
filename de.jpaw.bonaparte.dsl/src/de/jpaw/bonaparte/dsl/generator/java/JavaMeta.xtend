@@ -221,25 +221,12 @@ class JavaMeta {
                 «ENDIF»
             }
 
-            @Override
-            @Deprecated
-            public Class<? extends BonaPortable> get$returns() {
-                return class$returns();
-            }
-
-
             static public Class<? extends BonaPortable> class$pk() {
                 «IF d.pkClass !== null»
                     return «d.pkClass.packageName».«d.pkClass.name».class;
                 «ELSE»
                     return «IF d.parent !== null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
                 «ENDIF»
-            }
-
-            @Override
-            @Deprecated
-            public Class<? extends BonaPortable> get$pk() {
-                return class$pk();
             }
 
             // my name and revision
@@ -278,6 +265,9 @@ class JavaMeta {
                 my$fields,
                 property$Map,
                 «propertiesInherited»,
+                «d.effectiveFactoryId»,
+                «IF d.hazelcastId == 0»MY_RTTI«ELSE»«d.hazelcastId»«ENDIF»,
+                MY_RTTI,
                 «d.root.immutable»,
                 «d.freezable»
                 «IF d.externalType !== null»
@@ -293,23 +283,10 @@ class JavaMeta {
                 return my$MetaData;
             }
 
-            // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect
-            // no namespace conflicts here
-            // must be repeated as a member method to make it available in the (extended) interface
-            // feature of extended BonaPortable, not in the core interface
+            // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect no namespace conflicts here
             @Override
-            @Deprecated
             public ClassDefinition get$MetaData() {
                 return my$MetaData;
-            }
-            @Override
-            @Deprecated
-            public long get$Serial() {
-                return serialVersionUID;
-            }
-            @Override
-            public String get$Revision() {
-                return _REVISION;
             }
 
             «writeCommonMetaData»

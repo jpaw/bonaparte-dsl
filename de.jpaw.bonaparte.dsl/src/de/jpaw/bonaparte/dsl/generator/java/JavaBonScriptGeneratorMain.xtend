@@ -267,9 +267,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
           implements BonaPortable«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
+            «JavaRtti::writeRtti(d)»
             «JavaMeta::writeMetaData(d)»
             «JavaFrozen::writeFreezingCode(d)»
-            «JavaRtti::writeRtti(d)»
             «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
             «JavaValidate::writePatterns(d)»
