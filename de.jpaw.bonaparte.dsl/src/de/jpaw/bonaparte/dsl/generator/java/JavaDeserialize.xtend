@@ -97,9 +97,9 @@ class JavaDeserialize {
                 }
             } else {
                 if (objectType.staticExternalMethods) {
-                    return '''«objectType.adapterClassName».fromBonaPortable(«defaultExpression»)'''
+                    return '''«objectType.adapterClassName».fromBonaPortable(«defaultExpression», p)'''
                 } else {
-                    return '''«objectType.externalType.qualifiedName».fromBonaPortable(«defaultExpression»)'''
+                    return '''«objectType.externalType.qualifiedName».fromBonaPortable(«defaultExpression», p)'''
                 }
             }
         }
