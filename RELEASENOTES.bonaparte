@@ -216,6 +216,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - cleanup: remove duplicate code in bonaparte-money{-test}, which is available in xtendsions. (And also did not really belong into bonaparte-money)
 - upgraded tycho to 0.21
 
+- 2.4.2:
+- BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types)
 
 ROADMAP / PLANS:
 2.x:
