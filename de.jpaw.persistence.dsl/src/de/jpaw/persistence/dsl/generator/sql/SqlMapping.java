@@ -125,6 +125,37 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("object",    "varbinary(MAX)");
         dataTypeSqlMsSQLServer.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
+    static protected Map<String,String> dataTypeSqlMySQL = new HashMap<String, String>(32);
+    static { // see http://dev.mysql.com/doc/refman/5.6/en/data-types.html
+        dataTypeSqlPostgres.put("boolean",   "boolean");                    // synonym for tinyint(1)
+        dataTypeSqlPostgres.put("int",       "integer");
+        dataTypeSqlPostgres.put("integer",   "integer");
+        dataTypeSqlPostgres.put("long",      "bigint");
+        dataTypeSqlPostgres.put("float",     "real");
+        dataTypeSqlPostgres.put("double",    "double precision");
+        dataTypeSqlPostgres.put("number",    "numeric(#length)");           // numeric and decimal are equivalent in Postgres
+        dataTypeSqlPostgres.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
+        dataTypeSqlPostgres.put("byte",      "tinyint");                    // there is no Postgres single byte numeric datatype
+        dataTypeSqlPostgres.put("short",     "smallint");
+        dataTypeSqlPostgres.put("char",      "char(1)");
+        dataTypeSqlPostgres.put("character", "char(1)");
+
+        dataTypeSqlPostgres.put("uuid",      "varbinary(16)");
+        dataTypeSqlPostgres.put("binary",    "BLOB");
+        dataTypeSqlPostgres.put("raw",       "BLOB");
+        dataTypeSqlPostgres.put("day",       "date");
+        dataTypeSqlPostgres.put("instant",   "timestamp(#length)");
+        dataTypeSqlPostgres.put("timestamp", "datetime(#length)");
+        dataTypeSqlPostgres.put("time",      "time(#length)");
+
+        dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
+        dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
+        dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
+        dataTypeSqlPostgres.put("unicode",   "TEXT");
+        dataTypeSqlPostgres.put("enum",      "smallint");
+        dataTypeSqlPostgres.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlPostgres.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
+    }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
@@ -202,6 +233,27 @@ public class SqlMapping {
                 // System.out.println("*** using MAX ***");
             }
             break;
+        case MYSQL:
+            datatype = dataTypeSqlMySQL.get(datatype);
+            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+                datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+            }
+            // special treatment TEXT and BLOB
+            if (datatype.equals("TEXT")) {
+                // UTF-8 factor is 4 with utf8mb4
+                // type depends on length
+                columnLength = 4 * columnLength;
+                if (columnLength <= 65535)
+                    datatype = String.format("varchar(%d)", columnLength);
+                else
+                    datatype = "mediumtext";
+            } else if (datatype.equals("BLOB")) {
+                if (columnLength <= 65535)
+                    datatype = String.format("varbinary(%d)", columnLength);
+                else
+                    datatype = "mediumblob";
+            }
+            break;
         }
         if (datatype == null)
             return "*** UNMAPPED data type for " + c.getName() + " in dialect " + databaseFlavour.toString() + " ***";
@@ -228,6 +280,9 @@ public class SqlMapping {
         case MSSQLSERVER:
             rawType = dataTypeSqlMsSQLServer.get(javaType);
             break;
+        case MYSQL:
+            rawType = dataTypeSqlMySQL.get(javaType);
+            break;
         default:
             return null;
         }
@@ -242,6 +297,8 @@ public class SqlMapping {
             return false;
         case MSSQLSERVER:
             return false;
+        case MYSQL:
+            return false;
         }
         return false;
     }
@@ -253,6 +310,8 @@ public class SqlMapping {
         case POSTGRES:
             return " DEFAULT CURRENT_USER";
         case MSSQLSERVER:
+            return " DEFAULT CURRENT_USER";
+        case MYSQL:
             return " DEFAULT CURRENT_USER";
         }
         return "";
@@ -266,6 +325,8 @@ public class SqlMapping {
             return " DEFAULT CURRENT_TIMESTAMP";
         case MSSQLSERVER:
             return " DEFAULT SYSUTCDATETIME()";
+        case MYSQL:
+            return " DEFAULT CURRENT_TIMESTAMP";
         }
         return "";
     }
@@ -274,8 +335,10 @@ public class SqlMapping {
         if (value == null || value.length() == 0)
             return "";
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
-        if ((databaseFlavour == DatabaseFlavour.ORACLE  || databaseFlavour == DatabaseFlavour.MSSQLSERVER) && "Boolean".equals(ref.javaType)) {
-            // Oracle does not know booleans, convert it to numeric!
+        if ((databaseFlavour == DatabaseFlavour.ORACLE ||
+             databaseFlavour == DatabaseFlavour.MYSQL ||
+             databaseFlavour == DatabaseFlavour.MSSQLSERVER) && "Boolean".equals(ref.javaType)) {
+            // Oracle does not know booleans, convert it to numeric!  MySQL as well.
             // MS SQL server uses BIT, which also takes 0 and 1
             if ("true".equals(value)) {
                 return " DEFAULT 1";
@@ -305,6 +368,9 @@ public class SqlMapping {
             break;
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
+            break;
+        case MYSQL:
+            datatype = dataTypeSqlMySQL.get(datatype);
             break;
         }
         return datatype.replace("#length", Integer.valueOf(ec.getMapKeySize() > 0 ? ec.getMapKeySize() : 255).toString());

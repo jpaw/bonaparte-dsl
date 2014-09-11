@@ -21,6 +21,7 @@ public class BDDLPreferences {
     static private final boolean doPostgresOutDefault = configReader.getProp("Postgres", true);
     static private final boolean doOracleOutDefault = configReader.getProp("Oracle", true);
     static private final boolean doMsSQLServerOutDefault = configReader.getProp("MSSQL", false);
+    static private final boolean doMySQLOutDefault = configReader.getProp("MySQL", false);
     
     public int maxFieldnameLength = maxFieldnameLengthDefault
     public int maxTablenameLength = maxTablenameLengthDefault
@@ -28,6 +29,7 @@ public class BDDLPreferences {
     public boolean doPostgresOut = doPostgresOutDefault
     public boolean doOracleOut = doOracleOutDefault
     public boolean doMsSQLServerOut = doMsSQLServerOutDefault
+    public boolean doMySQLOut = doMySQLOutDefault
     
     public static BDDLPreferences currentPrefs = new BDDLPreferences
 }

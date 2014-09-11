@@ -17,5 +17,5 @@
 package de.jpaw.persistence.dsl.generator.sql;
 
 public enum DatabaseFlavour {
-    ORACLE, POSTGRES, MSSQLSERVER
+    ORACLE, POSTGRES, MSSQLSERVER, MYSQL
 }

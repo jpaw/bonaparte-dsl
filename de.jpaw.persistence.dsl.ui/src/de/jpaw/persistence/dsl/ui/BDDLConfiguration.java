@@ -50,6 +50,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("Postgres", "Create DDL for Postgres 9 databases", compositeH));
         addField(new BooleanFieldEditor("Oracle",   "Create DDL for Oracle 11g databases", compositeH));
         addField(new BooleanFieldEditor("MSSQL",    "Create DDL for MS SQL server 2012", compositeH));
+        addField(new BooleanFieldEditor("MySQL",    "Create DDL for MySQL 5.6.5 up", compositeH));
         outputGroup.pack();
     }
 
@@ -63,6 +64,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         store.setDefault("Postgres", defaults.doPostgresOut);
         store.setDefault("Oracle", defaults.doOracleOut);
         store.setDefault("MSSQL", defaults.doMsSQLServerOut);
+        store.setDefault("MySQL", defaults.doMySQLOut);
         
         BDDLPreferences currentSettings = new BDDLPreferences();
         currentSettings.maxFieldnameLength = store.getInt("MaxFieldLen");
@@ -71,6 +73,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         currentSettings.doPostgresOut      = store.getBoolean("Postgres");
         currentSettings.doOracleOut        = store.getBoolean("Oracle");
         currentSettings.doMsSQLServerOut   = store.getBoolean("MSSQL");
+        currentSettings.doMySQLOut         = store.getBoolean("MySQL");
         BDDLPreferences.currentPrefs = currentSettings;
         
         store.addPropertyChangeListener(new IPropertyChangeListener() {
@@ -94,6 +97,9 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "MSSQL":
                       BDDLPreferences.currentPrefs.doMsSQLServerOut = (boolean) event.getNewValue();
+                      break;
+                  case "MySQL":
+                      BDDLPreferences.currentPrefs.doMySQLOut = (boolean) event.getNewValue();
                       break;
                   }
                 }

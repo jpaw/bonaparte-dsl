@@ -217,7 +217,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - upgraded tycho to 0.21
 
 - 2.4.2:
-- BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types)
+- BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types) [experimental]
 
 ROADMAP / PLANS:
 2.x:
