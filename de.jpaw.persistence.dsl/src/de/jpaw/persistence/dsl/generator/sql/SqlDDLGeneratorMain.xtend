@@ -56,7 +56,7 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         prefs = BDDLPreferences.currentPrefs
-        System.out.println('''Settings are: max ID length = «prefs.maxTablenameLength», «prefs.maxFieldnameLength», output = «prefs.doDebugOut», «prefs.doPostgresOut», «prefs.doOracleOut», «prefs.doMsSQLServerOut»''')
+        System.out.println('''Settings are: max ID length = («prefs.maxTablenameLength», «prefs.maxFieldnameLength»), Debug=«prefs.doDebugOut», Postgres=«prefs.doPostgresOut», Oracle=«prefs.doOracleOut», MSSQL=«prefs.doMsSQLServerOut», MySQL=«prefs.doMySQLOut»''')
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
@@ -308,7 +308,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
-        «IF grantGroup !== null && grantGroup.grants !== null»
+        «IF grantGroup !== null && grantGroup.grants !== null && databaseFlavour != DatabaseFlavour.MYSQL»
             «FOR g : grantGroup.grants»
                 «IF g.permissions !== null && g.permissions.permissions !== null»
                     GRANT «FOR p : g.permissions.permissions SEPARATOR ','»«p.toString»«ENDFOR» ON «tablename» TO «g.roleOrUserName»;
@@ -316,7 +316,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             «ENDFOR»
         «ENDIF»
 
-        «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER»
+        «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER && databaseFlavour != DatabaseFlavour.MYSQL»
             «IF stopAt === null»
                 «t.tableCategory.trackingColumns?.recurseComments(null, tablename, theEmbeddables)»
             «ENDIF»

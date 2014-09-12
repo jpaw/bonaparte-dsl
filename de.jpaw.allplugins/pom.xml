@@ -37,6 +37,9 @@
         <module>../de.jpaw.persistence.dsl</module>
         <module>../de.jpaw.persistence.dsl.ui</module>
         <module>../de.jpaw.persistence.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl.ui</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl.sdk</module>
         <module>../de.jpaw.updatesite</module>
     </modules>
 

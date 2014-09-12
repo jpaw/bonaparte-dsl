@@ -68,7 +68,7 @@ Workflow {
                 }
     
                 // java-based API for validation
-                fragment = validation.JavaValidatorFragment {
+                fragment = validation.ValidatorFragment {
                 //    composedCheck = "org.eclipse.xtext.validation.ImportUriValidator"
                 //  enable a check that no two objects of the same name are allowed within the same scope
                     composedCheck = "org.eclipse.xtext.validation.NamesAreUniqueValidator"

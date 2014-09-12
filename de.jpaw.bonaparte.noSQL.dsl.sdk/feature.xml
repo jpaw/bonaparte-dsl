@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature
+      id="de.jpaw.bonaparte.noSQL.dsl.sdk"
+      label="BDsl AES SDK Feature"
+      version="2.4.2.qualifier"
+      provider-name="Michael Bischoff">
+
+   <plugin
+         id="de.jpaw.bonaparte.noSQL.dsl"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="de.jpaw.bonaparte.noSQL.dsl.ui"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+</feature>

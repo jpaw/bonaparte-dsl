@@ -127,34 +127,34 @@ public class SqlMapping {
     }
     static protected Map<String,String> dataTypeSqlMySQL = new HashMap<String, String>(32);
     static { // see http://dev.mysql.com/doc/refman/5.6/en/data-types.html
-        dataTypeSqlPostgres.put("boolean",   "boolean");                    // synonym for tinyint(1)
-        dataTypeSqlPostgres.put("int",       "integer");
-        dataTypeSqlPostgres.put("integer",   "integer");
-        dataTypeSqlPostgres.put("long",      "bigint");
-        dataTypeSqlPostgres.put("float",     "real");
-        dataTypeSqlPostgres.put("double",    "double precision");
-        dataTypeSqlPostgres.put("number",    "numeric(#length)");           // numeric and decimal are equivalent in Postgres
-        dataTypeSqlPostgres.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
-        dataTypeSqlPostgres.put("byte",      "tinyint");                    // there is no Postgres single byte numeric datatype
-        dataTypeSqlPostgres.put("short",     "smallint");
-        dataTypeSqlPostgres.put("char",      "char(1)");
-        dataTypeSqlPostgres.put("character", "char(1)");
+        dataTypeSqlMySQL.put("boolean",   "boolean");                    // synonym for tinyint(1)
+        dataTypeSqlMySQL.put("int",       "integer");
+        dataTypeSqlMySQL.put("integer",   "integer");
+        dataTypeSqlMySQL.put("long",      "bigint");
+        dataTypeSqlMySQL.put("float",     "real");
+        dataTypeSqlMySQL.put("double",    "double precision");
+        dataTypeSqlMySQL.put("number",    "numeric(#length)");           // numeric and decimal are equivalent in Postgres
+        dataTypeSqlMySQL.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
+        dataTypeSqlMySQL.put("byte",      "tinyint");                    // there is no Postgres single byte numeric datatype
+        dataTypeSqlMySQL.put("short",     "smallint");
+        dataTypeSqlMySQL.put("char",      "char(1)");
+        dataTypeSqlMySQL.put("character", "char(1)");
 
-        dataTypeSqlPostgres.put("uuid",      "varbinary(16)");
-        dataTypeSqlPostgres.put("binary",    "BLOB");
-        dataTypeSqlPostgres.put("raw",       "BLOB");
-        dataTypeSqlPostgres.put("day",       "date");
-        dataTypeSqlPostgres.put("instant",   "timestamp(#length)");
-        dataTypeSqlPostgres.put("timestamp", "datetime(#length)");
-        dataTypeSqlPostgres.put("time",      "time(#length)");
+        dataTypeSqlMySQL.put("uuid",      "varbinary(16)");
+        dataTypeSqlMySQL.put("binary",    "BLOB");
+        dataTypeSqlMySQL.put("raw",       "BLOB");
+        dataTypeSqlMySQL.put("day",       "date");
+        dataTypeSqlMySQL.put("instant",   "timestamp(#length)");
+        dataTypeSqlMySQL.put("timestamp", "datetime(#length)");
+        dataTypeSqlMySQL.put("time",      "time(#length)");
 
-        dataTypeSqlPostgres.put("uppercase", "varchar(#length)");
-        dataTypeSqlPostgres.put("lowercase", "varchar(#length)");
-        dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
-        dataTypeSqlPostgres.put("unicode",   "TEXT");
-        dataTypeSqlPostgres.put("enum",      "smallint");
-        dataTypeSqlPostgres.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
-        dataTypeSqlPostgres.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
+        dataTypeSqlMySQL.put("uppercase", "varchar(#length)");
+        dataTypeSqlMySQL.put("lowercase", "varchar(#length)");
+        dataTypeSqlMySQL.put("ascii",     "varchar(#length)");
+        dataTypeSqlMySQL.put("unicode",   "TEXT");
+        dataTypeSqlMySQL.put("enum",      "smallint");
+        dataTypeSqlMySQL.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlMySQL.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
     }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
@@ -234,10 +234,14 @@ public class SqlMapping {
             }
             break;
         case MYSQL:
+//            String bkp = datatype;
             datatype = dataTypeSqlMySQL.get(datatype);
             if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
                 datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
+            
+//            if (datatype == null)
+//                System.out.println("null for " + bkp);
             // special treatment TEXT and BLOB
             if (datatype.equals("TEXT")) {
                 // UTF-8 factor is 4 with utf8mb4

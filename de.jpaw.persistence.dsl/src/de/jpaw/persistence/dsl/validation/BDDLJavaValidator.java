@@ -25,7 +25,7 @@ import de.jpaw.persistence.dsl.bDDL.Relationship;
 import de.jpaw.persistence.dsl.bDDL.TableCategoryDefinition;
 import de.jpaw.persistence.dsl.generator.YUtil;
 
-public class BDDLJavaValidator extends AbstractBDDLJavaValidator {
+public class BDDLJavaValidator extends BDDLValidator {
 
     private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
