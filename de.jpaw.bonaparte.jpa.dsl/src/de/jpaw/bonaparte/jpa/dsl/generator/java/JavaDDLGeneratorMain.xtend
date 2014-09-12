@@ -547,63 +547,63 @@ class JavaDDLGeneratorMain implements IGenerator {
         package «getPackageName(e)»;
 
         «IF e.tenantId !== null»
-        //import javax.bonaparte.jpa.Multitenant;  // not (yet?) there. Should be in JPA 2.1
+        //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
         import org.eclipse.bonaparte.jpa.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheSize != 0»
         import org.eclipse.bonaparte.jpa.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheable»
-        import javax.bonaparte.jpa.Cacheable;
+        import javax.persistence.Cacheable;
         «ENDIF»
         «IF e.xinheritance !== null && e.xinheritance != Inheritance::NONE»
-        import javax.bonaparte.jpa.Inheritance;
-        import javax.bonaparte.jpa.InheritanceType;
+        import javax.persistence.Inheritance;
+        import javax.persistence.InheritanceType;
         «ENDIF»
         «IF e.discname !== null»
-        import javax.bonaparte.jpa.DiscriminatorType;
-        import javax.bonaparte.jpa.DiscriminatorColumn;
-        import javax.bonaparte.jpa.DiscriminatorValue;
+        import javax.persistence.DiscriminatorType;
+        import javax.persistence.DiscriminatorColumn;
+        import javax.persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.^extends !== null»
-        import javax.bonaparte.jpa.DiscriminatorValue;
+        import javax.persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.mappedSuperclass || e.isAbstract»
-        import javax.bonaparte.jpa.MappedSuperclass;
+        import javax.persistence.MappedSuperclass;
         «ENDIF»
-        import javax.bonaparte.jpa.EntityManager;
-        import javax.bonaparte.jpa.Entity;
-        import javax.bonaparte.jpa.Table;
-        import javax.bonaparte.jpa.Version;
-        import javax.bonaparte.jpa.Column;
-        import javax.bonaparte.jpa.Lob;
-        import javax.bonaparte.jpa.Basic;
-        import javax.bonaparte.jpa.FetchType;
-        import javax.bonaparte.jpa.CascadeType;
-        import javax.bonaparte.jpa.Id;
-        import javax.bonaparte.jpa.IdClass;
-        import javax.bonaparte.jpa.Temporal;
-        import javax.bonaparte.jpa.TemporalType;
-        import javax.bonaparte.jpa.NoResultException;
-        import javax.bonaparte.jpa.TypedQuery;
-        import javax.bonaparte.jpa.EmbeddedId;
-        import javax.bonaparte.jpa.Embedded;
-        import javax.bonaparte.jpa.ManyToOne;
-        import javax.bonaparte.jpa.OneToMany;
-        import javax.bonaparte.jpa.OneToOne;
-        import javax.bonaparte.jpa.FetchType;
-        import javax.bonaparte.jpa.CascadeType;
-        import javax.bonaparte.jpa.MapKey;
-        import javax.bonaparte.jpa.MapKeyJoinColumn;
-        import javax.bonaparte.jpa.JoinColumn;
-        import javax.bonaparte.jpa.JoinColumns;
-        import javax.bonaparte.jpa.ElementCollection;
-        import javax.bonaparte.jpa.MapKeyColumn;
-        import javax.bonaparte.jpa.CollectionTable;
-        import javax.bonaparte.jpa.EntityListeners;
-        import javax.bonaparte.jpa.UniqueConstraint;
-        import javax.bonaparte.jpa.AttributeOverride;
-        import javax.bonaparte.jpa.AttributeOverrides;
+        import javax.persistence.EntityManager;
+        import javax.persistence.Entity;
+        import javax.persistence.Table;
+        import javax.persistence.Version;
+        import javax.persistence.Column;
+        import javax.persistence.Lob;
+        import javax.persistence.Basic;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
+        import javax.persistence.Id;
+        import javax.persistence.IdClass;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
+        import javax.persistence.NoResultException;
+        import javax.persistence.TypedQuery;
+        import javax.persistence.EmbeddedId;
+        import javax.persistence.Embedded;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.OneToMany;
+        import javax.persistence.OneToOne;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
+        import javax.persistence.MapKey;
+        import javax.persistence.MapKeyJoinColumn;
+        import javax.persistence.JoinColumn;
+        import javax.persistence.JoinColumns;
+        import javax.persistence.ElementCollection;
+        import javax.persistence.MapKeyColumn;
+        import javax.persistence.CollectionTable;
+        import javax.persistence.EntityListeners;
+        import javax.persistence.UniqueConstraint;
+        import javax.persistence.AttributeOverride;
+        import javax.persistence.AttributeOverrides;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -711,17 +711,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(e)»;
 
-        import javax.bonaparte.jpa.EntityManager;
-        import javax.bonaparte.jpa.Embeddable;
-        import javax.bonaparte.jpa.Embedded;
-        import javax.bonaparte.jpa.Column;
-        import javax.bonaparte.jpa.EmbeddedId;
-        import javax.bonaparte.jpa.Temporal;
-        import javax.bonaparte.jpa.TemporalType;
-        import javax.bonaparte.jpa.ManyToOne;
-        import javax.bonaparte.jpa.JoinColumn;
-        import javax.bonaparte.jpa.FetchType;
-        import javax.bonaparte.jpa.CascadeType;
+        import javax.persistence.EntityManager;
+        import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
+        import javax.persistence.Column;
+        import javax.persistence.EmbeddedId;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;
@@ -763,17 +763,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getPackageName(e)»;
 
-        import javax.bonaparte.jpa.EntityManager;
-        import javax.bonaparte.jpa.Embeddable;
-        import javax.bonaparte.jpa.Embedded;
-        import javax.bonaparte.jpa.Column;
-        import javax.bonaparte.jpa.EmbeddedId;
-        import javax.bonaparte.jpa.Temporal;
-        import javax.bonaparte.jpa.TemporalType;
-        import javax.bonaparte.jpa.ManyToOne;
-        import javax.bonaparte.jpa.JoinColumn;
-        import javax.bonaparte.jpa.FetchType;
-        import javax.bonaparte.jpa.CascadeType;
+        import javax.persistence.EntityManager;
+        import javax.persistence.Embeddable;
+        import javax.persistence.Embedded;
+        import javax.persistence.Column;
+        import javax.persistence.EmbeddedId;
+        import javax.persistence.Temporal;
+        import javax.persistence.TemporalType;
+        import javax.persistence.ManyToOne;
+        import javax.persistence.JoinColumn;
+        import javax.persistence.FetchType;
+        import javax.persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.doBeanVal)»
         «writeDefaultImports»
         import java.io.Serializable;

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="de.jpaw.bonaparte.dsl.sdk"
-      label="BonScript SDK Feature "
+      label="Bonaparte DSL SDK Feature "
       version="2.4.2.qualifier">
 
    <copyright>
-      Copyright 2012 Michael Bischoff
+      Copyright 2012-2014 Michael Bischoff
    </copyright>
 
    <license url="http://www.apache.org/licenses/LICENSE-2.0">
-      Copyright 2012 Michael Bischoff
+      Copyright 2012-2014 Michael Bischoff
 
    Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
    you may not use this file except in compliance with the License.
