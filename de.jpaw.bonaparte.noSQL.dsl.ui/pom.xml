@@ -10,7 +10,7 @@
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
 
-    <artifactId>de.jpaw.persistence.dsl.ui</artifactId>
+    <artifactId>de.jpaw.bonaparte.noSQL.dsl.ui</artifactId>
     <packaging>eclipse-plugin</packaging>
 
     <build>

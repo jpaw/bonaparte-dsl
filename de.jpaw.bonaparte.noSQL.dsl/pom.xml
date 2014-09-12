@@ -60,7 +60,7 @@
                             <goal>run-workflow</goal>
                         </goals>
                         <configuration>
-                            <workflowDescriptor>src/de/jpaw/persistence/dsl/GenerateBDDL.mwe2</workflowDescriptor>
+                            <workflowDescriptor>src/de/jpaw/bonaparte/noSQL/GenerateBDsl.mwe2</workflowDescriptor>
                             <workflowEngine>mwe2</workflowEngine>
                             <timestampFileName>xtext-generator.timestamp</timestampFileName>
                             <jvmSettings>
