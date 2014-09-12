@@ -3,7 +3,7 @@
    <feature url="features/de.jpaw.bonaparte.dsl.sdk_2.4.2.qualifier.jar" id="de.jpaw.bonaparte.dsl.sdk" version="2.4.2.qualifier">
       <category name="Bonaparte"/>
    </feature>
-   <feature url="features/de.jpaw.persistence.dsl.sdk_2.4.2.qualifier.jar" id="de.jpaw.persistence.dsl.sdk" version="2.4.2.qualifier">
+   <feature url="features/de.jpaw.bonaparte.jpa.dsl.sdk_2.4.2.qualifier.jar" id="de.jpaw.bonaparte.jpa.dsl.sdk" version="2.4.2.qualifier">
       <category name="Bonaparte"/>
    </feature>
    <feature url="features/de.jpaw.bonaparte.noSQL.dsl.sdk_2.4.2.qualifier.jar" id="de.jpaw.bonaparte.noSQL.dsl.sdk" version="2.4.2.qualifier">
