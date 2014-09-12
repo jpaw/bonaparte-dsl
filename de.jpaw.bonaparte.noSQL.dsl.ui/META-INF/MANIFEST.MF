@@ -21,8 +21,8 @@ Require-Bundle: de.jpaw.bonaparte.noSQL.dsl;visibility:=reexport,
  de.jpaw.bonaparte.dsl.ui;bundle-version="2.4.2"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Export-Package: de.jpaw.bonaparte.noSQL.ui.contentassist.antlr,
- de.jpaw.bonaparte.noSQL.ui.internal,
- de.jpaw.bonaparte.noSQL.ui.contentassist,
- de.jpaw.bonaparte.noSQL.ui.quickfix
-Bundle-Activator: de.jpaw.bonaparte.noSQL.ui.internal.BDslActivator
+Export-Package: de.jpaw.bonaparte.noSQL.dsl.ui.contentassist,
+ de.jpaw.bonaparte.noSQL.dsl.ui.quickfix,
+ de.jpaw.bonaparte.noSQL.dsl.ui.contentassist.antlr,
+ de.jpaw.bonaparte.noSQL.dsl.ui.internal
+Bundle-Activator: de.jpaw.bonaparte.noSQL.dsl.ui.internal.BDslActivator

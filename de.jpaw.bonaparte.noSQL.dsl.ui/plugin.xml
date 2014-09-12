@@ -6,7 +6,7 @@
     <extension
             point="org.eclipse.ui.editors">
         <editor
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
             contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
             default="true"
             extensions="aes"
@@ -17,7 +17,7 @@
     <extension
         point="org.eclipse.ui.handlers">
         <handler
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclarationHandler"
             commandId="org.eclipse.xtext.ui.editor.hyperlinking.OpenDeclaration">
             <activeWhen>
                 <reference
@@ -26,7 +26,7 @@
             </activeWhen>
         </handler>
         <handler
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.handler.ValidateActionHandler"
             commandId="de.jpaw.bonaparte.noSQL.BDsl.validate">
          <activeWhen>
             <reference
@@ -36,14 +36,14 @@
       	</handler>
       	<!-- copy qualified name -->
         <handler
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedNameHandler"
             commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.EditorCopyQualifiedName">
             <activeWhen>
 				<reference definitionId="de.jpaw.bonaparte.noSQL.BDsl.Editor.opened" />
             </activeWhen>
         </handler>
         <handler
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedNameHandler"
             commandId="org.eclipse.xtext.ui.editor.copyqualifiedname.OutlineCopyQualifiedName">
             <activeWhen>
             	<and>
@@ -80,33 +80,33 @@
     <extension
             point="org.eclipse.ui.preferencePages">
         <page
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl"
             name="BDsl">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
         </page>
         <page
             category="de.jpaw.bonaparte.noSQL.BDsl"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.syntaxcoloring.SyntaxColoringPreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl.coloring"
             name="Syntax Coloring">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
         </page>
         <page
             category="de.jpaw.bonaparte.noSQL.BDsl"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.templates.XtextTemplatePreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl.templates"
             name="Templates">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
         </page>
     </extension>
     <extension
             point="org.eclipse.ui.propertyPages">
         <page
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl"
             name="BDsl">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
             <enabledWhen>
 	            <adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -116,7 +116,7 @@
     <extension
         point="org.eclipse.ui.keywords">
         <keyword
-            id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"
+            id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"
             label="BDsl"/>
     </extension>
     <extension
@@ -197,7 +197,7 @@
 	</extension>
 	<extension point="org.eclipse.ui.handlers">
 	    <handler
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.findrefs.FindReferencesHandler"
             commandId="org.eclipse.xtext.ui.editor.FindReferences">
             <activeWhen>
                 <reference
@@ -212,13 +212,13 @@
 	<extension
 		point="org.eclipse.emf.ecore.extension_parser">
 		<parser
-			class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
+			class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.resource.IResourceFactory"
 			type="aes">
 		</parser>
 	</extension>
 	<extension point="org.eclipse.xtext.extension_resourceServiceProvider">
         <resourceServiceProvider
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
             uriExtension="aes">
         </resourceServiceProvider>
     </extension>
@@ -250,7 +250,7 @@
    <extension
          point="org.eclipse.xtext.builder.participant">
       <participant
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
             fileExtensions="aes"
             >
       </participant>
@@ -259,20 +259,20 @@
             point="org.eclipse.ui.preferencePages">
         <page
             category="de.jpaw.bonaparte.noSQL.BDsl"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl.compiler.preferencePage"
             name="Compiler">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
         </page>
     </extension>
     <extension
             point="org.eclipse.ui.propertyPages">
         <page
             category="de.jpaw.bonaparte.noSQL.BDsl"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.builder.preferences.BuilderPreferencePage"
             id="de.jpaw.bonaparte.noSQL.BDsl.compiler.propertyPage"
             name="Compiler">
-            <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+            <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
             <enabledWhen>
 	            <adapt type="org.eclipse.core.resources.IProject"/>
 			</enabledWhen>
@@ -284,7 +284,7 @@
 	<extension
 		point="org.eclipse.ui.handlers">
 		<handler 
-			class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
+			class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
 			commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
 			<activeWhen>
 				<reference
@@ -317,24 +317,24 @@
     <extension
             point="org.eclipse.ui.ide.markerResolution">
         <markerResolutionGenerator
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.noSQL.ui.bdsl.check.fast">
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+            markerType="de.jpaw.bonaparte.noSQL.dsl.ui.bdsl.check.fast">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
             </attribute>
         </markerResolutionGenerator>
         <markerResolutionGenerator
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.noSQL.ui.bdsl.check.normal">
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+            markerType="de.jpaw.bonaparte.noSQL.dsl.ui.bdsl.check.normal">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
             </attribute>
         </markerResolutionGenerator>
         <markerResolutionGenerator
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.noSQL.ui.bdsl.check.expensive">
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
+            markerType="de.jpaw.bonaparte.noSQL.dsl.ui.bdsl.check.expensive">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
@@ -344,7 +344,7 @@
    	<!-- Rename Refactoring -->
 	<extension point="org.eclipse.ui.handlers">
 		<handler 
-			class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
+			class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.DefaultRenameElementHandler"
 			commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
 			<activeWhen>
 				<reference
@@ -369,28 +369,28 @@
    <extension point="org.eclipse.ui.preferencePages">
 	    <page
 	        category="de.jpaw.bonaparte.noSQL.BDsl"
-	        class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
+	        class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.RefactoringPreferencePage"
 	        id="de.jpaw.bonaparte.noSQL.BDsl.refactoring"
 	        name="Refactoring">
-	        <keywordReference id="de.jpaw.bonaparte.noSQL.ui.keyword_BDsl"/>
+	        <keywordReference id="de.jpaw.bonaparte.noSQL.dsl.ui.keyword_BDsl"/>
 	    </page>
 	</extension>
 
   <extension point="org.eclipse.compare.contentViewers">
     <viewer id="de.jpaw.bonaparte.noSQL.BDsl.compare.contentViewers"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
             extensions="aes">
     </viewer>
   </extension>
   <extension point="org.eclipse.compare.contentMergeViewers">
     <viewer id="de.jpaw.bonaparte.noSQL.BDsl.compare.contentMergeViewers"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
             extensions="aes" label="BDsl Compare">
      </viewer>
   </extension>
   <extension point="org.eclipse.ui.editors.documentProviders">
     <provider id="de.jpaw.bonaparte.noSQL.BDsl.editors.documentProviders"
-            class="de.jpaw.bonaparte.noSQL.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
+            class="de.jpaw.bonaparte.noSQL.dsl.ui.BDslExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
             extensions="aes">
     </provider>
   </extension>

@@ -34,9 +34,9 @@
         <module>../de.jpaw.bonaparte.dsl</module>
         <module>../de.jpaw.bonaparte.dsl.ui</module>
         <module>../de.jpaw.bonaparte.dsl.sdk</module>
-        <module>../de.jpaw.persistence.dsl</module>
-        <module>../de.jpaw.persistence.dsl.ui</module>
-        <module>../de.jpaw.persistence.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl.ui</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl.sdk</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl.ui</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl.sdk</module>

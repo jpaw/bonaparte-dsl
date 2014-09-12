@@ -5,8 +5,8 @@
 
   <extension point="org.eclipse.emf.ecore.generated_package">
     <package 
-       uri = "http://www.jpaw.de/bonaparte.noSQL/BDsl" 
-       class = "de.jpaw.bonaparte.noSQL.bDsl.BDslPackage"
+       uri = "http://www.jpaw.de/bonaparte/noSQL/dsl/BDsl" 
+       class = "de.jpaw.bonaparte.noSQL.dsl.bDsl.BDslPackage"
        genModel = "model/generated/BDsl.genmodel" /> 
 	
   </extension>
