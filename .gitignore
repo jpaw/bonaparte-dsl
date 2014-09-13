@@ -19,6 +19,8 @@
 
 # maven target directories
 target/
+plugin.xml_gen
+
 
 # generated files within XText / XTend projects
 bin/

@@ -87,14 +87,18 @@ EntityDefinition:
         ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
     '{'
         ('tenantClass' tenantClass = [pojos::ClassDefinition])?
-        ('tenant' tenantId = SingleColumn)?
-        ('pk'     ('is' pkPojo = [pojos::ClassDefinition])? (pk       = ListOfColumns)? )?
-        ('index'  index   += IndexDefinition)*
+        ('tenant'      tenantId = SingleColumn)?
+        ('pk'          pk       = ListOfColumns )?
+        ('index'       indexes += IndexDefinition)*
+        ('bins'        bins     = ListOfColumns)?       // defines explicit bins
     '}'       
 ;
 
 IndexDefinition:
-    columns = SingleColumn
+    name = STRING
+    'is'
+    column = SingleColumn
+     ';'
 ;
 
 // by custom ScopeProvider implementation, an appropriate importedNamespace will be added here

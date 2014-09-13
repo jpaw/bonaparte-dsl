@@ -3,6 +3,19 @@
  */
 package de.jpaw.bonaparte.noSQL.dsl.scoping
 
+import org.eclipse.xtext.scoping.impl.ImportedNamespaceAwareLocalScopeProvider
+import java.util.List
+import org.eclipse.xtext.scoping.impl.ImportNormalizer
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
+import java.util.ArrayList
+import static extension de.jpaw.bonaparte.noSQL.dsl.generator.ZUtil.*
+import org.eclipse.emf.ecore.EObject
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.SingleColumn
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.ListOfColumns
+
 /**
  * This class contains custom scoping description.
  * 
@@ -10,6 +23,48 @@ package de.jpaw.bonaparte.noSQL.dsl.scoping
  * on how and when to use it 
  *
  */
-class BDslScopeProvider extends de.jpaw.bonaparte.dsl.scoping.BonScriptScopeProvider {
+class BDslScopeProvider extends ImportedNamespaceAwareLocalScopeProvider {
+    
+    def private void recursivelyAddColumnsOfClassAndParents(List<ImportNormalizer> preliminaryResult,
+            ClassDefinition cl, boolean ignoreCase) {
+        var cr = cl
+        while (cr !== null) {
+            //System.out.println("DEBUG:   POJO is " + cl.getName());
+            if (cr.eContainer() === null)  // occurs if a previously referenced import is deleted...
+                return;
+            val bonScriptPd = cr.eContainer as PackageDefinition  // ATTN: the bonScript one!
+            // alternative way to get the namespace could be to run it through a new DefaultDeclarativeQualifiedNameProvider();
+            val qualifiedImportNamespace = bonScriptPd.getName() + "." + cr.getName() + ".*";
+            //System.out.println("DEBUG:   adding " + qualifiedImportNamespace + " to imports...");
+            preliminaryResult.add(createImportedNamespaceResolver(qualifiedImportNamespace, ignoreCase));
+            cr = cr.parent
+        }
+    }
+
+    def private List<ImportNormalizer> getColumnsSub(EntityDefinition entity, boolean ignoreCase) {
+        val preliminaryResult = new ArrayList<ImportNormalizer>(50);
+        //ListOfColumns loc = (ListOfColumns)context;
+        //System.out.println("DEBUG: Resolver invoked for ListOfColumns inside " + entity.getName());
+        recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getPojoType(), ignoreCase);
+        // also add the fields of the entity category class (& parents)
+        if (entity.getTableCategory() !== null)
+            recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getTableCategory().getTrackingColumns(), ignoreCase);
+        // also add the fields in a potential tenant discriminator class
+        if (entity.inheritanceRoot.tenantClass !== null)
+            recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.inheritanceRoot.tenantClass, ignoreCase);
+        //System.out.println("DEBUG: Resolver found " + preliminaryResult.size() + " entries");
+        return preliminaryResult;
+    }
+
+    override protected List<ImportNormalizer> internalGetImportedNamespaceResolvers(EObject context, boolean ignoreCase) {
+        if ((context instanceof SingleColumn) && context.eContainer() !== null) {
+            // the only valid reference in a list of columns is a column of the entity referenced.
+            return getColumnsSub(context.eContainer.baseEntity, ignoreCase);
+        } else if (context instanceof ListOfColumns) {
+            return getColumnsSub(context.eContainer.baseEntity, ignoreCase);
+        } else {
+            return super.internalGetImportedNamespaceResolvers(context, ignoreCase);
+        }
+    }
 
 }
