@@ -45,15 +45,15 @@ class BDDLGenerator implements IGenerator {
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         
-            logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
-            generatorSql.doGenerate(resource, fsa)
+        logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
+        generatorSql.doGenerate(resource, fsa)
 
-            logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-            generatorJava.doGenerate(resource, fsa)
+        logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+        generatorJava.doGenerate(resource, fsa)
 
-            logger.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
-            generatorResource.doGenerate(resource, fsa)
+        logger.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
+        generatorResource.doGenerate(resource, fsa)
 
-            logger.info(filterInfo + "start cleanup");
+        logger.info(filterInfo + "start cleanup");
     }
 }

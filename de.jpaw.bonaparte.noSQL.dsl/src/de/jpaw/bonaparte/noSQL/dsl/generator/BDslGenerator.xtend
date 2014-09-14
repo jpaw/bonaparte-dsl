@@ -3,9 +3,13 @@
  */
 package de.jpaw.bonaparte.noSQL.dsl.generator
 
+import de.jpaw.bonaparte.noSQL.dsl.generator.java.JavaAesGeneratorMain
+import java.util.concurrent.atomic.AtomicInteger
+import javax.inject.Inject
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.generator.IGenerator
 
 /**
  * Generates code from your model files on save.
@@ -13,12 +17,25 @@ import org.eclipse.xtext.generator.IFileSystemAccess
  * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
  */
 class BDslGenerator implements IGenerator {
+	private static Logger logger = Logger.getLogger(BDslGenerator)
+    private static final AtomicInteger globalId = new AtomicInteger(0)
+    private final int localId = globalId.incrementAndGet
+	
+    @Inject JavaAesGeneratorMain generatorJava
+    
+    def private String filterInfo() {
+        "#" + localId + ": "   
+    }
+    
+    public new() {
+        logger.info("BDDLGenerator constructed. " + filterInfo)
+    }
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-//		fsa.generateFile('greetings.txt', 'People to greet: ' + 
-//			resource.allContents
-//				.filter(typeof(Greeting))
-//				.map[name]
-//				.join(', '))
-	}
+	    
+        logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+        generatorJava.doGenerate(resource, fsa)
+        
+        logger.info(filterInfo + "start cleanup");
+    }
 }

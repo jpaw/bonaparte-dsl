@@ -34,16 +34,10 @@ class JavaMeta {
     public static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0, 'biginteger' -> 0 }
     
     def private static metaVisibility(ClassDefinition d) {
-        if (d.publicMeta)
             '''public'''
-        else
-            '''protected'''
     }
     def private static metaVisibility(ClassDefinition d, boolean forcePublic) {
-        if (forcePublic || d.publicMeta)
             '''public'''
-        else
-            '''protected'''
     }
     
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {

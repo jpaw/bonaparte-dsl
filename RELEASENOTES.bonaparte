@@ -218,6 +218,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 - 2.4.2:
 - BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types) [experimental]
+- BDSL: [new plugin]: Aerospike noSQL support (experimental)
+
+
 
 ROADMAP / PLANS:
 2.x:

@@ -185,7 +185,6 @@ ClassDefinition:
     ('pk' pkClass = [ClassDefinition])?
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
-    (publicMeta ?= 'public' 'type')?					// make field metadata public
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
         (staticExternalMethods?='static')?                  // adapter methods are static?
         ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
