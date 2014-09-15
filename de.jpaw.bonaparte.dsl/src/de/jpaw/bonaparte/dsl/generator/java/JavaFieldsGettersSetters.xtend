@@ -51,7 +51,7 @@ class JavaFieldsGettersSetters {
         val decimals = ref.elementaryDataType.decimals
         if (decimals > 0 && namePart !== null)
             return '''
-                @XmlJavaTypeAdapter(Scaled«namePart»Adapter«decimals»«IF ref.effectiveRounding»Round«ELSE»Exact«ENDIF».class)
+                @XmlJavaTypeAdapter(de.jpaw.xml.jaxb.scaledFp.Scaled«namePart»Adapter«decimals»«IF ref.effectiveRounding»Round«ELSE»Exact«ENDIF».class)
             '''
     }
      

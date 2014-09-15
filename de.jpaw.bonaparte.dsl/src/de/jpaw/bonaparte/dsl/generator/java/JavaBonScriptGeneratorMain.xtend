@@ -220,7 +220,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlTransient;
             import javax.xml.bind.annotation.XmlAnyElement;
             import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-            import de.jpaw.xml.jaxb.scaledFp.*;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
