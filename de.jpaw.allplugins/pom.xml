@@ -47,7 +47,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho.version>0.21.0</tycho.version>
         <fornax.version>3.4.0</fornax.version>
-        <xtend.version>2.7.0</xtend.version>            <!-- 2.7.1 throws CME -->
+        <xtend.version>2.7.2</xtend.version>            <!-- 2.7.1 throws CME -->
     </properties>
 
     <build>
