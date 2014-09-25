@@ -441,12 +441,12 @@ class XUtil {
         import java.math.BigDecimal;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
-        import de.jpaw.util.ToStringHelper;
         import de.jpaw.util.ApplicationException;
-        import de.jpaw.util.DayTime;
         import de.jpaw.util.ByteUtil;
-        import de.jpaw.util.BigDecimalTools;
         import de.jpaw.util.IntegralLimits;
+        import de.jpaw.bonaparte.util.ToStringHelper;
+        import de.jpaw.bonaparte.util.DayTime;
+        import de.jpaw.bonaparte.util.BigDecimalTools;
         import «BonScriptPreferences.getDateTimePackage».Instant;
         import «BonScriptPreferences.getDateTimePackage».LocalTime;
         import «BonScriptPreferences.getDateTimePackage».LocalDate;
