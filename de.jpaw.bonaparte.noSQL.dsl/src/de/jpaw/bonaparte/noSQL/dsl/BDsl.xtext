@@ -24,22 +24,13 @@ Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
     (defaults        = DefaultsDefinition)?
-    packages        += PackageDefinition*
+    (packages       += PackageDefinition |
+     bdslPackages   += BDSLPackageDefinition
+    )*
 ;
     
-QualifiedId: 
-    ID ('.' ID)*
-;
-
-QualifiedIdWithWildcard: 
-    QualifiedId ('.*')?
-;
-
 IncludeDefinition:
     'include' importURI=STRING
-;
-ImportDefinition:
-    'import' importedNamespace=QualifiedIdWithWildcard
 ;
 
 DefaultsDefinition:
@@ -57,7 +48,7 @@ TableCategoryDefinition:
     '}'
 ;
 
-PackageDefinition:
+BDSLPackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles

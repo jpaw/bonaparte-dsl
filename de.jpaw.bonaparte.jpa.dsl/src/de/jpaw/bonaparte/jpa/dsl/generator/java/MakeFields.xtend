@@ -26,12 +26,12 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.Visibility
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 
 class JavaFieldWriter {
     val static final String JAVA_OBJECT_TYPE = "BonaPortable";
@@ -50,18 +50,18 @@ class JavaFieldWriter {
     }
 
     def public static final defineVisibility(EntityDefinition e) {
-        val myPackage = e.eContainer as PackageDefinition
-        return makeVisibility(if(e.visibility !== null) e.visibility else myPackage.visibility)
+        val myPackage = e.eContainer as BDDLPackageDefinition
+        return makeVisibility(if(e.visibility !== null) e.visibility else myPackage.getVisibility)
     }
 
     new(EntityDefinition e) {
-        this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
+        this.useUserTypes = !(e.eContainer as BDDLPackageDefinition).isNoUserTypes;
         this.fieldVisibility = defineVisibility(e);
     }
 
     new(EmbeddableDefinition e) {
-        this.useUserTypes = !(e.eContainer as PackageDefinition).noUserTypes;
-        this.fieldVisibility = makeVisibility((e.eContainer as PackageDefinition).visibility);
+        this.useUserTypes = !(e.eContainer as BDDLPackageDefinition).isNoUserTypes;
+        this.fieldVisibility = makeVisibility((e.eContainer as BDDLPackageDefinition).getVisibility);
     }
 
     // the same, more complex scenario

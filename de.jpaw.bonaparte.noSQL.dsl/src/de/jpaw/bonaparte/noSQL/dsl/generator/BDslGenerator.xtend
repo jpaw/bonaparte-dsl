@@ -10,6 +10,7 @@ import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
+import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
 
 /**
  * Generates code from your model files on save.
@@ -21,6 +22,7 @@ class BDslGenerator implements IGenerator {
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
 	
+    @Inject BonScriptGenerator bonaparteGenerator
     @Inject JavaAesGeneratorMain generatorJava
     
     def private String filterInfo() {
@@ -33,6 +35,8 @@ class BDslGenerator implements IGenerator {
 	
 	override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 	    
+        bonaparteGenerator.doGenerate(resource, fsa)
+        
         logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
         generatorJava.doGenerate(resource, fsa)
         

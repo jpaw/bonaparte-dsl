@@ -26,7 +26,6 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
-import de.jpaw.bonaparte.jpa.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.generator.PrimaryKeyType
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import java.util.ArrayList
@@ -40,6 +39,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -53,23 +53,23 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
     }
-    def public static getPackageName(PackageDefinition p) {
+    def public static getPackageName(BDDLPackageDefinition p) {
         (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
 
     // create the package name for an entity
     def public static getPackageName(EntityDefinition d) {
-        getPackageName(d.eContainer as PackageDefinition)
+        getPackageName(d.eContainer as BDDLPackageDefinition)
     }
     // create the package name for an embeddable object
     def public static getPackageName(EmbeddableDefinition d) {
-        getPackageName(d.eContainer as PackageDefinition)
+        getPackageName(d.eContainer as BDDLPackageDefinition)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            if (!e.noJava && !(e.eContainer as PackageDefinition).noJava) {
+            if (!e.noJava && !(e.eContainer as BDDLPackageDefinition).isNoJava) {
                 val primaryKeyType = determinePkType(e)
                 if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
@@ -81,7 +81,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
             fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEmbeddableOut)
         }
-        for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
+        for (d : resource.allContents.toIterable.filter(typeof(BDDLPackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists
             if (d.javadoc !== null) {
                 fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
@@ -459,11 +459,11 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private static noDataMapper(EntityDefinition e) {
-        !e.doMapper && (e.noMapper || (e.eContainer as PackageDefinition).noMapper || e.noDataKeyMapper)
+        !e.doMapper && (e.noMapper || (e.eContainer as BDDLPackageDefinition).isNoMapper || e.noDataKeyMapper)
     }
 
     def private static noDataKeyMapper(EntityDefinition e) {
-        !e.doMapper && (e.noKeyMapper || (e.eContainer as PackageDefinition).noKeyMapper)
+        !e.doMapper && (e.noKeyMapper || (e.eContainer as BDDLPackageDefinition).isNoKeyMapper)
     }
     
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {

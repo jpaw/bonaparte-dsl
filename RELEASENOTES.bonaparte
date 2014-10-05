@@ -204,19 +204,19 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - persistence-java: upgrade EclipseLink to 2.5.2
 - BDDL: new feature: actualData setting for history categories: then SYSDATE / USER will be written instead of predefined data
 
-- 2.4.0:
+- 2.4.0 (temporary development branch, no release built):
 - dependency updates: Joda-Time to 2.4, guava to 18.0, jaxb removed (is part of JDK)
 - BON: experimental feature: external types (working via adapter): first part, supporting only static adapters which map to a single field (no enhancement of MessageParser / MessageComposer)
 - BON: fix: copy bon files to JARs, remove src/main/resources where not required.
 
-- 2.4.1:
+- 2.4.1 (temporary development branch, no release built):
 - custom types, part II: types which are replaced by different types (requires enhanced MessageParser / MessageComposer interfaces)
 - move part of bonaparte-core into a separate repo (jpaw), with project jpaw-{base,util,enums}
 - cleanup: remove MoneySetter / Getter, move Price with tax to example project
 - cleanup: remove duplicate code in bonaparte-money{-test}, which is available in xtendsions. (And also did not really belong into bonaparte-money)
 - upgraded tycho to 0.21
 
-- 2.4.2:
+- 2.4.2 (temporary development branch, no release built):
 - BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types) [experimental]
 - BDSL: [new plugin]: Aerospike noSQL support (experimental)
 - changes: classes which were moved to a different package (de.jpaw.util => de.jpaw.bonaparte.util)
@@ -225,6 +225,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
   - BigDecimalTools
   => switch to new major release due to incompatible change
 
+
+- 3.0.0 (includes changes made in 2.4.x, changed to new major release to to backwards incompatible changes):
+- BON: allow arbitrary ordering of typedef, enum, xenum, classes (i.e. an xenum definition after a class definition)
+- BDDL: allow to use BON packages inside a BDDL file
+- BDSL: allow to use BON packages inside a BDDL file
 
 
 ROADMAP / PLANS:

@@ -21,7 +21,6 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Model
 import org.eclipse.emf.ecore.EObject
 import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
@@ -29,6 +28,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import java.util.List
 import java.util.ArrayList
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -115,7 +115,7 @@ class YUtil {
             var String myPattern
             var String dropSuffix
             var String tablename
-            var myPackage = t.eContainer as PackageDefinition
+            var myPackage = t.eContainer as BDDLPackageDefinition
             var myModel = getModel(myPackage.eContainer)
             var TableCategoryDefinition myCategory = t.tableCategory
             if (forHistory)
@@ -142,8 +142,8 @@ class YUtil {
             // 2. have the pattern, apply substitution rules
             tablename = myPattern.replace("(category)", myCategory.name)
                                  .replace("(entity)",   java2sql(t.name))
-                                 .replace("(prefix)",   myPackage.dbPrefix)
-                                 .replace("(owner)",    myPackage.schemaOwner)
+                                 .replace("(prefix)",   myPackage.getDbPrefix)
+                                 .replace("(owner)",    myPackage.getSchemaOwner)
                                  .replace("(package)",  myPackage.name.replace('.', '_'))
             // if the name ends in the suffix to drop, remove the suffix
             if (dropSuffix !== null) {
@@ -161,7 +161,7 @@ class YUtil {
         } else {
             // no explicit advice, look in category or defaults definition
             // 1. get a suitable pattern
-            var myPackage = t.eContainer as PackageDefinition
+            var myPackage = t.eContainer as BDDLPackageDefinition
             var myModel = getModel(myPackage.eContainer)
             var theOtherModel = getModel(myCategory)
             var String myPattern
@@ -199,8 +199,8 @@ class YUtil {
             // 2. have the pattern, apply substitution rules
             return myPattern.replace("(category)", myCategory.name)
                             .replace("(entity)",   java2sql(t.name))
-                            .replace("(prefix)",   myPackage.dbPrefix)
-                            .replace("(owner)",    myPackage.schemaOwner)
+                            .replace("(prefix)",   myPackage.getDbPrefix)
+                            .replace("(owner)",    myPackage.getSchemaOwner)
                             .replace("(package)",  myPackage.name.replace('.', '_'))
                             .replace("(DI)",       (if (forIndex) "I" else "D"))
                             .replace("(di)",       (if (forIndex) "i" else "d"))

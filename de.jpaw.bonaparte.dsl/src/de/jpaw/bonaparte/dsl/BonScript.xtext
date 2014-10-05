@@ -122,7 +122,7 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
-    'package ' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+    'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable
         (doHazelcast = Hazelcast)?								// decide if hazelcast support is added
@@ -132,11 +132,12 @@ PackageDefinition:
         ('factoryId' hazelcastFactoryId = INT)?
     '{'  
         (defaults = FieldDefaultsDefinition)?
-        ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')? 
-        types   += TypeDefinition*
-        enums   += EnumDefinition*
-		xenums  += XEnumDefinition*
-        classes += ClassDefinition*
+        ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')?
+        (types   += TypeDefinition |
+         enums   += EnumDefinition |
+		 xenums  += XEnumDefinition |
+         classes += ClassDefinition
+        )*
     '}'
 ;
 

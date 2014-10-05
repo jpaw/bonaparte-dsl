@@ -26,22 +26,13 @@ Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
     (defaults        = DefaultsDefinition)?
-    packages        += PackageDefinition*
+    (packages       += PackageDefinition |
+     bddlPackages   += BDDLPackageDefinition
+    )*
 ;
     
-QualifiedId: 
-    ID ('.' ID)*
-;
-
-QualifiedIdWithWildcard: 
-    QualifiedId ('.*')?
-;
-
 IncludeDefinition:
     'include' importURI=STRING
-;
-ImportDefinition:
-    'import' importedNamespace=QualifiedIdWithWildcard
 ;
 
 DefaultsDefinition:
@@ -81,7 +72,7 @@ TableCategoryDefinition:
     '}'
 ;
 
-PackageDefinition:
+BDDLPackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
     ('@Generator' '(' (noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper') ')')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos

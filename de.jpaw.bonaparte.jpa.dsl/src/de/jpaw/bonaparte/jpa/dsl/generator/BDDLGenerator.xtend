@@ -25,12 +25,14 @@ import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
+import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
 
 class BDDLGenerator implements IGenerator {
     private static Logger logger = Logger.getLogger(BDDLGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
     
+    @Inject BonScriptGenerator bonaparteGenerator
     @Inject SqlDDLGeneratorMain generatorSql
     @Inject JavaDDLGeneratorMain generatorJava
     @Inject ResourceGeneratorMain generatorResource
@@ -44,6 +46,8 @@ class BDDLGenerator implements IGenerator {
     }
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+        
+        bonaparteGenerator.doGenerate(resource, fsa)
         
         logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
         generatorSql.doGenerate(resource, fsa)
