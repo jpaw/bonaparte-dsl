@@ -362,9 +362,9 @@ class JavaMeta {
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getReturns() {
                     «IF (d.returnsClassRef !== null)»
-                        return «d.returnsClassRef.classRef.name».BClass.getInstance();
+                        return «XUtil::getLowerBound(d.returnsClassRef).name».BClass.getInstance();
                     «ELSE»
-                        return null;
+                        return «IF d.parent !== null»«d.parent.name».BClass.getInstance().getReturns()«ELSE»null«ENDIF»;
                     «ENDIF»
                 }
                 @Override
