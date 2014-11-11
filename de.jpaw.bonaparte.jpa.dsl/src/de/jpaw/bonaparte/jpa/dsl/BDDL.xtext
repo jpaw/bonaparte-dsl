@@ -94,6 +94,8 @@ enum Inheritance:
     NONE='none' | SINGLE_TABLE='singleTable' | TABLE_PER_CLASS='tablePerClass' | JOIN='join' | DB_SPECIFIC='objectRelational' | SERIALIZED='serialized';
 
 EmbeddableDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
     'embeddable' name = ID 'is' pojoType=[pojos::ClassDefinition]
     (doBeanVal ?= 'beanVal')?
     '{'

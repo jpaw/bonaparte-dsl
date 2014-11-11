@@ -789,8 +789,14 @@ class JavaDDLGeneratorMain implements IGenerator {
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         «imports.createImports»
 
+        «IF e.javadoc !== null»
+            «e.javadoc»
+        «ENDIF»
         @SuppressWarnings("all")
         @Embeddable
+        «IF e.isDeprecated || e.pojoType.isDeprecated»
+            @Deprecated
+        «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
             «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
             «EqualsHash::writeHash(e.pojoType, null)»
