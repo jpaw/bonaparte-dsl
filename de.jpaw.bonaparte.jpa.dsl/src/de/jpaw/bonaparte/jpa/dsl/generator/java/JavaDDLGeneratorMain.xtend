@@ -290,7 +290,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
                     
-    def private writeCopyOf(EntityDefinition e, String pkType, String trackingType) '''
+    def private writeCopyOf(EntityDefinition e, String pkType, String trackingType) {
+        // FT-1588 may have an issue with lazy loaded proxies here...
+//        val myPrinter = [ FieldDefinition fld, String myName, RequiredType req | '''«myName» = _x.«myName»;
+//        ''']
+        val myPrinter = [ FieldDefinition fld, String myName, RequiredType req | '''set«myName.toFirstUpper»(_x.get«myName.toFirstUpper»());
+        ''']
+        return '''
         @Override
         public BonaPersistableBase mergeFrom(final BonaPersistableBase _b) {
             «IF e.extends !== null»
@@ -303,15 +309,13 @@ class JavaDDLGeneratorMain implements IGenerator {
                         set«f.name.toFirstUpper»(_x.get«f.name.toFirstUpper»());
                     «ENDFOR»
                 «ENDIF»
-                «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
-                    '''], e)»
-                «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, [ fld, myName, req | '''«myName» = _x.«myName»;
-                    '''], e)»
+                «e.tenantClass?.recurseForCopyOf(null, e.pk?.columnName, myPrinter, e)»
+                «e.pojoType.recurseForCopyOf(e.extends?.pojoType, e.pk?.columnName, myPrinter, e)»
             }
             return this;
         }
     '''
-    
+    }
 
 
 
