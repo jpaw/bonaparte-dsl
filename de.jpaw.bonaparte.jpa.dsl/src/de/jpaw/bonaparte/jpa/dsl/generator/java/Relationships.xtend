@@ -128,7 +128,7 @@ class MakeRelationships {
     '''
     
     def private static o2mTypeName(OneToMany m)
-        '''«m.collectionType»<«IF m.collectionType == 'Map'»«m.mapKey», «ENDIF»«m.relationship.childObject.name»>'''
+        '''«m.collectionType»<«IF m.collectionType == 'Map'»«m.indexType», «ENDIF»«m.relationship.childObject.name»>'''
         
     def private static getInitializer(OneToMany m) {
         switch (m.collectionType) {
