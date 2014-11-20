@@ -1,9 +1,12 @@
 #!/bin/bash
 
 GOAL=install
-if [ x != x$2 ]; then
-	GOAL=$2
+if [ x != x$1 ]; then
+	GOAL=$1
 fi
 
+echo "Cleaning repo folder..."
 git clean -fdx
-(cd de.jpaw.allplugins & mvn $GOAL)
+
+echo "executing mvn $GOAL..."
+(cd de.jpaw.allplugins && mvn $GOAL)
