@@ -135,6 +135,7 @@ PackageDefinition:
         ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')?
         (types   += TypeDefinition |
          enums   += EnumDefinition |
+         enumSets += EnumSetDefinition |
 		 xenums  += XEnumDefinition |
          classes += ClassDefinition
         )*
@@ -223,7 +224,7 @@ XEnumDefinition:
 //    (isExternalizable = Externalizable)?                // decide if implements Externalizable
 //    ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
     'is' myEnum=[EnumDefinition]
-    ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition]))?
+    ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
 ;
 
 EnumDefinition:
@@ -233,6 +234,12 @@ EnumDefinition:
         ((values += ID (',' values += ID)*) |
          (avalues += EnumAlphaValueDefinition (',' avalues += EnumAlphaValueDefinition)*))
     '}'   
+;
+
+EnumSetDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
+    'enum' 'Set' name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
 ;
 
 EnumAlphaValueDefinition:

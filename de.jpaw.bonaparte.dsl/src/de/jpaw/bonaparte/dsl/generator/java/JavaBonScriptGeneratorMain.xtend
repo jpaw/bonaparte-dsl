@@ -38,6 +38,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -56,6 +57,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         requiredImports.clear()  // clear hash for this new class output
+        for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
+            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
             fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {

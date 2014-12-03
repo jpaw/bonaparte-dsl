@@ -254,9 +254,9 @@ class JavaFrozen {
             «ENDIF»
         «ENDIF»
         @Override
-        public void freeze() throws ObjectValidationException {
+        public void freeze() {
             «IF !cd.isFreezable»
-                throw new ObjectValidationException(ObjectValidationException.NOT_FREEZABLE, getClass().getName(), "");
+                throw new RuntimeException(getClass().getName() + " is not freezable");
             «ELSEIF cd.root.immutable»
             «ELSE»
                 «FOR f: cd.fields»
