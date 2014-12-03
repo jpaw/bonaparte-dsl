@@ -57,8 +57,8 @@ class JavaEnumSet {
             }
 
             @Override
-                public final Iterator<«eName»> iterator() {
-                return new SetOfEnumsIterator(VALUES, getBitmap());
+            public final Iterator<«eName»> iterator() {
+                return new SetOfEnumsIterator<«eName»>(VALUES, getBitmap());
             }
 
             public «d.name»() {
