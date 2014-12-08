@@ -47,6 +47,8 @@ class JavaEnumSet {
         @Deprecated
         «ENDIF»
         public final class «d.name» extends AbstractEnumSet<«eName»> {
+            private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
+            
             private final «eName»[] VALUES = «eName».values();
 
             private final int NUMBER_OF_INSTANCES = VALUES.length;

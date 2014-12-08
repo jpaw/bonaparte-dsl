@@ -34,6 +34,7 @@ class JavaEnum {
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
         val isAlphaEnum = d.isAlpha
+        val myInterface = if (isAlphaEnum) "BonaTokenizableEnum" else "BonaNonTokenizableEnum"
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -43,11 +44,8 @@ class JavaEnum {
         import com.google.common.collect.ImmutableList;
         import «BonScriptPreferences.getDateTimePackage».Instant;
         
-        import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
-        «IF isAlphaEnum»
-            import de.jpaw.enums.TokenizableEnum;
-        «ENDIF»
+        import de.jpaw.bonaparte.enums.«myInterface»;
 
         «IF d.javadoc !== null»
             «d.javadoc»
@@ -55,7 +53,7 @@ class JavaEnum {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public enum «d.name» implements BonaMeta«IF isAlphaEnum», TokenizableEnum«ENDIF» {
+        public enum «d.name» implements «myInterface» {
             «IF !isAlphaEnum»
                 «FOR v:d.values SEPARATOR ', '»«v»«ENDFOR»;
             «ELSE»
@@ -99,6 +97,8 @@ class JavaEnum {
                 }
             «ENDIF»
 
+            private static final long serialVersionUID = «getSerialUID(d)»L;
+            
             «writeEnumMetaData(d)»
             
             public static «d.name» valueOf(Integer ordinal) {
@@ -176,7 +176,7 @@ class JavaEnum {
             static public EnumDefinition enum$MetaData() {
                 return my$MetaData;
             }
-            
+
             «JavaMeta.writeCommonMetaData»
         '''
     }

@@ -31,10 +31,11 @@ class EqualsHash {
         switch (getJavaDataType(i.datatype)) {
         case "BonaPortable":        '''Arrays.equals(«index», that.«index»)'''  // mapped to byte []
         case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "ByteArray":           '''Arrays.equals(«index», that.«index»)'''  // '''«index».contentEquals(that.«index»)''' is mapped to byte[]
-        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+        case "BigDecimal":          '''«index».compareTo(that.«index») == 0'''  // we want the comparison to be "true" if the values are the same on the database
+//        case "Instant":             '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
         default:                    '''«index».equals(that.«index»)'''
         }
     }
@@ -85,8 +86,8 @@ class EqualsHash {
                 return i.hashSub33
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType !== null && (ref.javaType.equals("byte []") || ref.javaType.equals("ByteArray") || ref.javaType.equals("BonaPortable")))
-                    // special treatment required, again!
+                if (ref.javaType !== null && (ref.javaType.equals("byte []") || ref.javaType.equals("BonaPortable")))
+                    // special treatment required, again! (but not for ByteArray, we do this with usertypes now as well...) 
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
                 else
                     return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
@@ -181,20 +182,43 @@ class EqualsHash {
     
     def public static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         switch (primaryKeyType) {
-        case PrimaryKeyType::IMPLICIT_EMBEDDABLE:
+        case PrimaryKeyType::IMPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
             writeSub(e, "key")
-        case PrimaryKeyType::EXPLICIT_EMBEDDABLE:
+        case PrimaryKeyType::EXPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
             writeSub(e, e.embeddablePk.field.name)
-        case PrimaryKeyType::SINGLE_COLUMN:
-            writeSub(e, e.pk.columnName.get(0).name)
+        case PrimaryKeyType::SINGLE_COLUMN: {
+//            writeSub(e, e.pk.columnName.get(0).name)
+            newEqualsListOfFields(e.pk.columnName)
+            writeHash(null, e.pk.columnName)
+            }
+        case PrimaryKeyType::ID_CLASS: {
+            newEqualsListOfFields(e.pkPojo.fields)
+            writeHash(e.pkPojo, e.pkPojo.fields)
+            }
         default:
-            // NONE and  PrimaryKeyType::ID_CLASS:
+            // NONE => compare all fields, as in a POJO
             '''
             «writeHash(e.pojoType, null)»
             «writeEquals(e)»
         '''
         }
     }
+    
+    def private static newEqualsListOfFields(List<FieldDefinition> fields) '''
+            @Override
+            public boolean equals(Object obj) {
+                if (this == obj)
+                    return true;
+                if (obj == null || this.getClass() != obj.getClass())
+                    return false;
+                return true
+                «FOR f : fields»
+                    && «f.name» != null   // not yet assigned => treat it as different
+                «ENDFOR»
+                «writeEqualsSub(fields)»
+                    ;
+            }
+    '''
     
     def public static writeKeyEquals(String name, List<FieldDefinition> l) '''
         @Override

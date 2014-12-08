@@ -191,32 +191,39 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - added record type ID to data type maps to allow "readRecord()" method for CSV / fixed width parsers
 - compact format: allow upgrading of int to float or double. Store integral float / doubles as integers, resulting in a more compact storage
 
-- 2.3.3:
+2.3.3:
 - BDDL: bugfix Oracle Trigger creation. Generated triggers now have _tr suffix instead of _trg in order to shorten names to max. 30 characters
 - BON: rename customValidator token to customAddons, rename validate to preprocess, rename validateAfter to validate
 
-- 2.3.4:
+2.3.4:
 - BDDL: bugfix Oracle Trigger creation. Support numeric types for update condition.
 
-- 2.3.5:
+2.3.5:
 - BON: bugfix: for abstract classes, JAXB imports were missing
 - BON: bugfix: generic parameters without lower bounds should generate "extends BonaPortable" in Java
 - persistence-java: upgrade EclipseLink to 2.5.2
 - BDDL: new feature: actualData setting for history categories: then SYSDATE / USER will be written instead of predefined data
 
-- 2.4.0 (temporary development branch, no release built):
+2.3.6:
+ bugfix release
+
+2.3.8:
+ switch to Xtend 2.7.x
+
+
+2.4.0 (temporary development branch, no release built):
 - dependency updates: Joda-Time to 2.4, guava to 18.0, jaxb removed (is part of JDK)
 - BON: experimental feature: external types (working via adapter): first part, supporting only static adapters which map to a single field (no enhancement of MessageParser / MessageComposer)
 - BON: fix: copy bon files to JARs, remove src/main/resources where not required.
 
-- 2.4.1 (temporary development branch, no release built):
+2.4.1 (temporary development branch, no release built):
 - custom types, part II: types which are replaced by different types (requires enhanced MessageParser / MessageComposer interfaces)
 - move part of bonaparte-core into a separate repo (jpaw), with project jpaw-{base,util,enums}
 - cleanup: remove MoneySetter / Getter, move Price with tax to example project
 - cleanup: remove duplicate code in bonaparte-money{-test}, which is available in xtendsions. (And also did not really belong into bonaparte-money)
 - upgraded tycho to 0.21
 
-- 2.4.2 (temporary development branch, no release built):
+2.4.2 (temporary development branch, no release built):
 - BDDL: new feature: target database MySQL (5.6.4 or better, for support of fractional seconds in temporal types) [experimental]
 - BDSL: [new plugin]: Aerospike noSQL support (experimental)
 - changes: classes which were moved to a different package (de.jpaw.util => de.jpaw.bonaparte.util)
@@ -226,10 +233,20 @@ New features and bug fixes in Bonaparte / Persistence DSL
   => switch to new major release due to incompatible change
 
 
-- 3.0.0 (includes changes made in 2.4.x, changed to new major release to to backwards incompatible changes):
+3.0.0 (includes changes made in 2.4.x, changed to new major release to to backwards incompatible changes):
+- general restructure, remove non-serialization/DSL specific code, move that into separate repo jpaw
 - BON: allow arbitrary ordering of typedef, enum, xenum, classes (i.e. an xenum definition after a class definition)
 - BDDL: allow to use BON packages inside a BDDL file
 - BDSL: allow to use BON packages inside a BDDL file
+
+3.0.1:
+- BON: add enum Sets (as in Java EnumSet, but with the option to set / get the bitmap. Limited to 31 ordinals).
+
+3.1.0
+- BDDL: switch to Hibernate 4.3.7.Final (requires Java EE 7 / JPA 2.1)
+- BDDL: bugfix for hash / equals, for ByteArray fields.
+- BON: Add more methods to generated enums (PQON), also generate serialVersionUID for them
+
 
 
 ROADMAP / PLANS:
