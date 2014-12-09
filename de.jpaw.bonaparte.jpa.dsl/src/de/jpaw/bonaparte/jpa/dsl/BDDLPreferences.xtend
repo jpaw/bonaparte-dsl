@@ -2,17 +2,6 @@ package de.jpaw.bonaparte.jpa.dsl
 
 import de.jpaw.bonaparte.dsl.ConfigReader
 
-//public interface IBDDLPreferenceProvider {
-//  def public BDDLPreferences getSettings()
-//}
-//
-//public class DefaultPreferencesProvider implements IBDDLPreferenceProvider {
-//  public new() {}
-//  
-//  override public BDDLPreferences getSettings() {
-//      BDDLPreferences.defaultPrefs
-//  }
-//}
 public class BDDLPreferences {
     static private final ConfigReader configReader = new ConfigReader("BDDL")
     static private final int maxFieldnameLengthDefault = configReader.getProp("MaxFieldLen", 30);
@@ -20,7 +9,7 @@ public class BDDLPreferences {
     static private final boolean doDebugOutDefault = configReader.getProp("DebugOut", false);
     static private final boolean doPostgresOutDefault = configReader.getProp("Postgres", true);
     static private final boolean doOracleOutDefault = configReader.getProp("Oracle", true);
-    static private final boolean doMsSQLServerOutDefault = configReader.getProp("MSSQL", false);
+    static private final boolean doMsSQLServerOutDefault = configReader.getProp("MSSQL", true);
     static private final boolean doMySQLOutDefault = configReader.getProp("MySQL", false);
     
     public int maxFieldnameLength = maxFieldnameLengthDefault
