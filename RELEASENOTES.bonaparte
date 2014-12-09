@@ -241,11 +241,17 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.0.1:
 - BON: add enum Sets (as in Java EnumSet, but with the option to set / get the bitmap. Limited to 31 ordinals).
+- BON: freeze() does not declare a checked exception an more.
+       Need to replace plugins and Java libraries simultaneously for this reason (source compatible change, but not binary compatible)
 
 3.1.0
 - BDDL: switch to Hibernate 4.3.7.Final (requires Java EE 7 / JPA 2.1)
-- BDDL: bugfix for hash / equals, for ByteArray fields.
+- BDDL: bugfix for hash / equals, for ByteArray fields. (major rewrite of equals code)
+- BDDL: generate MS SQL server DDL by default
 - BON: Add more methods to generated enums (PQON), also generate serialVersionUID for them
+- BON: New types for TokenizableEnum in Composer (BonaTokenizableEnum), in order to be able to use get$PQON & friends here
+- BON: move CSVStyle as a generated enum
+- BON: bugfix for: "do not generate package-info.java unless there is Javadoc or XML annotations"
 
 
 

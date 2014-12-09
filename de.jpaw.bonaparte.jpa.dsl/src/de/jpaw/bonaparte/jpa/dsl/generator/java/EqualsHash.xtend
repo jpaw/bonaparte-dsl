@@ -27,33 +27,10 @@ import java.util.List
 import de.jpaw.bonaparte.jpa.dsl.generator.PrimaryKeyType
 
 class EqualsHash {
-    def private static writeCompareSub(FieldDefinition i, String index) {
-        switch (getJavaDataType(i.datatype)) {
-        case "BonaPortable":        '''Arrays.equals(«index», that.«index»)'''  // mapped to byte []
-        case "byte []":             '''Arrays.equals(«index», that.«index»)'''
-        case "BigDecimal":          '''«index».compareTo(that.«index») == 0'''  // we want the comparison to be "true" if the values are the same on the database
-//        case "Instant":             '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalTime":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalDate":           '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalDateTime":       '''«index».compareTo(that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-        default:                    '''«index».equals(that.«index»)'''
-        }
-    }
-
-
-    // TODO: do float and double need special handling as well? (Double.compare(a, b) ?)
-    def private static writeCompareStuff(FieldDefinition i, String index, String end) '''
-        «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
-            ((«index» == null && that.«index» == null) || «index».equals(that.«index»))«end»
-        «ELSE»
-            «IF DataTypeExtension::get(i.datatype).isPrimitive»
-                «index» == that.«index»«end»
-            «ELSE»
-                ((«index» == null && that.«index» == null) || «writeCompareSub(i, index)»)«end»
-            «ENDIF»
-        «ENDIF»
-    '''
-
+    /////////////////////////////////////////////////////////////////////
+    // hashCode
+    /////////////////////////////////////////////////////////////////////
+    
     def private static hashSub33(FieldDefinition i) '''
         «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
             «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n+ ')»
@@ -62,7 +39,7 @@ class EqualsHash {
         «ENDIF»
     '''
     
-    def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
+    def private static writeHashExpressionForSingleField(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray !== null)
                 return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''
@@ -95,41 +72,109 @@ class EqualsHash {
         }
     }
 
-    def private static writeHashSub2(List<FieldDefinition> l) '''
-        «IF l !== null»
-            «FOR i:l»
-                _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
+    def private static writeHashSubForListOfFields(List<FieldDefinition> fields) '''
+        «IF fields !== null»
+            «FOR i:fields»
+                _hash = 29 * _hash + «writeHashExpressionForSingleField(i, DataTypeExtension::get(i.datatype))»;
             «ENDFOR»
         «ENDIF»
     '''
-    def private static CharSequence writeHashSub(ClassDefinition d) '''
-        «IF d.extendsClass !== null»
-            «writeHashSub(d.extendsClass.classRef)»
-        «ENDIF»
-        «writeHashSub2(d.fields)»
+    def private static CharSequence writeHashSubForAllClassFields(ClassDefinition d) '''
+        «d.extendsClass?.classRef?.writeHashSubForAllClassFields»
+        «d.fields.writeHashSubForListOfFields»
     '''
-    def public static writeHash(ClassDefinition d, List<FieldDefinition> l) '''
+    
+    def public static writeHashMethodForClassPlusExtraFields(ClassDefinition cls, List<FieldDefinition> fields) '''
         @Override
         public int hashCode() {
             int _hash = 997;
-            «IF d !== null»
-                «writeHashSub(d)»
-            «ENDIF»
-            «writeHashSub2(l)»
+            «cls?.writeHashSubForAllClassFields»
+            «fields?.writeHashSubForListOfFields»
             return _hash;
         }
+    '''
+    
+    /////////////////////////////////////////////////////////////////////
+    // combined equals and hashCode (for entities embeddable key)
+    /////////////////////////////////////////////////////////////////////
+    
+    def private static writeEqualsAndHashCodeForEmbeddable(EntityDefinition e, String name) '''
+        @Override
+        public int hashCode() {
+            return «name» == null ? -1 : «name».hashCode();
+        }
+        @Override
+        public boolean equals(Object _that) {
+            if (this == _that)
+                return true;
+            if (_that == null || this.getClass() != _that.getClass())
+                return false;
+            return «name» != null && «name».equals(((«e.name»)_that).«name»);
+        }
+    '''
+        
+    /////////////////////////////////////////////////////////////////////
+    // equals
+    /////////////////////////////////////////////////////////////////////
 
-        '''
+    // equals delegator to ensure correct type. anything below is using the appropriate type    
+    def private static writeEqualsDelegator(EntityDefinition e, CharSequence codeToInsert) '''
+        @Override
+        public boolean equals(Object _that) {
+            if (this == _that)
+                return true;
+            if (_that == null || getClass() != _that.getClass())  // !(_that instanceof «e.name»)
+                return false;
+            return equalsSub(_that);
+        }
+        «IF e.extendsClass !== null»
+        @Override
+        «ENDIF»
+        protected boolean equalsSub(Object _that) {
+            «e.name» __that = («e.name»)_that;
+            «codeToInsert»
+        }
+    '''
 
-    def private static writeEqualsSub(List<FieldDefinition> l) '''
+    
+    // only caller in next method
+    def private static writeCompareStuffSub(FieldDefinition i, String index) {
+        switch (getJavaDataType(i.datatype)) {
+        case "BonaPortable":        '''Arrays.equals(«index», __that.«index»)'''  // mapped to byte []
+        case "byte []":             '''Arrays.equals(«index», __that.«index»)'''
+        case "BigDecimal":          '''«index».compareTo(__that.«index») == 0'''  // we want the comparison to be "true" if the values are the same on the database
+//        case "Instant":             '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalTime":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalDate":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+//        case "LocalDateTime":       '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+        default:                    '''«index».equals(__that.«index»)'''
+        }
+    }
+
+    // only caller in next method
+    def private static writeCompareStuff(FieldDefinition i, String index, String end) '''
+        «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
+            ((«index» == null && __that.«index» == null) || «index».equals(__that.«index»))«end»
+        «ELSE»
+            «IF DataTypeExtension::get(i.datatype).isPrimitive»
+                «index» == __that.«index»«end»
+            «ELSE»
+                ((«index» == null && __that.«index» == null) || «writeCompareStuffSub(i, index)»)«end»
+            «ENDIF»
+        «ENDIF»
+    '''
+
+    // main entry to write the code - multiple different callers.
+    // __that holds an object of the same type and is not null
+    def private static writeEqualsSubForListOfFields(List<FieldDefinition> l) '''
         «FOR i: l»
             «IF i.isArray !== null»
-                && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && arrayCompareSub$«i.name»(that)))
+                && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && __that.«i.name» != null && arrayCompareSub$«i.name»(__that)))
             «ELSEIF i.aggregate»
                 «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
-                    «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''&& ((«it» == null && that.«it» == null) || («it» != null && «it».equals(that)))'''].join('\n')»
+                    «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''&& ((«it» == null && __that.«it» == null) || («it» != null && «it».equals(__that)))'''].join('\n')»
                 «ELSE»
-                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && «i.name».equals(that)))
+                    && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && «i.name».equals(__that)))
                 «ENDIF»
             «ELSE»
                 && «writeCompareStuff(i, i.name, "")»
@@ -137,90 +182,50 @@ class EqualsHash {
         «ENDFOR»
     '''
 
-    def private static writeEquals(EntityDefinition e) '''
-        @Override
-        public boolean equals(Object _that) {
-            if (_that == null)
-                return false;
-            if (!(_that instanceof «e.name»))
-                return false;
-            if (this == _that)
-                return true;
-            return equalsSub(_that);
-        }
-
-        «IF e.extendsClass !== null»
-        @Override
-        «ENDIF»
-        protected boolean equalsSub(Object _that) {
-            «e.name» that = («e.name»)_that;
-            «IF e.extendsClass !== null»
-                return super.equalsSub(_that)
-            «ELSE»
-                return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fiels as well
-            «ENDIF»
-            «writeEqualsSub(e.pojoType.fields)»
+    def private static writeEqualsConditionForListOfFields(List<FieldDefinition> fields) '''
+        return true
+        «FOR f : fields»
+             && «f.name» != null   // not yet assigned => treat it as different
+        «ENDFOR»
+        «fields.writeEqualsSubForListOfFields»
             ;
-        }
+    '''
+    
+    def private static equalsConditionSubMethodForAllFieldsOfEntity(EntityDefinition e) '''
+        «IF e.extendsClass !== null»
+            return super.equalsSub(_that)
+        «ELSE»
+            return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fiels as well
+        «ENDIF»
+            «e.pojoType.fields.writeEqualsSubForListOfFields»
+            ;
     '''
 
-    def private static writeSub(EntityDefinition e, String name) '''
-            @Override
-            public int hashCode() {
-                return «name» == null ? -1 : «name».hashCode();
-            }
-            public boolean equals(Object obj) {
-                if (this == obj)
-                    return true;
-                if (obj == null || this.getClass() != obj.getClass())
-                    return false;
-                if («name» == null) // not yet assigned => treat it as different
-                    return false;
-                return this.«name».equals(((«e.name»)obj).«name»);
-            }
-    '''
+
     
     def public static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         switch (primaryKeyType) {
         case PrimaryKeyType::IMPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
-            writeSub(e, "key")
+            writeEqualsAndHashCodeForEmbeddable(e, "key")
         case PrimaryKeyType::EXPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
-            writeSub(e, e.embeddablePk.field.name)
-        case PrimaryKeyType::SINGLE_COLUMN: {
-//            writeSub(e, e.pk.columnName.get(0).name)
-            newEqualsListOfFields(e.pk.columnName)
-            writeHash(null, e.pk.columnName)
-            }
-        case PrimaryKeyType::ID_CLASS: {
-            newEqualsListOfFields(e.pkPojo.fields)
-            writeHash(e.pkPojo, e.pkPojo.fields)
-            }
-        default:
-            // NONE => compare all fields, as in a POJO
+            writeEqualsAndHashCodeForEmbeddable(e, e.embeddablePk.field.name)
+        case PrimaryKeyType::SINGLE_COLUMN: '''
+                «writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
+                «e.writeEqualsDelegator(e.pk.columnName.writeEqualsConditionForListOfFields)»
             '''
-            «writeHash(e.pojoType, null)»
-            «writeEquals(e)»
-        '''
+        case PrimaryKeyType::ID_CLASS: '''
+                «writeHashMethodForClassPlusExtraFields(e.pkPojo, null)»
+                «e.writeEqualsDelegator(e.pkPojo.fields.writeEqualsConditionForListOfFields)»
+            '''
+        default: '''
+                «writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
+                «e.writeEqualsDelegator(e.equalsConditionSubMethodForAllFieldsOfEntity)»
+            '''
         }
     }
     
-    def private static newEqualsListOfFields(List<FieldDefinition> fields) '''
-            @Override
-            public boolean equals(Object obj) {
-                if (this == obj)
-                    return true;
-                if (obj == null || this.getClass() != obj.getClass())
-                    return false;
-                return true
-                «FOR f : fields»
-                    && «f.name» != null   // not yet assigned => treat it as different
-                «ENDFOR»
-                «writeEqualsSub(fields)»
-                    ;
-            }
-    '''
-    
-    def public static writeKeyEquals(String name, List<FieldDefinition> l) '''
+    // invoked where the container is not an entity and therefore extends... does not work. But we know there is no parent
+    def public static writeKeyEquals(String name, List<FieldDefinition> fields) '''
         @Override
         public boolean equals(Object _that) {
             if (_that == null)
@@ -229,10 +234,10 @@ class EqualsHash {
                 return false;
             if (this == _that)
                 return true;
-            «name» that = («name»)_that;
+            «name» __that = («name»)_that;
             return true
-            «l.writeEqualsSub»
-            ;
+            «fields.writeEqualsSubForListOfFields»
+                ;
         }
     '''
 

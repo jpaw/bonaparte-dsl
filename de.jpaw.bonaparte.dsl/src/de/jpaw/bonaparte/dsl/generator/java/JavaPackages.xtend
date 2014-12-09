@@ -53,6 +53,9 @@ class JavaPackages {
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
         getPackage(d).name + "." + d.name
     }
+    def public static getPartiallyQualifiedClassName(EnumSetDefinition d) {
+        getPackage(d).name + "." + d.name
+    }
     def public static getPartiallyQualifiedClassName(EnumDefinition d) {
         getPackage(d).name + "." + d.name
     }

@@ -26,6 +26,7 @@ class JavaEnumSet {
     
     def static public writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
+        val myPackage = getPackage(d)
 
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -35,6 +36,7 @@ class JavaEnumSet {
         
         import java.util.Iterator;
         import de.jpaw.enums.AbstractEnumSet;
+        import de.jpaw.bonaparte.enums.BonaEnumSet;
         
         «IF d.myEnum.package !== d.package»
             import «getPackageName(d.myEnum)».«eName»;
@@ -46,12 +48,17 @@ class JavaEnumSet {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public final class «d.name» extends AbstractEnumSet<«eName»> {
+        public final class «d.name» extends AbstractEnumSet<«eName»> implements BonaEnumSet<«eName»> {
             private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
             
-            private final «eName»[] VALUES = «eName».values();
+            private static final «eName»[] VALUES = «eName».values();
 
-            private final int NUMBER_OF_INSTANCES = VALUES.length;
+            private static final int NUMBER_OF_INSTANCES = VALUES.length;
+            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String _PARENT = null;
+            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+
+            «JavaMeta.writeCommonMetaData»
 
             @Override
             public final int getMaxOrdinal() {

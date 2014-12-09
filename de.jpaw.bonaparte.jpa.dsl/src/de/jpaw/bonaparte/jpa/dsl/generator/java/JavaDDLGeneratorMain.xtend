@@ -745,7 +745,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «FOR col : e.pk.columnName»
                 «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null)»
             «ENDFOR»
-            «EqualsHash::writeHash(null, e.pk.columnName)»
+            «EqualsHash::writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
             «writeCloneable(myName)»
         }
@@ -803,7 +803,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
             «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
-            «EqualsHash::writeHash(e.pojoType, null)»
+            «EqualsHash::writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
             «MakeMapper::writeDataMapperMethods(e.pojoType, true, e.pojoType, e.embeddables, null)»
