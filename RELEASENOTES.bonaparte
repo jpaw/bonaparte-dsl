@@ -253,10 +253,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: move CSVStyle as a generated enum
 - BON: bugfix for: "do not generate package-info.java unless there is Javadoc or XML annotations"
 
+3.1.1:
+- BDDL: automatically set all columns of natural keys to NOT NULL as well
+- BON & BDDL: allow the use of a qualified ID a lot more (main exception are field name references, which are usually restricted to the current class)
 
 
 ROADMAP / PLANS:
-2.x:
 - complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
 - performance improvements LocalDate/Time serializers (really required?)

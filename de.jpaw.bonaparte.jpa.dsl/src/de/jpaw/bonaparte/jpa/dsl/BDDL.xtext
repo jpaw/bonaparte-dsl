@@ -58,17 +58,17 @@ GrantCategoryDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition]
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId]
         (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
     )?
     ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     (('tablespacepattern' tablespacePattern=STRING) | 
      ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
-    (('history' historyCategory=[TableCategoryDefinition] ('sequence' historySequenceName=ID)?) |
+    (('history' historyCategory=[TableCategoryDefinition|QualifiedId] ('sequence' historySequenceName=ID)?) |
      ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID (actualData?='actualData')?))?  
     (requiresPk ?= 'requiresPK')?
     (doBeanVal ?= 'beanVal')?
-    ('grants' grantGroup = [GrantCategoryDefinition])?
+    ('grants' grantGroup = [GrantCategoryDefinition|QualifiedId])?
     '}'
 ;
 
@@ -96,7 +96,7 @@ enum Inheritance:
 EmbeddableDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'embeddable' name = ID 'is' pojoType=[pojos::ClassDefinition]
+    'embeddable' name = ID 'is' pojoType=[pojos::ClassDefinition|QualifiedId]
     (doBeanVal ?= 'beanVal')?
     '{'
         ('@Embeddable' embeddables += EmbeddableUse)*
@@ -111,15 +111,15 @@ EntityDefinition:
     (isAbstract?='abstract')?
     'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
-        'category' tableCategory=[TableCategoryDefinition]
-        'is' pojoType=[pojos::ClassDefinition]
+        'category' tableCategory=[TableCategoryDefinition|QualifiedId]
+        'is' pojoType=[pojos::ClassDefinition|QualifiedId]
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
         (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
-        (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable? or mapped superclass?
+        (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?
         ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
@@ -128,10 +128,10 @@ EntityDefinition:
         (cacheable ?= 'cacheable')?
         // EclipseLink specific caching: do not use
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?
-        ('tenantClass' tenantClass = [pojos::ClassDefinition] (tenantInJoinedTables?='join')?)?
+        ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId] (tenantInJoinedTables?='join')?)?
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
-        ('pk'     ('is' pkPojo = [pojos::ClassDefinition])? (pk       = ListOfColumns)? )?
+        ('pk'     ('is' pkPojo = [pojos::ClassDefinition|QualifiedId])? (pk = ListOfColumns)? )?
         ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
         (('@ManyToOne' manyToOnes += Relationship ) |
@@ -143,7 +143,7 @@ EntityDefinition:
 ;
 
 Relationship:
-    childObject = [EntityDefinition] name = ID 
+    childObject = [EntityDefinition|QualifiedId] name = ID 
     (fetchType = ('LAZY' | 'EAGER'))?
     ('for' referencedFields = ListOfColumns )  // later: add alternative for local field 
 ;
@@ -176,11 +176,11 @@ CollectionDefinition:
 ;
 
 EmbeddableUse:
-    name = [EmbeddableDefinition] 'for' field=[pojos::FieldDefinition] ('prefix' prefix=ID)? ('suffix' suffix=ID)? ('is' isPk = 'pk')?
+    name = [EmbeddableDefinition|QualifiedId] 'for' field=[pojos::FieldDefinition] ('prefix' prefix=ID)? ('suffix' suffix=ID)? ('is' isPk = 'pk')?
 ;
 
 ForeignKeyDefinition:
-    'field' name = [pojos::FieldDefinition] 'references' ownerEntity = [EntityDefinition] '.' referencedFieldName = ID ';'
+    'field' name = [pojos::FieldDefinition] 'references' ownerEntity = [EntityDefinition|QualifiedId] '.' referencedFieldName = ID ';'
 ;
 
 IndexDefinition:

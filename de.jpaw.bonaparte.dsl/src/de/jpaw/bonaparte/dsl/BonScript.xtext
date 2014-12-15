@@ -184,7 +184,7 @@ ClassDefinition:
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     (haveCustomAddons ?= 'customAddons')?
     ('return' returnsClassRef = ClassReference)?
-    ('pk' pkClass = [ClassDefinition])?
+    ('pk' pkClass = [ClassDefinition|QualifiedId])?
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
@@ -223,7 +223,7 @@ XEnumDefinition:
     ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
 //    (isExternalizable = Externalizable)?                // decide if implements Externalizable
 //    ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
-    'is' myEnum=[EnumDefinition]
+    'is' myEnum=[EnumDefinition|QualifiedId]
     ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
 ;
 
