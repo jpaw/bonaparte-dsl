@@ -83,13 +83,14 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     def private static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
         List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
+        val pkColumnNames = pkCols?.map[name]  // cannot compare fields, because they might sit in parallel objects 
         recurse(cl, stopAt, false,
             [ !properties.hasProperty(PROP_NODDL) ],
               embeddables,
             [ '''-- table columns of java class «name»
               '''],
             [ fld, myName, reqType | 
-            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkCols.contains(fld)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
+            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkColumnNames.contains(fld.name)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
               ''']
         )
     }
