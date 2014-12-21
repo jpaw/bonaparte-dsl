@@ -190,6 +190,7 @@ ClassDefinition:
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
         (staticExternalMethods?='static')?                  // adapter methods are static?
         ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
+        (needExtraParam ?= 'needExtraParam')?
         (singleField ?= 'singleField')?
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?
@@ -269,7 +270,9 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
 
 DataType:
     (elementaryDataType=ElementaryDataType
-        | ('(' objectDataType=ClassReference (orSuperClass?='...')? (',' secondaryObjectDataType=ClassReference  (orSecondarySuperClass?='...')?)? ')')  // unfortunately parentheses needed to avoid conflict with typeRef
+        | ('(' objectDataType=ClassReference (orSuperClass?='...')? (',' secondaryObjectDataType=ClassReference  (orSecondarySuperClass?='...')?)? ')'
+            ('for' (extraParameter=[FieldDefinition] | extraParameterString=STRING) )?
+        )  // unfortunately parentheses needed to avoid conflict with typeRef
         | referenceDataType=[TypeDefinition|QualifiedId]
     )  
 ;

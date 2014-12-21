@@ -42,7 +42,7 @@ DefaultsDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition])?
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId])?
     ('setnamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     ('namespace' tablespaceName=ID)?
     '}'
@@ -67,17 +67,17 @@ EntityDefinition:
     (isAbstract?='abstract')?
     'entity' name = ID      // abstract means mappedSuperclass
         // 'type' tabletype=TableType
-        'category' tableCategory=[TableCategoryDefinition]
-        'is' pojoType=[pojos::ClassDefinition]
+        'category' tableCategory=[TableCategoryDefinition|QualifiedId]
+        'is' pojoType=[pojos::ClassDefinition|QualifiedId]
         ('setname' tablename = ID)?  // overwrite auto-generated tablename
         ('namespace' tablespaceName=ID)?
         (('inherits' (extends=[EntityDefinition|QualifiedId])))?
-        (('extends' extendsClass=[pojos::ClassDefinition])  // unused / unusable? or mapped superclass?
+        (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?
         ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
     '{'
-        ('tenantClass' tenantClass = [pojos::ClassDefinition])?
+        ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId])?
         ('tenant'      tenantId = SingleColumn)?
         ('pk'          pk       = ListOfColumns )
         ('index'       indexes += IndexDefinition)*

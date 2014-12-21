@@ -86,20 +86,25 @@ class JavaDeserialize {
             // regular bonaportable
             return '''(«ref.javaType»)«defaultExpression»'''
         } else {
+            val extra =
+                if (i.datatype.extraParameterString !== null)
+                    '''«i.datatype.extraParameterString», '''
+                else if (i.datatype.extraParameter !== null)
+                    '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''  
             // custom types (external types)
             if (objectType.singleField) {
                 if (objectType.staticExternalMethods) {
                     // can use the adapter directly, without type information
-                    return '''«objectType.adapterClassName».unmarshal(meta$$«i.name», p)'''
+                    return '''«objectType.adapterClassName».unmarshal(«extra»meta$$«i.name», p)'''
                 } else {
                     // use the instance itself / and no adapter
-                    return '''«objectType.externalType.qualifiedName».unmarshal(meta$$«i.name», p)'''
+                    return '''«objectType.externalType.qualifiedName».unmarshal(«extra»meta$$«i.name», p)'''
                 }
             } else {
                 if (objectType.staticExternalMethods) {
-                    return '''«objectType.adapterClassName».fromBonaPortable(«defaultExpression», p)'''
+                    return '''«objectType.adapterClassName».fromBonaPortable(«extra»«defaultExpression», p)'''
                 } else {
-                    return '''«objectType.externalType.qualifiedName».fromBonaPortable(«defaultExpression», p)'''
+                    return '''«objectType.externalType.qualifiedName».fromBonaPortable(«extra»«defaultExpression», p)'''
                 }
             }
         }

@@ -497,7 +497,18 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             if (!lowerBoundOfFirst.isSuperClassOf(secondaryObjectDataType)) {
                 error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
             }
-        } 
+        }
+        
+        // check the extra parameter, it may be supplied if and only if the referenced type has an adapter with that flag set!
+        if (objectDataType?.classRef !== null) {
+            if (objectDataType.classRef.needExtraParam) {
+                if (extraParameter === null && extraParameterString === null) 
+                    error("Need extra parameter for a reference to " + objectDataType.classRef.name, BonScriptPackage.Literals.DATA_TYPE__EXTRA_PARAMETER)
+            } else {
+                if (extraParameter !== null || extraParameterString !== null) 
+                    error("Extra parameter not requested by referenced object" + objectDataType.classRef.name, BonScriptPackage.Literals.DATA_TYPE__EXTRA_PARAMETER)
+            }        
+        }
     }
     
     @Check
