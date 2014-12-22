@@ -255,7 +255,17 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.1.1:
 - BDDL: automatically set all columns of natural keys to NOT NULL as well
-- BON & BDDL: allow the use of a qualified ID a lot more (main exception are field name references, which are usually restricted to the current class)
+- BON & BDDL: allow the use of a qualified ID a lot more (main exception are field name references, which are usually
+        restricted to the current class)
+- BDDL: new feature: allow property unroll with an explicit comma separated field list (for example
+        unroll="net,tax1,tax2,tax3"). In this case, the underlying array does not need to have an explicit upper bound.
+- BDDL: bugfix: do not use local variables w and p any more, only ones which start with an underscore, to avoid
+        clashes with single character user fields.
+- BON: revise the API for static adapters. Composers and Parsers are no longer passed into the converter, only an ExceptionConverter.
+- BON: allow to supply external data to an adapter class (for example a currency used by multiple fields)
+- BDDL: classes with adapters now work as embeddables (with and without externally supplied extra data)
+
+
 
 
 ROADMAP / PLANS:
