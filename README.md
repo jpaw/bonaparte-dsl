@@ -49,3 +49,19 @@ This means, data persisted with some older class will be readable with the parse
 
 For more documentation on the Bonaparte DSL, please look at the modules bonaparte-tex, bonaparte-tutorial and bonaparte-tutorial-code
 in the bonaparte-java project.
+
+## JPA DSL
+
+The JPA DSL generates Java JPA 2.0 @Entity classes. Getters and setters for these classes normally work with the Bonaparte DSL data types (DTOs), with internal conversions donw for
+
+* ElementCollections
+
+* unrolling lists
+
+* Embeddables
+
+* Adapter data types
+
+* User data types (depending on configuration)
+
+The JPA DSL also generates SQL DDL statements for the database types Oracle, Postgres, MS SQL Server and (experimentally) MySQL.
