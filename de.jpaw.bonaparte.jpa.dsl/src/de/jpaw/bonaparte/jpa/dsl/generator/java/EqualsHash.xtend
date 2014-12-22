@@ -31,13 +31,16 @@ class EqualsHash {
     // hashCode
     /////////////////////////////////////////////////////////////////////
     
-    def private static hashSub33(FieldDefinition i) '''
-        «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
-            «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n+ ')»
-        «ELSE»
-            («i.name» == null ? 0 : «i.name».hashCode())
-        «ENDIF»
-    '''
+    def private static hashSub33(FieldDefinition i) {
+        val myIndexList = i.indexList
+        return '''
+            «IF myIndexList !== null»
+                «myIndexList.map[i.name + it].map['''(«it» == null ? 0 : «it».hashCode())'''].join('\n+ ')»
+            «ELSE»
+                («i.name» == null ? 0 : «i.name».hashCode())
+            «ENDIF»
+        '''
+    }
     
     def private static writeHashExpressionForSingleField(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
@@ -171,8 +174,8 @@ class EqualsHash {
             «IF i.isArray !== null»
                 && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && __that.«i.name» != null && arrayCompareSub$«i.name»(__that)))
             «ELSEIF i.aggregate»
-                «IF i.isList !== null && i.properties.hasProperty(PROP_UNROLL)»
-                    «(1 .. i.isList.maxcount).map[i.name + String::format(i.indexPattern, it)].map['''&& ((«it» == null && __that.«it» == null) || («it» != null && «it».equals(__that)))'''].join('\n')»
+                «IF i.indexList !== null»
+                    «i.indexList.map[i.name + it].map['''&& ((«it» == null && __that.«it» == null) || («it» != null && «it».equals(__that)))'''].join('\n')»
                 «ELSE»
                     && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && «i.name».equals(__that)))
                 «ENDIF»

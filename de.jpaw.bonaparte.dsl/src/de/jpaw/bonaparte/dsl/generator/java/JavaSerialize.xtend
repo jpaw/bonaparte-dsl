@@ -48,7 +48,7 @@ class JavaSerialize {
             // custom types (external types)
             if (objectType.singleField) {
                 // delegate to first field or the proxy
-                return '''_w.addField(«objectType».meta$$«objectType.fields.get(0).name», «objectType.adapterClassName».marshal(«indexedName»));'''
+                return '''_w.addField(«objectType.name».meta$$«objectType.fields.get(0).name», «objectType.adapterClassName».marshal(«indexedName»));'''
 //                if (objectType.staticExternalMethods) {
 //                    // can use the adapter directly, without type information
 //                    return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», _w);'''

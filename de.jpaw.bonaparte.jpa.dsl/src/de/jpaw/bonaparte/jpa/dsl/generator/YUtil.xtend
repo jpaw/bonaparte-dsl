@@ -273,21 +273,19 @@ class YUtil {
             '''«prefix»«myName.toFirstUpper»«suffix»'''
     }
     
-    def public indexGenerator(FieldDefinition f) {
-        val userPattern = f.properties.getProperty(PROP_UNROLL)
-        if (userPattern === null || userPattern.length == 0)
-            return [Integer i | String.format("%02d", i)]           // default 2 digit counter
-        if (userPattern.indexOf('%') >= 0)
-            return [Integer i | String.format(userPattern, i)]      // user specific counter
-        val String [] nameList = userPattern.split(',')
-        val nameList2 = Arrays.asList(nameList)
-        return [Integer i | return nameList2.get(i-1) ]
+    def private static listForPattern(String pattern, int max) {
+        return (1..max).map[String.format(pattern, it)]
     }
     
-    def public static indexPattern(FieldDefinition f) {
+    def public static indexList(FieldDefinition f) {
+        if (f.isList === null || !f.properties.hasProperty(PROP_UNROLL))
+            return null
         val userPattern = f.properties.getProperty(PROP_UNROLL)
-        val p = if (userPattern !== null && userPattern.length > 0) userPattern.indexOf('%') else -1
-        if (p >= 0) userPattern else "%02d"        
+        if (userPattern === null || userPattern.length == 0)
+            return listForPattern("%02d", f.isList.maxcount)           // default 2 digit counter
+        if (userPattern.indexOf('%') >= 0)
+            return listForPattern(userPattern, f.isList.maxcount)      // user specific counter
+        return Arrays.asList(userPattern.split(','))                    // fallback: explicit list of field names, length of it also determines the maximum number of entries
     }
     
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
@@ -296,13 +294,13 @@ class YUtil {
         boolean noListAtThisPoint, String separator, (FieldDefinition, String, RequiredType) => CharSequence func) {
         // expand Lists first
         val myName = f.name.asEmbeddedName(prefix, suffix)
-        if (!noListAtThisPoint && f.isList !== null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
-            val indexPattern = f.indexPattern;
+        val myIndexList = f.indexList
+        if (!noListAtThisPoint && myIndexList !== null) {
             // lists almost always correspond to nullable fields because we don't know the number of elements
             val newRequired = if (reqType == RequiredType::FORCE_NOT_NULL /* || f.isAggregateRequired */) reqType else RequiredType::FORCE_NULL;
-            val newRequiredInitial = if (reqType == RequiredType::FORCE_NOT_NULL || f.isAggregateRequired) reqType else RequiredType::FORCE_NULL;
-            // actually, if the List is required AND we have a mincount > 0, then the first fields will actually be required
-            (1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''' , if (it > f.isList.mincount) newRequired else newRequiredInitial, true, separator, func)].join(separator)
+            // val newRequiredInitial = if (reqType == RequiredType::FORCE_NOT_NULL || f.isAggregateRequired) reqType else RequiredType::FORCE_NULL;
+            // actually, if the List is required AND we have a mincount > 0, then the first fields will actually be required:  if (it > f.isList.mincount) newRequired else newRequiredInitial
+            myIndexList.map[f.writeFieldWithEmbeddedAndList(embeddables, prefix, '''«suffix»«it»''' , newRequired, true, separator, func)].join(separator)
         } else {
             // see if we need embeddables expansion
             val emb = embeddables?.findFirst[field == f]

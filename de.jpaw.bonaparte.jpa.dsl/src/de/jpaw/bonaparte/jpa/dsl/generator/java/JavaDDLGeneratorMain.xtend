@@ -113,20 +113,6 @@ class JavaDDLGeneratorMain implements IGenerator {
         return result  */        
     }
     
-    // didn't work:
-//    def private static CharSequence onlyLoopUnroll(List<FieldDefinition> l, String prefix, String suffix, (String, String) => CharSequence func) {
-//        l.map[ f |
-//            val myName = f.name.asEmbeddedName(prefix, suffix)
-//            if (f.properties.hasProperty(PROP_UNROLL)) {
-//                val indexPattern = f.indexPattern;
-//                (1 .. f.isList.maxcount).map[String::format(indexPattern, it)].map[func.apply(f.name + it, myName + it)].join(',\n')
-//            } else {
-//                func.apply(f.name, myName)
-//            }
-//        ].join('\n')
-//    }
-    // «fields.onlyLoopUnroll(prefix, suffix, [ fldName, myName2 | '''@AttributeOverride(name="«fldName»", column=@Column(name="«myName2.java2sql»"))'''])»
-    
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables,
             String prefix, String suffix, String currentIndex,
@@ -134,23 +120,23 @@ class JavaDDLGeneratorMain implements IGenerator {
         // expand Lists first
         // if the elements are nullable (!f.isRequired), then any element is transferred. Otherwise, only not null elements are transferred
         val myName = f.name.asEmbeddedName(prefix, suffix)
-        if (!noListAtThisPoint && f.isList !== null && f.isList.maxcount > 0 && f.properties.hasProperty(PROP_UNROLL)) {
-            val indexPattern = f.indexPattern;
+        val myIndexList = f.indexList
+        if (!noListAtThisPoint && myIndexList !== null) {
             val notNullElements = f.isRequired
             // val ref = DataTypeExtension::get(f.datatype);
             return '''
-                «(1 .. f.isList.maxcount).map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«String::format(indexPattern, it)»''', String::format(indexPattern, it), true, false, separator, func)].join(separator)»
+                «myIndexList.map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«it»''', it, true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
                     public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
                         «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
-                        «(1 .. f.isList.maxcount).map['''«IF notNullElements»if (get«myName.toFirstUpper»«String::format(indexPattern, it)»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«String::format(indexPattern, it)»());'''].join('\n')»
+                        «myIndexList.map['''«IF notNullElements»if (get«myName.toFirstUpper»«it»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«it»());'''].join('\n')»
                         return _a;
                     }
                     public void set«myName.toFirstUpper()»(«f.JavaDataTypeNoName(false)» _a) {
-                        «(1 .. f.isList.maxcount).map['''set«myName.toFirstUpper»«String::format(indexPattern, it)»(null);'''].join('\n')»
+                        «myIndexList.map['''set«myName.toFirstUpper»«it»(null);'''].join('\n')»
                         if (_a == null)
                             return;
-                        «(1 .. f.isList.maxcount).map['''if (_a.size() >= «it») set«myName.toFirstUpper»«String::format(indexPattern, it)»(_a.get(«it-1»));'''].join('\n')»
+                        «(1..myIndexList.size).map['''if (_a.size() >= «it») set«myName.toFirstUpper»«myIndexList.get(it-1)»(_a.get(«it-1»));'''].join('\n')»
                     }
                 «ENDIF»
                 '''
@@ -169,12 +155,16 @@ class JavaDDLGeneratorMain implements IGenerator {
                 val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
                 val newPrefix = '''«prefix»«finalPrefix»'''
                 val newSuffix = '''«finalSuffix»«suffix»'''
-                val fields = pojo.allFields  // shorthand...
+                val efields = pojo.allFields  // shorthand...: the fields of the embeddable
                 System::out.println('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
                 
-                val newPojo = '''new «pojo.name»(«fields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
+                val newPojo =
+                    if (pojo.singleField)       // adapter, and special type of it?
+                        '''«myName».get«efields.get(0).name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
+                    else
+                        '''new «pojo.name»(«efields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
                 val extraExternalArgs = if (isExternalType && emb.field?.datatype !== null) {
                     if (emb.field.datatype.extraParameterString !== null)
                         '''«emb.field.datatype.extraParameterString», '''
@@ -207,11 +197,15 @@ class JavaDDLGeneratorMain implements IGenerator {
                         if (_x == null) {
                             «myName» = null;
                         } else {
-                            «IF isExternalType»
-                                «pojo.name» _y = «pojo.adapterClassName».marshal(_x);
-                            «ENDIF»
                             «myName» = new «emb.name.name»();
-                            «fields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
+                            «IF pojo.singleField»
+                                «myName».set«efields.get(0).name.toFirstUpper»(«pojo.adapterClassName».marshal(_x));
+                            «ELSE»
+                                «IF isExternalType»
+                                    «pojo.name» _y = «pojo.adapterClassName».marshal(_x);
+                                «ENDIF»
+                                «efields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
+                            «ENDIF»
                         }
                     }
                 '''
