@@ -128,7 +128,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «myIndexList.map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«it»''', it, true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
                     public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
-                        «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«f.isList.maxcount»);
+                        «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«myIndexList.size»);
                         «myIndexList.map['''«IF notNullElements»if (get«myName.toFirstUpper»«it»() != null) «ENDIF»_a.add(get«myName.toFirstUpper»«it»());'''].join('\n')»
                         return _a;
                     }
