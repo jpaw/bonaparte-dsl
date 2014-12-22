@@ -159,22 +159,32 @@ class JavaDDLGeneratorMain implements IGenerator {
             val emb = embeddables.findFirst[field == f]
             if (emb !== null && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) {
                 // expand embeddable, output it instead of the original column
-                val objectName = emb.name.pojoType.name
+                val pojo = emb.name.pojoType
+                val isExternalType = pojo.externalType !== null // adapter required?
+                val lvar = if (isExternalType) "_y" else "_x"
+                val objectName = if (isExternalType) pojo.externalType.simpleName else pojo.name
                 val nameLengthDiff = f.name.length - objectName.length
                 val tryDefaults = emb.prefix === null && emb.suffix === null && nameLengthDiff > 0
                 val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
                 val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
                 val newPrefix = '''«prefix»«finalPrefix»'''
                 val newSuffix = '''«finalSuffix»«suffix»'''
-                val fields = emb.name.pojoType.allFields  // shorthand...
+                val fields = pojo.allFields  // shorthand...
                 System::out.println('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
                 
+                val newPojo = '''new «pojo.name»(«fields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
+                val extraExternalArgs = if (isExternalType && emb.field?.datatype !== null) {
+                    if (emb.field.datatype.extraParameterString !== null)
+                        '''«emb.field.datatype.extraParameterString», '''
+                    else if (emb.field.datatype.extraParameter !== null)
+                        '''get«emb.field.datatype.extraParameter.name.toFirstUpper»(), '''
+                }
                 return '''
                     «IF newPrefix != "" || newSuffix != ""»
                         @AttributeOverrides({
-                        «emb.name.pojoType.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
+                        «pojo.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
                             [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
                         })
                     «ENDIF»
@@ -184,17 +194,24 @@ class JavaDDLGeneratorMain implements IGenerator {
                         @Embedded
                     «ENDIF»
                     private «emb.name.name» «myName»;
-                    public «emb.name.pojoType.name» get«myName.toFirstUpper()»() {
+                    public «objectName» get«myName.toFirstUpper()»() {
                         if («myName» == null)
                             return null;
-                        return new «emb.name.pojoType.name»(«fields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»);
+                        «IF isExternalType»
+                            return «pojo.adapterClassName».unmarshal(«extraExternalArgs»«newPojo», RuntimeExceptionConverter.INSTANCE);
+                        «ELSE»
+                            return «newPojo»;
+                        «ENDIF»
                     }
-                    public void set«myName.toFirstUpper()»(«emb.name.pojoType.name» _x) {
+                    public void set«myName.toFirstUpper()»(«objectName» _x) {
                         if (_x == null) {
                             «myName» = null;
                         } else {
+                            «IF isExternalType»
+                                «pojo.name» _y = «pojo.adapterClassName».marshal(_x);
+                            «ENDIF»
                             «myName» = new «emb.name.name»();
-                            «fields.map['''«myName».set«name.toFirstUpper»(_x.get«name.toFirstUpper»());'''].join('\n')»
+                            «fields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
                         }
                     }
                 '''
@@ -628,6 +645,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
+        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
         «imports.createImports»
 
         «IF e.javadoc !== null»
@@ -737,6 +755,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
+        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
         «imports.createImports»
 
         @SuppressWarnings("all")
@@ -789,6 +808,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».CompactByteArrayComposer;
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
+        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
         import de.jpaw.bonaparte.jpa.BonaData;
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         «imports.createImports»

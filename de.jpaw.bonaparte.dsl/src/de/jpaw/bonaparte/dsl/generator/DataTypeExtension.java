@@ -326,7 +326,7 @@ public class DataTypeExtension {
             r.category = DataCategory.OBJECT;
             r.orSuperClass = key.isOrSuperClass();
             // construct explicit expanded type information for the object reference (potentially including generics arguments) into javaType
-            r.javaType = XUtil.genericRef2String(key.getObjectDataType());
+            r.javaType = XUtil.genericRef2String(key.getObjectDataType());      // this also includes a possible externalType name
             if (key.getObjectDataType().getClassRef() != null) {
                 r.objectDataType = key.getObjectDataType().getClassRef();
                 // TODO: how to fill objectDataType when we have generics...

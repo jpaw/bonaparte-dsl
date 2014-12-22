@@ -27,39 +27,41 @@ class JavaSerialize {
 
     def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         if (ref.isPrimitive || ref.category == DataCategory.OBJECT)
-            return '''w.addField(meta$$«i.name», «indexedName»);'''
+            return '''_w.addField(meta$$«i.name», «indexedName»);'''
         val String grammarName = e.name.toLowerCase;
         if (grammarName.equals("enum")) {       // enums to be written as their ordinals or tokens, the meta for the enum as well as the expansion are provided
-            '''w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
+            '''_w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
         } else if (grammarName.equals("xenum")) {       // xenums to be written as their tokens, the meta for the enum as well as the expansion are provided
-            '''w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
+            '''_w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);'''
         } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
-            '''if («indexedName» == null) w.writeNull(meta$$«i.name»); else w.addField(meta$$«i.name», «indexedName»);'''
+            '''if («indexedName» == null) _w.writeNull(meta$$«i.name»); else _w.addField(meta$$«i.name», «indexedName»);'''
         } else {
-            '''w.addField(meta$$«i.name», «indexedName»);'''
+            '''_w.addField(meta$$«i.name», «indexedName»);'''
         }
     }
 
     def private static makeWrite(FieldDefinition i, String indexedName, ClassDefinition objectType, DataTypeExtension ref) {
         if (objectType?.externalType === null) {
             // regular bonaportable
-            return '''w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
+            return '''_w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
         } else {
             // custom types (external types)
             if (objectType.singleField) {
-                if (objectType.staticExternalMethods) {
-                    // can use the adapter directly, without type information
-                    return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», w);'''
-                } else {
-                    // use the instance itself / and no adapter
-                    return '''«indexedName».marshal(meta$$«i.name», w);'''
-                }
+                // delegate to first field or the proxy
+                return '''_w.addField(«objectType».meta$$«objectType.fields.get(0).name», «objectType.adapterClassName».marshal(«indexedName»));'''
+//                if (objectType.staticExternalMethods) {
+//                    // can use the adapter directly, without type information
+//                    return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», _w);'''
+//                } else {
+//                    // use the instance itself / and no adapter
+//                    return '''«indexedName».marshal(meta$$«i.name», _w);'''
+//                }
             } else {
                 if (objectType.staticExternalMethods) {
-                    return '''w.addField(meta$$«i.name», «objectType.adapterClassName».toBonaPortable(«indexedName»));'''
+                    return '''_w.addField(meta$$«i.name», «objectType.adapterClassName».marshal(«indexedName»));'''
                 } else {
                     // use the instance itself / and no adapter, write a converted object
-                    return '''w.addField(meta$$«i.name», «indexedName».toBonaPortable());'''
+                    return '''_w.addField(meta$$«i.name», «indexedName».marshal());'''
                 }
             }
         }
@@ -80,14 +82,14 @@ class JavaSerialize {
         else
             return '''
                 if («index» == null) {
-                    w.writeNull(meta$$«i.name»);
-                } else if (pfc.getComponent() == null) {
+                    _w.writeNull(meta$$«i.name»);
+                } else if (_pfc.getComponent() == null) {
                     // full / recursive object output
                     «makeWrite(i, index, ref.objectDataType, ref)»
                 } else {
                     «IF ref.objectDataType?.externalType === null»
                         // write a specific subcomponent
-                        «index».foldedOutput(w, pfc.getComponent());   // recurse specific field
+                        «index».foldedOutput(_w, _pfc.getComponent());   // recurse specific field
                     «ELSE»
                         // no op. Cannot output components of external data types
                     «ENDIF»
@@ -98,35 +100,35 @@ class JavaSerialize {
     def public static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
-        public <_E extends Exception> void serializeSub(MessageComposer<_E> w) throws _E {
+        public <_E extends Exception> void serializeSub(MessageComposer<_E> _w) throws _E {
             «IF d.extendsClass !== null»
                 // recursive call of superclass first
-                super.serializeSub(w);
-                w.writeSuperclassSeparator();
+                super.serializeSub(_w);
+                _w.writeSuperclassSeparator();
             «ENDIF»
             «FOR i:d.fields»
                 «IF i.isAggregate»
                     if («i.name» == null) {
-                        w.writeNullCollection(meta$$«i.name»);
+                        _w.writeNullCollection(meta$$«i.name»);
                     } else {
                         «IF i.isArray !== null»
-                            w.startArray(meta$$«i.name», «i.name».length, 0);
+                            _w.startArray(meta$$«i.name», «i.name».length, 0);
                             for (int _i = 0; _i < «i.name».length; ++_i)
                                 «makeWrite2(d, i, indexedName(i))»
-                            w.terminateArray();
+                            _w.terminateArray();
                         «ELSEIF i.isList !== null || i.isSet !== null»
-                            w.startArray(meta$$«i.name», «i.name».size(), 0);
+                            _w.startArray(meta$$«i.name», «i.name».size(), 0);
                             for («JavaDataTypeNoName(i, true)» _i : «i.name»)
                                 «makeWrite2(d, i, indexedName(i))»
-                            w.terminateArray();
+                            _w.terminateArray();
                         «ELSE»
-                            w.startMap(meta$$«i.name», «i.name».size());
+                            _w.startMap(meta$$«i.name», «i.name».size());
                             for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                 // write (key, value) tuples
-                                w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
+                                _w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
                                 «makeWrite2(d, i, indexedName(i))»
                             }
-                            w.terminateArray();
+                            _w.terminateArray();
                         «ENDIF»
                     }
                 «ELSE»
@@ -140,68 +142,68 @@ class JavaSerialize {
     def public static writeFoldedSerialize(ClassDefinition d) '''
         /* serialize selected fields of the object. */
         @Override
-        public <_E extends Exception> void foldedOutput(MessageComposer<_E> w, ParsedFoldingComponent pfc) throws _E {
-            String _n = pfc.getFieldname();
+        public <_E extends Exception> void foldedOutput(MessageComposer<_E> _w, ParsedFoldingComponent _pfc) throws _E {
+            String _n = _pfc.getFieldname();
             «FOR i:d.fields»
                 if (_n.equals("«i.name»")) {
                     «IF !i.isAggregate»
                         «makeFoldedWrite2(d, i, indexedName(i))»
                     «ELSE»
                         if («i.name» == null) {
-                            w.writeNullCollection(meta$$«i.name»);
+                            _w.writeNullCollection(meta$$«i.name»);
                         } else {
                             «IF i.isArray !== null»
-                                if (pfc.index < 0) {
-                                    w.startArray(meta$$«i.name», «i.name».length, 0);
+                                if (_pfc.index < 0) {
+                                    _w.startArray(meta$$«i.name», «i.name».length, 0);
                                     for (int _i = 0; _i < «i.name».length; ++_i) {
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
-                                    w.terminateArray();
+                                    _w.terminateArray();
                                 } else {
-                                    if (pfc.index < «i.name».length) {
+                                    if (_pfc.index < «i.name».length) {
                                         // output single element
-                                        «makeFoldedWrite2(d, i, i.name + "[pfc.index]")»
+                                        «makeFoldedWrite2(d, i, i.name + "[_pfc.index]")»
                                     }
                                 }
                             «ELSEIF i.isList !== null»
-                                if (pfc.index < 0) {
-                                    w.startArray(meta$$«i.name», «i.name».size(), 0);
+                                if (_pfc.index < 0) {
+                                    _w.startArray(meta$$«i.name», «i.name».size(), 0);
                                     for («JavaDataTypeNoName(i, true)» _i : «i.name») {
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
-                                    w.terminateArray();
+                                    _w.terminateArray();
                                 } else {
-                                    if (pfc.index < «i.name».size()) {
+                                    if (_pfc.index < «i.name».size()) {
                                         // output single element
-                                        «makeFoldedWrite2(d, i, i.name + ".get(pfc.index)")»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(_pfc.index)")»
                                     }
                                 }
                             «ELSEIF i.isSet !== null»
-                                w.startArray(meta$$«i.name», «i.name».size(), 0);
+                                _w.startArray(meta$$«i.name», «i.name».size(), 0);
                                 for («JavaDataTypeNoName(i, true)» _i : «i.name») {
                                     «makeFoldedWrite2(d, i, indexedName(i))»
                                 }
-                                w.terminateArray();
+                                _w.terminateArray();
                             «ELSE»
                                 «IF i.isMap.indexType == "String"»
-                                    if (pfc.alphaIndex == null) {
+                                    if (_pfc.alphaIndex == null) {
                                 «ELSE»
-                                    if (pfc.index < 0) {
+                                    if (_pfc.index < 0) {
                                 «ENDIF»
-                                    w.startMap(meta$$«i.name», «i.name».size());
+                                    _w.startMap(meta$$«i.name», «i.name».size());
                                     for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
                                         // write (key, value) tuples
-                                        w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
+                                        _w.addField(StaticMeta.MAP_INDEX_META_«i.isMap.indexType.toUpperCase», _i.getKey());
                                         «makeFoldedWrite2(d, i, indexedName(i))»
                                     }
-                                    w.terminateArray();
+                                    _w.terminateArray();
                                 } else {
                                     «IF i.isMap.indexType == "String"»
-                                        «makeFoldedWrite2(d, i, i.name + ".get(pfc.alphaIndex)")»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(_pfc.alphaIndex)")»
                                     «ELSEIF i.isMap.indexType == "Integer"»
-                                        «makeFoldedWrite2(d, i, i.name + ".get(Integer.valueOf(pfc.index))")»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(Integer.valueOf(_pfc.index))")»
                                     «ELSE»
-                                        «makeFoldedWrite2(d, i, i.name + ".get(Long.valueOf((long)pfc.index))")»
+                                        «makeFoldedWrite2(d, i, i.name + ".get(Long.valueOf((long)_pfc.index))")»
                                     «ENDIF»
                                 }
                             «ENDIF»
@@ -212,7 +214,7 @@ class JavaSerialize {
             «ENDFOR»
             // not found
             «IF d.extendsClass !== null»
-                super.foldedOutput(w, pfc);
+                super.foldedOutput(_w, _pfc);
             «ENDIF»
         }
 

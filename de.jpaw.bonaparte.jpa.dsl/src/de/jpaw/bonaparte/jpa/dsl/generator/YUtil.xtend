@@ -17,18 +17,20 @@
 package de.jpaw.bonaparte.jpa.dsl.generator
 
 import com.google.common.base.CaseFormat
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.Model
-import org.eclipse.emf.ecore.EObject
-import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
-import java.util.List
-import java.util.ArrayList
-import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.jpa.dsl.bDDL.Model
+import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
+import java.util.ArrayList
+import java.util.Arrays
+import java.util.List
+import org.eclipse.emf.ecore.EObject
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -269,6 +271,17 @@ class YUtil {
             '''«myName»«suffix»'''
         else
             '''«prefix»«myName.toFirstUpper»«suffix»'''
+    }
+    
+    def public indexGenerator(FieldDefinition f) {
+        val userPattern = f.properties.getProperty(PROP_UNROLL)
+        if (userPattern === null || userPattern.length == 0)
+            return [Integer i | String.format("%02d", i)]           // default 2 digit counter
+        if (userPattern.indexOf('%') >= 0)
+            return [Integer i | String.format(userPattern, i)]      // user specific counter
+        val String [] nameList = userPattern.split(',')
+        val nameList2 = Arrays.asList(nameList)
+        return [Integer i | return nameList2.get(i-1) ]
     }
     
     def public static indexPattern(FieldDefinition f) {

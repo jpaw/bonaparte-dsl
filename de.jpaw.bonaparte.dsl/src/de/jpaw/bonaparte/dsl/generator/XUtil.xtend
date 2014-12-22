@@ -156,7 +156,7 @@ class XUtil {
             return r.genericsParameterRef.name
         if (r.classRef !== null) {
             if (r.classRef.externalType !== null)
-                return r.classRef.externalType.qualifiedName
+                return r.classRef.externalType.simpleName       // qualifiedName should not be required, we add the import!
             else
                 return r.classRef.name + genericArgs2String(r.classRefGenericParms)
         }

@@ -25,8 +25,10 @@ public class ImportCollector {
     }
 
     def void addImport(ClassDefinition cl) {
-        if (cl !== null)
+        if (cl !== null) {
             addImport(getPackageName(cl), cl.name)
+            addImport(cl.externalType?.qualifiedName)
+        }
     }
 
     def void addImport(EnumDefinition cl) {
@@ -70,6 +72,10 @@ public class ImportCollector {
             for (gp : d.genericParameters)
                 if (gp.^extends !== null)
                     addImport(gp.^extends)
+                    
+        // external types
+        addImport(d.externalType?.qualifiedName)
+        
         // finally, possibly the parent object
         addImport(d.extendsClass)
         if (recurseFields && d.extendsClass !== null && d.extendsClass.classRef !== null)
@@ -86,6 +92,14 @@ public class ImportCollector {
         }
     }
 
+    def void addImport(String fqon) {
+        if (fqon !== null) {
+            val ind = fqon.lastIndexOf('.')
+            if (ind > 0)
+                addImport(fqon.substring(0, ind), fqon.substring(ind+1))
+        }        
+    }
+    
     def void addImport(String packageName, String objectName) {
         val String currentEntry = requiredImports.get(objectName)
         if (currentEntry === null) // not yet in, fine, add it!
