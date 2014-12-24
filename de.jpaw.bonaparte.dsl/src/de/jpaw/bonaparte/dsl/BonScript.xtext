@@ -240,7 +240,7 @@ EnumDefinition:
 EnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'enum' 'Set' name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
+    'enum' 'Set' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
 ;
 
 EnumAlphaValueDefinition:

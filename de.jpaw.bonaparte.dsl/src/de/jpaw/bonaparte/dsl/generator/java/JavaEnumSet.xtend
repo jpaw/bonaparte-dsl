@@ -27,6 +27,8 @@ class JavaEnumSet {
     def static public writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
         val myPackage = getPackage(d)
+        val bitmapType = d.indexType ?: "int"       // default to int
+        val nameComponent = bitmapType.toFirstUpper
 
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -35,8 +37,8 @@ class JavaEnumSet {
         package «getPackageName(d)»;
         
         import java.util.Iterator;
-        import de.jpaw.enums.AbstractEnumSet;
-        import de.jpaw.bonaparte.enums.BonaEnumSet;
+        import de.jpaw.enums.Abstract«nameComponent»EnumSet;
+        import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;
         
         «IF d.myEnum.package !== d.package»
             import «getPackageName(d.myEnum)».«eName»;
@@ -48,7 +50,7 @@ class JavaEnumSet {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public final class «d.name» extends AbstractEnumSet<«eName»> implements BonaEnumSet<«eName»> {
+        public final class «d.name» extends Abstract«nameComponent»EnumSet<«eName»> implements Bona«nameComponent»EnumSet<«eName»> {
             private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
             
             private static final «eName»[] VALUES = «eName».values();
@@ -74,15 +76,12 @@ class JavaEnumSet {
                 super();
             }
 
-            public «d.name»(final int bitmap) {
+            public «d.name»(final «bitmapType» bitmap) {
                 super(bitmap);
             }
 
-            public static «d.name» of(final «eName»... arg) {
-                int val = 0;
-                for (int i = 0; i < arg.length; ++i)
-                    val |= 1 << arg[i].ordinal();
-                return new «d.name»(val);
+            public static «d.name» of(final «eName»... args) {
+                return new «d.name»(bitmapOf(args));
             }
         }
     '''    

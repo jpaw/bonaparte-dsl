@@ -26,8 +26,10 @@ import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
+import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ListModifier
 import de.jpaw.bonaparte.dsl.bonScript.MapModifier
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
@@ -35,7 +37,9 @@ import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import de.jpaw.bonaparte.dsl.bonScript.SetModifier
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import java.util.HashMap
 import java.util.HashSet
+import java.util.Map
 import org.eclipse.emf.common.util.EList
 import org.eclipse.xtext.validation.Check
 
@@ -43,9 +47,6 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
-import java.util.Map
-import java.util.HashMap
 
 class BonScriptValidator extends AbstractBonScriptValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -620,6 +621,25 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             for (intrface : il.ilist)
                 if (!intrface.isInterface)
                     error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
+        }
+    }
+    
+    @Check
+    def public void checkEnumSetDefinition(EnumSetDefinition es) {
+        if ("String" == es.indexType) {
+            // validate that the referenced enum has alpha, and a token size of 1
+            if (es.myEnum?.avalues.nullOrEmpty) {
+                error('''String type enum sets must reference enums with tokens''', BonScriptPackage.Literals.ENUM_SET_DEFINITION__INDEX_TYPE)
+                return
+            }
+            // check that all tokens have size 1
+            var boolean allOK = true
+            for (z : es.myEnum.avalues) {
+                if (z.token.length != 1)
+                    allOK = false
+            }
+            if (!allOK)
+                error('''String type enum sets must reference enums which have tokens of length 1 only''', BonScriptPackage.Literals.ENUM_SET_DEFINITION__MY_ENUM)
         }
     }
 }
