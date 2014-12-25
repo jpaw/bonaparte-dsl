@@ -12,18 +12,18 @@ import com.google.inject.Inject
  */
 class BDslLabelProvider extends org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider {
 
-	@Inject
-	new(org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider delegate) {
-		super(delegate);
-	}
+    @Inject
+    new(org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider delegate) {
+        super(delegate);
+    }
 
-	// Labels and icons can be computed like this:
-	
-//	def text(Greeting ele) {
-//		'A greeting to ' + ele.name
-//	}
+    // Labels and icons can be computed like this:
+    
+//  def text(Greeting ele) {
+//      'A greeting to ' + ele.name
+//  }
 //
-//	def image(Greeting ele) {
-//		'Greeting.gif'
-//	}
+//  def image(Greeting ele) {
+//      'Greeting.gif'
+//  }
 }

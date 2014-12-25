@@ -12,13 +12,13 @@ package de.jpaw.bonaparte.noSQL.dsl.ui.labeling
  */
 class BDslDescriptionLabelProvider extends org.eclipse.xtext.ui.label.DefaultDescriptionLabelProvider {
 
-	// Labels and icons can be computed like this:
-	
-//	override text(IEObjectDescription ele) {
-//		ele.name.toString
-//	}
-//	 
-//	override image(IEObjectDescription ele) {
-//		ele.EClass.name + '.gif'
-//	}	 
+    // Labels and icons can be computed like this:
+    
+//  override text(IEObjectDescription ele) {
+//      ele.name.toString
+//  }
+//   
+//  override image(IEObjectDescription ele) {
+//      ele.EClass.name + '.gif'
+//  }    
 }

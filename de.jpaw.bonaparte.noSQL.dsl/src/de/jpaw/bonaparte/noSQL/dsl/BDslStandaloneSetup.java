@@ -11,8 +11,8 @@ import de.jpaw.bonaparte.noSQL.dsl.BDslStandaloneSetupGenerated;
  */
 public class BDslStandaloneSetup extends BDslStandaloneSetupGenerated{
 
-	public static void doSetup() {
-		new BDslStandaloneSetup().createInjectorAndDoEMFRegistration();
-	}
+    public static void doSetup() {
+        new BDslStandaloneSetup().createInjectorAndDoEMFRegistration();
+    }
 }
 
