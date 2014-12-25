@@ -86,28 +86,20 @@ class JavaDeserialize {
             // regular bonaportable
             return '''(«ref.javaType»)«defaultExpression»'''
         } else {
+            // custom types (external types)
+            // check for possible extra parameters
             val extra =
                 if (i.datatype.extraParameterString !== null)
                     '''«i.datatype.extraParameterString», '''
                 else if (i.datatype.extraParameter !== null)
-                    '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''  
-            // custom types (external types)
+                    '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''
+            // check for a possible exception converter parameter
+            val exceptionConverterParameter = if (objectType.exceptionConverter) ", _p"  
             if (objectType.singleField) {
                 // delegate to first field or the proxy
-                return '''«objectType.adapterClassName».unmarshal(«extra»«makeRead2(objectType, objectType.fields.get(0), objectType.name + ".")», _p)'''
-//                if (objectType.staticExternalMethods) {
-//                    // can use the adapter directly, without type information
-//                    return '''«objectType.adapterClassName».unmarshal(«extra»meta$$«i.name», _p)'''
-//                } else {
-//                    // use the instance itself / and no adapter
-//                    return '''«objectType.externalType.qualifiedName».unmarshal(«extra»meta$$«i.name», _p)'''
-//                }
+                return '''«objectType.adapterClassName».unmarshal(«extra»«makeRead2(objectType, objectType.fields.get(0), objectType.name + ".")»«exceptionConverterParameter»)'''
             } else {
-                if (objectType.staticExternalMethods) {
-                    return '''«objectType.adapterClassName».unmarshal(«extra»«defaultExpression», _p)'''
-                } else {
-                    return '''«objectType.externalType.qualifiedName».unmarshal(«extra»«defaultExpression», _p)'''
-                }
+                return '''«objectType.adapterClassName».unmarshal(«extra»«defaultExpression»«exceptionConverterParameter»)'''
             }
         }
     }

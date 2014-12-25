@@ -515,6 +515,6 @@ class XUtil {
     }
     
     def public static String getAdapterClassName(ClassDefinition cd) {
-        return cd.bonaparteAdapterClass ?: cd.externalType.qualifiedName
+        return cd.bonaparteAdapterClass ?: cd.externalType.simpleName  // the external type has been imported
     }
 }

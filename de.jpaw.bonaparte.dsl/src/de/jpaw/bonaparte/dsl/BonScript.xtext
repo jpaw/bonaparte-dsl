@@ -137,6 +137,7 @@ PackageDefinition:
          enums   += EnumDefinition |
          enumSets += EnumSetDefinition |
 		 xenums  += XEnumDefinition |
+         xenumSets += XEnumSetDefinition |
          classes += ClassDefinition
         )*
     '}'
@@ -188,10 +189,10 @@ ClassDefinition:
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
-        (staticExternalMethods?='static')?                  // adapter methods are static?
         ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
         (needExtraParam ?= 'needExtraParam')?
         (singleField ?= 'singleField')?
+        (exceptionConverter ?= 'withExceptionConverter')?   // unmarshal possibly throws Exceptions for invalid data which should be enriched with the parsing position
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?
     ('{'
@@ -241,6 +242,12 @@ EnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'enum' 'Set' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
+;
+
+XEnumSetDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
+    'xenum' 'Set' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId] ';'
 ;
 
 EnumAlphaValueDefinition:

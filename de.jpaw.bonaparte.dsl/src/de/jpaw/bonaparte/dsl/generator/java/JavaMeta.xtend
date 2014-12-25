@@ -266,9 +266,9 @@ class JavaMeta {
                 «d.freezable»
                 «IF d.externalType !== null»
                     , «d.singleField»,
-                    «d.staticExternalMethods»,
+                    «d.exceptionConverter»,
                     "«d.externalType.qualifiedName»",
-                    "«d.adapterClassName»"
+                    "«d.bonaparteAdapterClass»"
                 «ENDIF»
             );
 

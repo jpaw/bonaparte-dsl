@@ -171,6 +171,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                     else if (emb.field.datatype.extraParameter !== null)
                         '''get«emb.field.datatype.extraParameter.name.toFirstUpper»(), '''
                 }
+                val marshaller = if (pojo.bonaparteAdapterClass !== null) '''«pojo.adapterClassName».marshal(_x)''' else '''_x.marshal()'''
+                
                 return '''
                     «IF newPrefix != "" || newSuffix != ""»
                         @AttributeOverrides({
@@ -188,7 +190,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         if («myName» == null)
                             return null;
                         «IF isExternalType»
-                            return «pojo.adapterClassName».unmarshal(«extraExternalArgs»«newPojo», RuntimeExceptionConverter.INSTANCE);
+                            return «pojo.adapterClassName».unmarshal(«extraExternalArgs»«newPojo»«IF pojo.exceptionConverter», RuntimeExceptionConverter.INSTANCE«ENDIF»);
                         «ELSE»
                             return «newPojo»;
                         «ENDIF»
@@ -199,10 +201,10 @@ class JavaDDLGeneratorMain implements IGenerator {
                         } else {
                             «myName» = new «emb.name.name»();
                             «IF pojo.singleField»
-                                «myName».set«efields.get(0).name.toFirstUpper»(«pojo.adapterClassName».marshal(_x));
+                                «myName».set«efields.get(0).name.toFirstUpper»(«marshaller»);
                             «ELSE»
                                 «IF isExternalType»
-                                    «pojo.name» _y = «pojo.adapterClassName».marshal(_x);
+                                    «pojo.name» _y = «marshaller»;
                                 «ENDIF»
                                 «efields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
                             «ENDIF»

@@ -16,22 +16,17 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
-import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
-class JavaEnumSet {
+class JavaXEnumSet {
     
-    def static public writeEnumSetDefinition(EnumSetDefinition d) {
-        val eName = d.myEnum.name
+    def static public writeXEnumSetDefinition(XEnumSetDefinition d) {
+        val eName = d.myXEnum.name
         val myPackage = getPackage(d)
-        val bitmapType = d.indexType ?: "int"       // default to int
-        val bitmapTypeWrapper = if (bitmapType == "int") "Integer" else bitmapType.toFirstUpper
-        val nameComponent = bitmapType.toFirstUpper
-//        val nullTest = if (d.nullWhenEmpty) ''' || _es.isEmpty()'''
-//        val nullObject = if (d.nullWhenEmpty) '''new «d.name»(«IF bitmapType == "String"»""«ELSE»0«ENDIF»)''' else '''null'''
 
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -40,12 +35,12 @@ class JavaEnumSet {
         package «getPackageName(d)»;
         
         import java.util.Iterator;
-        import de.jpaw.enums.Abstract«nameComponent»EnumSet;
-        import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;
+        import de.jpaw.enums.AbstractStringXEnumSet;
+        import de.jpaw.bonaparte.enums.BonaStringEnumSet;
         import de.jpaw.bonaparte.core.ExceptionConverter;
         
-        «IF d.myEnum.package !== d.package»
-            import «getPackageName(d.myEnum)».«eName»;
+        «IF d.myXEnum.package !== d.package»
+            import «getPackageName(d.myXEnum)».«eName»;
         «ENDIF»
         
         «IF d.javadoc !== null»
@@ -54,12 +49,9 @@ class JavaEnumSet {
         «IF d.isDeprecated»
         @Deprecated
         «ENDIF»
-        public final class «d.name» extends Abstract«nameComponent»EnumSet<«eName»> implements Bona«nameComponent»EnumSet<«eName»> {
-            private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
+        public final class «d.name» extends AbstractStringXEnumSet<«eName»> implements BonaStringEnumSet<«eName»> {
+            private static final long serialVersionUID = «getSerialUID(d.myXEnum) * 37L»L;
             
-            private static final «eName»[] VALUES = «eName».values();
-
-            private static final int NUMBER_OF_INSTANCES = VALUES.length;
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
@@ -68,19 +60,19 @@ class JavaEnumSet {
 
             @Override
             public final int getMaxOrdinal() {
-                return NUMBER_OF_INSTANCES;
+                return «eName».myFactory.size();
             }
 
             @Override
             public final Iterator<«eName»> iterator() {
-                return new SetOfEnumsIterator<«eName»>(VALUES, getBitmap());
+                return new SetOfXEnumsIterator<«eName»>(getBitmap(), «eName».myFactory);
             }
 
             public «d.name»() {
                 super();
             }
 
-            public «d.name»(final «bitmapType» bitmap) {
+            public «d.name»(final String bitmap) {
                 super(bitmap);
             }
 
@@ -89,11 +81,11 @@ class JavaEnumSet {
             }
             
             // add code for a singleField adapter
-            public «bitmapType» marshal() {
+            public String marshal() {
                 return getBitmap();
             }
 
-            public static <E extends Exception> «d.name» unmarshal(«bitmapTypeWrapper» _bitmap, ExceptionConverter<E> _p) throws E {
+            public static <E extends Exception> «d.name» unmarshal(String _bitmap, ExceptionConverter<E> _p) throws E {
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
         }

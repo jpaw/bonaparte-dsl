@@ -46,23 +46,14 @@ class JavaSerialize {
             return '''_w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
         } else {
             // custom types (external types)
+            // the marshaller is a regular method if no external adapter is provided, else a static method of the adapter class
+            val marshaller = if (objectType.bonaparteAdapterClass !== null) '''«objectType.adapterClassName».marshal(«indexedName»)''' else '''«indexedName».marshal()'''
             if (objectType.singleField) {
-                // delegate to first field or the proxy
-                return '''_w.addField(«objectType.name».meta$$«objectType.fields.get(0).name», «objectType.adapterClassName».marshal(«indexedName»));'''
-//                if (objectType.staticExternalMethods) {
-//                    // can use the adapter directly, without type information
-//                    return '''«objectType.adapterClassName».marshal(meta$$«i.name», «indexedName», _w);'''
-//                } else {
-//                    // use the instance itself / and no adapter
-//                    return '''«indexedName».marshal(meta$$«i.name», _w);'''
-//                }
+                // delegate to first field or the proxy. As that can be a primitive type, must do a null check here...
+                val metaName = '''«objectType.name».meta$$«objectType.fields.get(0).name»'''
+                return '''if («indexedName» == null) _w.writeNull(«metaName»); else _w.addField(«metaName», «marshaller»);'''
             } else {
-                if (objectType.staticExternalMethods) {
-                    return '''_w.addField(meta$$«i.name», «objectType.adapterClassName».marshal(«indexedName»));'''
-                } else {
-                    // use the instance itself / and no adapter, write a converted object
-                    return '''_w.addField(meta$$«i.name», «indexedName».marshal());'''
-                }
+                return '''_w.addField(meta$$«i.name», «marshaller»);'''
             }
         }
     }

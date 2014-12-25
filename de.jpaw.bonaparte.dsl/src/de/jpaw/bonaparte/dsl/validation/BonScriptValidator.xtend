@@ -325,17 +325,17 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
         
-        // verify settings for custom types. These limitations may be lifted in some future extension
-        if (cd.externalType !== null) {
-            // currently, if specifying an adpater, "static" must be set, and vice versa
-            if (cd.staticExternalMethods) {
-                if (cd.bonaparteAdapterClass === null)
-                    error("Currently static external types require an adapter", BonScriptPackage.Literals.CLASS_DEFINITION__STATIC_EXTERNAL_METHODS)
-            } else {
-                if (cd.bonaparteAdapterClass !== null)
-                    error("Currently adapters are only supported when specified as static", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
-            }
-        }
+//        // verify settings for custom types. These limitations may be lifted in some future extension
+//        if (cd.externalType !== null) {
+//            // currently, if specifying an adpater, "static" must be set, and vice versa
+//            if (cd.staticExternalMethods) {
+//                if (cd.bonaparteAdapterClass === null)
+//                    error("Currently static external types require an adapter", BonScriptPackage.Literals.CLASS_DEFINITION__STATIC_EXTERNAL_METHODS)
+//            } else {
+//                if (cd.bonaparteAdapterClass !== null)
+//                    error("Currently adapters are only supported when specified as static", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
+//            }
+//        }
     }
     
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {

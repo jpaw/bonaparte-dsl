@@ -23,6 +23,7 @@ import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
@@ -48,6 +49,10 @@ class JavaPackages {
     def public static getPackageName(XEnumDefinition d) {
         getPackageName(getPackage(d))
     }
+    // create the package name for an enum set
+    def public static getPackageName(XEnumSetDefinition d) {
+        getPackageName(getPackage(d))
+    }
 
     // Utility methods
     def public static getPartiallyQualifiedClassName(ClassDefinition d) {
@@ -60,6 +65,9 @@ class JavaPackages {
         getPackage(d).name + "." + d.name
     }
     def public static getPartiallyQualifiedClassName(XEnumDefinition d) {
+        getPackage(d).name + "." + d.name
+    }
+    def public static getPartiallyQualifiedClassName(XEnumSetDefinition d) {
         getPackage(d).name + "." + d.name
     }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only
