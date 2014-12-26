@@ -223,19 +223,19 @@ public class SqlMapping {
             } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
                 datatype = "date";  // better performance, less memory consumption
             }
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+            if (ref.enumMaxTokenLength >= 0) {
                 datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+            if (ref.enumMaxTokenLength >= 0) {
                 datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             break;
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+            if (ref.enumMaxTokenLength >= 0) {
                 datatype = "nvarchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             if (columnLength > 8000) {
@@ -246,7 +246,7 @@ public class SqlMapping {
         case MYSQL:
 //            String bkp = datatype;
             datatype = dataTypeSqlMySQL.get(datatype);
-            if (ref.allTokensAscii && (ref.enumMaxTokenLength >= 0)) {
+            if (ref.enumMaxTokenLength >= 0) {
                 datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
             }
             

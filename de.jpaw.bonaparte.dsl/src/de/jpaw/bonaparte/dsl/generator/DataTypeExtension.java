@@ -165,8 +165,7 @@ public class DataTypeExtension {
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
     public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
     public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
-    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums
-    public boolean allTokensAscii = true;
+    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums and for xenums
     public DataCategory category = DataCategory.MISC;
 
     static public void clear() {
@@ -396,8 +395,6 @@ public class DataTypeExtension {
                         for (EnumAlphaValueDefinition enumX : ead) {
                             if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
                                 r.enumMaxTokenLength = enumX.getToken().length();
-                                if (!Util.isAsciiString(enumX.getToken()))
-                                    r.allTokensAscii = false;
                             }
                         }
                     }

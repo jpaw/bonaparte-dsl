@@ -120,8 +120,21 @@ class JavaFieldWriter {
                 «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
             }
         }
-        switch (ref.enumMaxTokenLength) {
-            case DataTypeExtension::NO_ENUM:
+        switch (ref.category) {
+            case DataCategory.ENUM:
+                if (ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC)
+                    writeField(c, "Integer", myName, makeEnumNumDefault(c, ref))
+                else
+                    writeField(c, "String", myName, makeEnumAlphanumDefault(c, ref))
+            case DataCategory.XENUM:
+                writeField(c, "String", myName, makeEnumAlphanumDefault(c, ref))
+            case DataCategory.XENUMSET:
+                writeField(c, "String", myName, "")
+            case DataCategory.ENUMSET: {
+                val bitmapType = ref.elementaryDataType.enumsetType.indexType ?: "int"
+                writeField(c, if (bitmapType == "int") "Integer" else bitmapType.toFirstUpper, myName, "")
+            }
+            default: {
                 switch (ref.javaType) {
                     case "LocalTime":
                         if (useUserTypes)
@@ -153,10 +166,7 @@ class JavaFieldWriter {
                         «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
                     '''
                 }
-            case DataTypeExtension::ENUM_NUMERIC:
-                writeField(c, "Integer", myName, makeEnumNumDefault(c, ref))
-            default:
-                writeField(c, if(ref.allTokensAscii) "String" else "Integer", myName, makeEnumAlphanumDefault(c, ref))
+            }
         }
     }
 
@@ -223,6 +233,8 @@ class JavaFieldWriter {
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
+                    «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET»
+                        return «myName» == null ? null : new «ref.javaType»(«myName»);
                     «ELSEIF ref.javaType.equals("LocalTime")»
                         return «myName»«IF !useUserTypes» == null ? null : LocalTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
@@ -234,9 +246,9 @@ class JavaFieldWriter {
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«myName»);       // deep copy
                     «ELSE»
-                        return «myName»;  // here
+                        return «myName»;
                     «ENDIF»
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC»
                     return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
                 «ELSEIF ref.category == DataCategory.XENUM»
                     return «ref.xEnumFactoryName».getByTokenWithNull(«myName»);
@@ -256,41 +268,43 @@ class JavaFieldWriter {
         val ref = DataTypeExtension::get(i.datatype);
         // val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
         return '''
-            public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» «myName») {
+            public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
                 «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
                 (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
-                    if («myName» == null) {
-                        this.«myName» = null;
+                    if (_x == null) {
+                        «myName» = null;
                     } else {
                         «IF hasProperty(i.properties, PROP_COMPACT)»
                             CompactByteArrayComposer _bac = new CompactByteArrayComposer();
                         «ELSE»
                             ByteArrayComposer _bac = new ByteArrayComposer();
                         «ENDIF»
-                        _bac.addField(StaticMeta.OUTER_BONAPORTABLE, «myName»);
-                        this.«myName» = _bac.getBytes();
+                        _bac.addField(StaticMeta.OUTER_BONAPORTABLE, _x);
+                        «myName» = _bac.getBytes();
                     }
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::NO_ENUM»
                     «IF ref.category == DataCategory::OBJECT»
-                        this.«myName» = «myName»;
+                        «myName» = _x;
+                    «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET»
+                        «myName» = _x == null ? null : _x.getBitmap();
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime") || ref.javaType.equals("LocalTime")»
-                        this.«myName» = «IF useUserTypes»«myName»«ELSE»DayTime.to«JDBC4TYPE»(«myName»)«ENDIF»;
+                        «myName» = «IF useUserTypes»_x«ELSE»DayTime.to«JDBC4TYPE»(_x)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
-                        this.«myName» = «IF useUserTypes»«myName»«ELSE»«myName» == null ? null : «myName».getBytes()«ENDIF»;
+                        «myName» = «IF useUserTypes»_x«ELSE»_x == null ? null : _x.getBytes()«ENDIF»;
                     «ELSEIF ref.javaType.equals("byte []")»
-                        this.«myName» = ByteUtil.deepCopy(«myName»);       // deep copy
+                        «myName» = ByteUtil.deepCopy(_x);       // deep copy
                     «ELSE»
-                        this.«myName» = «myName»;
+                        «myName» = _x;
                     «ENDIF»
-                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
-                    this.«myName» = «myName» == null ? null : «myName».ordinal();
+                «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC»
+                    «myName» = _x == null ? null : _x.ordinal();
                 «ELSEIF ref.category == DataCategory.XENUM»
-                    this.«myName» = («myName» == null || «myName» == «ref.xEnumFactoryName».getNullToken()) ? null : «myName».getToken();
+                    «myName» = (_x == null || _x == «ref.xEnumFactoryName».getNullToken()) ? null : _x.getToken();
                 «ELSE»
                     «IF i.isASpecialEnumWithEmptyStringAsNull»
-                        this.«myName» = («myName» == null || «myName» == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull») ? null : «myName».getToken();
+                        «myName» = (_x == null || _x == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull») ? null : _x.getToken();
                     «ELSE»
-                        this.«myName» = «myName» == null ? null : «myName».getToken();
+                        «myName» = _x == null ? null : _x.getToken();
                     «ENDIF»
                 «ENDIF»
             }
