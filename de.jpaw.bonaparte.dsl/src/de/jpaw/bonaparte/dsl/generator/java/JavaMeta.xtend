@@ -43,15 +43,15 @@ class JavaMeta {
         var String extraItem = null  // category specific data
 
         if (i.isArray !== null)
-            multi = "Multiplicity.ARRAY, 0, " + i.isArray.mincount + ", " + i.isArray.maxcount
+            multi = "Multiplicity.ARRAY, IndexType.NONE, " + i.isArray.mincount + ", " + i.isArray.maxcount
         else if (i.isList !== null)
-            multi = "Multiplicity.LIST, 0, " + i.isList.mincount + ", " + i.isList.maxcount
+            multi = "Multiplicity.LIST, IndexType.NONE, " + i.isList.mincount + ", " + i.isList.maxcount
         else if (i.isSet !== null)
-            multi = "Multiplicity.SET, 0, " + i.isSet.mincount + ", " + i.isSet.maxcount
+            multi = "Multiplicity.SET, IndexType.NONE, " + i.isSet.mincount + ", " + i.isSet.maxcount
         else if (i.isMap !== null)
-            multi = "Multiplicity.MAP, " + mapIndexID(i.isMap) + ", " + i.isMap.mincount + ", " + i.isMap.maxcount
+            multi = "Multiplicity.MAP, IndexType." + i.isMap.indexType.toUpperCase + ", " + i.isMap.mincount + ", " + i.isMap.maxcount
         else
-            multi = "Multiplicity.SCALAR, 0, 0, 0"
+            multi = "Multiplicity.SCALAR, IndexType.NONE, 0, 0"
 
         switch (ref.category) {
         case DataCategory::BASICNUMERIC: {
@@ -242,6 +242,7 @@ class JavaMeta {
             
             // extended meta data (for the enhanced interface)
             private static final «externalPrefix»ClassDefinition my$MetaData = new «externalPrefix»ClassDefinition(
+                «d.name».class,
                 «d.isAbstract»,
                 «d.isFinal»,
                 _PARTIALLY_QUALIFIED_CLASS_NAME,

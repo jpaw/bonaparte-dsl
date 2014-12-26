@@ -136,6 +136,7 @@ class JavaXEnum {
             
             // extended meta data (for the enhanced interface)
             private static final XEnumDefinition my$MetaData = new XEnumDefinition(
+                «d.name».class,
                 «d.isAbstract»,
                 «d.isFinal»,
                 _PARTIALLY_QUALIFIED_CLASS_NAME,

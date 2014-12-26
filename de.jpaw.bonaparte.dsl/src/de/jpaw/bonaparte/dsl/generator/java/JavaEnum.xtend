@@ -150,6 +150,7 @@ class JavaEnum {
             
             // extended meta data (for the enhanced interface)
             private static final EnumDefinition my$MetaData = new EnumDefinition(
+                «d.name».class,
                 false,
                 true,
                 _PARTIALLY_QUALIFIED_CLASS_NAME,

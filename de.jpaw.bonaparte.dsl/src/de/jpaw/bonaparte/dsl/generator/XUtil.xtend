@@ -215,15 +215,15 @@ class XUtil {
         if (i.isList !== null || i.isSet !== null) "_i" else if (i.isMap !== null) "_i.getValue()" else if (i.isArray !== null) i.name + "[_i]" else i.name
     }
 
-    def public static int mapIndexID(MapModifier i) {
-        if (i.indexType == "String")
-            return 1
-        if (i.indexType == "Integer")
-            return 2
-        if (i.indexType == "Long")
-            return 3
-        return 0  // should not happen
-    }
+//    def public static int mapIndexID(MapModifier i) {
+//        if (i.indexType == "String")
+//            return 1
+//        if (i.indexType == "Integer")
+//            return 2
+//        if (i.indexType == "Long")
+//            return 3
+//        return 0  // should not happen
+//    }
     def public static int mapIndexLength(MapModifier i) {
         if (i.indexType == "String")
             return 255

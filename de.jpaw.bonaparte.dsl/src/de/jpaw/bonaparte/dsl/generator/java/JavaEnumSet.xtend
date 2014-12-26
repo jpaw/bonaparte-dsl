@@ -123,6 +123,7 @@ class JavaEnumSet {
             
             // extended meta data (for the enhanced interface)
             private static final EnumSetDefinition my$MetaData = new EnumSetDefinition(
+                «d.name».class,
                 false,
                 true,
                 _PARTIALLY_QUALIFIED_CLASS_NAME,
