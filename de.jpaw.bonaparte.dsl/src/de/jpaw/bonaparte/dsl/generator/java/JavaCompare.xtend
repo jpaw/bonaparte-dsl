@@ -184,20 +184,18 @@ class JavaCompare {
         // see http://www.artima.com/lejava/articles/equality.html for all the pitfalls with equals()...
         @Override
         public boolean equals(Object _that) {
-            if (_that == null)
-                return false;
-            if (!(_that instanceof «d.name»))
-                return false;
             if (this == _that)
                 return true;
-            return equalsSub((BonaPortable)_that);
+            if (_that == null || getClass() != _that.getClass())
+                return false;
+            return equalsSub(_that);
         }
 
         «IF d.extendsClass !== null»
         @Override
         «ENDIF»
-        protected boolean equalsSub(BonaPortable _that) {
-            «d.name»«genericDef2StringAsParams(d.genericParameters)» that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)_that;
+        protected boolean equalsSub(Object __that) {
+            «d.name»«genericDef2StringAsParams(d.genericParameters)» _that = («d.name»«genericDef2StringAsParams(d.genericParameters)»)__that;
             «IF d.extendsClass !== null»
                 return super.equalsSub(_that)
             «ELSE»
@@ -205,53 +203,53 @@ class JavaCompare {
             «ENDIF»
             «FOR i:d.fields»
                 «IF i.aggregate»
-                    && ((«i.name» == null && that.«i.name» == null) || («i.name» != null && that.«i.name» != null && xCompareSub$«i.name»(that)))
+                    && ((«i.name» == null && _that.«i.name» == null) || («i.name» != null && _that.«i.name» != null && xCompareSub$«i.name»(_that)))
                 «ELSE»
-                    && «writeCompareStuff(i, i.name, "that." + i.name, "")»
+                    && «writeCompareStuff(i, i.name, "_that." + i.name, "")»
                 «ENDIF»
             «ENDFOR»
             ;
         }
         «FOR i:d.fields»
             «IF i.isArray !== null»
-                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».length != that.«i.name».length)
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» _that) {
+                    // both «i.name» and _that «i.name» are known to be not null
+                    if («i.name».length != _that.«i.name».length)
                         return false;
                     for (int _i = 0; _i < «i.name».length; ++_i)
-                        if (!(«writeCompareStuff(i, i.name + "[_i]", "that." + i.name + "[_i]", "))")»
+                        if (!(«writeCompareStuff(i, i.name + "[_i]", "_that." + i.name + "[_i]", "))")»
                             return false;
                     return true;
                 }
             «ENDIF»
             «IF i.isList !== null»
-                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».size() != that.«i.name».size())
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» _that) {
+                    // both «i.name» and _that «i.name» are known to be not null
+                    if («i.name».size() != _that.«i.name».size())
                         return false;
                     // indexed access is not optional, but sequential access will be left for later optimization
                     for (int _i = 0; _i < «i.name».size(); ++_i)
-                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "that." + i.name + ".get(_i)", "))")»
+                        if (!(«writeCompareStuff(i, i.name + ".get(_i)", "_that." + i.name + ".get(_i)", "))")»
                             return false;
                     return true;
                 }
             «ENDIF»
             «IF i.isSet !== null»
-                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».size() != that.«i.name».size())
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» _that) {
+                    // both «i.name» and _that «i.name» are known to be not null
+                    if («i.name».size() != _that.«i.name».size())
                         return false;
-                    return «i.name».equals(that.«i.name»);
+                    return «i.name».equals(_that.«i.name»);
                 }
             «ENDIF»
             «IF i.isMap !== null»
-                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» that) {
-                    // both «i.name» and that «i.name» are known to be not null
-                    if («i.name».size() != that.«i.name».size())
+                private boolean xCompareSub$«i.name»(«d.name»«genericDef2StringAsParams(d.genericParameters)» _that) {
+                    // both «i.name» and _that «i.name» are known to be not null
+                    if («i.name».size() != _that.«i.name».size())
                         return false;
                     // method is to verify all entries are the same
                     for (Map.Entry<«i.isMap.indexType», «JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) {
-                        «JavaDataTypeNoName(i, true)» _t = that.«i.name».get(_i.getKey());
+                        «JavaDataTypeNoName(i, true)» _t = _that.«i.name».get(_i.getKey());
                         if (!(«writeCompareStuff(i, "_i.getValue()", "_t", "))")»
                             return false;
                     }

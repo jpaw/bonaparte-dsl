@@ -110,7 +110,7 @@ class EqualsHash {
         public boolean equals(Object _that) {
             if (this == _that)
                 return true;
-            if (_that == null || this.getClass() != _that.getClass())
+            if (_that == null || getClass() != _that.getClass())
                 return false;
             return «name» != null && «name».equals(((«e.name»)_that).«name»);
         }
@@ -126,7 +126,7 @@ class EqualsHash {
         public boolean equals(Object _that) {
             if (this == _that)
                 return true;
-            if (_that == null || getClass() != _that.getClass())  // !(_that instanceof «e.name»)
+            if (_that == null || getClass() != _that.getClass())  // !(_that instanceof «e.name») (take care of proxies?)
                 return false;
             return equalsSub(_that);
         }
@@ -198,7 +198,7 @@ class EqualsHash {
         «IF e.extendsClass !== null»
             return super.equalsSub(_that)
         «ELSE»
-            return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fiels as well
+            return true  // there is possible issue here if the related entity extends a Java class for relations, which declares fields as well
         «ENDIF»
             «e.pojoType.fields.writeEqualsSubForListOfFields»
             ;
@@ -231,12 +231,10 @@ class EqualsHash {
     def public static writeKeyEquals(String name, List<FieldDefinition> fields) '''
         @Override
         public boolean equals(Object _that) {
-            if (_that == null)
-                return false;
-            if (!(_that instanceof «name»))
-                return false;
             if (this == _that)
                 return true;
+            if (_that == null || !(_that instanceof «name»))
+                return false;
             «name» __that = («name»)_that;
             return true
             «fields.writeEqualsSubForListOfFields»
