@@ -99,7 +99,7 @@ class JavaEnum {
 
             private static final long serialVersionUID = «getSerialUID(d)»L;
             
-            «writeEnumMetaData(d)»
+            «d.writeEnumMetaData»
             
             public static «d.name» valueOf(Integer ordinal) {
                 if (ordinal != null) {
@@ -122,10 +122,9 @@ class JavaEnum {
         '''
     }
     
-    def public static writeEnumMetaData(EnumDefinition d) {
+    def private static writeEnumMetaData(EnumDefinition d) {
         val myPackage = d.package
         return '''
-            // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;

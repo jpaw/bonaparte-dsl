@@ -26,7 +26,6 @@ class JavaEnumSet {
     
     def static public writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
-        val myPackage = getPackage(d)
         val bitmapType = d.indexType ?: "int"       // default to int
         val bitmapTypeWrapper = if (bitmapType == "int") "Integer" else bitmapType.toFirstUpper
         val nameComponent = bitmapType.toFirstUpper
@@ -40,9 +39,13 @@ class JavaEnumSet {
         package «getPackageName(d)»;
         
         import java.util.Iterator;
+        import org.joda.time.Instant;
+        
         import de.jpaw.enums.Abstract«nameComponent»EnumSet;
         import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;
         import de.jpaw.bonaparte.core.ExceptionConverter;
+        import de.jpaw.bonaparte.pojos.meta.EnumSetDefinition;
+        import de.jpaw.bonaparte.pojos.meta.IndexType;
         
         «IF d.myEnum.package !== d.package»
             import «getPackageName(d.myEnum)».«eName»;
@@ -58,13 +61,9 @@ class JavaEnumSet {
             private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
             
             private static final «eName»[] VALUES = «eName».values();
-
             private static final int NUMBER_OF_INSTANCES = VALUES.length;
-            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
-            private static final String _PARENT = null;
-            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
 
-            «JavaMeta.writeCommonMetaData»
+            «d.writeEnumSetMetaData(bitmapTypeWrapper)»
 
             @Override
             public final int getMaxOrdinal() {
@@ -96,7 +95,52 @@ class JavaEnumSet {
             public static <E extends Exception> «d.name» unmarshal(«bitmapTypeWrapper» _bitmap, ExceptionConverter<E> _p) throws E {
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
+
+            public «d.name» get$MutableClone(boolean deepCopy, boolean unfreezeCollections) {
+                return new «d.name»(getBitmap());
+            }
+
+            public «d.name» get$FrozenClone() {
+                if (is$Frozen()) {
+                    return this;
+                } else {
+                    «d.name» _new = new «d.name»(getBitmap());
+                    _new.freeze();
+                    return _new;
+                }
+            }
         }
     '''    
+    }
+
+    def private static writeEnumSetMetaData(EnumSetDefinition d, String indexType) {
+        val myPackage = d.package
+        
+        return '''
+            private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
+            private static final String _PARENT = null;
+            private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            
+            // extended meta data (for the enhanced interface)
+            private static final EnumSetDefinition my$MetaData = new EnumSetDefinition(
+                false,
+                true,
+                _PARTIALLY_QUALIFIED_CLASS_NAME,
+                _PARENT,
+                _BUNDLE,
+                Instant.now(),
+                null,
+                // now specific enumset items
+                IndexType.«indexType.toUpperCase»,
+                «d.myEnum.name».enum$MetaData()
+            );
+
+            // get all the meta data in one go
+            static public EnumSetDefinition enumset$MetaData() {
+                return my$MetaData;
+            }
+
+            «JavaMeta.writeCommonMetaData»
+        '''
     }
 }

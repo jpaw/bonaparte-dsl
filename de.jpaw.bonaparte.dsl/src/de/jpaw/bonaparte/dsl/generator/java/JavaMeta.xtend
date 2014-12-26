@@ -33,13 +33,6 @@ class JavaMeta {
     public static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 3, 'short' -> 5, 'int' -> 10, 'long' -> 19, 'float' -> 9, 'double' -> 15, 'integer' -> 10, 'biginteger' -> 4000 }
     public static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0, 'biginteger' -> 0 }
     
-    def private static metaVisibility(ClassDefinition d) {
-            '''public'''
-    }
-    def private static metaVisibility(ClassDefinition d, boolean forcePublic) {
-            '''public'''
-    }
-    
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -48,7 +41,6 @@ class JavaMeta {
         var String visibility = getFieldVisibility(d, i).getName()
         var String ext = ""  // category specific data
         var String extraItem = null  // category specific data
-        var boolean forcePublicMeta = false
 
         if (i.isArray !== null)
             multi = "Multiplicity.ARRAY, 0, " + i.isArray.mincount + ", " + i.isArray.maxcount
@@ -68,26 +60,26 @@ class JavaMeta {
             val len = if (elem.length > 0) elem.length else TOTAL_DIGITS.get(type)
             val frac = if (elem.length > 0) elem.decimals else DECIMAL_DIGITS.get(type)
             ext = ''', «b2A(ref.effectiveSigned)», «len», «frac», «b2A(ref.effectiveRounding)»'''
-            }
+        }
         case DataCategory::NUMERIC: {
             classname = "NumericElementaryDataItem"
             ext = ''', «b2A(ref.effectiveSigned)», «elem.length», «elem.decimals», «b2A(ref.effectiveRounding)», «b2A(ref.effectiveAutoScale)»'''
-            }
+        }
         case DataCategory::STRING: {
             classname = "AlphanumericElementaryDataItem"
             ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «b2A(!elem.name.toLowerCase.equals("unicode"))», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
-            }
+        }
         case DataCategory::ENUM: {
             classname = "EnumDataItem"
             if (ref.enumMaxTokenLength >= 0)
                 // separate item for the token
                 extraItem = '''
-                    «d.metaVisibility» static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                    public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
                         "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             else
                 extraItem = '''
-                    «d.metaVisibility» static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                    public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
                         "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
                 '''
             ext = ''', «elem.enumType.name».enum$MetaData()'''
@@ -96,23 +88,34 @@ class JavaMeta {
             classname = "XEnumDataItem"
             // separate item for the token. TODO: Do I need this here?
             extraItem = '''
-                «d.metaVisibility» static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
                     "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
+        case DataCategory::ENUMSET: {
+            if ("String" == elem.enumsetType.indexType) {
+                classname = "AlphanumericEnumSetDataItem"
+                ext = ''', false, false, false, false, «elem.enumsetType.myEnum.name».enum$MetaData().getIds().size(), 0, null, «elem.enumsetType.name».enumset$MetaData()'''
+            } else {
+                classname = "NumericEnumSetDataItem"
+                ext = ''', false, «TOTAL_DIGITS.get(elem.enumsetType.indexType ?: "int")», 0, false, «elem.enumsetType.name».enumset$MetaData()'''
+            }
+        }
+        case DataCategory::XENUMSET: {
+            classname = "XEnumSetDataItem"
+            ext = ''', false, false, false, false, «elem.length», 0, null, «elem.xenumsetType.name».xenumset$MetaData()'''
+        }
         case DataCategory::TEMPORAL: {
             classname = "TemporalElementaryDataItem"
             ext = ''', «elem.length», «elem.doHHMMSS»'''
-            }
+        }
         case DataCategory::OBJECT: {
             classname = "ObjectReference"
             if (elem !== null) {
                  // just "Object"
-                forcePublicMeta = true        // hack required by BDDL: serialized fields need to access the metadata, as they invoke special serializers  
                 ext = ''', true, "BonaPortable", null, null, null'''
             } else {
-                forcePublicMeta = i.properties.hasProperty("serialized")        // hack required by BDDL: serialized fields need to access the metadata, as they invoke special serializers  
                 val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
                 val meta = if (myLowerBound === null) "null" else '''«myLowerBound.name».class$MetaData()'''
                 val myLowerBound2 = ref.secondaryObjectDataType
@@ -123,15 +126,13 @@ class JavaMeta {
         case DataCategory::BINARY: {
             classname = "BinaryElementaryDataItem"
             ext = ''', «elem.length»'''
-            }
-        default: {
+        }
+        default:
             classname = "MiscElementaryDataItem"
-            ext = ''''''
-            }
         }
         return '''
             «extraItem»
-            «d.metaVisibility(forcePublicMeta)» static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+            public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
                 "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
             '''
     }

@@ -56,6 +56,8 @@ public class DataTypeExtension {
     public static final int ENUM_NUMERIC = -1;
     public static final String SPECIAL_DATA_TYPE_ENUM = "@";
     public static final String SPECIAL_DATA_TYPE_XENUM = "#";
+    public static final String SPECIAL_DATA_TYPE_ENUMSET = "@S";
+    public static final String SPECIAL_DATA_TYPE_XENUMSET = "#S";
 
     // a lookup to determine if a data type can (should) be implemented as a Java primitive.
     // (LANGUAGE SPECIFIC: JAVA)
@@ -97,6 +99,8 @@ public class DataTypeExtension {
         dataCategory.put("unicode",   DataCategory.STRING);
         dataCategory.put("enum",      DataCategory.ENUM);       // artificial entry for enum
         dataCategory.put("xenum",     DataCategory.XENUM);      // artificial entry for xenum
+        dataCategory.put("enumset",   DataCategory.ENUMSET);    // artificial entry for enum
+        dataCategory.put("xenumset",  DataCategory.XENUMSET);   // artificial entry for xenum
         dataCategory.put("object",    DataCategory.OBJECT);     // which is really an object reference instead of an elementary item...
     }
 
@@ -131,6 +135,8 @@ public class DataTypeExtension {
         dataTypeJava.put("unicode",   "String");
         dataTypeJava.put("enum",      SPECIAL_DATA_TYPE_ENUM);              // artificial entry for enum
         dataTypeJava.put("xenum",     SPECIAL_DATA_TYPE_XENUM);             // artificial entry for xenum
+        dataTypeJava.put("enumset",   SPECIAL_DATA_TYPE_ENUMSET);           // artificial entry for enum
+        dataTypeJava.put("xenumset",  SPECIAL_DATA_TYPE_XENUMSET);          // artificial entry for xenum
         dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
     }
 
@@ -378,32 +384,42 @@ public class DataTypeExtension {
             // special handling for enums
             if (r.javaType == null)
                 throw new Exception("unmapped Java data type for " + e.getName());
-            else if (r.javaType.equals(SPECIAL_DATA_TYPE_ENUM)) {  // special case for enum types: replace java type by referenced class
-                r.javaType = e.getEnumType().getName();
-                // also count the max length if alphanumeric
-                EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
-                r.enumMaxTokenLength = ENUM_NUMERIC;
-                if (ead != null && !ead.isEmpty()) {
-                    // compute the maximum length of all tokens, could be useful for derived grammars...
-                    for (EnumAlphaValueDefinition enumX : ead) {
-                        if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
-                            r.enumMaxTokenLength = enumX.getToken().length();
-                            if (!Util.isAsciiString(enumX.getToken()))
-                                r.allTokensAscii = false;
-                        }
-                    }
-                }
-            } else if (r.javaType.equals(SPECIAL_DATA_TYPE_XENUM)) {  // special case for xenum types: replace java type by referenced class
-                XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
-                r.javaType = root.getName();
-                r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
+            else {
+            	switch (r.javaType) {
+            	case SPECIAL_DATA_TYPE_ENUM:  // special case for enum types: replace java type by referenced class
+            		r.javaType = e.getEnumType().getName();
+            		// also count the max length if alphanumeric
+            		EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
+            		r.enumMaxTokenLength = ENUM_NUMERIC;
+            		if (ead != null && !ead.isEmpty()) {
+            			// compute the maximum length of all tokens, could be useful for derived grammars...
+            			for (EnumAlphaValueDefinition enumX : ead) {
+            				if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
+            					r.enumMaxTokenLength = enumX.getToken().length();
+            					if (!Util.isAsciiString(enumX.getToken()))
+            						r.allTokensAscii = false;
+            				}
+            			}
+            		}
+            		break;
+            	case SPECIAL_DATA_TYPE_XENUM:  // special case for xenum types: replace java type by referenced class
+            		XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
+            		r.javaType = root.getName();
+            		r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
+            		break;
+                case SPECIAL_DATA_TYPE_ENUMSET:
+                    r.javaType = e.getEnumsetType().getName();
+                    break;
+                case SPECIAL_DATA_TYPE_XENUMSET:
+                    r.javaType = e.getXenumsetType().getName();
+                    break;
+            	case "String":
+            		// special treatment for uppercase / lowercase shorthands
+            		if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
+            			r.isUpperCaseOrLowerCaseSpecialType = true;
+            		break;
+            	}
             }
-            
-            // special treatment for uppercase / lowercase shorthands
-            if (r.javaType.equals("String"))
-                if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
-                    r.isUpperCaseOrLowerCaseSpecialType = true;
-
             //System.out.println("setting elem data type: " + e.getName() + String.format(": wasUpper=%b, primitive=%b, length=%d, key=",
             //      r.wasUpperCase, r.isPrimitive, e.getLength()) + key);
         }

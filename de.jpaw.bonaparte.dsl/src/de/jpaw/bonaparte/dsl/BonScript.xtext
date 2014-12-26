@@ -241,13 +241,13 @@ EnumDefinition:
 EnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'enum' 'Set' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
+    'enumset' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
 ;
 
 XEnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'xenum' 'Set' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId] ';'
+    'xenumset' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId] ';'
 ;
 
 EnumAlphaValueDefinition:
@@ -307,6 +307,8 @@ ElementaryDataType:
               | "uuid"    | "Uuid"     | "object"    | "Object" )
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId] (enumDefault?='default')? )  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name = ('xenum'| 'XEnum') xenumType = [XEnumDefinition|QualifiedId] (enumDefault?='default')? )  // xenums are not precisely elementary data types in Java, but they do not require recursing another class
+      | (name = ('enumset'| 'Enumset') enumsetType = [EnumSetDefinition|QualifiedId] )
+      | (name = ('xenumset'| 'XEnumset') xenumsetType = [XEnumSetDefinition|QualifiedId] "(" length=INT ")")
       | (name= ("instant" | "Instant" | "timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time or Java8 java.time.* types
       | ( 
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)

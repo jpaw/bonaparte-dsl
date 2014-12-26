@@ -1,15 +1,18 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
-import java.util.Map
-import java.util.HashMap
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.DataCategory
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.XUtil
+import java.util.HashMap
+import java.util.Map
+
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 public class ImportCollector {
     private Map<String, String> requiredImports
@@ -37,8 +40,27 @@ public class ImportCollector {
     }
 
     def void addImport(XEnumDefinition cl) {
-        if (cl !== null)
+        if (cl !== null) {
             addImport(getPackageName(cl), cl.name)
+            addImport(cl.myEnum)    
+            val root = XUtil.getRoot(cl)
+            if (root != cl)
+                addImport(root) // avoid endless loop
+        }
+    }
+    
+    def void addImport(EnumSetDefinition cl) {
+        if (cl !== null) {
+            addImport(getPackageName(cl), cl.name)
+            addImport(cl.myEnum)    
+        }
+    }
+
+    def void addImport(XEnumSetDefinition cl) {
+        if (cl !== null) {
+            addImport(getPackageName(cl), cl.name)
+            addImport(cl.myXEnum)    
+        }
     }
     
     // same code as in JavaBonScriptGenerator...
@@ -59,11 +81,16 @@ public class ImportCollector {
                 if (ref.genericsRef !== null)
                     addImport(ref.genericsRef) // referenced enums
                 // if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase().equals("enum"))
-                if (ref.category == DataCategory::ENUM)
+                switch (ref.category) {
+                case DataCategory::ENUM:
                     addImport(ref.elementaryDataType.enumType)
-                if (ref.category == DataCategory::XENUM) {
-                    addImport(XUtil.getRoot(ref.elementaryDataType.xenumType))
-                    addImport(ref.elementaryDataType.xenumType.myEnum)
+                case DataCategory::XENUM:
+                    addImport(ref.elementaryDataType.xenumType)
+                case DataCategory::ENUMSET:
+                    addImport(ref.elementaryDataType.enumsetType)
+                case DataCategory::XENUMSET:
+                    addImport(ref.elementaryDataType.xenumsetType)
+                default: {}
                 }
             }
         }

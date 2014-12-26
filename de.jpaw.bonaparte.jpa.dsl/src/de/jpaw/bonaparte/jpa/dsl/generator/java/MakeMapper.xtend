@@ -26,30 +26,41 @@ import static de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class MakeMapper {
-    def private static simpleGetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
-        «FOR i:pojo.fields»
-            «IF !hasProperty(i.properties, PROP_NOJAVA) &&!inList(fieldsToIgnore, i)»
-                «IF !hasProperty(i.properties, PROP_REF)»
-                    «variable».set«i.name.toFirstUpper»(get«i.name.toFirstUpper»());
-                «ELSEIF hasProperty(i.properties, PROP_SIMPLEREF)»
-                    «variable».set«i.name.toFirstUpper»(new «i.JavaDataTypeNoName(true)»(get«i.name.toFirstUpper»()));
-                «ENDIF»
-            «ENDIF»
-        «ENDFOR»
+    def private static simpleGetter(FieldDefinition i, boolean setter) {
+        if (!hasProperty(i.properties, PROP_NOJAVA)) {
+            var getMe = '''get«i.name.toFirstUpper»()'''
+            if (hasProperty(i.properties, PROP_SIMPLEREF))
+                getMe = '''new «i.JavaDataTypeNoName(true)»(«getMe»)'''
+            else if (hasProperty(i.properties, PROP_REF))
+                return null
+            if (setter)
+                getMe = '''_r.set«i.name.toFirstUpper»(«getMe»);'''
+            return getMe 
+        }
+        return null
+    }
+    
+    def private static List<String> recurseDataGetter(ClassDefinition cl, boolean setter) {
+        return cl.allFields.map[simpleGetter(setter)].filterNull.toList
+    }
+    
+    def private static returnAsType(ClassDefinition cl) '''
+        «IF cl.immutable»
+            return new «cl.name»(«cl.recurseDataGetter(false).join(', ')»);
+        «ELSE»
+            «cl.name» _r = new «cl.name»();
+            «cl.recurseDataGetter(true).join('\n')»
+            return _r;
+         «ENDIF»
     '''
-    def private static CharSequence recurseDataGetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
-        «IF cl.extendsClass?.classRef !== null»
-            «recurseDataGetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»
-        «ENDIF»
-        «simpleGetter("_r", cl, fieldsToIgnore)»
-    '''
+    
     def private static simpleSetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
         «FOR i:pojo.fields»
             «IF !hasProperty(i.properties, PROP_NOJAVA) && !inList(fieldsToIgnore, i)»
-                «IF !hasProperty(i.properties, PROP_REF)»
-                    set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»());
-                «ELSEIF hasProperty(i.properties, PROP_SIMPLEREF)»
+                «IF hasProperty(i.properties, PROP_SIMPLEREF)»
                     set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»().«i.properties.getProperty(PROP_SIMPLEREF)»);
+                «ELSEIF !hasProperty(i.properties, PROP_REF)»
+                    set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»());
                 «ENDIF»
             «ENDIF»
         «ENDFOR»
@@ -82,9 +93,7 @@ class MakeMapper {
         «ENDIF»
         @Override
         public «pojo.name» get$Data() {
-            «pojo.name» _r = new «pojo.name»();
-            «recurseDataGetter(pojo, null, embeddables)»
-            return _r;
+            «pojo.returnAsType»
         }
         @Override
         public void set$Data(«rootPojo.name» _d) {
@@ -131,9 +140,7 @@ class MakeMapper {
             «IF pojo === null»
                 return null;
             «ELSE»
-                «pojoname» _r = new «pojoname»();
-                «recurseDataGetter(pojo, null, null)»
-                return _r;
+                «pojo.returnAsType»
             «ENDIF»
         }
         @Override

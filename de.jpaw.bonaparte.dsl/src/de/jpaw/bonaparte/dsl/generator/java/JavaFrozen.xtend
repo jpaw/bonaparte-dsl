@@ -29,6 +29,11 @@ class JavaFrozen {
         return ref.objectDataType !== null && (ref.objectDataType.immutable || ref.objectDataType.externalType !== null)
     }
     
+    def private static boolean noFreezeBecauseImmutable(DataTypeExtension ref) {
+        return (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT && ref.category != DataCategory.ENUMSET && ref.category != DataCategory.XENUMSET)
+          || (ref.objectDataType !== null && ref.objectDataType.immutable);
+    }
+    
     def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {
         if (ref.supportsNoFreeze)
             return null  // no .freeze() required / exists
@@ -53,7 +58,7 @@ class JavaFrozen {
     // write the code to freeze one field.
     def private static writeFreezeField(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
-        if (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT) {
+        if (ref.noFreezeBecauseImmutable) {
             if (i.aggregate) {  // Set, Map, List are possible here, classes which contain arrays are not freezable!
                 val token = i.aggregateToken
                 '''
@@ -111,7 +116,7 @@ class JavaFrozen {
     // write the code to freeze one field into another class
     def private static writeFreezeFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
-        if (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT) {
+        if (ref.noFreezeBecauseImmutable) {
             if (i.aggregate) {
                 val token = i.aggregateToken
                 '''
@@ -164,7 +169,7 @@ class JavaFrozen {
     def private static writeToMutableFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
         if (!i.aggregate) {
-            if (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT) {
+            if (ref.noFreezeBecauseImmutable) {
                 '''
                 _new.«i.name» = «i.name»;
                 '''
@@ -180,7 +185,7 @@ class JavaFrozen {
                 _new.«i.name» = «i.name»;
             } else {
                 // unfreeze collection
-                «IF (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT)»
+                «IF ref.noFreezeBecauseImmutable»
                     «IF i.isArray !== null»
                         _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
                     «ELSEIF i.isList !== null»
