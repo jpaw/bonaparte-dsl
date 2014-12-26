@@ -47,6 +47,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 class BonScriptValidator extends AbstractBonScriptValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
@@ -325,17 +326,23 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
         
-//        // verify settings for custom types. These limitations may be lifted in some future extension
-//        if (cd.externalType !== null) {
-//            // currently, if specifying an adpater, "static" must be set, and vice versa
-//            if (cd.staticExternalMethods) {
-//                if (cd.bonaparteAdapterClass === null)
-//                    error("Currently static external types require an adapter", BonScriptPackage.Literals.CLASS_DEFINITION__STATIC_EXTERNAL_METHODS)
-//            } else {
-//                if (cd.bonaparteAdapterClass !== null)
-//                    error("Currently adapters are only supported when specified as static", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
-//            }
-//        }
+        // verify settings for custom types. These limitations may be lifted in some future extension
+        if (cd.externalType !== null) {
+            // currently, if specifying an adpater, "static" must be set, and vice versa
+            if (!cd.final) {
+                error("Currently external types must be declared as final", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
+            }
+            if (!cd.immutable) {
+                error("Currently external types must be declared as immutable", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
+            }
+            
+            if (cd.singleField) {
+                if (cd.rtti != 0)
+                    warning("singleField adapters don't need a RTTI value, because the class is just a wrapper", BonScriptPackage.Literals.CLASS_DEFINITION__RTTI)
+                if (cd.hazelcastId != 0)
+                    warning("singleField adapters don't need a classId value, because the class is just a wrapper", BonScriptPackage.Literals.CLASS_DEFINITION__HAZELCAST_ID)
+            }
+        }
     }
     
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {
@@ -624,6 +631,16 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         }
     }
     
+    def private void hasMoreThan(EnumDefinition e, int entries) {
+        var num = 0
+        if (e.avalues !== null && e.avalues.size > 0)
+            num = e.avalues.size
+        if (e.values !== null && e.values.size > 0)
+            num = e.values.size
+        if (num > entries)
+            error("enum has more than " + entries + " instances", BonScriptPackage.Literals.ENUM_SET_DEFINITION__MY_ENUM)
+    }
+    
     @Check
     def public void checkEnumSetDefinition(EnumSetDefinition es) {
         if ("String" == es.indexType) {
@@ -640,6 +657,25 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
             if (!allOK)
                 error('''String type enum sets must reference enums which have tokens of length 1 only''', BonScriptPackage.Literals.ENUM_SET_DEFINITION__MY_ENUM)
+        } else if ("byte" == es.indexType) {
+            // may have at max 7 instances
+            es.myEnum.hasMoreThan(7)
+        } else if ("short" == es.indexType) {
+            // may have at max 15 instances
+            es.myEnum.hasMoreThan(15)
+        } else if (es.indexType === null || "int" == es.indexType) {
+            // may have at max 31 instances
+            es.myEnum.hasMoreThan(31)
+        } else if ("long" == es.indexType) {
+            // may have at max 63 instances
+            es.myEnum.hasMoreThan(63)
         }
+    }
+    
+    @Check
+    def public void checkXEnumSetDefinition(XEnumSetDefinition es) {
+        val tokenLength = getOverallMaxLength(es.myXEnum)
+        if (tokenLength != 1)
+            error("max length of tokens must be 1, but is " + tokenLength, BonScriptPackage.Literals.XENUM_SET_DEFINITION__MY_XENUM)
     }
 }

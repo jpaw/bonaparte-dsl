@@ -264,6 +264,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: revise the API for static adapters. Composers and Parsers are no longer passed into the converter, only an ExceptionConverter.
 - BON: allow to supply external data to an adapter class (for example a currency used by multiple fields)
 - BDDL: classes with adapters now work as embeddables (with and without externally supplied extra data)
+- BON: add Class<?> field per adapter to meta data.
+- BON: refine equals(). Clean up deprecated methods.
+- BON: add some plausis that adapter classes must be declared "final". Remove static keyword. Instead auto-switch between member method and static method for marshal() depending on use of external adapter.
+- BDDL: enumsets and xenumsets
+- BON: apache poi upgraded from 3.10.1 to 3.11
 
 
 
