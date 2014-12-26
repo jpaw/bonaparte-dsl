@@ -385,40 +385,40 @@ public class DataTypeExtension {
             if (r.javaType == null)
                 throw new Exception("unmapped Java data type for " + e.getName());
             else {
-            	switch (r.javaType) {
-            	case SPECIAL_DATA_TYPE_ENUM:  // special case for enum types: replace java type by referenced class
-            		r.javaType = e.getEnumType().getName();
-            		// also count the max length if alphanumeric
-            		EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
-            		r.enumMaxTokenLength = ENUM_NUMERIC;
-            		if (ead != null && !ead.isEmpty()) {
-            			// compute the maximum length of all tokens, could be useful for derived grammars...
-            			for (EnumAlphaValueDefinition enumX : ead) {
-            				if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
-            					r.enumMaxTokenLength = enumX.getToken().length();
-            					if (!Util.isAsciiString(enumX.getToken()))
-            						r.allTokensAscii = false;
-            				}
-            			}
-            		}
-            		break;
-            	case SPECIAL_DATA_TYPE_XENUM:  // special case for xenum types: replace java type by referenced class
-            		XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
-            		r.javaType = root.getName();
-            		r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
-            		break;
+                switch (r.javaType) {
+                case SPECIAL_DATA_TYPE_ENUM:  // special case for enum types: replace java type by referenced class
+                    r.javaType = e.getEnumType().getName();
+                    // also count the max length if alphanumeric
+                    EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
+                    r.enumMaxTokenLength = ENUM_NUMERIC;
+                    if (ead != null && !ead.isEmpty()) {
+                        // compute the maximum length of all tokens, could be useful for derived grammars...
+                        for (EnumAlphaValueDefinition enumX : ead) {
+                            if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
+                                r.enumMaxTokenLength = enumX.getToken().length();
+                                if (!Util.isAsciiString(enumX.getToken()))
+                                    r.allTokensAscii = false;
+                            }
+                        }
+                    }
+                    break;
+                case SPECIAL_DATA_TYPE_XENUM:  // special case for xenum types: replace java type by referenced class
+                    XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
+                    r.javaType = root.getName();
+                    r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
+                    break;
                 case SPECIAL_DATA_TYPE_ENUMSET:
                     r.javaType = e.getEnumsetType().getName();
                     break;
                 case SPECIAL_DATA_TYPE_XENUMSET:
                     r.javaType = e.getXenumsetType().getName();
                     break;
-            	case "String":
-            		// special treatment for uppercase / lowercase shorthands
-            		if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
-            			r.isUpperCaseOrLowerCaseSpecialType = true;
-            		break;
-            	}
+                case "String":
+                    // special treatment for uppercase / lowercase shorthands
+                    if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
+                        r.isUpperCaseOrLowerCaseSpecialType = true;
+                    break;
+                }
             }
             //System.out.println("setting elem data type: " + e.getName() + String.format(": wasUpper=%b, primitive=%b, length=%d, key=",
             //      r.wasUpperCase, r.isPrimitive, e.getLength()) + key);
