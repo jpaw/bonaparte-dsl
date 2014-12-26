@@ -181,7 +181,7 @@ public class SqlMapping {
             }
         } else if (ref.category == DataCategory.ENUMSET) {
             datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
-            if (datatype == null) datatype = "integer";
+            datatype = datatype == null ? "integer" : datatype.toLowerCase();
             columnLength = "string".equals(datatype) ? ref.elementaryDataType.getEnumsetType().getMyEnum().getAvalues().size() : JavaMeta.TOTAL_DIGITS.get(datatype);
             columnDecimals = 0;
         } else if (ref.category == DataCategory.XENUMSET) {

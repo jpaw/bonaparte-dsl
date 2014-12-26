@@ -209,6 +209,7 @@ class JavaFieldWriter {
     def private writeGetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val ref = DataTypeExtension::get(i.datatype);
         val theEnum = ref.enumForEnumOrXenum
+        val nwz = i.properties.hasProperty((PROP_NULL_WHEN_ZERO))
         val dtoName = if (optionalClass !== null) optionalClass.name else "NO_SERIALIZED_DATA_IN_PK_ALLOWED"  // optionalClass will be null if we are creating data for a PK. That should be OK
         return '''
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
@@ -234,7 +235,7 @@ class JavaFieldWriter {
                     «IF ref.category == DataCategory::OBJECT»
                         return «myName»;
                     «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET»
-                        return «myName» == null ? null : new «ref.javaType»(«myName»);
+                        return «myName» == null ? «IF nwz»new «ref.javaType»()«ELSE»null«ENDIF» : new «ref.javaType»(«myName»);
                     «ELSEIF ref.javaType.equals("LocalTime")»
                         return «myName»«IF !useUserTypes» == null ? null : LocalTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
                     «ELSEIF ref.javaType.equals("LocalDate")»
@@ -265,7 +266,8 @@ class JavaFieldWriter {
     }
 
     def private writeSetter(FieldDefinition i, String myName) {
-        val ref = DataTypeExtension::get(i.datatype);
+        val ref = DataTypeExtension::get(i.datatype)
+        val nwz = i.properties.hasProperty((PROP_NULL_WHEN_ZERO))
         // val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
         return '''
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
@@ -286,7 +288,7 @@ class JavaFieldWriter {
                     «IF ref.category == DataCategory::OBJECT»
                         «myName» = _x;
                     «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET»
-                        «myName» = _x == null ? null : _x.getBitmap();
+                        «myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap();
                     «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime") || ref.javaType.equals("LocalTime")»
                         «myName» = «IF useUserTypes»_x«ELSE»DayTime.to«JDBC4TYPE»(_x)«ENDIF»;
                     «ELSEIF ref.javaType.equals("ByteArray")»
@@ -396,9 +398,7 @@ class JavaFieldWriter {
                 «f.properties.optionalAnnotation("version", "@Version")»
                 «f.properties.optionalAnnotation("lob", "@Lob")»
                 «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
-                «IF !f.isASpecialEnumWithEmptyStringAsNull»
-                    «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
-                «ENDIF»
+                «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
                 «f.writeColumnType(myName)»
                 «f.writeGetter(myName, optionalClass)»
                 «f.writeSetter(myName)»
