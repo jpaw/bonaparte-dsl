@@ -32,7 +32,7 @@ class JavaAesGeneratorMain implements IGenerator {
     }
     
     def private static writeObjectRef(ClassDefinition c, String name) '''
-        new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, 0, 0, 0, DataCategory.OBJECT, "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
+        new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, IndexType.NONE, 0, 0, DataCategory.OBJECT, "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
      
     def private static javaSetOut(EntityDefinition e) {
         val String myPackageName = getPackageName(e)

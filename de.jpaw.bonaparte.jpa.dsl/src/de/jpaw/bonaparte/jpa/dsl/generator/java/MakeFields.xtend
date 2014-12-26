@@ -176,8 +176,10 @@ class JavaFieldWriter {
     // write a @Size annotation for string based types and limited integral types
     def private static sizeSpec(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype);
-        if (ref.category == DataCategory::STRING)
+        if (ref.category == DataCategory::STRING || ref.category == DataCategory::XENUMSET)
             return ''', length=«ref.elementaryDataType.length»'''
+        if (ref.category == DataCategory::ENUMSET && "String" == ref.elementaryDataType.enumsetType.indexType)
+            return ''', length=«ref.elementaryDataType.enumsetType.myEnum.avalues.size»'''
         if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         if (ref.category == DataCategory::BASICNUMERIC && ref.elementaryDataType !== null && ref.elementaryDataType.length > 0)

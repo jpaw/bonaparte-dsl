@@ -81,7 +81,7 @@ class JavaCompare {
                     return '''«index».equals(«tindex»)'''
             } else {
                 // regular bonaportable. use "sameContents" method
-                return '''«index».hasSameContentsAs(«tindex»)'''
+                return '''«index».equals(«tindex»)'''
             }
         }
         // not object. treat elementary data types next
@@ -191,18 +191,6 @@ class JavaCompare {
             if (this == _that)
                 return true;
             return equalsSub((BonaPortable)_that);
-        }
-
-        // same function, but with second argument of (almost) known type
-        @Override
-        public boolean hasSameContentsAs(BonaPortable _that) {
-            if (_that == null)
-                return false;
-            if (!(_that instanceof «d.name»))
-                return false;
-            if (this == _that)
-                return true;
-            return equalsSub(_that);
         }
 
         «IF d.extendsClass !== null»

@@ -157,11 +157,6 @@ class JavaMeta {
             static public Map<String,String> class$PropertyMap() {
                 return property$Map;
             }
-            @Override
-            @Deprecated
-            public Map<String,String> get$PropertyMap() {
-                return property$Map;
-            }
             static public String get$Property(String propertyname, String fieldname) {
                 return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
             }
@@ -201,11 +196,6 @@ class JavaMeta {
                 «ELSE»
                     return property$Map.containsKey(id);
                 «ENDIF»
-            }
-            @Override
-            @Deprecated
-            public String get$Property(String id) {
-                return class$Property(id);
             }
 
             static public Class<? extends BonaPortable> class$returns() {
@@ -397,7 +387,6 @@ class JavaMeta {
                 public boolean hasFieldProperty(String fieldname, String propertyname) {
                     return «d.name».field$hasProperty(fieldname, propertyname);
                 }
-
             }
             
             @Override
