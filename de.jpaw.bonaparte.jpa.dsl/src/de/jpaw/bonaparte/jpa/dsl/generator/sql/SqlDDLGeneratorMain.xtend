@@ -168,6 +168,10 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
+    def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
+        writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | SqlColumns.doDdlColumn(fld, databaseFlavour, reqType2, d, myName) ])
+    }
+    
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
@@ -225,7 +229,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             -- base table PK
             «IF baseEntity.pk !== null»
                 «FOR c : baseEntity.pk.columnName»
-                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
+                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
                 «ENDFOR»
             «ENDIF»
             «IF ec.mapKey !== null»
@@ -236,7 +240,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 , «SqlMapping.getFieldForJavaType(databaseFlavour, "long", "20")»    «myCategory.historySequenceColumn» NOT NULL
             «ENDIF»
             -- contents field
-            «SqlColumns::writeFieldSQLdoColumn(ec.name, databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
+            «ec.name.writeFieldSQLdoColumn(databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
         ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
@@ -287,7 +291,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             «ENDIF»
             «IF myPrimaryKeyColumns !== null && stopAt !== null»
                 «FOR c : myPrimaryKeyColumns»
-                    «SqlColumns::writeFieldSQLdoColumn(c, databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables)»
+                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables)»
                 «ENDFOR»
             «ENDIF»
             «IF doHistory»

@@ -187,12 +187,6 @@ class JavaFieldWriter {
         return ''''''
     }
 
-    // return true, if this is a list with lower number of elements strictly less than the upper bound.
-    // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null
-    def private static isPartOfVariableLengthList(FieldDefinition c) {
-        c.isList !== null && c.isList.mincount < c.isList.maxcount
-    }
-
     def private static substitutedJavaTypeScalar(FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype);
         if (ref.objectDataType !== null) {
@@ -240,7 +234,7 @@ class JavaFieldWriter {
                     «ELSEIF ref.javaType.equals("byte []")»
                         return ByteUtil.deepCopy(«myName»);       // deep copy
                     «ELSE»
-                        return «myName»;
+                        return «myName»;  // here
                     «ENDIF»
                 «ELSEIF ref.enumMaxTokenLength == DataTypeExtension::ENUM_NUMERIC || !ref.allTokensAscii»
                     return «ref.elementaryDataType.enumType.name».valueOf(«myName»);
@@ -328,11 +322,6 @@ class JavaFieldWriter {
         else
             return "ERROR, array not allowed here"
     }
-
-    def private static nullableAnnotationPart(FieldDefinition f) {
-        if (f.isRequired && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull)
-            ", nullable=false"
-    }
     
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
@@ -347,7 +336,7 @@ class JavaFieldWriter {
             «IF relevantElementCollection !== null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
                 «IF relevantEmbeddable === null»
-                    @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»)
+                    @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»)
                     «f.writeColumnType(myName)»
                     «f.writeGetter(myName, optionalClass)»
                     «f.writeSetter(myName)»
@@ -388,7 +377,7 @@ class JavaFieldWriter {
                     }
                 «ENDIF»
             «ELSE»
-                @Column(name="«myName.java2sql»"«f.nullableAnnotationPart»«f.sizeSpec»«IF hasProperty(f.properties,
+                @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
                 "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
                 «f.properties.optionalAnnotation("version", "@Version")»
                 «f.properties.optionalAnnotation("lob", "@Lob")»

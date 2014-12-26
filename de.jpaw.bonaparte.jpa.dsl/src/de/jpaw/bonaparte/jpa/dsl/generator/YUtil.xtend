@@ -53,6 +53,17 @@ class YUtil {
     public static final String PROP_SQL_DEFAULT = "SQLdefault";
     public static final String PROP_NOUPDATE = "noupdate";              // do not update existing fields (create user / timestamp)
     
+
+    // return true, if this is a list with lower number of elements strictly less than the upper bound.
+    // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null
+    def private static isPartOfVariableLengthList(FieldDefinition c) {
+        c.isList !== null && c.isList.mincount < c.isList.maxcount
+    }
+
+    def public static isNotNullField(FieldDefinition f) {
+        return (f.isRequired  || f.properties.hasProperty(PROP_NOTNULL))
+            && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull && !f.properties.hasProperty(PROP_NULL_WHEN_ZERO)
+    }
     
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
     def public static String quoteSQL(String text) {

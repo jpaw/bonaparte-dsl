@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
+import de.jpaw.bonaparte.dsl.generator.DataCategory;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.bonaparte.dsl.generator.java.JavaMeta;
@@ -178,6 +179,15 @@ public class SqlMapping {
                 columnLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
                 columnDecimals = 0;
             }
+        } else if (ref.category == DataCategory.ENUMSET) {
+            datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
+            if (datatype == null) datatype = "integer";
+            columnLength = "string".equals(datatype) ? ref.elementaryDataType.getEnumsetType().getMyEnum().getAvalues().size() : JavaMeta.TOTAL_DIGITS.get(datatype);
+            columnDecimals = 0;
+        } else if (ref.category == DataCategory.XENUMSET) {
+            datatype = "string";
+            columnLength = ref.elementaryDataType.getLength();
+            columnDecimals = 0;
         } else {
             datatype = ref.elementaryDataType.getName().toLowerCase();
             columnLength = ref.elementaryDataType.getLength();

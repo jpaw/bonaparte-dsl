@@ -21,20 +21,19 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import org.apache.log4j.Logger
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
-import java.util.List
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 
 class SqlColumns {
     private static Logger LOGGER = Logger.getLogger(SqlColumns)
 
-    // TODO: check if column is in PK (then assume implicit NOT NULL)
-    def public static notNullConstraint(FieldDefinition c, RequiredType reqType) {
+    // reqType == RequiredType::FORCE_NOT_NULL if column is in PK (then assume implicit NOT NULL)
+    def private static notNullConstraint(FieldDefinition c, RequiredType reqType) {
         if (reqType == RequiredType::FORCE_NOT_NULL ||
-            (reqType == RequiredType::DEFAULT && (c.isRequired || c.properties.hasProperty(PROP_NOTNULL)) && !c.isASpecialEnumWithEmptyStringAsNull)) " NOT NULL" else ""
+           (reqType == RequiredType::DEFAULT && c.isNotNullField))
+            " NOT NULL"
     }
-    def public static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
+    def private static mkDefaults(FieldDefinition c, DatabaseFlavour databaseFlavour) {
         if (hasProperty(c.properties, PROP_CURRENT_USER))
             SqlMapping::getCurrentUser(databaseFlavour)
         else if (hasProperty(c.properties, PROP_CURRENT_TIMESTAMP))
@@ -56,8 +55,4 @@ class SqlColumns {
         '''
     }
 
-    // external entry
-    def public static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
-        writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | fld.doDdlColumn(databaseFlavour, reqType2, d, myName) ])
-    }
 }
