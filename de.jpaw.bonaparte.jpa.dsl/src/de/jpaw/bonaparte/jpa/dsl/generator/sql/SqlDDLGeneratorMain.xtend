@@ -42,6 +42,7 @@ import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOut.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
@@ -102,7 +103,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         while (citer !== null) {
             for (i : citer.fields) {
                 val ref = DataTypeExtension::get(i.datatype)
-                if (ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+                if (ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA || ref.category == DataCategory.XENUM)
                     enumsRequired.add(ref.enumForEnumOrXenum)
             }
             if (citer.extendsClass !== null)

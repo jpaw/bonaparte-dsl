@@ -31,7 +31,7 @@ class SqlViewOut {
     def private static createColumn(FieldDefinition i, String prefix, String myName) {
         val ref = DataTypeExtension::get(i.datatype)
         val cn = myName.java2sql
-        if (ref.category == DataCategory.ENUM && ref.enumMaxTokenLength != DataTypeExtension::NO_ENUM)
+        if (ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA)
             '''«ref.elementaryDataType.enumType.name»2s(«prefix».«cn») AS «cn»'''
         else
             '''«prefix».«cn» AS «cn»'''

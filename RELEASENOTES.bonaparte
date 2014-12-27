@@ -270,7 +270,8 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: enumsets and xenumsets
 - BON: apache poi upgraded from 3.10.1 to 3.11
 
-
+3.2.0:
+- BON & BDDL: internal reorg, to have separate data categories for enum/enumalpha and enumset/enumsetalpha
 
 
 ROADMAP / PLANS:

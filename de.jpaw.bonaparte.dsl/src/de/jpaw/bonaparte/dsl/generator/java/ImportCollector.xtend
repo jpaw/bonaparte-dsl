@@ -84,9 +84,13 @@ public class ImportCollector {
                 switch (ref.category) {
                 case DataCategory::ENUM:
                     addImport(ref.elementaryDataType.enumType)
+                case DataCategory::ENUMALPHA:
+                    addImport(ref.elementaryDataType.enumType)
                 case DataCategory::XENUM:
                     addImport(ref.elementaryDataType.xenumType)
                 case DataCategory::ENUMSET:
+                    addImport(ref.elementaryDataType.enumsetType)
+                case DataCategory::ENUMSETALPHA:
                     addImport(ref.elementaryDataType.enumsetType)
                 case DataCategory::XENUMSET:
                     addImport(ref.elementaryDataType.xenumsetType)

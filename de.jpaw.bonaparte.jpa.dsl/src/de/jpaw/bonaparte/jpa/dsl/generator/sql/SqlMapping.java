@@ -157,6 +157,10 @@ public class SqlMapping {
         dataTypeSqlMySQL.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlMySQL.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
     }
+    
+    static private int lengthForAlphaEnumColumn(DataTypeExtension ref) {
+        return ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength;
+    }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
@@ -182,10 +186,14 @@ public class SqlMapping {
         } else if (ref.category == DataCategory.ENUMSET) {
             datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
             datatype = datatype == null ? "integer" : datatype.toLowerCase();
-            columnLength = "string".equals(datatype) ? ref.elementaryDataType.getEnumsetType().getMyEnum().getAvalues().size() : JavaMeta.TOTAL_DIGITS.get(datatype);
+            columnLength = JavaMeta.TOTAL_DIGITS.get(datatype);
+            columnDecimals = 0;
+        } else if (ref.category == DataCategory.ENUMSETALPHA) {
+            datatype = "unicode";
+            columnLength = ref.enumMaxTokenLength;
             columnDecimals = 0;
         } else if (ref.category == DataCategory.XENUMSET) {
-            datatype = "string";
+            datatype = "unicode";
             columnLength = ref.elementaryDataType.getLength();
             columnDecimals = 0;
         } else {
@@ -224,19 +232,19 @@ public class SqlMapping {
                 datatype = "date";  // better performance, less memory consumption
             }
             if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar2(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+                datatype = "varchar2(" + lengthForAlphaEnumColumn(ref) + ")";
             }
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
             if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+                datatype = "varchar(" + lengthForAlphaEnumColumn(ref) + ")";
             }
             break;
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
             if (ref.enumMaxTokenLength >= 0) {
-                datatype = "nvarchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+                datatype = "nvarchar(" + lengthForAlphaEnumColumn(ref) + ")";
             }
             if (columnLength > 8000) {
                 columnLengthString = "MAX";
@@ -247,7 +255,7 @@ public class SqlMapping {
 //            String bkp = datatype;
             datatype = dataTypeSqlMySQL.get(datatype);
             if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar(" + (ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength) + ")";
+                datatype = "varchar(" + lengthForAlphaEnumColumn(ref) + ")";
             }
             
 //            if (datatype == null)
@@ -275,10 +283,11 @@ public class SqlMapping {
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
         //System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
         //System.out.println("DEBUG: precision = " + Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
-        if (ref.enumMaxTokenLength >= 0) {
-            // special case for alphanumeric enums, again!
-            return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
-        }
+//        if (ref.enumMaxTokenLength >= 0) {
+//            // special case for alphanumeric enums, again!
+//            // TODO: this code should be redundant, see above!
+//            return datatype.replace("#length",    Integer.valueOf(ref.enumMaxTokenLength).toString());
+//        }
         return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
     

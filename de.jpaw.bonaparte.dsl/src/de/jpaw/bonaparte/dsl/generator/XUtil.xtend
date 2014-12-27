@@ -453,29 +453,37 @@ class XUtil {
         import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
     '''
     
+    // returns an enum if any indirection of the type references it
     def public static enumForEnumOrXenum(DataTypeExtension ref) {
-        if (ref.elementaryDataType?.xenumType !== null)
-            ref.elementaryDataType?.xenumType.myEnum
-        else 
-            ref.elementaryDataType?.enumType
+        val e = ref.elementaryDataType
+        if (e === null)
+            return null
+        if (e.enumType !== null)
+            return e.enumType
+        else if (e.xenumType !== null)
+            return e.xenumType.myEnum
+        else if (e.enumsetType !== null)
+            return e.enumsetType.myEnum
+        else if (e.xenumsetType !== null)
+            return e.xenumsetType.myXEnum.myEnum
+        else
+            return null
     }
     
     // returns true if this an enum or an xenum which can have an instance of null
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
-        if (ref.enumMaxTokenLength < 0)
+        if (ref.category != DataCategory.ENUMALPHA && ref.category != DataCategory.XENUM)
             return false
         val avalues = ref.enumForEnumOrXenum.avalues
-//        if (avalues === null)
-//          return false
         return avalues.map[token].contains("")
     }
     def public static idForEnumTokenNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
-        if (ref.enumMaxTokenLength < 0)
-            null
+        if (ref.category == DataCategory.ENUMALPHA || ref.category == DataCategory.XENUM)
+            return ref.enumForEnumOrXenum.avalues.findFirst[token.empty]?.name
         else
-            ref.enumForEnumOrXenum.avalues.findFirst[token.empty]?.name
+            return null
     }
 
     // freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth

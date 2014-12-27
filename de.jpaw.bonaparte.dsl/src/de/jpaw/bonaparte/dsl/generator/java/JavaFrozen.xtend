@@ -30,8 +30,12 @@ class JavaFrozen {
     }
     
     def private static boolean noFreezeBecauseImmutable(DataTypeExtension ref) {
-        return (ref.elementaryDataType !== null && ref.category != DataCategory.OBJECT && ref.category != DataCategory.ENUMSET && ref.category != DataCategory.XENUMSET)
-          || (ref.objectDataType !== null && ref.objectDataType.immutable);
+        return (ref.elementaryDataType !== null
+            && ref.category != DataCategory.OBJECT
+            && ref.category != DataCategory.ENUMSET
+            && ref.category != DataCategory.ENUMSETALPHA
+            && ref.category != DataCategory.XENUMSET
+          ) || (ref.objectDataType !== null && ref.objectDataType.immutable);
     }
     
     def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {

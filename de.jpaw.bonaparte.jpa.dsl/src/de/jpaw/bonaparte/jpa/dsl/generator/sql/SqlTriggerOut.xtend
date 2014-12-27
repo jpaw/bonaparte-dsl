@@ -55,7 +55,8 @@ class SqlTriggerOut {
         switch (ref.category) {
         case DataCategory.BASICNUMERIC: nullReplacement = "0"
         case DataCategory.NUMERIC: nullReplacement = "0"
-        case DataCategory.ENUM: if (ref.enumMaxTokenLength == -1) nullReplacement = "0"  // only numeric enums
+        case DataCategory.ENUM: nullReplacement = "0"  // only numeric enums
+        case DataCategory.ENUMSET: nullReplacement = "0"
         case DataCategory.MISC: if (ref.javaType.toLowerCase == "boolean") nullReplacement = "0" else if (ref.javaType.toLowerCase == "uuid") nullReplacement = null
         case DataCategory.TEMPORAL: nullReplacement = "TO_DATE('19700101', 'YYYYMMDD')"
         case DataCategory.BINARY: nullReplacement = null

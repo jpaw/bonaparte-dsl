@@ -61,7 +61,7 @@ class JavaFieldsGettersSetters {
             
         if (i.defaultString === null) {
             // check for enum defaults, these use a different mechanism.
-            if (ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
+            if ((ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA || ref.category == DataCategory.XENUM) && ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
                 switch (ref.enumMaxTokenLength) {
                 case -1:        // numeric enum
                     return ''' = «JavaDataTypeNoName(i, false)».«ref.elementaryDataType.enumType.values.get(0)»'''        // the first one is the default

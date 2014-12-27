@@ -69,20 +69,22 @@ class JavaMeta {
             classname = "AlphanumericElementaryDataItem"
             ext = ''', «b2A(ref.effectiveTrim)», «b2A(ref.effectiveTruncate)», «b2A(ref.effectiveAllowCtrls)», «b2A(!elem.name.toLowerCase.equals("unicode"))», «elem.length», «elem.minLength», «s2A(elem.regexp)»'''
         }
+        case DataCategory::ENUMALPHA: {
+            classname = "EnumDataItem"
+            ext = ''', «elem.enumType.name».enum$MetaData()'''
+            // separate item for the token
+            extraItem = '''
+                public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
+                    "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+            '''
+        }
         case DataCategory::ENUM: {
             classname = "EnumDataItem"
-            if (ref.enumMaxTokenLength >= 0)
-                // separate item for the token
-                extraItem = '''
-                    public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                        "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
-                '''
-            else
-                extraItem = '''
-                    public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                        "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
-                '''
             ext = ''', «elem.enumType.name».enum$MetaData()'''
+            extraItem = '''
+                public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
+                    "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
+            '''
         }
         case DataCategory::XENUM: {
             classname = "XEnumDataItem"
@@ -93,14 +95,13 @@ class JavaMeta {
                 '''
             ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
+        case DataCategory::ENUMSETALPHA: {
+            classname = "AlphanumericEnumSetDataItem"
+            ext = ''', false, false, false, false, «elem.enumsetType.myEnum.name».enum$MetaData().getIds().size(), 0, null, «elem.enumsetType.name».enumset$MetaData()'''
+        }
         case DataCategory::ENUMSET: {
-            if ("String" == elem.enumsetType.indexType) {
-                classname = "AlphanumericEnumSetDataItem"
-                ext = ''', false, false, false, false, «elem.enumsetType.myEnum.name».enum$MetaData().getIds().size(), 0, null, «elem.enumsetType.name».enumset$MetaData()'''
-            } else {
-                classname = "NumericEnumSetDataItem"
-                ext = ''', false, «TOTAL_DIGITS.get(elem.enumsetType.indexType ?: "int")», 0, false, «elem.enumsetType.name».enumset$MetaData()'''
-            }
+            classname = "NumericEnumSetDataItem"
+            ext = ''', false, «TOTAL_DIGITS.get(elem.enumsetType.indexType ?: "int")», 0, false, «elem.enumsetType.name».enumset$MetaData()'''
         }
         case DataCategory::XENUMSET: {
             classname = "XEnumSetDataItem"

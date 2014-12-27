@@ -31,6 +31,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
@@ -391,6 +392,7 @@ public class DataTypeExtension {
                     EList<EnumAlphaValueDefinition> ead = e.getEnumType().getAvalues();
                     r.enumMaxTokenLength = ENUM_NUMERIC;
                     if (ead != null && !ead.isEmpty()) {
+                        r.category = DataCategory.ENUMALPHA;         // have a separate category for this now...
                         // compute the maximum length of all tokens, could be useful for derived grammars...
                         for (EnumAlphaValueDefinition enumX : ead) {
                             if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
@@ -406,9 +408,19 @@ public class DataTypeExtension {
                     break;
                 case SPECIAL_DATA_TYPE_ENUMSET:
                     r.javaType = e.getEnumsetType().getName();
+                    EnumDefinition myEnum = e.getEnumsetType().getMyEnum();
+                    r.enumMaxTokenLength = (myEnum.getAvalues() != null && myEnum.getAvalues().size() > 0) ? myEnum.getAvalues().size() : ENUM_NUMERIC; 
+                    
+                    // possibly refine the category, based on the index type.  Please note that enumMaxTokenLength should not be used as criteria if the type if alphanumeric, therefore nulling it
+                    if ("String".equals(e.getEnumsetType().getIndexType())) {
+                        r.category = DataCategory.ENUMSETALPHA;             // have a separate category for this!
+                    } else {
+                        r.enumMaxTokenLength = ENUM_NUMERIC;                // prevent mistaken use as criteria
+                    }
                     break;
                 case SPECIAL_DATA_TYPE_XENUMSET:
                     r.javaType = e.getXenumsetType().getName();
+                    r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(XUtil.getRoot(e.getXenumsetType().getMyXEnum()));
                     break;
                 case "String":
                     // special treatment for uppercase / lowercase shorthands

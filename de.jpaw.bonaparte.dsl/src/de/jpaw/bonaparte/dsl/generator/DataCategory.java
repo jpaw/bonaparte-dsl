@@ -2,5 +2,5 @@ package de.jpaw.bonaparte.dsl.generator;
 
 // keep this in sync with the enum of same name in bonaparte-core / meta.bon
 public enum DataCategory {
-    OBJECT, ENUM, NUMERIC, STRING, TEMPORAL, MISC, BINARY, BASICNUMERIC, XENUM, ENUMSET, XENUMSET  // misc is boolean, char, uuid, ...
+    OBJECT, ENUM, NUMERIC, STRING, TEMPORAL, MISC, BINARY, BASICNUMERIC, XENUM, ENUMSET, XENUMSET, ENUMALPHA, ENUMSETALPHA  // misc is boolean, char, uuid, ...
 }
