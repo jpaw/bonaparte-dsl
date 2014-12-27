@@ -28,11 +28,6 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaDeserialize {
-    def private static mapEnumSetIndex(String indexType) {
-        if (indexType === null || indexType == "int")
-            return "Integer"
-        return indexType.toFirstUpper
-    }
     
     def private static makeRead(String metaName, ElementaryDataType i, DataTypeExtension ref) {
         switch i.name.toLowerCase {
@@ -65,11 +60,11 @@ class JavaDeserialize {
         case 'day':       '''_p.readDay       («metaName»)'''
                           
         // enum
-        case 'enum':      '''«getPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(_p.readString(«metaName»$token))«ELSE»valueOf(_p.readInteger(«metaName»$token))«ENDIF»'''
+        case 'enum':      '''«getBonPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(_p.readString(«metaName»$token))«ELSE»valueOf(_p.readInteger(«metaName»$token))«ENDIF»'''
         case 'xenum':     '''_p.readXEnum(«metaName», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
         
         // enum sets
-        case 'enumset':   '''«ref.javaType».unmarshal(_p.read«i.enumsetType.indexType.mapEnumSetIndex»(«metaName»), _p)'''
+        case 'enumset':   '''«ref.javaType».unmarshal(_p.read«i.enumsetType.mapEnumSetIndex»(«metaName»), _p)'''
         case 'xenumset':  '''«ref.javaType».unmarshal(_p.readString(«metaName»), _p)'''
         
         // objects

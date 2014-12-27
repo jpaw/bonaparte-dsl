@@ -34,12 +34,12 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -53,18 +53,6 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
     }
-    def public static getPackageName(BDDLPackageDefinition p) {
-        (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
-    }
-
-    // create the package name for an entity
-    def public static getPackageName(EntityDefinition d) {
-        getPackageName(d.eContainer as BDDLPackageDefinition)
-    }
-    // create the package name for an embeddable object
-    def public static getPackageName(EmbeddableDefinition d) {
-        getPackageName(d.eContainer as BDDLPackageDefinition)
-    }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         // java
@@ -73,24 +61,27 @@ class JavaDDLGeneratorMain implements IGenerator {
                 val primaryKeyType = determinePkType(e)
                 if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
-                    fsa.generateFile(getJavaFilename(getPackageName(e), e.name + "Key"), e.javaKeyOut)
+                    fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e.javaKeyOut)
                 }
-                fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEntityOut(primaryKeyType))
+                fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEntityOut(primaryKeyType))
             }
         }
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
-            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaEmbeddableOut)
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEmbeddableOut)
+        }
+        for (e : resource.allContents.toIterable.filter(typeof(ConverterDefinition))) {
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), Converters.writeTypeConverter(e))
         }
         for (d : resource.allContents.toIterable.filter(typeof(BDDLPackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists
             if (d.javadoc !== null) {
-                fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
+                fsa.generateFile(getJavaFilename(getBddlPackageName(d), "package-info"), '''
                     // This source has been automatically created by the bonaparte bonaparte.jpa DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
                     «d.javadoc»
-                    package «getPackageName(d)»;
+                    package «getBddlPackageName(d)»;
                 ''')
             }
         }
@@ -500,7 +491,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             }«ENDIF»'''
 
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
-        val String myPackageName = getPackageName(e)
+        val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
 
@@ -516,21 +507,21 @@ class JavaDDLGeneratorMain implements IGenerator {
         imports.addImport(e.pojoType);  // TODO: not needed, see above?
         imports.addImport(e.tableCategory.trackingColumns);
         if (e.^extends !== null) {
-            imports.addImport(getPackageName(e.^extends), e.^extends.name)
+            imports.addImport(getBddlPackageName(e.^extends), e.^extends.name)
             stopper = e.^extends.pojoType
         }
         // imports for ManyToOne
         for (r : e.manyToOnes)
-            imports.addImport(r.childObject.getPackageName, r.childObject.name)
+            imports.addImport(r.childObject.getBddlPackageName, r.childObject.name)
         // for OneToMany
         for (r : e.oneToManys)
-            imports.addImport(r.relationship.childObject.getPackageName, r.relationship.childObject.name)
+            imports.addImport(r.relationship.childObject.getBddlPackageName, r.relationship.childObject.name)
         // for OneToOne
         for (r : e.oneToOnes)
-            imports.addImport(r.relationship.childObject.getPackageName, r.relationship.childObject.name)
+            imports.addImport(r.relationship.childObject.getBddlPackageName, r.relationship.childObject.name)
         // for Embeddables
         for (r : e.embeddables) {
-            imports.addImport(r.name.getPackageName, r.name.name)  // the Entity
+            imports.addImport(r.name.getBddlPackageName, r.name.name)  // the Entity
             //imports.addImport(r.name.pojoType.getPackageName, r.name.pojoType.name)  // the BonaPortable
             imports.recurseImports(e.pojoType, true)
         }
@@ -561,7 +552,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(e)»;
+        package «myPackageName»;
 
         «IF e.tenantId !== null»
         //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
@@ -715,7 +706,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         '''
     }
     def private javaKeyOut(EntityDefinition e) {
-        val String myPackageName = getPackageName(e)
+        val String myPackageName = e.bddlPackageName
         val String myName = e.name + "Key"
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.recurseImports(e.pojoType, true)
@@ -727,7 +718,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(e)»;
+        package «myPackageName»;
 
         import javax.persistence.EntityManager;
         import javax.persistence.Embeddable;
@@ -768,7 +759,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
     
     def private javaEmbeddableOut(EmbeddableDefinition e) {
-        val String myPackageName = getPackageName(e)
+        val String myPackageName = e.bddlPackageName
         val String myName = e.name
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.addImport(e.pojoType)               // add underlying POJO as well (this is not done by the recursive one next line!)
@@ -780,7 +771,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(e)»;
+        package «myPackageName»;
 
         import javax.persistence.EntityManager;
         import javax.persistence.Embeddable;

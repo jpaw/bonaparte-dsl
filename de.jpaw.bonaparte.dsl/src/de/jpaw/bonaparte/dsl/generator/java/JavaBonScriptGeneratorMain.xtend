@@ -59,20 +59,20 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
                 print('''output of xml adpater for «d.name»''')
-                fsa.generateFile(getJavaFilename(getPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
+                fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
             }
         }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
-            fsa.generateFile(getJavaFilename(getPackageName(d), d.name), d.writeClassDefinition);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
@@ -84,7 +84,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 if (!xl.isAbstract && xl.getRelevantXmlAccess !== null)
                     xenumList.add(xl)
             if (classList.size > 0 || xenumList.size > 0)
-                fsa.generateFile(getJaxbResourceFilename(getPackageName(d)), '''
+                fsa.generateFile(getJaxbResourceFilename(getBonPackageName(d)), '''
                 «FOR cl : classList»
                     «cl.name»
                 «ENDFOR»
@@ -95,7 +95,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
             // also, write a package-info.java file, if javadoc on package level exists or if XML bindings are used
             if (d.javadoc !== null || !(d.xmlAccess?.x == XXmlAccess::NONE || d.xmlAccess?.x == XXmlAccess::NOXML)) {
-                fsa.generateFile(getJavaFilename(getPackageName(d), "package-info"), '''
+                fsa.generateFile(getJavaFilename(getBonPackageName(d), "package-info"), '''
                     // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
@@ -112,7 +112,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     })
                     «ENDIF»
                     «d.javadoc»
-                    package «getPackageName(d)»;
+                    package «getBonPackageName(d)»;
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
 
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
@@ -142,7 +142,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private recurseMethods(ClassDefinition d, boolean isRoot) {
         for (m : d.methods)
             if (m.returnObj !== null)
-                addImport(getPackageName(m.returnObj), m.returnObj.name)
+                addImport(getBonPackageName(m.returnObj), m.returnObj.name)
         if (!isRoot || (isRoot && !d.isAbstract)) // if we are not root, descend all way through. Otherwise, descend if not abstract
             if (d.extendsClass !== null)
                 recurseMethods(d.extendsClass, false)
@@ -193,7 +193,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
     // using FQONs in case of conflict is not yet implemented
-        val String myPackageName = getPackageName(d)
+        val String myPackageName = getBonPackageName(d)
         val ImportCollector imports = new ImportCollector(myPackageName)
         imports.recurseImports(d, true)
         imports.addImport(d)  // add myself as well
@@ -215,7 +215,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
         
         «writeDefaultImports»
         «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
@@ -261,7 +261,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF d.pkClass !== null»
-            @RelatedKey(«JavaPackages::getPackageName(d.pkClass)».«d.pkClass.name».class)
+            @RelatedKey(«JavaPackages::getBonPackageName(d.pkClass)».«d.pkClass.name».class)
         «ENDIF»
         @SuppressWarnings("all")
         «IF d.isDeprecated»

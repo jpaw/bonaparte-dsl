@@ -28,18 +28,22 @@ class JavaEnum {
     def static public boolean hasNullToken(EnumDefinition ed) {
         ed.avalues !== null && ed.avalues.exists[token == ""]
     }
-    def static boolean isAlpha(EnumDefinition d) {
+    def static public nameForNullToken(EnumDefinition ed) {
+        if (ed.avalues !== null)
+            return ed.avalues.findFirst[token.empty]?.name
+    }
+    def static public boolean isAlphaEnum(EnumDefinition d) {
         d.avalues !== null && !d.avalues.empty
     }
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
-        val isAlphaEnum = d.isAlpha
+        val isAlphaEnum = d.isAlphaEnum
         val myInterface = if (isAlphaEnum) "BonaTokenizableEnum" else "BonaNonTokenizableEnum"
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
 
         import com.google.common.collect.ImmutableList;
         import «BonScriptPreferences.getDateTimePackage».Instant;
@@ -123,6 +127,7 @@ class JavaEnum {
     }
     
     def private static writeEnumMetaData(EnumDefinition d) {
+        val isAlphaEnum = d.isAlphaEnum
         val myPackage = d.package
         return '''
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
@@ -130,7 +135,7 @@ class JavaEnum {
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             
             private static final ImmutableList<String> _ids = new ImmutableList.Builder<String>()
-                «IF !d.isAlpha»
+                «IF !isAlphaEnum»
                     «FOR id: d.values»
                         .add("«id»")
                     «ENDFOR»
@@ -140,7 +145,7 @@ class JavaEnum {
                     «ENDFOR»
                 «ENDIF»
                .build();
-            «IF d.isAlpha»
+            «IF isAlphaEnum»
                 private static final ImmutableList<String> _tokens = new ImmutableList.Builder<String>()
                     «FOR id: d.avalues»
                         .add("«id.token»")
@@ -159,7 +164,7 @@ class JavaEnum {
                 Instant.now(),
                 null,
                 // now specific enum items
-                «IF d.isAlpha»
+                «IF isAlphaEnum»
                     «JavaXEnum.getInternalMaxLength(d, 0)»,
                     «d.hasNullToken»,
                     _ids,

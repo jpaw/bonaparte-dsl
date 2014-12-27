@@ -53,22 +53,25 @@ GrantList:
     roleOrUserName = ID ':' permissions = PermissionList ';';
     
 GrantCategoryDefinition:
-    'grants' name=ID '{' grants += GrantList* '}';
+    'grants' name=ID '{'
+        grants += GrantList*
+    '}'
+;
 
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId]
-        (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
-    )?
-    ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
-    (('tablespacepattern' tablespacePattern=STRING) | 
-     ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
-    (('history' historyCategory=[TableCategoryDefinition|QualifiedId] ('sequence' historySequenceName=ID)?) |
-     ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID (actualData?='actualData')?))?  
-    (requiresPk ?= 'requiresPK')?
-    (doBeanVal ?= 'beanVal')?
-    ('grants' grantGroup = [GrantCategoryDefinition|QualifiedId])?
+        ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId]
+            (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
+        )?
+        ('tablenamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
+        (('tablespacepattern' tablespacePattern=STRING) | 
+         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?))?
+        (('history' historyCategory=[TableCategoryDefinition|QualifiedId] ('sequence' historySequenceName=ID)?) |
+         ('historyColumns' historySequenceColumn = ID ',' historyChangeTypeColumn = ID (actualData?='actualData')?))?  
+        (requiresPk ?= 'requiresPK')?
+        (doBeanVal ?= 'beanVal')?
+        ('grants' grantGroup = [GrantCategoryDefinition|QualifiedId])?
     '}'
 ;
 
@@ -86,6 +89,7 @@ BDDLPackageDefinition:
         | tableCategories += TableCategoryDefinition
         | entities += EntityDefinition
         | embeddables += EmbeddableDefinition
+        | converters += ConverterDefinition
         )*
     '}'
 ;
@@ -103,6 +107,19 @@ EmbeddableDefinition:
     '}'
 ;
 
+// JPA 2.1 type converters
+ConverterDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
+    'converter' name = ID 'for' (
+        ('enum'     myEnum    =[pojos::EnumDefinition|QualifiedId]) |
+        ('xenum'    myXEnum   =[pojos::XEnumDefinition|QualifiedId]) |
+        ('enumset'  myEnumset =[pojos::EnumSetDefinition|QualifiedId]) |
+        ('xenumset' myXEnumset=[pojos::XEnumSetDefinition|QualifiedId]) |
+        ('adapter'  myAdapter =[pojos::ClassDefinition|QualifiedId])
+    )
+    ';'
+;
 
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?

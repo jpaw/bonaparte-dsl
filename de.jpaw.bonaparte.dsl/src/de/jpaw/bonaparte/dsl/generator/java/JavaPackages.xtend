@@ -18,40 +18,21 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
+import org.eclipse.emf.ecore.EObject
 
 class JavaPackages {
     // TODO: should we make this configurable per generator run?
     public static final String bonaparteClassDefaultPackagePrefix = "de.jpaw.bonaparte.pojos"
 
-    def public static getPackageName(PackageDefinition p) {
-        (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
-    }
-
-    // create the package name for a class definition object
-    def public static getPackageName(ClassDefinition d) {
-        getPackageName(getPackage(d))
-    }
-    // create the package name for an enum object
-    def public static getPackageName(EnumDefinition d) {
-        getPackageName(getPackage(d))
-    }
-    // create the package name for an enum set
-    def public static getPackageName(EnumSetDefinition d) {
-        getPackageName(getPackage(d))
-    }
-    // create the package name for an xenum object
-    def public static getPackageName(XEnumDefinition d) {
-        getPackageName(getPackage(d))
-    }
-    // create the package name for an enum set
-    def public static getPackageName(XEnumSetDefinition d) {
-        getPackageName(getPackage(d))
+    // create the package name for EObjects
+    def public static getBonPackageName(EObject pp) {
+        val p = getPackage(pp)
+        return (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
     }
 
     // Utility methods
@@ -95,14 +76,4 @@ class JavaPackages {
             myUID = 131L * myUID + getSerialUID(d.extendsXenum)   // recurse parent xenums
         return myUID
     }
-
-    // generate a fully qualified or (optically nicer) simple class name, depending on whether target is in same package as the current class
-    // TODO: do this in dependence of the import list
-    def public static xxxxxpossiblyFQClassName(ClassDefinition current, ClassDefinition target) {
-        if (getPackageName(current) == getPackageName(target))
-            target.name
-        else
-            getPackageName(target) + "." +target.name
-    }
-
 }

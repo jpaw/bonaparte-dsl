@@ -36,6 +36,7 @@ import java.util.ArrayList
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
@@ -524,5 +525,11 @@ class XUtil {
     
     def public static String getAdapterClassName(ClassDefinition cd) {
         return cd.bonaparteAdapterClass ?: cd.externalType.simpleName  // the external type has been imported
+    }
+
+    def public static mapEnumSetIndex(EnumSetDefinition e) {
+        if (e.indexType === null || e.indexType == "int")
+            return "Integer"
+        return e.indexType.toFirstUpper
     }
 }

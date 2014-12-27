@@ -43,7 +43,7 @@ class JavaFieldsGettersSetters {
     ]
     
     def private static xmlAnnotation(XEnumDefinition d) '''
-        @XmlJavaTypeAdapter(«d.root.packageName».«d.root.name»XmlAdapter.class)
+        @XmlJavaTypeAdapter(«d.root.bonPackageName».«d.root.name»XmlAdapter.class)
     '''
     
     def private static xmlAnnotation(DataTypeExtension ref) {
@@ -90,6 +90,11 @@ class JavaFieldsGettersSetters {
     def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
         i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
     }
+    
+    def private static writeIfDeprecated(FieldDefinition i) {
+        if (i.isDeprecated)
+            return "@Deprecated"
+    }
         
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
@@ -98,7 +103,7 @@ class JavaFieldsGettersSetters {
         // System::out.println('''writing one field «d.name»:«i.name» needs XmlAccess=«i.needsXmlObjectType» has XmlAccess «d.getRelevantXmlAccess»''')
         
         return '''
-            «writeFieldComments(i)»
+            «i.writeFieldComments»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
             «i.writeAnnotationProperties(d)»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
@@ -112,6 +117,7 @@ class JavaFieldsGettersSetters {
                     «ref.xmlAnnotation»
                 «ENDIF»
             «ENDIF»
+            «i.writeIfDeprecated»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
         '''
     }
@@ -145,10 +151,12 @@ class JavaFieldsGettersSetters {
                     «ref.xmlAnnotation»
                 «ENDIF»
             «ENDIF»
+            «i.writeIfDeprecated»
             public «JavaDataTypeNoName(i, false)» «getterName»() {
                 return «i.name»;
             }
             «IF i.isArray !== null»
+                «i.writeIfDeprecated»
                 public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
                     return «i.name»[_i];
                 }
@@ -161,6 +169,7 @@ class JavaFieldsGettersSetters {
         val ref = DataTypeExtension::get(i.datatype) 
         return
      '''
+        «i.writeIfDeprecated»
         public void «setterName»(«JavaDataTypeNoName(i, false)» «i.name») {
             «IF isFreezable»
                 verify$Not$Frozen();
@@ -168,6 +177,7 @@ class JavaFieldsGettersSetters {
             this.«i.name» = «i.name»;
         }
         «IF i.isArray !== null»
+            «i.writeIfDeprecated»
             public void «setterName»(int _i, «JavaDataTypeNoName(i, true)» «i.name») {
                 this.«i.name»[_i] = «i.name»;
             }
@@ -176,6 +186,7 @@ class JavaFieldsGettersSetters {
             «IF !i.aggregate»
                 «writeEnumSetterWithConverter(i, setterName, isFreezable, ref, "Enum<?>")»
              «ELSEIF i.isArray !== null»
+                «i.writeIfDeprecated»
                 public void «setterName»(int _index, Enum<?> «i.name») {
                     this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
                 }
@@ -204,6 +215,7 @@ class JavaFieldsGettersSetters {
     
     def private static writeEnumSetterWithConverter(FieldDefinition i, String setterName, boolean isFreezable, DataTypeExtension ref, String type) '''
         // mapping setter from enum to xenum
+        «i.writeIfDeprecated»
         public void «setterName»(«type» _i) {
             «IF isFreezable»
                 verify$Not$Frozen();

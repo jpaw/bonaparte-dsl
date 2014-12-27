@@ -272,6 +272,10 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.2.0:
 - BON & BDDL: internal reorg, to have separate data categories for enum/enumalpha and enumset/enumsetalpha
+- BON & BDDL: better layout for preferences pages
+- BON: incompatible change: required ';' at end of xenum definition, for grammar consistency
+- BON: allow @Deprecated on field level
+- BDDL: writing JPA 2.1 type converters
 
 
 ROADMAP / PLANS:
@@ -294,3 +298,7 @@ additional plausis:
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
+
+Known bugs:
+javadoc comments for fields are not generated.
+

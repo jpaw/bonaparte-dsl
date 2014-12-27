@@ -31,6 +31,7 @@ import java.util.List
 import org.eclipse.emf.ecore.EObject
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -53,6 +54,14 @@ class YUtil {
     public static final String PROP_SQL_DEFAULT = "SQLdefault";
     public static final String PROP_NOUPDATE = "noupdate";              // do not update existing fields (create user / timestamp)
     
+    
+    // create the package name for an entity or embeddable
+    def public static String getBddlPackageName(EObject p) {
+        if (p instanceof BDDLPackageDefinition)
+            return (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
+        else
+            return p.eContainer.bddlPackageName
+    }
 
     // return true, if this is a list with lower number of elements strictly less than the upper bound.
     // In such a case, the list could be shorter, and elements therefore cannot be assumed to be not null

@@ -341,8 +341,19 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                     warning("singleField adapters don't need a RTTI value, because the class is just a wrapper", BonScriptPackage.Literals.CLASS_DEFINITION__RTTI)
                 if (cd.hazelcastId != 0)
                     warning("singleField adapters don't need a classId value, because the class is just a wrapper", BonScriptPackage.Literals.CLASS_DEFINITION__HAZELCAST_ID)
+                // there must be extactly one internal field, independent of externally added attributes
+                if (cd.countFields != 1)
+                    error("singleField adapters must declare exactly one field (itself or in superclasses), found " + cd.countFields,
+                      BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS) 
             }
         }
+    }
+    
+    def private int countFields(ClassDefinition d) {
+        if (d.extendsClass?.classRef === null)
+            return d.fields.size
+        else
+            return d.fields.size + d.extendsClass.classRef.countFields
     }
     
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {

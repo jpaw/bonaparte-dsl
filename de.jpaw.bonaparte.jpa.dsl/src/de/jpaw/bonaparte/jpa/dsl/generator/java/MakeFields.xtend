@@ -132,8 +132,7 @@ class JavaFieldWriter {
             case DataCategory.ENUMSETALPHA:
                 writeField(c, "String", myName, "")
             case DataCategory.ENUMSET: {
-                val bitmapType = ref.elementaryDataType.enumsetType.indexType ?: "int"
-                writeField(c, if (bitmapType == "int") "Integer" else bitmapType.toFirstUpper, myName, "")
+                writeField(c, ref.elementaryDataType.enumsetType.mapEnumSetIndex, myName, "")
             }
             default: {
                 switch (ref.javaType) {

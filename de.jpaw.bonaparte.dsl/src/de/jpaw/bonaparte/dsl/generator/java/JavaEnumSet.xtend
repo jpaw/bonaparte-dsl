@@ -27,7 +27,7 @@ class JavaEnumSet {
     def static public writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
         val bitmapType = d.indexType ?: "int"       // default to int
-        val bitmapTypeWrapper = if (bitmapType == "int") "Integer" else bitmapType.toFirstUpper
+        val bitmapTypeWrapper = d.mapEnumSetIndex
         val nameComponent = bitmapType.toFirstUpper
 //        val nullTest = if (d.nullWhenEmpty) ''' || _es.isEmpty()'''
 //        val nullObject = if (d.nullWhenEmpty) '''new «d.name»(«IF bitmapType == "String"»""«ELSE»0«ENDIF»)''' else '''null'''
@@ -36,7 +36,7 @@ class JavaEnumSet {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
         
         import java.util.Iterator;
         import org.joda.time.Instant;
@@ -48,7 +48,7 @@ class JavaEnumSet {
         import de.jpaw.bonaparte.pojos.meta.IndexType;
         
         «IF d.myEnum.package !== d.package»
-            import «getPackageName(d.myEnum)».«eName»;
+            import «getBonPackageName(d.myEnum)».«eName»;
         «ENDIF»
         
         «IF d.javadoc !== null»

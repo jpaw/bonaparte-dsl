@@ -51,7 +51,7 @@ class JavaXEnum {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
 
         import org.joda.time.Instant;
         import java.io.Serializable;
@@ -63,14 +63,14 @@ class JavaXEnum {
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.*;
         
-        «IF getPackageName(d.myEnum) != getPackageName(d)»
-            import «getPackageName(d.myEnum)».«d.myEnum.name»;
+        «IF getBonPackageName(d.myEnum) != getBonPackageName(d)»
+            import «getBonPackageName(d.myEnum)».«d.myEnum.name»;
         «ENDIF»
-        «IF subClass && getPackageName(d.extendsXenum) != getPackageName(d)»
-            import «getPackageName(d.extendsXenum)».«d.extendsXenum.name»;
+        «IF subClass && getBonPackageName(d.extendsXenum) != getBonPackageName(d)»
+            import «getBonPackageName(d.extendsXenum)».«d.extendsXenum.name»;
         «ENDIF»
-        «IF subClass && rootClass != d.extendsXenum && getPackageName(rootClass) != getPackageName(d)»
-            import «getPackageName(rootClass)».«rootClass.name»;
+        «IF subClass && rootClass != d.extendsXenum && getBonPackageName(rootClass) != getBonPackageName(d)»
+            import «getBonPackageName(rootClass)».«rootClass.name»;
         «ENDIF»
 
         «IF d.javadoc !== null»
@@ -171,7 +171,7 @@ class JavaXEnum {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
 
         import javax.xml.bind.annotation.adapters.XmlAdapter;
 

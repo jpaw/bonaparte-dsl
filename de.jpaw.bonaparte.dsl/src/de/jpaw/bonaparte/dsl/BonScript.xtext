@@ -13,7 +13,11 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
+
+// grammar rule: every component either uses { } to wrap the body, or a semicolon ';' to terminate the directive
+// 3.2.0: added ; to xenum rule
+
 grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
 /* NEW: required for generics
 grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase // org.eclipse.xtext.common.Terminals
@@ -195,11 +199,11 @@ ClassDefinition:
         (exceptionConverter ?= 'withExceptionConverter')?   // unmarshal possibly throws Exceptions for invalid data which should be enriched with the parsing position
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?
-    ('{'
+    '{'
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | properties += PropertyUse)  (',' properties += PropertyUse)* ';')?
         fields += FieldDefinition*   
-     '}')
+    '}'
 ;
 
 ComparableFieldsList:
@@ -220,13 +224,13 @@ XEnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')?
-    'xenum'
-     name = ID
-    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
-//    (isExternalizable = Externalizable)?                // decide if implements Externalizable
-//    ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
-    'is' myEnum=[EnumDefinition|QualifiedId]
-    ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
+    'xenum' name = ID
+        ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+//      (isExternalizable = Externalizable)?                // decide if implements Externalizable
+//      ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
+        'is' myEnum=[EnumDefinition|QualifiedId]
+        ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
+    ';'
 ;
 
 EnumDefinition:
@@ -241,13 +245,15 @@ EnumDefinition:
 EnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'enumset' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId] ';'
+    'enumset' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId]
+    ';'
 ;
 
 XEnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    'xenumset' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId] ';'
+    'xenumset' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId]
+    ';'
 ;
 
 EnumAlphaValueDefinition:
@@ -258,12 +264,14 @@ EnumAlphaValueDefinition:
 // any package defaults will apply at the location where the type is defined. This means that
 // the type expansion will have the same features in different packages, even if they use different defaults. 
 TypeDefinition:
-    'type' name = ID 'is' datatype = DataType ';'
+    'type' name = ID 'is' datatype = DataType
+    ';'
 ;
 
 // Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
 FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
     (visibility = Visibility)?
     (required   = Required)?
     datatype    = DataType

@@ -29,19 +29,19 @@ public class ImportCollector {
 
     def void addImport(ClassDefinition cl) {
         if (cl !== null) {
-            addImport(getPackageName(cl), cl.name)
+            addImport(getBonPackageName(cl), cl.name)
             addImport(cl.externalType?.qualifiedName)
         }
     }
 
     def void addImport(EnumDefinition cl) {
         if (cl !== null)
-            addImport(getPackageName(cl), cl.name)
+            addImport(getBonPackageName(cl), cl.name)
     }
 
     def void addImport(XEnumDefinition cl) {
         if (cl !== null) {
-            addImport(getPackageName(cl), cl.name)
+            addImport(getBonPackageName(cl), cl.name)
             addImport(cl.myEnum)    
             val root = XUtil.getRoot(cl)
             if (root != cl)
@@ -51,14 +51,14 @@ public class ImportCollector {
     
     def void addImport(EnumSetDefinition cl) {
         if (cl !== null) {
-            addImport(getPackageName(cl), cl.name)
+            addImport(getBonPackageName(cl), cl.name)
             addImport(cl.myEnum)    
         }
     }
 
     def void addImport(XEnumSetDefinition cl) {
         if (cl !== null) {
-            addImport(getPackageName(cl), cl.name)
+            addImport(getBonPackageName(cl), cl.name)
             addImport(cl.myXEnum)    
         }
     }

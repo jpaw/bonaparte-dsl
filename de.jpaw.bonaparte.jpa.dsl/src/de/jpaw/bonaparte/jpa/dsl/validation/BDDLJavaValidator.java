@@ -9,13 +9,12 @@ import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.xtext.validation.Check;
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.DataType;
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackage;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.CollectionDefinition;
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse;
@@ -24,7 +23,6 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition;
 import de.jpaw.bonaparte.jpa.dsl.generator.YUtil;
-import de.jpaw.bonaparte.jpa.dsl.validation.BDDLValidator;
 
 public class BDDLJavaValidator extends BDDLValidator {
 
@@ -215,7 +213,7 @@ public class BDDLJavaValidator extends BDDLValidator {
         
         if (e.getTableCategory().getHistoryCategory() != null) {
             String historytablename = de.jpaw.bonaparte.jpa.dsl.generator.YUtil.mkTablename(e, true);
-            checkTablenameLength(tablename, e.getHistorytablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
+            checkTablenameLength(historytablename, e.getHistorytablename() != null ? BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME : BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
         } else if (e.getHistorytablename() != null) {
             error("History tablename provided, but table category does not specify use of history",
                   BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME);
@@ -286,11 +284,11 @@ public class BDDLJavaValidator extends BDDLValidator {
             // this must be either a final class, or a superclass
             if (e.getPkPojo().isFinal()) {
                 for (FieldDefinition f : e.getPkPojo().getFields()) {
-                    if (exists(f, e.getPojoType().getFields()))
-                        ;
-                    else if (e.getTenantClass() != null && exists(f, e.getTenantClass().getFields()))
-                        ;
-                    else {
+                    if (exists(f, e.getPojoType().getFields())) {
+                        // nothing
+                    } else if (e.getTenantClass() != null && exists(f, e.getTenantClass().getFields())) {
+                        // nothing
+                    } else {
                         error("Field " + f.getName() + " of final PK not found in entity", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
                     }
                 }
@@ -379,37 +377,37 @@ public class BDDLJavaValidator extends BDDLValidator {
         } */
     }
 
-    private static boolean isSame(Object a, Object b) {
-        if (a == null && b == null)
-            return true;
-        if (a == null || b == null)
-            return false;
-        return a.equals(b);
-    }
-
-    private static boolean checkSameType(DataType a, DataType b) {
-        if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
-            return false;
-        ElementaryDataType adt = a.getElementaryDataType();
-        ElementaryDataType bdt = b.getElementaryDataType();
-
-        if (adt != null) {
-            if (bdt == null)
-                return false;
-            // a and b both not null, compare!
-            if (!isSame(adt.getEnumType(), bdt.getEnumType()))
-                return false;
-            if (!isSame(adt.getName(), bdt.getName()))
-                return false;
-            if (adt.getLength() != bdt.getLength())
-                return false;
-        } else if (bdt != null) {
-            // a is null, b not
-            return false;
-        }
-        return true;
-
-    }
+//    private static boolean isSame(Object a, Object b) {
+//        if (a == null && b == null)
+//            return true;
+//        if (a == null || b == null)
+//            return false;
+//        return a.equals(b);
+//    }
+//
+//    private static boolean checkSameType(DataType a, DataType b) {
+//        if (!isSame(a.getReferenceDataType(), b.getReferenceDataType()))  // typedefs must be exactly the same
+//            return false;
+//        ElementaryDataType adt = a.getElementaryDataType();
+//        ElementaryDataType bdt = b.getElementaryDataType();
+//
+//        if (adt != null) {
+//            if (bdt == null)
+//                return false;
+//            // a and b both not null, compare!
+//            if (!isSame(adt.getEnumType(), bdt.getEnumType()))
+//                return false;
+//            if (!isSame(adt.getName(), bdt.getName()))
+//                return false;
+//            if (adt.getLength() != bdt.getLength())
+//                return false;
+//        } else if (bdt != null) {
+//            // a is null, b not
+//            return false;
+//        }
+//        return true;
+//
+//    }
     
     @Check
     public void checkElementCollectionRelationship(ElementCollectionRelationship ec) {
@@ -510,6 +508,21 @@ public class BDDLJavaValidator extends BDDLValidator {
             error("class mismatch: embeddable references " + u.getName().getPojoType().getName() + ", field is " + ref.objectDataType.getName(),
                     BDDLPackage.Literals.EMBEDDABLE_USE__NAME);
             return;
+        }
+    }
+    
+    @Check
+    public void checkConverterDefinition(ConverterDefinition c) {
+        ClassDefinition a = c.getMyAdapter();
+        if (a != null) {
+            if (!a.isSingleField()) {
+                error("Converters can only be registered for single field external types currently", BDDLPackage.Literals.CONVERTER_DEFINITION__MY_ADAPTER);
+                return;
+            }
+            if (a.isNeedExtraParam()) {
+                error("Converters cannot receive extra parameters", BDDLPackage.Literals.CONVERTER_DEFINITION__MY_ADAPTER);
+                return;
+            }
         }
     }
 }

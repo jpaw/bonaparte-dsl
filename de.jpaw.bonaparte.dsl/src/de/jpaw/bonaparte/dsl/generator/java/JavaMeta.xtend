@@ -209,7 +209,7 @@ class JavaMeta {
 
             static public Class<? extends BonaPortable> class$pk() {
                 «IF d.pkClass !== null»
-                    return «d.pkClass.packageName».«d.pkClass.name».class;
+                    return «d.pkClass.bonPackageName».«d.pkClass.name».class;
                 «ELSE»
                     return «IF d.parent !== null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
                 «ENDIF»

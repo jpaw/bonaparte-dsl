@@ -31,7 +31,7 @@ class JavaXEnumSet {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(d)»;
+        package «getBonPackageName(d)»;
 
         import java.util.Iterator;
         import org.joda.time.Instant;
@@ -42,7 +42,7 @@ class JavaXEnumSet {
         import de.jpaw.bonaparte.pojos.meta.XEnumSetDefinition;
 
         «IF d.myXEnum.package !== d.package»
-            import «getPackageName(d.myXEnum)».«eName»;
+            import «getBonPackageName(d.myXEnum)».«eName»;
         «ENDIF»
         
         «IF d.javadoc !== null»

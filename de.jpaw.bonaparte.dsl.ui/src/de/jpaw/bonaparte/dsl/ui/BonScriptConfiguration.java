@@ -5,6 +5,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage;
 import org.eclipse.jface.preference.BooleanFieldEditor;
@@ -25,8 +26,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
 
         // Validation
         Group validationGroup = new Group(myParent, SWT.SHADOW_IN);
-        validationGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true,
-                false));
+        validationGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
         validationGroup.setText("Data types and Validation");
         validationGroup.setLayout(new GridLayout(1, false));
         Composite compositeV = new Composite(validationGroup, SWT.NONE);
@@ -34,6 +34,13 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used?", compositeV));
         validationGroup.pack();
 
+        // blank, to fill the second column
+        new Label(myParent, SWT.NONE).setText(" ");
+
+        // empty line to have some spacing (there may be a better way to do that!)
+        new Label(myParent, SWT.NONE).setText(" ");
+        new Label(myParent, SWT.NONE).setText(" ");
+        
         // output
         Group outputGroup = new Group(myParent, SWT.SHADOW_IN);
         outputGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -44,6 +51,13 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)?", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
         outputGroup.pack();
+
+        // blank, to fill the second column
+        new Label(myParent, SWT.NONE).setText(" ");
+
+        // empty line to have some spacing (there may be a better way to do that!)
+        new Label(myParent, SWT.NONE).setText(" ");
+        new Label(myParent, SWT.NONE).setText(" ");
 
         // Serialization support
         Group hazelGroup = new Group(myParent, SWT.SHADOW_IN);
@@ -57,6 +71,9 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("HazelcastPo", "Portable (Hazelcast3)", compositeH));
         addField(new IntegerFieldEditor("FactoryId", "Hazelcast3 default factoryId", compositeH, 10));
         hazelGroup.pack();
+
+        // blank, to fill the second column
+        new Label(myParent, SWT.NONE).setText(" ");
 
     }
 
