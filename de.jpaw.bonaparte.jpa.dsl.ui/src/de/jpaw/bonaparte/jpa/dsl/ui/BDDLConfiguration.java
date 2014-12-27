@@ -84,9 +84,11 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("UserTypeEnum",                 "numeric enums", jpa21group));
         addField(new BooleanFieldEditor("UserTypeEnumAlpha",            "tokenizable enums", jpa21group));
         addField(new BooleanFieldEditor("UserTypeXEnum",                "xenums", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeEnumset",              "numeric enumsets", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeEnumsetAlpha",         "String type enumsets", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeXEnumset",             "xenumsets", jpa21group));
+        addField(new BooleanFieldEditor("UserTypeEnumset",              "enumsets (all kinds)", jpa21group));
+// temporarily the next 3 are configured together
+//        addField(new BooleanFieldEditor("UserTypeEnumset",              "numeric enumsets", jpa21group));
+//        addField(new BooleanFieldEditor("UserTypeEnumsetAlpha",         "String type enumsets", jpa21group));
+//        addField(new BooleanFieldEditor("UserTypeXEnumset",             "xenumsets", jpa21group));
         addField(new BooleanFieldEditor("UserTypeSingleFieldExternals", "singleField external types", jpa21group));
         jpa21Group.pack();
         
@@ -110,8 +112,8 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         store.setDefault("UserTypeEnumAlpha",           defaults.doUserTypeForEnumAlpha);
         store.setDefault("UserTypeXEnum",               defaults.doUserTypeForXEnum);
         store.setDefault("UserTypeEnumset",             defaults.doUserTypeForEnumset);
-        store.setDefault("UserTypeEnumsetAlpha",        defaults.doUserTypeForEnumsetAlpha);
-        store.setDefault("UserTypeXEnumset",            defaults.doUserTypeForXEnumset);
+//        store.setDefault("UserTypeEnumsetAlpha",        defaults.doUserTypeForEnumsetAlpha);
+//        store.setDefault("UserTypeXEnumset",            defaults.doUserTypeForXEnumset);
         store.setDefault("UserTypeSingleFieldExternals",defaults.doUserTypeForSFExternals);
         
         BDDLPreferences currentSettings = new BDDLPreferences();
@@ -127,8 +129,8 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         currentSettings.doUserTypeForEnumAlpha      = store.getBoolean("UserTypeEnumAlpha");
         currentSettings.doUserTypeForXEnum          = store.getBoolean("UserTypeXEnum");
         currentSettings.doUserTypeForEnumset        = store.getBoolean("UserTypeEnumset");
-        currentSettings.doUserTypeForEnumsetAlpha   = store.getBoolean("UserTypeEnumsetAlpha");
-        currentSettings.doUserTypeForXEnumset       = store.getBoolean("UserTypeXEnumset");
+//        currentSettings.doUserTypeForEnumsetAlpha   = store.getBoolean("UserTypeEnumsetAlpha");
+//        currentSettings.doUserTypeForXEnumset       = store.getBoolean("UserTypeXEnumset");
         currentSettings.doUserTypeForSFExternals    = store.getBoolean("UserTypeSingleFieldExternals");
         
         BDDLPreferences.currentPrefs = currentSettings;
@@ -171,12 +173,12 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                   case "UserTypeEnumset":
                       BDDLPreferences.currentPrefs.doUserTypeForEnumset     = (boolean) event.getNewValue();
                       break;
-                  case "UserTypeEnumsetAlpha":
-                      BDDLPreferences.currentPrefs.doUserTypeForEnumsetAlpha= (boolean) event.getNewValue();
-                      break;
-                  case "UserTypeXEnumset":
-                      BDDLPreferences.currentPrefs.doUserTypeForXEnumset    = (boolean) event.getNewValue();
-                      break;
+//                  case "UserTypeEnumsetAlpha":
+//                      BDDLPreferences.currentPrefs.doUserTypeForEnumsetAlpha= (boolean) event.getNewValue();
+//                      break;
+//                  case "UserTypeXEnumset":
+//                      BDDLPreferences.currentPrefs.doUserTypeForXEnumset    = (boolean) event.getNewValue();
+//                      break;
                   case "UserTypeSingleFieldExternals":
                       BDDLPreferences.currentPrefs.doUserTypeForSFExternals = (boolean) event.getNewValue();
                       break;

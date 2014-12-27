@@ -72,9 +72,9 @@ class Converters {
             val extType = e.myAdapter.externalType
             val exceptionArg = if (e.myAdapter.exceptionConverter) ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
             imports.addImport(extType.qualifiedName)
-            dbType = e.myAdapter.fields.get(0).JavaDataTypeNoName(true)
+            dbType = e.myAdapter.firstField.JavaDataTypeNoName(true)
             srcType = extType.simpleName
-            m = '''«IF e.myAdapter.bonaparteAdapterClass !== null»«e.myAdapter.bonaparteAdapterClass»«ELSE»obj«ENDIF».marshal(obj)'''
+            m = '''«IF e.myAdapter.bonaparteAdapterClass !== null»«e.myAdapter.bonaparteAdapterClass».marshal(obj)«ELSE»obj.marshal()«ENDIF»'''
             unm = '''«e.myAdapter.adapterClassName».unmarshal(col«exceptionArg»)'''
         }
 //            «writeDefaultImports»

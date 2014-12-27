@@ -21,8 +21,8 @@ public class BDDLPreferences {
     static private final boolean doUserTypeForEnumAlphaDefault      = configReader.getProp("UserTypeEnumAlpha", false);
     static private final boolean doUserTypeForXEnumDefault          = configReader.getProp("UserTypeXEnum", false);
     static private final boolean doUserTypeForEnumsetDefault        = configReader.getProp("UserTypeEnumset", false);
-    static private final boolean doUserTypeForEnumsetAlphaDefault   = configReader.getProp("UserTypeEnumsetAlpha", false);
-    static private final boolean doUserTypeForXEnumsetDefault       = configReader.getProp("UserTypeXEnumset", false);
+//    static private final boolean doUserTypeForEnumsetAlphaDefault   = configReader.getProp("UserTypeEnumsetAlpha", false);
+//    static private final boolean doUserTypeForXEnumsetDefault       = configReader.getProp("UserTypeXEnumset", false);
     static private final boolean doUserTypeForSFExternalsDefault    = configReader.getProp("UserTypeSingleFieldExternals", false);
 
     // general size check options
@@ -41,8 +41,8 @@ public class BDDLPreferences {
     public boolean doUserTypeForEnumAlpha       = doUserTypeForEnumAlphaDefault
     public boolean doUserTypeForXEnum           = doUserTypeForXEnumDefault
     public boolean doUserTypeForEnumset         = doUserTypeForEnumsetDefault
-    public boolean doUserTypeForEnumsetAlpha    = doUserTypeForEnumsetAlphaDefault
-    public boolean doUserTypeForXEnumset        = doUserTypeForXEnumsetDefault
+//    public boolean doUserTypeForEnumsetAlpha    = doUserTypeForEnumsetAlphaDefault
+//    public boolean doUserTypeForXEnumset        = doUserTypeForXEnumsetDefault
     public boolean doUserTypeForSFExternals     = doUserTypeForSFExternalsDefault
     
     public static BDDLPreferences currentPrefs = new BDDLPreferences

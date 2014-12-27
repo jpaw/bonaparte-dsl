@@ -153,7 +153,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 
                 val newPojo =
                     if (pojo.singleField)       // adapter, and special type of it?
-                        '''«myName».get«efields.get(0).name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
+                        '''«myName».get«pojo.firstField.name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
                     else
                         '''new «pojo.name»(«efields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
                 val extraExternalArgs = if (isExternalType && emb.field?.datatype !== null) {
@@ -192,7 +192,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         } else {
                             «myName» = new «emb.name.name»();
                             «IF pojo.singleField»
-                                «myName».set«efields.get(0).name.toFirstUpper»(«marshaller»);
+                                «myName».set«pojo.firstField.name.toFirstUpper»(«marshaller»);
                             «ELSE»
                                 «IF isExternalType»
                                     «pojo.name» _y = «marshaller»;

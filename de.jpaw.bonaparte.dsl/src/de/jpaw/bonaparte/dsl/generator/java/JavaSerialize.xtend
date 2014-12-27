@@ -47,7 +47,7 @@ class JavaSerialize {
             val marshaller = if (objectType.bonaparteAdapterClass !== null) '''«objectType.adapterClassName».marshal(«indexedName»)''' else '''«indexedName».marshal()'''
             if (objectType.singleField) {
                 // delegate to first field or the proxy. As that can be a primitive type, must do a null check here...
-                val metaName = '''«objectType.name».meta$$«objectType.fields.get(0).name»'''
+                val metaName = '''«objectType.name».meta$$«objectType.firstField.name»'''
                 return '''if («indexedName» == null) _w.writeNull(«metaName»); else _w.addField(«metaName», «marshaller»);'''
             } else {
                 return '''_w.addField(meta$$«i.name», «marshaller»);'''

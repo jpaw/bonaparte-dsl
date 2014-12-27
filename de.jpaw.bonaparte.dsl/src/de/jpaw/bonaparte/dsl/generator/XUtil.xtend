@@ -532,4 +532,9 @@ class XUtil {
             return "Integer"
         return e.indexType.toFirstUpper
     }
+    
+    // get the first field of this or a parent (for external types). Assumption is there is only one field in total (singleFirst types).
+    def public static FieldDefinition getFirstField(ClassDefinition cd) {
+        return if (cd.fields.size > 0) cd.fields.get(0) else cd.extendsClass.classRef.firstField 
+    }
 }

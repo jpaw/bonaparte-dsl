@@ -104,7 +104,7 @@ class JavaDeserialize {
             val exceptionConverterParameter = if (objectType.exceptionConverter) ", _p"  
             if (objectType.singleField) {
                 // delegate to first field or the proxy
-                return '''«objectType.adapterClassName».unmarshal(«extra»«makeRead2(objectType, objectType.fields.get(0), objectType.name + ".")»«exceptionConverterParameter»)'''
+                return '''«objectType.adapterClassName».unmarshal(«extra»«makeRead2(objectType, objectType.firstField, objectType.name + ".")»«exceptionConverterParameter»)'''
             } else {
                 return '''«objectType.adapterClassName».unmarshal(«extra»«defaultExpression»«exceptionConverterParameter»)'''
             }
