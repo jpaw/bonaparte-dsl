@@ -274,6 +274,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 
 ROADMAP / PLANS:
+- Java 8 date / time type adapters
+- JPA 2.1 type adapters for enums, xenums, enum sets, single field adapters
+- general use of nullWhenEmpty
 - complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
 - performance improvements LocalDate/Time serializers (really required?)
