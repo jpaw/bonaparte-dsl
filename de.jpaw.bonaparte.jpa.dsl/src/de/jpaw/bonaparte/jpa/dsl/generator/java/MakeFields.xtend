@@ -92,7 +92,7 @@ class JavaFieldWriter {
         «ENDIF»
     '''
 
-    def private CharSequence writeColumnType(FieldDefinition c, String myName) {
+    def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal) {
         val prefs = BDDLPreferences.currentPrefs
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
         
@@ -115,7 +115,11 @@ class JavaFieldWriter {
                         «fieldVisibility»«ref.objectDataType.externalType.simpleName» «myName»;'''           // qualifiedName required?
                 } else {
                     // manual conversion in the getters / setters. Use the converted field here. Recursive call of the same method. (Nested conversions won't work!)
-                    return writeColumnType(ref.objectDataType.firstField, myName)
+                    // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won#t repeat that because first fields are always nullable.
+                    return '''
+                        «JavaBeanValidation::writeAnnotations(c, ref, doBeanVal)»
+                        «writeColumnType(ref.objectDataType.firstField, myName, doBeanVal)»
+                    '''
                 }
             } else if (c.properties.hasProperty("ManyToOne")) {     // TODO: undocumented and also unused feature. Remove it?
                 // child object, create single-sided many to one annotations as well
@@ -210,17 +214,19 @@ class JavaFieldWriter {
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
 
-    def private writeGetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
+    def private writeGetterAndSetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val prefs = BDDLPreferences.currentPrefs
         val ref = DataTypeExtension::get(i.datatype);
         val theEnum = ref.enumForEnumOrXenum
         val nwz = i.properties.hasProperty(PROP_NULL_WHEN_ZERO)
         val nwzData = i.properties.getProperty(PROP_NULL_WHEN_ZERO)
         val dtoName = if (optionalClass !== null) optionalClass.name else "NO_SERIALIZED_DATA_IN_PK_ALLOWED"  // optionalClass will be null if we are creating data for a PK. That should be OK
-        
-        return '''
-            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
+
+        var String getter
+        var String setter
+                
+        if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
+            getter = '''
                     if («myName» == null)
                         return null;
                     try {
@@ -237,53 +243,8 @@ class JavaFieldWriter {
                     } catch (MessageParserException _e) {
                         DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
                         return null;
-                    }
-                «ELSEIF ref.category == DataCategory.ENUM»
-                    return «IF prefs.doUserTypeForEnum»«myName»«ELSE»«ref.elementaryDataType.enumType.name».valueOf(«myName»)«ENDIF»;
-                «ELSEIF ref.category == DataCategory.ENUMALPHA»
-                    return «IF prefs.doUserTypeForEnumAlpha»«myName»«ELSE»«myName» == null ? «IF i.isASpecialEnumWithEmptyStringAsNull»«theEnum.name».«i.idForEnumTokenNull»«ELSE»null«ENDIF» : «theEnum.name».factory(«myName»)«ENDIF»;
-                «ELSEIF ref.category == DataCategory.XENUM»
-                    return «IF prefs.doUserTypeForXEnum»«myName»«ELSE»«ref.xEnumFactoryName».getByTokenWithNull(«myName»)«ENDIF»;
-                «ELSE»
-                    «IF ref.category == DataCategory::OBJECT»
-                        «IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals»
-                            // convert database user type in getter to the external type: parser / unmarshal required here
-                            return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«myName»«IF ref.objectDataType.exceptionConverter»«EXC_CVT_ARG»«ENDIF»);
-                        «ELSE»
-                            return «myName»;
-                        «ENDIF»
-                    «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA»
-                        return «myName»«IF !prefs.doUserTypeForEnumset» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("LocalTime")»
-                        return «myName»«IF !useUserTypes» == null ? null : LocalTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("LocalDate")»
-                        return «myName»«IF !useUserTypes» == null ? null : LocalDate.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("LocalDateTime")»
-                        return «myName»«IF !useUserTypes» == null ? null : LocalDateTime.from«JDBC4TYPE»Fields(«myName»)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("Instant")»
-                        return «myName»«IF !useUserTypes» == null ? null : new Instant(«myName»)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("ByteArray")»
-                        return «myName»«IF !useUserTypes» == null ? null : new ByteArray(«myName», 0, -1)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("byte []")»
-                        return ByteUtil.deepCopy(«myName»);       // deep copy
-                    «ELSE»
-                        return «myName»;
-                    «ENDIF»
-                «ENDIF»
-            }
-        '''
-    }
-
-    def private writeSetter(FieldDefinition i, String myName) {
-        val prefs = BDDLPreferences.currentPrefs
-        val ref = DataTypeExtension::get(i.datatype)
-        val nwz = i.properties.hasProperty((PROP_NULL_WHEN_ZERO))
-        // val theEnum = if(ref.enumMaxTokenLength != DataTypeExtension::ENUM_NUMERIC) ref.enumForEnumOrXenum
-        
-        return '''
-            public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
-                «IF JAVA_OBJECT_TYPE.equals(ref.javaType) ||
-                (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))»
+                    }'''
+            setter = '''
                     if (_x == null) {
                         «myName» = null;
                     } else {
@@ -294,35 +255,48 @@ class JavaFieldWriter {
                         «ENDIF»
                         _bac.addField(StaticMeta.OUTER_BONAPORTABLE, _x);
                         «myName» = _bac.getBytes();
-                    }
-                «ELSEIF ref.category == DataCategory.ENUM»
-                    «myName» = _x«IF !prefs.doUserTypeForEnum» == null ? null : _x.ordinal()«ENDIF»;
-                «ELSEIF ref.category == DataCategory.ENUMALPHA»
-                    «myName» = _x«IF !prefs.doUserTypeForEnumAlpha» == null«IF i.isASpecialEnumWithEmptyStringAsNull» || _x == «ref.elementaryDataType.enumType.name».«i.idForEnumTokenNull»«ENDIF» ? null : _x.getToken()«ENDIF»;
-                «ELSEIF ref.category == DataCategory.XENUM»
-                    «myName» = _x«IF !prefs.doUserTypeForXEnum» == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken()«ENDIF»;
-                «ELSE»
-                    «IF ref.category == DataCategory::OBJECT»
-                        «IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals»
-                            // convert user type in setter
-                            «myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»;
-                        «ELSE»
-                            «myName» = _x;
-                        «ENDIF»
-                    «ELSEIF ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA»
-                        «myName» = _x«IF !prefs.doUserTypeForEnumset» == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap()«ENDIF»;
-                    «ELSEIF ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime") || ref.javaType.equals("LocalTime")»
-                        «myName» = «IF useUserTypes»_x«ELSE»DayTime.to«JDBC4TYPE»(_x)«ENDIF»;
-                    «ELSEIF ref.javaType.equals("Instant")»
-                        «myName» = _x«IF !useUserTypes» == null ? null ? _x.to«JDBC4TYPE»()«ENDIF»;
-                    «ELSEIF ref.javaType.equals("ByteArray")»
-                        «myName» = _x«IF !useUserTypes» == null ? null : _x.getBytes()«ENDIF»;
-                    «ELSEIF ref.javaType.equals("byte []")»
-                        «myName» = ByteUtil.deepCopy(_x);       // deep copy
-                    «ELSE»
-                        «myName» = _x;
-                    «ENDIF»
-                «ENDIF»
+                    }'''
+        } else if (ref.category == DataCategory.ENUM) {
+            getter = '''return «IF prefs.doUserTypeForEnum»«myName»«ELSE»«ref.elementaryDataType.enumType.name».valueOf(«myName»)«ENDIF»;'''
+            setter = '''«myName» = _x«IF !prefs.doUserTypeForEnum» == null ? null : _x.ordinal()«ENDIF»;'''
+        } else if (ref.category == DataCategory.ENUMALPHA) {
+            getter = '''return «IF prefs.doUserTypeForEnumAlpha»«myName»«ELSE»«theEnum.name».factoryNWZ(«myName»)«ENDIF»;'''
+            setter = '''«myName» = «IF prefs.doUserTypeForEnumAlpha»_x«ELSE»«ref.elementaryDataType.enumType.name».getTokenNWZ(_x)«ENDIF»;'''
+        } else if (ref.category == DataCategory.XENUM) {
+            getter = '''return «IF prefs.doUserTypeForXEnum»«myName»«ELSE»«ref.xEnumFactoryName».getByTokenWithNull(«myName»)«ENDIF»;'''
+            setter = '''«myName» = _x«IF !prefs.doUserTypeForXEnum» == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken()«ENDIF»;'''
+        } else if (ref.category == DataCategory.OBJECT) {
+            getter = '''return «myName»«IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«myName»«IF ref.objectDataType.exceptionConverter»«EXC_CVT_ARG»«ENDIF»)«ENDIF»;'''
+            setter = '''«myName» = _x«IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals» == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»«ENDIF»;'''
+        } else if (ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA) {
+            getter = '''return «myName»«IF !prefs.doUserTypeForEnumset» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»)«ENDIF»;'''
+            setter = '''«myName» = _x«IF !prefs.doUserTypeForEnumset» == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap()«ENDIF»;'''
+        } else if (ref.javaType.equals("LocalTime") || ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")) {
+            getter = '''return «myName»«IF !useUserTypes» == null ? null : «ref.javaType».from«JDBC4TYPE»Fields(«myName»)«ENDIF»;'''
+            setter = '''«myName» = «IF useUserTypes»_x«ELSE»DayTime.to«JDBC4TYPE»(_x)«ENDIF»;'''
+        } else if (ref.javaType.equals("Instant")) {
+            getter = '''return «myName»«IF !useUserTypes» == null ? null : new Instant(«myName»)«ENDIF»;'''
+            setter = '''«myName» = _x«IF !useUserTypes» == null ? null ? _x.to«JDBC4TYPE»()«ENDIF»;'''
+        } else if (ref.javaType.equals("ByteArray")) {
+            getter = '''return «myName»«IF !useUserTypes» == null ? null : new ByteArray(«myName», 0, -1)«ENDIF»;'''
+            setter = '''«myName» = _x«IF !useUserTypes» == null ? null : _x.getBytes()«ENDIF»;'''
+        } else if (ref.javaType.equals("byte []")) {
+            getter = '''return ByteUtil.deepCopy(«myName»);       // deep copy'''
+            setter = '''«myName» = ByteUtil.deepCopy(_x);       // deep copy'''
+        } else {
+            getter = '''return «myName»;'''
+            setter = '''«myName» = _x;'''
+        }
+            
+        return '''
+            «i.writeIfDeprecated»
+            public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
+                «getter»
+            }
+            
+            «i.writeIfDeprecated»
+            public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
+                «setter»
             }
         '''
     }
@@ -367,9 +341,8 @@ class JavaFieldWriter {
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
                 «IF relevantEmbeddable === null»
                     @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»)
-                    «f.writeColumnType(myName)»
-                    «f.writeGetter(myName, optionalClass)»
-                    «f.writeSetter(myName)»
+                    «f.writeColumnType(myName, false)»
+                    «f.writeGetterAndSetter(myName, optionalClass)»
                 «ELSE»
                     «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
                     // special getter to convert from embeddable entity type into DTO
@@ -413,9 +386,8 @@ class JavaFieldWriter {
                 «f.properties.optionalAnnotation("lob", "@Lob")»
                 «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
                 «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
-                «f.writeColumnType(myName)»
-                «f.writeGetter(myName, optionalClass)»
-                «f.writeSetter(myName)»
+                «f.writeColumnType(myName, doBeanVal)»
+                «f.writeGetterAndSetter(myName, optionalClass)»
             «ENDIF»
         '''
     }

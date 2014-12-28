@@ -38,6 +38,7 @@ class JavaEnum {
     def static public writeEnumDefinition(EnumDefinition d) {
         var int counter = -1
         val isAlphaEnum = d.isAlphaEnum
+        val isSpecialAlpha = isAlphaEnum && d.avalues.exists[token == ""]
         val myInterface = if (isAlphaEnum) "BonaTokenizableEnum" else "BonaNonTokenizableEnum"
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
@@ -51,11 +52,9 @@ class JavaEnum {
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         import de.jpaw.bonaparte.enums.«myInterface»;
 
-        «IF d.javadoc !== null»
-            «d.javadoc»
-        «ENDIF»
+        «d.javadoc»
         «IF d.isDeprecated»
-        @Deprecated
+            @Deprecated
         «ENDIF»
         public enum «d.name» implements «myInterface» {
             «IF !isAlphaEnum»
@@ -63,19 +62,21 @@ class JavaEnum {
             «ELSE»
                 «FOR v:d.avalues SEPARATOR ', '»«v.name»("«v.token»")«ENDFOR»;
 
-                // constructor by token
-                private String _token;
+                private final String _token;
+                
+                /** Constructs an enum by its token. */
                 private «d.name»(String _token) {
                     this._token = _token;
                 }
 
-                // token retrieval
+                /** Retrieves the token for a given instance. Never returns null. */
                 @Override
                 public String getToken() {
                     return _token;
                 }
 
-                // static factory method.«IF codegenJava7» Requires Java 7«ENDIF»
+                /** static factory method«IF codegenJava7» (requires Java 7)«ENDIF».
+                  * Null is passed through, a non-null parameter will return a non-null response. */
                 public static «d.name» factory(String _token) {
                     if (_token != null) {
                         «IF codegenJava7»
@@ -99,12 +100,24 @@ class JavaEnum {
                 public static «d.name» getNullToken() {
                     return «d.avalues.findFirst[token == ""]?.name ?: "null"»;
                 }
+                
+                /** Same as factory(), but returns the special enum instance with a tokens of zero length (in case such a token exists) for null. */ 
+                public static «d.name» factoryNWZ(String _token) {
+                    return «IF isSpecialAlpha»"".equals(_token) ? «d.avalues.findFirst[token == ""].name» : «ENDIF»factory(_token);
+                }
+                
+                /** Retrieves the token for a given instance. Returns null for the zero length token. */
+                public static String getTokenNWZ(«d.name» _obj) {
+                    return _obj == null«IF isSpecialAlpha» || _obj == «d.avalues.findFirst[token == ""].name»«ENDIF» ? null : _obj.getToken();
+                }
             «ENDIF»
 
             private static final long serialVersionUID = «getSerialUID(d)»L;
             
             «d.writeEnumMetaData»
             
+            /** Returns the enum instance which has the ordinal as specified by the parameter. Returns null for a null parameter.
+              * valueOf by default only exists for String type parameters for enums. */
             public static «d.name» valueOf(Integer ordinal) {
                 if (ordinal != null) {
                     switch (ordinal.intValue()) {

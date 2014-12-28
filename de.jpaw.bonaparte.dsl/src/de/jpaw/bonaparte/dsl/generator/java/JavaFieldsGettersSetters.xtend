@@ -91,11 +91,6 @@ class JavaFieldsGettersSetters {
         i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
     }
     
-    def private static writeIfDeprecated(FieldDefinition i) {
-        if (i.isDeprecated)
-            return "@Deprecated"
-    }
-        
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)

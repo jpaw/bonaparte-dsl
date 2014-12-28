@@ -537,4 +537,9 @@ class XUtil {
     def public static FieldDefinition getFirstField(ClassDefinition cd) {
         return if (cd.fields.size > 0) cd.fields.get(0) else cd.extendsClass.classRef.firstField 
     }
+    
+    def public static writeIfDeprecated(FieldDefinition i) {
+        if (i.isDeprecated)
+            return "@Deprecated"
+    }
 }

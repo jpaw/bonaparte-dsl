@@ -43,12 +43,11 @@ class Converters {
             if (!isAlphaEnum) {
                 dbType = "Integer"
                 m = "obj.ordinal()"
-                unm = '''«srcType».valueOf(col)''' 
+                unmarshal = '''return «srcType».valueOf(col);''' 
             } else {
-                val withNullToken = e.myEnum.hasNullToken
                 dbType = "String"
-                marshal = '''return obj == null«IF withNullToken» || obj == «srcType».«e.myEnum.nameForNullToken»«ENDIF» ? null : obj.getToken();'''
-                unmarshal = '''return col == null ? «IF withNullToken»«srcType».«e.myEnum.nameForNullToken»«ELSE»null«ENDIF» : «srcType».factory(col);''' 
+                marshal = '''return «srcType».getTokenNWZ(obj);'''
+                unmarshal = '''return «srcType».factoryNWZ(col);''' 
             }
         } else if (e.myXEnum !== null) {
             imports.addImport(e.myXEnum)

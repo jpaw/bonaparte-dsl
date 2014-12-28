@@ -275,12 +275,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON & BDDL: better layout for preferences pages
 - BON: incompatible change: required ';' at end of xenum definition, for grammar consistency
 - BON: allow @Deprecated on field level
-- BDDL: writing JPA 2.1 type converters
+- BDDL: writing JPA 2.1 type converters for enums, xenums, enum sets, single field adapters
 
 
 ROADMAP / PLANS:
 - Java 8 date / time type adapters
-- JPA 2.1 type adapters for enums, xenums, enum sets, single field adapters
 - general use of nullWhenEmpty
 - complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
@@ -300,5 +299,4 @@ When using ElementCollection in conjunction with Embeddables, the names of the p
 to the name of the primary key of the parent entity.
 
 Known bugs:
-javadoc comments for fields are not generated.
-
+There seem to be some issues with the preferences. Sometimes messages about invalid preferences pop up, especially when set on project level.
