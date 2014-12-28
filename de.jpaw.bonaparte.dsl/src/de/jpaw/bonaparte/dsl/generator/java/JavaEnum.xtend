@@ -103,7 +103,7 @@ class JavaEnum {
                 
                 /** Same as factory(), but returns the special enum instance with a tokens of zero length (in case such a token exists) for null. */ 
                 public static «d.name» factoryNWZ(String _token) {
-                    return «IF isSpecialAlpha»"".equals(_token) ? «d.avalues.findFirst[token == ""].name» : «ENDIF»factory(_token);
+                    return «IF isSpecialAlpha»_token == null ? «d.avalues.findFirst[token == ""].name» : «ENDIF»factory(_token);
                 }
                 
                 /** Retrieves the token for a given instance. Returns null for the zero length token. */
