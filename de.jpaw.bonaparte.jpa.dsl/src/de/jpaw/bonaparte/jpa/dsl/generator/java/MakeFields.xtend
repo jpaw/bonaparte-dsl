@@ -100,19 +100,19 @@ class JavaFieldWriter {
             if (c.properties.hasProperty(PROP_SERIALIZED)) {
 
                 // use byte[] Java type and assume same as Object
-                return '''
-                    «fieldVisibility»byte [] «myName»;'''
+                if (prefs.doUserTypeForBonaPortable)
+                    return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
+                else
+                    return '''«fieldVisibility»byte [] «myName»;'''
             } else if (c.properties.hasProperty(PROP_REF)) {
 
                 // plain old Long as an artificial key / referencing is done by application
                 // can optionally have a ManyToOne object mapping in a Java superclass, with insertable=false, updatable=false
-                return '''
-                    «fieldVisibility»Long «myName»;'''
+                return '''«fieldVisibility»Long «myName»;'''
             } else if (ref.objectDataType.isSingleField) {         // depending on settings, either convert a usertype directly or use a JPA 2.1 Converter and insert the field 1:1 here
                 if (BDDLPreferences.currentPrefs.doUserTypeForSFExternals) {
                     // 1:1 use of the field, work is done in the Converter
-                    return '''
-                        «fieldVisibility»«ref.objectDataType.externalType.simpleName» «myName»;'''           // qualifiedName required?
+                    return '''«fieldVisibility»«ref.objectDataType.externalType.simpleName» «myName»;'''           // qualifiedName required?
                 } else {
                     // manual conversion in the getters / setters. Use the converted field here. Recursive call of the same method. (Nested conversions won't work!)
                     // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won#t repeat that because first fields are always nullable.
@@ -159,13 +159,15 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
                     case "ByteArray":
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
-                    case JAVA_OBJECT_TYPE: '''
-                        // @Lob
-                        «writeField(c, ref, myName, false, "byte []", null, null)»
-                    '''
-                    default: '''
-                        «fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;
-                    '''
+                    case JAVA_OBJECT_TYPE: 
+                        if (prefs.doUserTypeForBonaPortable)
+                            return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
+                        else
+                            '''
+                                // @Lob
+                                «writeField(c, ref, myName, false, "byte []", null, null)»
+                            '''
+                    default: '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
                 }
             }
         }
@@ -222,11 +224,12 @@ class JavaFieldWriter {
         val nwzData = i.properties.getProperty(PROP_NULL_WHEN_ZERO)
         val dtoName = if (optionalClass !== null) optionalClass.name else "NO_SERIALIZED_DATA_IN_PK_ALLOWED"  // optionalClass will be null if we are creating data for a PK. That should be OK
 
-        var String getter
-        var String setter
-                
+        var String getter = '''return «myName»;'''
+        var String setter = '''«myName» = _x;'''
+
         if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
-            getter = '''
+            if (!prefs.doUserTypeForBonaPortable) {
+                getter = '''
                     if («myName» == null)
                         return null;
                     try {
@@ -244,49 +247,66 @@ class JavaFieldWriter {
                         DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
                         return null;
                     }'''
-            setter = '''
+                setter = '''
                     if (_x == null) {
                         «myName» = null;
                     } else {
                         «IF hasProperty(i.properties, PROP_COMPACT)»
-                            CompactByteArrayComposer _bac = new CompactByteArrayComposer();
+                            ByteBuilder _b = new ByteBuilder();
+                            new CompactByteArrayComposer(_b, false).addField(StaticMeta.OUTER_BONAPORTABLE, _x);
+                            «myName» = _b.getBytes();
                         «ELSE»
                             ByteArrayComposer _bac = new ByteArrayComposer();
+                            _bac.addField(StaticMeta.OUTER_BONAPORTABLE, _x);
+                            «myName» = _bac.getBytes();
                         «ENDIF»
-                        _bac.addField(StaticMeta.OUTER_BONAPORTABLE, _x);
-                        «myName» = _bac.getBytes();
                     }'''
+            } // else stay with the default
         } else if (ref.category == DataCategory.ENUM) {
-            getter = '''return «IF prefs.doUserTypeForEnum»«myName»«ELSE»«ref.elementaryDataType.enumType.name».valueOf(«myName»)«ENDIF»;'''
-            setter = '''«myName» = _x«IF !prefs.doUserTypeForEnum» == null ? null : _x.ordinal()«ENDIF»;'''
+            if (!prefs.doUserTypeForEnum) {
+                getter = '''return «ref.elementaryDataType.enumType.name».valueOf(«myName»);'''
+                setter = '''«myName» = _x == null ? null : _x.ordinal();'''
+            }
         } else if (ref.category == DataCategory.ENUMALPHA) {
-            getter = '''return «IF prefs.doUserTypeForEnumAlpha»«myName»«ELSE»«theEnum.name».factoryNWZ(«myName»)«ENDIF»;'''
-            setter = '''«myName» = «IF prefs.doUserTypeForEnumAlpha»_x«ELSE»«ref.elementaryDataType.enumType.name».getTokenNWZ(_x)«ENDIF»;'''
+            if (!prefs.doUserTypeForEnumAlpha) {
+                getter = '''return «theEnum.name».factoryNWZ(«myName»);'''
+                setter = '''«myName» = «ref.elementaryDataType.enumType.name».getTokenNWZ(_x);'''
+            }
         } else if (ref.category == DataCategory.XENUM) {
-            getter = '''return «IF prefs.doUserTypeForXEnum»«myName»«ELSE»«ref.xEnumFactoryName».getByTokenWithNull(«myName»)«ENDIF»;'''
-            setter = '''«myName» = _x«IF !prefs.doUserTypeForXEnum» == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken()«ENDIF»;'''
+            if (!prefs.doUserTypeForXEnum) {
+                getter = '''return «ref.xEnumFactoryName».getByTokenWithNull(«myName»);'''
+                setter = '''«myName» = _x == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken();'''
+            }
         } else if (ref.category == DataCategory.OBJECT) {
-            getter = '''return «myName»«IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«myName»«IF ref.objectDataType.exceptionConverter»«EXC_CVT_ARG»«ENDIF»)«ENDIF»;'''
-            setter = '''«myName» = _x«IF ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals» == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»«ENDIF»;'''
+            if (ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals) {
+                getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«myName»«IF ref.objectDataType.exceptionConverter»«EXC_CVT_ARG»«ENDIF»);'''
+                setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»;'''
+            }
         } else if (ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA) {
-            getter = '''return «myName»«IF !prefs.doUserTypeForEnumset» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»)«ENDIF»;'''
-            setter = '''«myName» = _x«IF !prefs.doUserTypeForEnumset» == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap()«ENDIF»;'''
+            if (!prefs.doUserTypeForEnumset) {
+                getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»);'''
+                setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap();'''
+            }
         } else if (ref.javaType.equals("LocalTime") || ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")) {
-            getter = '''return «myName»«IF !useUserTypes» == null ? null : «ref.javaType».from«JDBC4TYPE»Fields(«myName»)«ENDIF»;'''
-            setter = '''«myName» = «IF useUserTypes»_x«ELSE»DayTime.to«JDBC4TYPE»(_x)«ENDIF»;'''
+            if (!useUserTypes) {
+                getter = '''return «myName» == null ? null : «ref.javaType».from«JDBC4TYPE»Fields(«myName»);'''
+                setter = '''«myName» = DayTime.to«JDBC4TYPE»(_x);'''
+            }
         } else if (ref.javaType.equals("Instant")) {
-            getter = '''return «myName»«IF !useUserTypes» == null ? null : new Instant(«myName»)«ENDIF»;'''
-            setter = '''«myName» = _x«IF !useUserTypes» == null ? null ? _x.to«JDBC4TYPE»()«ENDIF»;'''
+            if (!useUserTypes) {
+                getter = '''return «myName» == null ? null : new Instant(«myName»);'''
+                setter = '''«myName» = _x == null ? null ? _x.to«JDBC4TYPE»();'''
+            }
         } else if (ref.javaType.equals("ByteArray")) {
-            getter = '''return «myName»«IF !useUserTypes» == null ? null : new ByteArray(«myName», 0, -1)«ENDIF»;'''
-            setter = '''«myName» = _x«IF !useUserTypes» == null ? null : _x.getBytes()«ENDIF»;'''
+            if (!useUserTypes) {
+                getter = '''return «myName» == null ? null : new ByteArray(«myName», 0, -1);'''
+                setter = '''«myName» = _x == null ? null : _x.getBytes();'''
+            }
         } else if (ref.javaType.equals("byte []")) {
+            // no second condition here? Adding a user type for byte arrays does not make sense.
             getter = '''return ByteUtil.deepCopy(«myName»);       // deep copy'''
             setter = '''«myName» = ByteUtil.deepCopy(_x);       // deep copy'''
-        } else {
-            getter = '''return «myName»;'''
-            setter = '''«myName» = _x;'''
-        }
+        } // else stay with the default
             
         return '''
             «i.writeIfDeprecated»

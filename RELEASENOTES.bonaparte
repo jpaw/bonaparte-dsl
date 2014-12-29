@@ -277,6 +277,12 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: allow @Deprecated on field level
 - BDDL: writing JPA 2.1 type converters for enums, xenums, enum sets, single field adapters
 
+3.2.1:
+- BON: provide some quick converter utility classes in bonaparte.util
+- BDDL: support user types for BonaPortable for Eclipselink and JPA 2.1
+- BDDL: fix the LocalTime user type implementation for Eclipselink
+- BON & BDDL: type casts in preferences fixed
+
 
 ROADMAP / PLANS:
 - Java 8 date / time type adapters
@@ -298,5 +304,3 @@ Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
 
-Known bugs:
-There seem to be some issues with the preferences. Sometimes messages about invalid preferences pop up, especially when set on project level.

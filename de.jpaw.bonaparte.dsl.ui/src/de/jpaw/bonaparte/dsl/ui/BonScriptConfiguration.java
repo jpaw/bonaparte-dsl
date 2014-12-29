@@ -17,6 +17,29 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import de.jpaw.bonaparte.dsl.BonScriptPreferences;
 
 public class BonScriptConfiguration extends LanguageRootPreferencePage {
+    private int toInt(Object x) {
+        if (x == null)
+            return 0;
+        if (x instanceof String)
+            return Integer.valueOf((String)x);
+        if (x instanceof Integer)
+            return (Integer)x;
+        System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to int. Value is " + x.toString());
+        return 30;
+    }
+    
+    private boolean toBool(Object x) {
+        if (x == null)
+            return false;
+        if (x instanceof Boolean)
+            return ((Boolean) x); 
+        if (x instanceof String)
+            return Boolean.valueOf((String)x);
+        if (x instanceof Integer)
+            return ((Integer) x).intValue() != 0; 
+        System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to boolean. Value is " + x.toString());
+        return false;
+    }
 
     @Override
     protected void createFieldEditors() {
@@ -110,34 +133,34 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                 public void propertyChange(PropertyChangeEvent event) {
                   switch (event.getProperty()) {
                   case "WarnByte":
-                      BonScriptPreferences.currentPrefs.warnByte = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.warnByte = toBool(event.getNewValue());
                       break;
                   case "WarnFloat":
-                      BonScriptPreferences.currentPrefs.warnFloat = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.warnFloat = toBool(event.getNewValue());
                       break;
                   case "DebugOut":
-                      BonScriptPreferences.currentPrefs.doDebugOut = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.doDebugOut = toBool(event.getNewValue());
                       break;
                   case "XMLOut":
-                      BonScriptPreferences.currentPrefs.noXML = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.noXML = toBool(event.getNewValue());
                       break;
                   case "DateTime":
-                      BonScriptPreferences.currentPrefs.doDateTime = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.doDateTime = toBool(event.getNewValue());
                       break;
                   case "Externalize":
-                      BonScriptPreferences.currentPrefs.defaultExternalize = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.defaultExternalize = toBool(event.getNewValue());
                       break;
                   case "HazelcastDs":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastDs = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.defaultHazelcastDs = toBool(event.getNewValue());
                       break;
                   case "HazelcastId":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastId = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.defaultHazelcastId = toBool(event.getNewValue());
                       break;
                   case "HazelcastPo":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastPo = (boolean) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.defaultHazelcastPo = toBool(event.getNewValue());
                       break;
                   case "FactoryId":
-                      BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId = (int) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId = toInt(event.getNewValue());
                       break;
                   }
                 }

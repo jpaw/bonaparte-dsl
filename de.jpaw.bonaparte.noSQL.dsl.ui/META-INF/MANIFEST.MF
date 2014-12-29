@@ -17,8 +17,8 @@ Require-Bundle: de.jpaw.bonaparte.noSQL.dsl;visibility:=reexport,
  org.eclipse.xtext.common.types.ui,
  org.eclipse.xtext.ui.codetemplates.ui,
  org.eclipse.compare,
- de.jpaw.bonaparte.dsl;bundle-version="2.4.2",
- de.jpaw.bonaparte.dsl.ui;bundle-version="2.4.2"
+ de.jpaw.bonaparte.dsl;bundle-version="3.2.1.qualifier",
+ de.jpaw.bonaparte.dsl.ui;bundle-version="3.2.1.qualifier"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.noSQL.dsl.ui.contentassist,

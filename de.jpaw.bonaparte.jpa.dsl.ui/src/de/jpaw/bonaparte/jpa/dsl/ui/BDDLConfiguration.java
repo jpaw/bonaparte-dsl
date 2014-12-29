@@ -18,12 +18,27 @@ import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences;
 
 public class BDDLConfiguration extends LanguageRootPreferencePage {
     private int toInt(Object x) {
+        if (x == null)
+            return 0;
         if (x instanceof String)
             return Integer.valueOf((String)x);
         if (x instanceof Integer)
             return (Integer)x;
         System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to int. Value is " + x.toString());
         return 30;
+    }
+    
+    private boolean toBool(Object x) {
+        if (x == null)
+            return false;
+        if (x instanceof Boolean)
+            return ((Boolean) x); 
+        if (x instanceof String)
+            return Boolean.valueOf((String)x);
+        if (x instanceof Integer)
+            return ((Integer) x).intValue() != 0; 
+        System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to boolean. Value is " + x.toString());
+        return false;
     }
     
     @Override protected void createFieldEditors() {
@@ -90,6 +105,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        addField(new BooleanFieldEditor("UserTypeEnumsetAlpha",         "String type enumsets", jpa21group));
 //        addField(new BooleanFieldEditor("UserTypeXEnumset",             "xenumsets", jpa21group));
         addField(new BooleanFieldEditor("UserTypeSingleFieldExternals", "singleField external types", jpa21group));
+        addField(new BooleanFieldEditor("UserTypeBonaPortable",         "BonaPortables", jpa21group));
         jpa21Group.pack();
         
         // blank, to fill the second column
@@ -115,6 +131,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        store.setDefault("UserTypeEnumsetAlpha",        defaults.doUserTypeForEnumsetAlpha);
 //        store.setDefault("UserTypeXEnumset",            defaults.doUserTypeForXEnumset);
         store.setDefault("UserTypeSingleFieldExternals",defaults.doUserTypeForSFExternals);
+        store.setDefault("UserTypeBonaPortable",        defaults.doUserTypeForBonaPortable);
         
         BDDLPreferences currentSettings = new BDDLPreferences();
         currentSettings.maxFieldnameLength          = store.getInt("MaxFieldLen");
@@ -132,6 +149,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        currentSettings.doUserTypeForEnumsetAlpha   = store.getBoolean("UserTypeEnumsetAlpha");
 //        currentSettings.doUserTypeForXEnumset       = store.getBoolean("UserTypeXEnumset");
         currentSettings.doUserTypeForSFExternals    = store.getBoolean("UserTypeSingleFieldExternals");
+        currentSettings.doUserTypeForBonaPortable   = store.getBoolean("UserTypeBonaPortable");
         
         BDDLPreferences.currentPrefs = currentSettings;
         
@@ -146,41 +164,44 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                       BDDLPreferences.currentPrefs.maxTablenameLength       = toInt(event.getNewValue());
                       break;
                   case "DebugOut":
-                      BDDLPreferences.currentPrefs.doDebugOut               = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doDebugOut               = toBool(event.getNewValue());
                       break;
                   case "Postgres":
-                      BDDLPreferences.currentPrefs.doPostgresOut            = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doPostgresOut            = toBool(event.getNewValue());
                       break;
                   case "Oracle":
-                      BDDLPreferences.currentPrefs.doOracleOut              = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doOracleOut              = toBool(event.getNewValue());
                       break;
                   case "MSSQL":
-                      BDDLPreferences.currentPrefs.doMsSQLServerOut         = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doMsSQLServerOut         = toBool(event.getNewValue());
                       break;
                   case "MySQL":
-                      BDDLPreferences.currentPrefs.doMySQLOut               = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doMySQLOut               = toBool(event.getNewValue());
                       break;
                       
                   case "UserTypeEnum":
-                      BDDLPreferences.currentPrefs.doUserTypeForEnum        = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doUserTypeForEnum        = toBool(event.getNewValue());
                       break;
                   case "UserTypeEnumAlpha":
-                      BDDLPreferences.currentPrefs.doUserTypeForEnumAlpha   = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doUserTypeForEnumAlpha   = toBool(event.getNewValue());
                       break;
                   case "UserTypeXEnum":
-                      BDDLPreferences.currentPrefs.doUserTypeForXEnum       = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doUserTypeForXEnum       = toBool(event.getNewValue());
                       break;
                   case "UserTypeEnumset":
-                      BDDLPreferences.currentPrefs.doUserTypeForEnumset     = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doUserTypeForEnumset     = toBool(event.getNewValue());
                       break;
 //                  case "UserTypeEnumsetAlpha":
-//                      BDDLPreferences.currentPrefs.doUserTypeForEnumsetAlpha= (boolean) event.getNewValue();
+//                      BDDLPreferences.currentPrefs.doUserTypeForEnumsetAlpha= toBool(event.getNewValue());
 //                      break;
 //                  case "UserTypeXEnumset":
-//                      BDDLPreferences.currentPrefs.doUserTypeForXEnumset    = (boolean) event.getNewValue();
+//                      BDDLPreferences.currentPrefs.doUserTypeForXEnumset    = toBool(event.getNewValue());
 //                      break;
                   case "UserTypeSingleFieldExternals":
-                      BDDLPreferences.currentPrefs.doUserTypeForSFExternals = (boolean) event.getNewValue();
+                      BDDLPreferences.currentPrefs.doUserTypeForSFExternals = toBool(event.getNewValue());
+                      break;
+                  case "UserTypeBonaPortable":
+                      BDDLPreferences.currentPrefs.doUserTypeForBonaPortable = toBool(event.getNewValue());
                       break;
                   }
                 }

@@ -633,6 +633,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
+        import de.jpaw.util.ByteBuilder;
+        
         «imports.createImports»
 
         «IF e.javadoc !== null»
@@ -743,6 +745,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
+        import de.jpaw.util.ByteBuilder;
+        
         «imports.createImports»
 
         @SuppressWarnings("all")
@@ -788,6 +792,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeDefaultImports»
         import java.io.Serializable;
 
+        import de.jpaw.util.ByteBuilder;
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;
