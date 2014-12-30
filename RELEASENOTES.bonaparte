@@ -282,6 +282,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: support user types for BonaPortable for Eclipselink and JPA 2.1
 - BDDL: fix the LocalTime user type implementation for Eclipselink
 - BON & BDDL: type casts in preferences fixed
+- BDDL: fix a bug related to serialized object columns when the compact format was selected
+- BDDL: fix a bug: the validation class was not pulled, moved all validations from Java code to xtend now
+- BDDL: add plausis on field name length for entities, not only for embeddables (is still not strict if loop unrolling is used!)
 
 
 ROADMAP / PLANS:
