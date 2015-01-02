@@ -114,11 +114,13 @@ class JavaFieldWriter {
                     // 1:1 use of the field, work is done in the Converter
                     return '''«fieldVisibility»«ref.objectDataType.externalType.simpleName» «myName»;'''           // qualifiedName required?
                 } else {
+                    val newField = ref.objectDataType.firstField
+                    val newRef = DataTypeExtension::get(newField.datatype)
                     // manual conversion in the getters / setters. Use the converted field here. Recursive call of the same method. (Nested conversions won't work!)
-                    // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won#t repeat that because first fields are always nullable.
+                    // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won't repeat that because first fields are always nullable.
                     return '''
-                        «JavaBeanValidation::writeAnnotations(c, ref, doBeanVal)»
-                        «writeColumnType(ref.objectDataType.firstField, myName, doBeanVal)»
+                        «JavaBeanValidation::writeAnnotations(newField, newRef, doBeanVal)»
+                        «writeColumnType(newField, myName, doBeanVal)»
                     '''
                 }
             } else if (c.properties.hasProperty("ManyToOne")) {     // TODO: undocumented and also unused feature. Remove it?
@@ -257,7 +259,14 @@ class JavaFieldWriter {
             }
         } else if (ref.category == DataCategory.OBJECT) {
             if (ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals) {
-                getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«myName»«IF ref.objectDataType.exceptionConverter»«EXC_CVT_ARG»«ENDIF»);'''
+                val extraArg =
+                    if (i.datatype.extraParameterString !== null)
+                        '''«i.datatype.extraParameterString», '''
+                    else if (i.datatype.extraParameter !== null)
+                        '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''
+                // check for a possible exception converter parameter
+                val exceptionConverterArg = if (ref.objectDataType.exceptionConverter) EXC_CVT_ARG
+                getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«extraArg»«myName»«exceptionConverterArg»);'''
                 setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»;'''
             }
         } else if (ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA) {

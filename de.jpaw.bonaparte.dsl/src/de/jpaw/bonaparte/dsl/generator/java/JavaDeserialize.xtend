@@ -95,19 +95,20 @@ class JavaDeserialize {
         } else {
             // custom types (external types)
             // check for possible extra parameters
-            val extra =
+            val extraArg =
                 if (i.datatype.extraParameterString !== null)
                     '''«i.datatype.extraParameterString», '''
                 else if (i.datatype.extraParameter !== null)
                     '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''
             // check for a possible exception converter parameter
-            val exceptionConverterParameter = if (objectType.exceptionConverter) ", _p"  
-            if (objectType.singleField) {
+            val exceptionConverterArg = if (objectType.exceptionConverter) ", _p"
+            val middleArg = if (objectType.singleField) {
                 // delegate to first field or the proxy
-                return '''«objectType.adapterClassName».unmarshal(«extra»«makeRead2(objectType, objectType.firstField, objectType.name + ".")»«exceptionConverterParameter»)'''
+                makeRead2(objectType, objectType.firstField, objectType.name + ".")
             } else {
-                return '''«objectType.adapterClassName».unmarshal(«extra»«defaultExpression»«exceptionConverterParameter»)'''
+                defaultExpression
             }
+            return '''«objectType.adapterClassName».unmarshal(«extraArg»«middleArg»«exceptionConverterArg»)'''
         }
     }
     
