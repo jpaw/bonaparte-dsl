@@ -286,16 +286,25 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: fix a bug: the validation class was not pulled, moved all validations from Java code to xtend now
 - BDDL: add plausis on field name length for entities, not only for embeddables (is still not strict if loop unrolling is used!)
 
+3.2.2:
+- BON: 0x7f is no longer considered as a valid ASCII printable character, to be aligned with common interpretation. Actual change in jpaw 1.2.1
+
 
 ROADMAP / PLANS:
-- Java 8 date / time type adapters
+- Java 8 date / time type adapters (issue is the conflicting imports!)
 - general use of nullWhenEmpty
+- better plausis on field name length in case of Embeddables / loop unroll (field names are extended then)
+- remove deprecated treewalk classes
 - complete Hazelcast support
 - remove deprecated member functions which are now replaced by inner factory enum 
 - performance improvements LocalDate/Time serializers (really required?)
 - separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
 - cache serialized forms for frozen or immutable objects?
 - pk class with Generics?
+- checked exceptions should be history. Inherit ApplicationException from RuntimeException, this significantly reduces boilerplate code, for example in the functional interfaces in bonaparte8-util.
+- add httpURL parser / composer. (optional includes path prefix (pqon or part of it), or just parameters for provided class contents.
+- the dynamic BonaPortable (metadata received via interface or initialization)
+
 
 
 additional plausis:

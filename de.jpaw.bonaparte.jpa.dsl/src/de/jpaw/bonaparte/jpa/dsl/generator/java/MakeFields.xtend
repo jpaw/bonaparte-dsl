@@ -229,38 +229,16 @@ class JavaFieldWriter {
 
         if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
             if (!prefs.doUserTypeForBonaPortable) {
+                val prefix = if (i.properties.hasProperty(PROP_COMPACT)) "Compact"
+                val expectedClass = if (ref.objectDataType !== null) i.JavaDataTypeNoName(false) else "BonaPortable"
                 getter = '''
-                    if («myName» == null)
-                        return null;
                     try {
-                        «IF hasProperty(i.properties, PROP_COMPACT)»
-                            CompactByteArrayParser _bap = new CompactByteArrayParser(«myName», 0, -1);
-                        «ELSE»
-                            ByteArrayParser _bap = new ByteArrayParser(«myName», 0, -1);
-                        «ENDIF»
-                        «IF ref.objectDataType !== null»
-                            return («JavaDataTypeNoName(i, false)»)_bap.readObject(«dtoName».meta$$«myName», «JavaDataTypeNoName(i, false)».class);
-                        «ELSE»
-                            return _bap.readObject(«dtoName».meta$$«myName», BonaPortable.class);
-                        «ENDIF»
+                        return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
                     } catch (MessageParserException _e) {
                         DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
                         return null;
                     }'''
-                setter = '''
-                    if (_x == null) {
-                        «myName» = null;
-                    } else {
-                        «IF hasProperty(i.properties, PROP_COMPACT)»
-                            ByteBuilder _b = new ByteBuilder();
-                            new CompactByteArrayComposer(_b, false).addField(StaticMeta.OUTER_BONAPORTABLE, _x);
-                            «myName» = _b.getBytes();
-                        «ELSE»
-                            ByteArrayComposer _bac = new ByteArrayComposer();
-                            _bac.addField(StaticMeta.OUTER_BONAPORTABLE, _x);
-                            «myName» = _bac.getBytes();
-                        «ENDIF»
-                    }'''
+                setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
             } // else stay with the default
         } else if (ref.category == DataCategory.ENUM) {
             if (!prefs.doUserTypeForEnum) {

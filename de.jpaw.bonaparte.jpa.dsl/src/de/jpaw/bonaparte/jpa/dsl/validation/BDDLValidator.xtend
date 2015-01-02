@@ -26,15 +26,21 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*;
 
 class BDDLValidator extends AbstractBDDLValidator {
-
+    private boolean infoDone = false
+    
     def private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
         // DEBUG, as this does not seem to work!
-//        System.out.println("Checking table name " + s + " of length " + s.length() + " against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
+        if (!infoDone) {
+            // log on the console once we do some initial check to be able to verify that the validator is active!
+            infoDone = true
+            System.out.println("Checking table name " + s + " of length " + s.length() + " against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
+        }
         if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
             error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
                 where);
     }
+    
     def private void checkFieldnameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
         if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)

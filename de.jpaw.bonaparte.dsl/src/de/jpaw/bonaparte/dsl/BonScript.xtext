@@ -319,7 +319,7 @@ ElementaryDataType:
       | (name = ('xenumset'| 'XEnumset') xenumsetType = [XEnumSetDefinition|QualifiedId] "(" length=INT ")")
       | (name= ("instant" | "Instant" | "timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time or Java8 java.time.* types
       | ( 
-         name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7f)
+         name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7e)
            "(" (minLength=INT '..')? length=INT ")"
            (trimming   = Trimming)?          
            (truncating = Truncating)?
