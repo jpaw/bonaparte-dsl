@@ -112,7 +112,7 @@ class JavaFieldWriter {
             } else if (ref.objectDataType.isSingleField) {         // depending on settings, either convert a usertype directly or use a JPA 2.1 Converter and insert the field 1:1 here
                 if (BDDLPreferences.currentPrefs.doUserTypeForSFExternals) {
                     // 1:1 use of the field, work is done in the Converter
-                    return '''«fieldVisibility»«ref.objectDataType.externalType.simpleName» «myName»;'''           // qualifiedName required?
+                    return '''«fieldVisibility»«ref.objectDataType.externalName» «myName»;'''           // qualifiedName required?
                 } else {
                     val newField = ref.objectDataType.firstField
                     val newRef = DataTypeExtension::get(newField.datatype)

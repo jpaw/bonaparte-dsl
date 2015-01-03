@@ -30,7 +30,8 @@ public class ImportCollector {
     def void addImport(ClassDefinition cl) {
         if (cl !== null) {
             addImport(getBonPackageName(cl), cl.name)
-            addImport(cl.externalType?.qualifiedName)
+            if (!cl.useFqn)
+                addImport(cl.externalType?.qualifiedName)
         }
     }
 
@@ -104,8 +105,9 @@ public class ImportCollector {
                 if (gp.^extends !== null)
                     addImport(gp.^extends)
                     
-        // external types
-        addImport(d.externalType?.qualifiedName)
+        // external types, unless advised not to do so
+        if (!d.useFqn)
+           addImport(d.externalType?.qualifiedName)
         
         // finally, possibly the parent object
         addImport(d.extendsClass)

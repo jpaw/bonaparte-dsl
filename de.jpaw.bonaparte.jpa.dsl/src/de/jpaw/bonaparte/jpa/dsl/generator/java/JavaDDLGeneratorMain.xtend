@@ -139,7 +139,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 val pojo = emb.name.pojoType
                 val isExternalType = pojo.externalType !== null // adapter required?
                 val lvar = if (isExternalType) "_y" else "_x"
-                val objectName = if (isExternalType) pojo.externalType.simpleName else pojo.name
+                val objectName = if (isExternalType) pojo.externalName else pojo.name
                 val nameLengthDiff = f.name.length - objectName.length
                 val tryDefaults = emb.prefix === null && emb.suffix === null && nameLengthDiff > 0
                 val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home

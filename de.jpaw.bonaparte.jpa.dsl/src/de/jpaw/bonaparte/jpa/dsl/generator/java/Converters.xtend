@@ -68,16 +68,14 @@ class Converters {
             m = "obj.getBitmap()"
             unm = '''new «srcType»(col)'''
         } else if (e.myAdapter !== null) {
-            val extType = e.myAdapter.externalType
             val exceptionArg = if (e.myAdapter.exceptionConverter) ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
-            imports.addImport(extType.qualifiedName)
+            if (!e.myAdapter.useFqn)
+                imports.addImport(e.myAdapter.externalType.qualifiedName)
             dbType = e.myAdapter.firstField.JavaDataTypeNoName(true)
-            srcType = extType.simpleName
+            srcType = e.myAdapter.externalName
             m = '''«IF e.myAdapter.bonaparteAdapterClass !== null»«e.myAdapter.bonaparteAdapterClass».marshal(obj)«ELSE»obj.marshal()«ENDIF»'''
             unm = '''«e.myAdapter.adapterClassName».unmarshal(col«exceptionArg»)'''
         }
-//            «writeDefaultImports»
-        
         
         return '''
             // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.

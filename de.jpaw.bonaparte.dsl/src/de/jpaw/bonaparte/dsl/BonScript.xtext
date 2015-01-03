@@ -196,6 +196,7 @@ ClassDefinition:
         ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
         (needExtraParam ?= 'needExtraParam')?
         (singleField ?= 'singleField')?
+        (useFqn ?= 'useFqn')?                               // do not import type, use fully qualified name due to simpleName clash
         (exceptionConverter ?= 'withExceptionConverter')?   // unmarshal possibly throws Exceptions for invalid data which should be enriched with the parsing position
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?

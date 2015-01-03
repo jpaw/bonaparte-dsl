@@ -149,17 +149,25 @@ class XUtil {
             return true
         return superClass.isSuperClassOf(currentLowerBound.extendsClass)
     } 
-    
+
+    def public static String externalName(ClassDefinition cd) {
+        if (cd.useFqn)
+            return cd.externalType.qualifiedName    // qualifiedName desired due to possible naming conflict
+        else
+            return cd.externalType.simpleName       // qualifiedName should not be required, we added the import!
+    }   
+     
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
         if (r.genericsParameterRef !== null)
             return r.genericsParameterRef.name
         if (r.classRef !== null) {
-            if (r.classRef.externalType !== null)
-                return r.classRef.externalType.simpleName       // qualifiedName should not be required, we add the import!
-            else
+            if (r.classRef.externalType !== null) {
+                return r.classRef.externalName
+            } else {
                 return r.classRef.name + genericArgs2String(r.classRefGenericParms)
+            }
         }
 
         logger.error("*** FIXME: class reference with all null fields ***")
@@ -524,7 +532,7 @@ class XUtil {
     }
     
     def public static String getAdapterClassName(ClassDefinition cd) {
-        return cd.bonaparteAdapterClass ?: cd.externalType.simpleName  // the external type has been imported
+        return cd.bonaparteAdapterClass ?: cd.externalName  // the adapter classname or the external type (in either qualifier or unqualified form)
     }
 
     def public static mapEnumSetIndex(EnumSetDefinition e) {
