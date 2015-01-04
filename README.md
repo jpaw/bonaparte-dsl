@@ -47,8 +47,13 @@ This means, data persisted with some older class will be readable with the parse
 
 ## More documentation
 
-For more documentation on the Bonaparte DSL, please look at the modules bonaparte-tex, bonaparte-tutorial and bonaparte-tutorial-code
-in the bonaparte-java project.
+For more documentation on the Bonaparte DSL, please look at the modules bonaparte-tex, bonaparte-tutorial and bonaparte-tutorial-code in the bonaparte-java project.
+
+You can find the PDFs at the following URLs: 
+ 
+* [https://github.com/jpaw/bonaparte-java/blob/master/bonaparte-tutorial/tutorial.pdf](https://github.com/jpaw/bonaparte-java/blob/master/bonaparte-tutorial/tutorial.pdf) 
+
+* [https://github.com/jpaw/bonaparte-java/blob/master/bonaparte-tex/bonaparte.pdf](https://github.com/jpaw/bonaparte-java/blob/master/bonaparte-tex/bonaparte.pdf)
 
 ## JPA DSL
 

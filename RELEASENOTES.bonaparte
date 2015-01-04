@@ -287,11 +287,16 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: add plausis on field name length for entities, not only for embeddables (is still not strict if loop unrolling is used!)
 
 3.2.2:
-- BON: 0x7f is no longer considered as a valid ASCII printable character, to be aligned with common interpretation. Actual change in jpaw 1.2.1
+- BON: 0x7f is no longer considered as a valid ASCII printable character, to be aligned with common interpretation.
+       (Implicit change due to dependency upgrade to jpaw 1.2.1)
+- BON: new parameter useFqn for adapters, to avoid importing the types, but rather reference the fully qualifies name
+       every time (required for Java 8 date / time adapters, which share the simpleName with their Joda equivalents)
+- updated tutorial to showcase enumsets
+- new parser which obtains values via arbitrary getter, for use with vert.x or servlets (HttpRequestParameters)
+- Java 8 date / time type adapters in companion project bonaparte8 (whch requires Java 8)
 
 
 ROADMAP / PLANS:
-- Java 8 date / time type adapters (issue is the conflicting imports!)
 - general use of nullWhenEmpty
 - better plausis on field name length in case of Embeddables / loop unroll (field names are extended then)
 - remove deprecated treewalk classes
