@@ -129,6 +129,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                     fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
                     fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
                 }
+                if (prefs.doSapHanaOut)
+                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::SAPHANA, doHistory))
             }
         }
     }
@@ -158,15 +160,17 @@ class SqlDDLGeneratorMain implements IGenerator {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
         if (prefs.doPostgresOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
         if (prefs.doMsSQLServerOut)
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory))
         if (prefs.doMySQLOut)
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MYSQL, doHistory))
         if (prefs.doOracleOut) {
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "Synonym"), tablename.sqlSynonymOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
         }
+        if (prefs.doSapHanaOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::SAPHANA, doHistory))
     }
 
     def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
@@ -176,15 +180,17 @@ class SqlDDLGeneratorMain implements IGenerator {
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
-            case DatabaseFlavour::ORACLE:       return '''«t.discname» number(9) DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::POSTGRES:     return '''«t.discname» integer DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::ORACLE:       return '''«t.discname» number(9) DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» int DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::MYSQL:        return '''«t.discname» integer DEFAULT 0 NOT NULL'''
+            case DatabaseFlavour::SAPHANA:      return '''«t.discname» integer DEFAULT 0 NOT NULL'''
             }
         } else {
             switch (databaseFlavour) {
-            case DatabaseFlavour::ORACLE:       return '''«t.discname» varchar2(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             case DatabaseFlavour::POSTGRES:     return '''«t.discname» varchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::ORACLE:       return '''«t.discname» varchar2(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::SAPHANA:      return '''«t.discname» nvarchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» nvarchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             case DatabaseFlavour::MYSQL:        return '''«t.discname» varchar(30) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             }

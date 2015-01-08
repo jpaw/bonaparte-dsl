@@ -295,6 +295,10 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - new parser which obtains values via arbitrary getter, for use with vert.x or servlets (HttpRequestParameters)
 - Java 8 date / time type adapters in companion project bonaparte8 (whch requires Java 8)
 
+3.2.3:
+- support for SAP HANA as database dialect
+
+
 
 ROADMAP / PLANS:
 - general use of nullWhenEmpty

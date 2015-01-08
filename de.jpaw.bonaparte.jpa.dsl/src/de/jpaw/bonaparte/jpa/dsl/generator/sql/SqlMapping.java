@@ -29,6 +29,11 @@ import de.jpaw.bonaparte.jpa.dsl.generator.YUtil;
 
 // mapping of database vendor specific information
 
+// identifier lengths:
+// ORACLE: 30 characters
+// Postgres: 60 characters
+// SAP HANA: 127 characters
+
 public class SqlMapping {
     // a lookup to determine the database vendor-specific data type to use for a given grammar type.
     // (LANGUAGE / DATABASE VENDOR SPECIFIC: SQL Oracle)
@@ -157,6 +162,37 @@ public class SqlMapping {
         dataTypeSqlMySQL.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlMySQL.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
     }
+    static protected Map<String,String> dataTypeSqlSapHana = new HashMap<String, String>(32);
+    static {  // see https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm
+        dataTypeSqlSapHana.put("boolean",   "number(1)");                // Oracle has no boolean type
+        dataTypeSqlSapHana.put("int",       "integer");
+        dataTypeSqlSapHana.put("integer",   "integer");
+        dataTypeSqlSapHana.put("long",      "bigint");
+        dataTypeSqlSapHana.put("float",     "real");
+        dataTypeSqlSapHana.put("double",    "double");
+        dataTypeSqlSapHana.put("number",    "decimal(#length)");
+        dataTypeSqlSapHana.put("decimal",   "decimal(#length,#precision)");
+        dataTypeSqlSapHana.put("byte",      "tinyint");                      // ATTN: this one is unsigned (an unsigned 1 byte char)!!!!
+        dataTypeSqlSapHana.put("short",     "smallint");
+        dataTypeSqlSapHana.put("char",      "nvarchar2(1)");
+        dataTypeSqlSapHana.put("character", "nvarchar2(1)");
+
+        dataTypeSqlSapHana.put("uuid",      "varbinary(16)");               // not yet supported by grammar!
+        dataTypeSqlSapHana.put("binary",    "varbinary(#length)");          // only up to 2000 bytes, use BLOB if more!
+        dataTypeSqlSapHana.put("raw",       "varbinary(#length)");          // only up to 2000 bytes, use BLOB if more!
+        dataTypeSqlSapHana.put("day",       "date");                        // Oracle has no day without a time field
+        dataTypeSqlSapHana.put("timestamp", "timestamp(#length)");          // timestamp(0) should become seconddate
+        dataTypeSqlSapHana.put("instant",   "timestamp(#length)");          // timestamp(0) should become seconddate
+        dataTypeSqlSapHana.put("time",      "time");                        // only length 0 supported
+
+        dataTypeSqlSapHana.put("uppercase", "varchar(#length)");            // only up to 5000 characters, use CLOB if more!
+        dataTypeSqlSapHana.put("lowercase", "varchar(#length)");            // only up to 5000 characters, use CLOB if more!
+        dataTypeSqlSapHana.put("ascii",     "varchar(#length)");            // only up to 5000 characters, use CLOB if more!
+        dataTypeSqlSapHana.put("unicode",   "nvarchar(#length)");           // only up to 5000 characters, use NCLOB if more!
+        dataTypeSqlSapHana.put("enum",      "smallint");                    // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlSapHana.put("object",    "blob");                        // serialized form of an object
+        dataTypeSqlSapHana.put("string",    "nvarchar(#length)");           // only up to 5000 characters, use CLOB if more!
+    }
     
     static private int lengthForAlphaEnumColumn(DataTypeExtension ref) {
         return ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength;
@@ -276,6 +312,23 @@ public class SqlMapping {
                     datatype = "mediumblob";
             }
             break;
+        case SAPHANA:
+            datatype = dataTypeSqlSapHana.get(datatype);
+            if (columnLength > 5000) {
+                if (datatype.startsWith("varbinary")) {
+                    datatype = "blob";
+                } else if (datatype.startsWith("varchar")) {
+                    datatype = "clob";
+                } else if (datatype.startsWith("nvarchar")) {
+                    datatype = "nclob";
+                }
+            } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
+                datatype = "seconddate";  // better performance, less memory consumption
+            }
+            if (ref.enumMaxTokenLength >= 0) {
+                datatype = "nvarchar(" + lengthForAlphaEnumColumn(ref) + ")";
+            }
+            break;
         }
         if (datatype == null)
             return "*** UNMAPPED data type for " + c.getName() + " in dialect " + databaseFlavour.toString() + " ***";
@@ -306,8 +359,9 @@ public class SqlMapping {
         case MYSQL:
             rawType = dataTypeSqlMySQL.get(javaType);
             break;
-        default:
-            return null;
+        case SAPHANA:
+            rawType = dataTypeSqlSapHana.get(javaType);
+            break;
         }
         return rawType == null ? null : rawType.replace("#length", lengthString);
     }
@@ -316,14 +370,11 @@ public class SqlMapping {
         switch (databaseFlavour) {
         case ORACLE:
             return true;
-        case POSTGRES:
-            return false;
-        case MSSQLSERVER:
-            return false;
-        case MYSQL:
+        case SAPHANA:
+            return false;           // HANA has them, but TODO
+        default:
             return false;
         }
-        return false;
     }
 
     static public String getCurrentUser(DatabaseFlavour databaseFlavour) {
@@ -336,6 +387,8 @@ public class SqlMapping {
             return " DEFAULT CURRENT_USER";
         case MYSQL:
             return " DEFAULT CURRENT_USER";
+        case SAPHANA:
+            return " DEFAULT SUBSTRING(CURRENT_USER, 1, 8)";
         }
         return "";
     }
@@ -350,6 +403,8 @@ public class SqlMapping {
             return " DEFAULT SYSUTCDATETIME()";
         case MYSQL:
             return " DEFAULT CURRENT_TIMESTAMP";
+        case SAPHANA:
+            return " DEFAULT CURRENT_UTCTIMESTAMP";
         }
         return "";
     }
@@ -360,6 +415,7 @@ public class SqlMapping {
         DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
         if ((databaseFlavour == DatabaseFlavour.ORACLE ||
              databaseFlavour == DatabaseFlavour.MYSQL ||
+             databaseFlavour == DatabaseFlavour.SAPHANA ||
              databaseFlavour == DatabaseFlavour.MSSQLSERVER) && "Boolean".equals(ref.javaType)) {
             // Oracle does not know booleans, convert it to numeric!  MySQL as well.
             // MS SQL server uses BIT, which also takes 0 and 1
@@ -394,6 +450,9 @@ public class SqlMapping {
             break;
         case MYSQL:
             datatype = dataTypeSqlMySQL.get(datatype);
+            break;
+        case SAPHANA:
+            datatype = dataTypeSqlSapHana.get(datatype);
             break;
         }
         return datatype.replace("#length", Integer.valueOf(ec.getMapKeySize() > 0 ? ec.getMapKeySize() : 255).toString());

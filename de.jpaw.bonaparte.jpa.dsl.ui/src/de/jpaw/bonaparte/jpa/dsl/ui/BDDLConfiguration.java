@@ -75,11 +75,12 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         outputGroup.setText("Generated Code Output");
         outputGroup.setLayout(new GridLayout(1, false));
         Composite compositeH = new Composite(outputGroup, SWT.NONE);
-        addField(new BooleanFieldEditor("DebugOut",                     "Create debug output (.info) files", compositeH));
-        addField(new BooleanFieldEditor("Postgres",                     "Create DDL for Postgres 9 databases", compositeH));
-        addField(new BooleanFieldEditor("Oracle",                       "Create DDL for Oracle 11g databases", compositeH));
-        addField(new BooleanFieldEditor("MSSQL",                        "Create DDL for MS SQL server 2012", compositeH));
-        addField(new BooleanFieldEditor("MySQL",                        "Create DDL for MySQL 5.6.5 up", compositeH));
+        addField(new BooleanFieldEditor("DebugOut",                     "Create debug output (.info) files",    compositeH));
+        addField(new BooleanFieldEditor("Postgres",                     "Create DDL for Postgres 9 databases",  compositeH));
+        addField(new BooleanFieldEditor("Oracle",                       "Create DDL for Oracle 11g databases",  compositeH));
+        addField(new BooleanFieldEditor("MSSQL",                        "Create DDL for MS SQL server 2012",    compositeH));
+        addField(new BooleanFieldEditor("MySQL",                        "Create DDL for MySQL 5.6.5 up",        compositeH));
+        addField(new BooleanFieldEditor("SapHana",                      "Create DDL for SAP HANA",              compositeH));
         outputGroup.pack();
 
         // blank, to fill the second column
@@ -96,16 +97,16 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         jpa21Group.setText("Do JPA 2.1 User Types for...");
         jpa21Group.setLayout(new GridLayout(1, false));
         Composite jpa21group = new Composite(jpa21Group, SWT.NONE);
-        addField(new BooleanFieldEditor("UserTypeEnum",                 "numeric enums", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeEnumAlpha",            "tokenizable enums", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeXEnum",                "xenums", jpa21group));
+        addField(new BooleanFieldEditor("UserTypeEnum",                 "numeric enums",        jpa21group));
+        addField(new BooleanFieldEditor("UserTypeEnumAlpha",            "tokenizable enums",    jpa21group));
+        addField(new BooleanFieldEditor("UserTypeXEnum",                "xenums",               jpa21group));
         addField(new BooleanFieldEditor("UserTypeEnumset",              "enumsets (all kinds)", jpa21group));
 // temporarily the next 3 are configured together
 //        addField(new BooleanFieldEditor("UserTypeEnumset",              "numeric enumsets", jpa21group));
 //        addField(new BooleanFieldEditor("UserTypeEnumsetAlpha",         "String type enumsets", jpa21group));
 //        addField(new BooleanFieldEditor("UserTypeXEnumset",             "xenumsets", jpa21group));
         addField(new BooleanFieldEditor("UserTypeSingleFieldExternals", "singleField external types", jpa21group));
-        addField(new BooleanFieldEditor("UserTypeBonaPortable",         "BonaPortables", jpa21group));
+        addField(new BooleanFieldEditor("UserTypeBonaPortable",         "BonaPortables",        jpa21group));
         jpa21Group.pack();
         
         // blank, to fill the second column
@@ -123,6 +124,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         store.setDefault("Oracle",                      defaults.doOracleOut);
         store.setDefault("MSSQL",                       defaults.doMsSQLServerOut);
         store.setDefault("MySQL",                       defaults.doMySQLOut);
+        store.setDefault("SapHana",                     defaults.doSapHanaOut);
 
         store.setDefault("UserTypeEnum",                defaults.doUserTypeForEnum);
         store.setDefault("UserTypeEnumAlpha",           defaults.doUserTypeForEnumAlpha);
@@ -141,6 +143,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         currentSettings.doOracleOut                 = store.getBoolean("Oracle");
         currentSettings.doMsSQLServerOut            = store.getBoolean("MSSQL");
         currentSettings.doMySQLOut                  = store.getBoolean("MySQL");
+        currentSettings.doSapHanaOut                = store.getBoolean("SapHana");
         
         currentSettings.doUserTypeForEnum           = store.getBoolean("UserTypeEnum");
         currentSettings.doUserTypeForEnumAlpha      = store.getBoolean("UserTypeEnumAlpha");
@@ -178,6 +181,9 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                   case "MySQL":
                       BDDLPreferences.currentPrefs.doMySQLOut               = toBool(event.getNewValue());
                       break;
+                  case "SapHana":
+                      BDDLPreferences.currentPrefs.doSapHanaOut            = toBool(event.getNewValue());
+                      break;
                       
                   case "UserTypeEnum":
                       BDDLPreferences.currentPrefs.doUserTypeForEnum        = toBool(event.getNewValue());
@@ -207,44 +213,4 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                 }
               });
     }
-    
-// no xtend in the UI module...
-//  // Validation
-//  new Group(myParent, SWT.SHADOW_IN) => [
-//      layout = new GridLayout(1, false)
-//      layoutData = new GridData(SWT.FILL, SWT.TOP, true, false)
-//      text = "Validation"
-//      val compositeV = new Composite(it, SWT.NONE);
-//      addField( new IntegerFieldEditor("MaxFieldLen", "Maximum field name length", compositeV, 3) => [ setValidRange(18,60)] );
-//      addField( new IntegerFieldEditor("MaxTableLen", "Maximum table name length", compositeV, 3) => [ setValidRange(18,60)] );
-//      pack
-//  ]
-//  
-//  
-//  // output
-//  new Group(myParent, SWT.SHADOW_IN) => [
-//      layout = new GridLayout(1, false)
-//      layoutData = new GridData(SWT.FILL, SWT.TOP, true, false)
-//      text = "Code output"
-//      val compositeOut = new Composite(it, SWT.NONE);
-//      addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeOut));
-//      addField(new BooleanFieldEditor("Postgres", "Create DDL for Postgres 9 databases", compositeOut));
-//      addField(new BooleanFieldEditor("Oracle",   "Create DDL for Oracle 11g databases", compositeOut));
-//      addField(new BooleanFieldEditor("MSSQL",    "Create DDL for MS-SQL server 2012 databases", compositeOut));
-//      pack
-//  ]
-//}
-//
-//// not sure if needed, as the superclass defines getPreferenceStore()
-//override public void init(IWorkbench workbench) {
-////  setPreferenceStore(BDDLActivator.getInstance().getPreferenceStore());
-//  val store = getPreferenceStore => [
-//      setDefault("MaxFieldLen", 30)
-//      setDefault("MaxTableLen", 30)
-//      setDefault("DebugOut", false)
-//      setDefault("Postgres", true)
-//      setDefault("Oracle", true)
-//      setDefault("MSSQL", false)
-//  ]
-
 }

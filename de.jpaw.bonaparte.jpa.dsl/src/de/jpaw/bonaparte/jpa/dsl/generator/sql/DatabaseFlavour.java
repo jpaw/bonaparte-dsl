@@ -17,5 +17,5 @@
 package de.jpaw.bonaparte.jpa.dsl.generator.sql;
 
 public enum DatabaseFlavour {
-    ORACLE, POSTGRES, MSSQLSERVER, MYSQL
+    ORACLE, POSTGRES, MSSQLSERVER, MYSQL, SAPHANA
 }
