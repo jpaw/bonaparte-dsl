@@ -43,14 +43,15 @@ class JavaSerialize {
             return '''_w.addField(meta$$«i.name», (BonaPortable)«indexedName»);'''
         } else {
             // custom types (external types)
+            val cc = '''if (!_w.addExternal(meta$$«i.name», «indexedName»))'''
             // the marshaller is a regular method if no external adapter is provided, else a static method of the adapter class
             val marshaller = if (objectType.bonaparteAdapterClass !== null) '''«objectType.adapterClassName».marshal(«indexedName»)''' else '''«indexedName».marshal()'''
             if (objectType.singleField) {
                 // delegate to first field or the proxy. As that can be a primitive type, must do a null check here...
                 val metaName = '''«objectType.name».meta$$«objectType.firstField.name»'''
-                return '''if («indexedName» == null) _w.writeNull(«metaName»); else _w.addField(«metaName», «marshaller»);'''
+                return '''«cc» { if («indexedName» == null) _w.writeNull(«metaName»); else _w.addField(«metaName», «marshaller»); }'''
             } else {
-                return '''_w.addField(meta$$«i.name», «marshaller»);'''
+                return '''«cc» _w.addField(meta$$«i.name», «marshaller»);'''
             }
         }
     }
