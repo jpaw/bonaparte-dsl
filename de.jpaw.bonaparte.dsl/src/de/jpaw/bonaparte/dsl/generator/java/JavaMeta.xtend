@@ -199,21 +199,6 @@ class JavaMeta {
                 «ENDIF»
             }
 
-            static public Class<? extends BonaPortable> class$returns() {
-                «IF d.returnsClassRef !== null»
-                    return «XUtil::getLowerBound(d.returnsClassRef).name».class;
-                «ELSE»
-                    return «IF d.parent !== null»«d.parent.name».class$returns()«ELSE»null«ENDIF»;
-                «ENDIF»
-            }
-
-            static public Class<? extends BonaPortable> class$pk() {
-                «IF d.pkClass !== null»
-                    return «d.pkClass.bonPackageName».«d.pkClass.name».class;
-                «ELSE»
-                    return «IF d.parent !== null»«d.parent.name».class$pk()«ELSE»null«ENDIF»;
-                «ENDIF»
-            }
 
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
@@ -362,8 +347,8 @@ class JavaMeta {
                 }
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getPrimaryKey() {
-                    «IF (d.pkClass !== null)»
-                        return «d.pkClass.name».BClass.getInstance();
+                    «IF (d.recursePkClass !== null)»
+                        return «d.recursePkClass.name».BClass.getInstance();
                     «ELSE»
                         return null;
                     «ENDIF»

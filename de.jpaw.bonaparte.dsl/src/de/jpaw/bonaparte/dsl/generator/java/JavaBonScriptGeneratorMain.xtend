@@ -209,6 +209,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val doExt = d.externalizable
         val doHazel = d.hazelSupport
         val doBeanVal = d.beanValidation
+        val myKey = d.recursePkClass
+        imports.addImport(myKey)
+        
         if (d.orderedByList !== null)
             d.checkOrderedByList()
     return '''
@@ -237,7 +240,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import com.google.common.collect.ImmutableList;
         import com.google.common.collect.ImmutableSet;
         import com.google.common.collect.ImmutableMap;
-        «IF d.pkClass !== null»
+        «IF myKey !== null»
             import de.jpaw.bonaparte.annotation.RelatedKey;
         «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
@@ -260,8 +263,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @XmlRootElement«IF xmlNs !== null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
-        «IF d.pkClass !== null»
-            @RelatedKey(«JavaPackages::getBonPackageName(d.pkClass)».«d.pkClass.name».class)
+        «IF myKey !== null»
+            @RelatedKey(«JavaPackages::getBonPackageName(myKey)».«myKey.name».class)
         «ENDIF»
         @SuppressWarnings("all")
         «IF d.isDeprecated»

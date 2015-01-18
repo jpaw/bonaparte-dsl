@@ -305,8 +305,19 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
         
-        if (cd.pkClass !== null && cd.pkClass.isDeprecated && !cd.isDeprecated)
-            warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
+        if (cd.pkClass !== null) {
+            if (cd.pkClass.isDeprecated && !cd.isDeprecated)
+                warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
+                
+            // check that there is no conflict with a prior definition
+            var p = cd.extendsClass?.classRef
+            while (p !== null) {
+                if (p.pkClass !== null && p.pkClass != cd.pkClass)
+                    error('''Inconsistent redefinition of pk: was defined as «p.pkClass.name» in inherited class «p.name»''',
+                        BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
+                p = p.extendsClass?.classRef
+            }        
+        }
         
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice

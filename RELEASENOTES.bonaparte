@@ -298,6 +298,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.2.3:
 - support for SAP HANA as database dialect
 - add method to MessageComposer interface to allow outputting external classes "as is"
+- remove class$pk static method. Fix BClass.INSTANCE.getPrimaryKey() to be transitive, i.e. return parent's pk where required.
+- add plausi check that a pk cannot be changed in inherited classes.
+- add @RelatedKey annotation to inherited classes as well
 
 
 

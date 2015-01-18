@@ -550,4 +550,9 @@ class XUtil {
         if (i.isDeprecated)
             return "@Deprecated"
     }
+
+    def public static ClassDefinition recursePkClass(ClassDefinition d) {
+        return d.pkClass ?: d?.getExtendsClass?.getClassRef?.recursePkClass
+    }
+
 }
