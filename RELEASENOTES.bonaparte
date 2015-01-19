@@ -301,6 +301,10 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - remove class$pk static method. Fix BClass.INSTANCE.getPrimaryKey() to be transitive, i.e. return parent's pk where required.
 - add plausi check that a pk cannot be changed in inherited classes.
 - add @RelatedKey annotation to inherited classes as well
+- marked several class and BonaPortable class related methods as deprecated, to cleanup / slimsize this portion.
+
+3.2.4:
+- removal of deprecated methods
 
 
 

@@ -155,33 +155,6 @@ class JavaMeta {
                 «ENDFOR»
                 .build();
 
-            // convenience method, frequently used (recommended alternative is to use BClass.INSTANCE.getProperty())
-            @Deprecated  // use BClass.getInstance().getClassProperty()
-            static public String class$Property(String id) {
-                return BClass.getInstance().getClassProperty(id);
-            }
-            @Deprecated  // use BClass.getInstance().getPropertyMap()
-            static public Map<String,String> class$PropertyMap() {
-                return property$Map;
-            }
-            @Deprecated
-            static public String get$Property(String propertyname, String fieldname) {
-                return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
-            }
-            @Deprecated
-            static public String field$Property(String fieldname, String propertyname) {
-                return BClass.getInstance().getClassProperty(fieldname + "." + propertyname);
-            }
-            @Deprecated
-            static public boolean class$hasProperty(String id) {
-                return BClass.getInstance().hasClassProperty(id);
-            }
-            @Deprecated
-            static public boolean field$hasProperty(String fieldname, String propertyname) {
-                return BClass.getInstance().hasClassProperty(fieldname + "." + propertyname);
-            }
-
-
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _REVISION = «IF d.revision !== null && d.revision.length > 0»"«d.revision»"«ELSE»null«ENDIF»;
@@ -339,38 +312,13 @@ class JavaMeta {
                 public ImmutableMap<String,String> getPropertyMap() {
                     return property$Map;
                 }
-                // @Override  // part of the interface with 2.3.4
+                @Override
                 public String getProperty(String id) {
                     «IF propertiesInherited»
-                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getClassProperty(id);
+                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getProperty(id);
                     «ELSE»
                         return property$Map.get(id);
                     «ENDIF»
-                }
-                
-                @Deprecated
-                @Override
-                public String getClassProperty(String id) {
-                    «IF propertiesInherited»
-                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getClassProperty(id);
-                    «ELSE»
-                        return property$Map.get(id);
-                    «ENDIF»
-                }
-                @Deprecated
-                @Override
-                public boolean hasClassProperty(String id) {
-                    return getProperty(id) != null;
-                }
-                @Deprecated
-                @Override
-                public String getFieldProperty(String fieldname, String propertyname) {
-                    return getProperty(fieldname + "." + propertyname);
-                }
-                @Deprecated
-                @Override
-                public boolean hasFieldProperty(String fieldname, String propertyname) {
-                    return getProperty(fieldname + "." + propertyname) != null;
                 }
             }
             
