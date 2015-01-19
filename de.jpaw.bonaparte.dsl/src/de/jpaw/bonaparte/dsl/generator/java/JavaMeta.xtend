@@ -154,49 +154,31 @@ class JavaMeta {
                     «ENDFOR»
                 «ENDFOR»
                 .build();
-                
+
+            // convenience method, frequently used (recommended alternative is to use BClass.INSTANCE.getProperty())
+            @Deprecated  // use BClass.getInstance().getClassProperty()
+            static public String class$Property(String id) {
+                return BClass.getInstance().getClassProperty(id);
+            }
+            @Deprecated  // use BClass.getInstance().getPropertyMap()
             static public Map<String,String> class$PropertyMap() {
                 return property$Map;
             }
+            @Deprecated
             static public String get$Property(String propertyname, String fieldname) {
                 return property$Map.get(fieldname == null ? propertyname : fieldname + "." + propertyname);
             }
-
-            static public String class$Property(String id) {
-                «IF propertiesInherited»
-                    if (property$Map.containsKey(id))
-                        return property$Map.get(id);
-                    else
-                        return «d.getParent.name».class$Property(id);
-                «ELSE»
-                    return property$Map.get(id);
-                «ENDIF»
-            }
+            @Deprecated
             static public String field$Property(String fieldname, String propertyname) {
-                String id = fieldname + "." + propertyname;
-                «IF propertiesInherited»
-                    if (property$Map.containsKey(id))
-                        return property$Map.get(id);
-                    else
-                        return «d.getParent.name».class$Property(id);
-                «ELSE»
-                    return property$Map.get(id);
-                «ENDIF»
+                return BClass.getInstance().getClassProperty(fieldname + "." + propertyname);
             }
+            @Deprecated
             static public boolean class$hasProperty(String id) {
-                «IF propertiesInherited»
-                    return property$Map.containsKey(id) || «d.getParent.name».class$hasProperty(id);
-                «ELSE»
-                    return property$Map.containsKey(id);
-                «ENDIF»
+                return BClass.getInstance().hasClassProperty(id);
             }
+            @Deprecated
             static public boolean field$hasProperty(String fieldname, String propertyname) {
-                String id = fieldname + "." + propertyname;
-                «IF propertiesInherited»
-                    return property$Map.containsKey(id) || «d.getParent.name».class$hasProperty(id);
-                «ELSE»
-                    return property$Map.containsKey(id);
-                «ENDIF»
+                return BClass.getInstance().hasClassProperty(fieldname + "." + propertyname);
             }
 
 
@@ -332,7 +314,7 @@ class JavaMeta {
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getParent() {
                     «IF (d.extendsClass !== null)»
-                        return «d.extendsClass.classRef.name».BClass.getInstance();
+                        return «d.parent.name».BClass.getInstance();
                     «ELSE»
                         return null;
                     «ENDIF»
@@ -357,26 +339,47 @@ class JavaMeta {
                 public ImmutableMap<String,String> getPropertyMap() {
                     return property$Map;
                 }
+                // @Override  // part of the interface with 2.3.4
+                public String getProperty(String id) {
+                    «IF propertiesInherited»
+                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getClassProperty(id);
+                    «ELSE»
+                        return property$Map.get(id);
+                    «ENDIF»
+                }
+                
+                @Deprecated
                 @Override
                 public String getClassProperty(String id) {
-                    return «d.name».class$Property(id);
+                    «IF propertiesInherited»
+                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getClassProperty(id);
+                    «ELSE»
+                        return property$Map.get(id);
+                    «ENDIF»
                 }
-                @Override
-                public String getFieldProperty(String fieldname, String propertyname) {
-                    return «d.name».field$Property(fieldname, propertyname);
-                }
+                @Deprecated
                 @Override
                 public boolean hasClassProperty(String id) {
-                    return «d.name».class$hasProperty(id);
+                    return getProperty(id) != null;
                 }
+                @Deprecated
+                @Override
+                public String getFieldProperty(String fieldname, String propertyname) {
+                    return getProperty(fieldname + "." + propertyname);
+                }
+                @Deprecated
                 @Override
                 public boolean hasFieldProperty(String fieldname, String propertyname) {
-                    return «d.name».field$hasProperty(fieldname, propertyname);
+                    return getProperty(fieldname + "." + propertyname) != null;
                 }
             }
             
             @Override
             public BonaPortableClass<? extends BonaPortable> get$BonaPortableClass() {
+                return BClass.getInstance();
+            }
+            // convenience method for easier access via reflection
+            public static BonaPortableClass<? extends BonaPortable> class$BonaPortableClass() {
                 return BClass.getInstance();
             }
             
