@@ -181,11 +181,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             case DATA_SERIALIZABLE:
                 ", DataSerializable"
             case IDENTIFIED_DATA_SERIALIZABLE:
-                ", IdentifiedDataSerializable"
+                ", BonaparteIdentifiedDataSerializable"
             case PORTABLE:
-                ", Portable"
+                ", BonapartePortable"
             case BOTH:                  // does not make sense? 
-                ", Portable, IdentifiedDataSerializable"
+                ", BonapartePortable, BonaparteIdentifiedDataSerializable"
         }
     }
 

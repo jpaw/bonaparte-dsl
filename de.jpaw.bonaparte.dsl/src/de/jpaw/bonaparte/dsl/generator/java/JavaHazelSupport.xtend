@@ -38,6 +38,8 @@ class JavaHazelSupport {
             import «HAZELCAST_INT_PACKAGE».Portable;
             import «HAZELCAST_INT_PACKAGE».PortableReader;
             import «HAZELCAST_INT_PACKAGE».PortableWriter;
+            import de.jpaw.bonaparte.hazelcast.BonaparteIdentifiedDataSerializable;
+            import de.jpaw.bonaparte.hazelcast.BonapartePortable;
         «ENDIF»
     '''
     
