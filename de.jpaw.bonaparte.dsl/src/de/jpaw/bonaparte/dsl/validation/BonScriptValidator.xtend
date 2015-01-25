@@ -196,6 +196,9 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 error("Partially qualified class name cannot exceed 63 characters length", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
             }
         }
+        if (cd.hazelcastId != 0 && (cd.abstract || cd.isSingleField))
+            warning("abstract classes and singleField adapters don't need a classId", BonScriptPackage.Literals.CLASS_DEFINITION__HAZELCAST_ID)
+        
         if (cd.extendsClass !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
             if (cd.getExtendsClass().getClassRef() === null) {
@@ -699,5 +702,24 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         val tokenLength = getOverallMaxLength(es.myXEnum)
         if (tokenLength != 1)
             error("max length of tokens must be 1, but is " + tokenLength, BonScriptPackage.Literals.XENUM_SET_DEFINITION__MY_XENUM)
+    }
+    
+    @Check
+    def public void checkPackageDefinition(PackageDefinition p) {
+        if (p.hazelcastFactoryId != 0) {
+            val usedClassIds = new HashMap<Integer,String>(50)
+            // user makes use of numeric class identifiers, support it by some extra plausis
+            for (cls : p.classes) {
+                // if this class uses the same factoryId, then check for uniqueness
+                if (cls.hazelcastId == 0) {
+                    if (!cls.abstract && !cls.isSingleField)
+                        warning("No classId has been specified for " + cls.name, BonScriptPackage.Literals.PACKAGE_DEFINITION__HAZELCAST_FACTORY_ID)
+                } else {
+                    val duplicate = usedClassIds.put(cls.hazelcastId, cls.name)
+                    if (duplicate !== null)
+                        error("classes " + duplicate + " and " + cls.name + " use the same classId " + cls.hazelcastId, BonScriptPackage.Literals.PACKAGE_DEFINITION__HAZELCAST_FACTORY_ID)
+                }
+            }
+        }
     }
 }

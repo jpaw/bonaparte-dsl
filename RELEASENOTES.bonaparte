@@ -305,6 +305,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.2.4:
 - removal of deprecated methods
+- default factory is now 61. If a factoryId has been specified, additional plausi checks will be enabled.
 
 
 
