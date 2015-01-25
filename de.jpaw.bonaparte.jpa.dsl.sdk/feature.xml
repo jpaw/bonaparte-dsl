@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="de.jpaw.bonaparte.jpa.dsl.sdk"
     label="Bonaparte JPA Persistence DSL SDK Feature "
-    version="3.2.4.qualifier"
+    version="3.2.4"
     provider-name="Michael Bischoff">
       id="de.jpaw.bonaparte.jpa.dsl.sdk"
       label="Bonaparte JPA Persistence DSL SDK Feature "
-      version="3.2.4.qualifier">
+      version="3.2.4">
 
    <copyright>
       Copyright 2012-2014 Michael Bischoff
