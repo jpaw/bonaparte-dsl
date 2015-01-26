@@ -530,6 +530,12 @@ class XUtil {
         else
             return pkg.hazelcastFactoryId
     }
+    def public static CharSequence getEffectiveClassId(ClassDefinition cd) {
+        if (cd.hazelcastId == 0 && !cd.abstract && !cd.singleField)
+            return "MY_RTTI"
+        else
+            return '''«cd.hazelcastId»'''
+    }
     
     def public static String getAdapterClassName(ClassDefinition cd) {
         return cd.bonaparteAdapterClass ?: cd.externalName  // the adapter classname or the external type (in either qualifier or unqualified form)

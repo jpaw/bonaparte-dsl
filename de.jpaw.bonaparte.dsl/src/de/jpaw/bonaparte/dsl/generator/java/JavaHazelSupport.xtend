@@ -38,23 +38,32 @@ class JavaHazelSupport {
             import «HAZELCAST_INT_PACKAGE».Portable;
             import «HAZELCAST_INT_PACKAGE».PortableReader;
             import «HAZELCAST_INT_PACKAGE».PortableWriter;
-            import de.jpaw.bonaparte.hazelcast.BonaparteIdentifiedDataSerializable;
-            import de.jpaw.bonaparte.hazelcast.BonapartePortable;
+            import «BONAPARTE_HAZEL_PACKAGE».BonaparteIdentifiedDataSerializable;
+            import «BONAPARTE_HAZEL_PACKAGE».BonapartePortable;
+            import «BONAPARTE_HAZEL_PACKAGE».HazelcastPortableParser;
+            import «BONAPARTE_HAZEL_PACKAGE».HazelcastPortableComposer;
         «ENDIF»
     '''
     
-    def private static writeHazelIds(ClassDefinition d) '''
+    // factoryId retrieval method is the same for IDS and Portable
+    def private static writeHazelFactoryId(ClassDefinition d) '''
         @Override
         public int getFactoryId() {
             return «d.effectiveFactoryId»;
         }
+    '''
+    // class ID is returned in getId for IDS
+    def private static writeHazelId(ClassDefinition d) '''
         @Override
         public int getId() {
-            «IF d.hazelcastId == 0»
-                return MY_RTTI;        // reuse of the rtti
-            «ELSE»
-                return «d.hazelcastId»;
-            «ENDIF»
+            return «d.effectiveClassId»;
+        }
+    '''
+    // class ID is returned in getClassId for Portable
+    def private static writeHazelClassId(ClassDefinition d) '''
+        @Override
+        public int getClassId() {
+            return «d.effectiveClassId»;
         }
     '''
     
@@ -88,17 +97,21 @@ class JavaHazelSupport {
                 d.writeDataSerializable(false)
             case IDENTIFIED_DATA_SERIALIZABLE: '''
                 «d.writeDataSerializable(true)»
-                «d.writeHazelIds»
+                «d.writeHazelFactoryId»
+                «d.writeHazelId»
             '''
             case PORTABLE: '''
                 «d.writePortable»
-                «d.writeHazelIds»
+                «d.writeHazelFactoryId»
+                «d.writeHazelClassId»
             '''
             case BOTH:                     // does not make sense?
             ''' 
                 «d.writeDataSerializable(true)»
                 «d.writePortable»
-                «d.writeHazelIds»
+                «d.writeHazelFactoryId»
+                «d.writeHazelId»
+                «d.writeHazelClassId»
             '''
         }
     }

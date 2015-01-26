@@ -193,7 +193,7 @@ class JavaMeta {
                 property$Map,
                 «propertiesInherited»,
                 «d.effectiveFactoryId»,
-                «IF d.hazelcastId == 0 && !d.isAbstract && !d.singleField»MY_RTTI«ELSE»«d.hazelcastId»«ENDIF»,
+                «d.effectiveClassId»,
                 MY_RTTI,
                 «d.root.immutable»,
                 «d.freezable»
