@@ -165,7 +165,7 @@ class JavaMeta {
             «FOR i : d.fields»
                 «makeMeta(d, i)»
             «ENDFOR»
-
+            
             // private (immutable) List of fields
             private static final ImmutableList<FieldDefinition> my$fields = ImmutableList.<FieldDefinition>of(
                 «d.fields.map['''meta$$«name»'''].join(', ')»
@@ -204,6 +204,16 @@ class JavaMeta {
                     "«d.bonaparteAdapterClass»"
                 «ENDIF»
             );
+
+            «IF !d.abstract»
+                // myself (for Compact*Composer)
+                public static final FieldDefinition meta$$this = new ObjectReference(
+                    Visibility.PUBLIC, false, "this",
+                    Multiplicity.SCALAR, IndexType.NONE, 0, 0,
+                    DataCategory.OBJECT, "«d.name»", false, false,
+                    true, "«d.name»", my$MetaData, null, null
+                );
+            «ENDIF»
 
             // get all the meta data in one go
             static public ClassDefinition class$MetaData() {

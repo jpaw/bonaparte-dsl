@@ -308,6 +308,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - default factory is now 61. If a factoryId has been specified, additional plausi checks will be enabled.
 - add enhanced interfaces for Hazelcast IdentifiedDataSerializable, Portable. Add collector methods.
 
+3.2.5:
+- complete Hazelcast support
+- BON: generate meta$$this which describes a reference to the class itself, useful for compactComposers
 
 
 ROADMAP / PLANS:
@@ -315,7 +318,6 @@ ROADMAP / PLANS:
 - general use of nullWhenEmpty
 - better plausis on field name length in case of Embeddables / loop unroll (field names are extended then)
 - remove deprecated treewalk classes
-- complete Hazelcast support
 - performance improvements LocalDate/Time serializers (really required?)
 - separate validation from parsing (accept any length data, accept nulls everywhere (unless immutable collections!), no charset checks
 - cache serialized forms for frozen or immutable objects?
