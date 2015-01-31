@@ -44,7 +44,7 @@ public class BonScriptPreferences {
     static private final boolean defaultHazelcastDsDefault = configReader.getProp("HazelcastDs", false);
     static private final boolean defaultHazelcastIdDefault = configReader.getProp("HazelcastId", false);
     static private final boolean defaultHazelcastPoDefault = configReader.getProp("HazelcastPo", false);
-    static private final int defaulthazelcastFactoryIdDefault = configReader.getProp("FactoryId", 61);
+    static private final int defaulthazelcastFactoryIdDefault = configReader.getProp("FactoryId", 26);
 
     public boolean warnByte = warnByteDefault;
     public boolean warnFloat = warnFloatDefault;
