@@ -35,24 +35,19 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
-    public static final String PROP_UNROLL = "unroll";     // List<> => 01...0n
-    public static final String PROP_NOJAVA = "noJava";
-    public static final String PROP_NODDL  = "noDDL";
-    public static final String PROP_FINDBY = "findBy";
-    public static final String PROP_LISTBY = "listBy";
-    public static final String PROP_LIACBY = "listActiveBy";
-    public static final String PROP_ACTIVE = "active";
-    public static final String PROP_VERSION = "version";
-    public static final String PROP_SERIALIZED = "serialized";
-    public static final String PROP_COMPACT = "compact";                // compact serialized form (addon attribute to serialized)  
-    public static final String PROP_REF = "ref";
-    public static final String PROP_SIMPLEREF = "simpleref";
-    public static final String PROP_NOTNULL = "notNull";                // make a field optional in Java, but required on the DB
-    public static final String PROP_NULL_WHEN_ZERO = "nullWhenZero";    // null for number 0 or for 0-length strings
-    public static final String PROP_CURRENT_USER = "currentUser";
-    public static final String PROP_CURRENT_TIMESTAMP = "currentTimestamp";
+    public static final String PROP_UNROLL      = "unroll";     // List<> => 01...0n
+    public static final String PROP_NOJAVA      = "noJava";
+    public static final String PROP_NODDL       = "noDDL";
+    public static final String PROP_FINDBY      = "findBy";
+    public static final String PROP_LISTBY      = "listBy";
+    public static final String PROP_LIACBY      = "listActiveBy";
+    public static final String PROP_SERIALIZED  = "serialized";
+    public static final String PROP_COMPACT     = "compact";                // compact serialized form (addon attribute to serialized)  
+    public static final String PROP_REF         = "ref";
+    public static final String PROP_SIMPLEREF   = "simpleref";
     public static final String PROP_SQL_DEFAULT = "SQLdefault";
-    public static final String PROP_NOUPDATE = "noupdate";              // do not update existing fields (create user / timestamp)
+    public static final String PROP_NOTNULL     = "notNull";                // make a field optional in Java, but required on the DB
+    public static final String PROP_NULL_WHEN_ZERO = "nullWhenZero";        // null for number 0 or for 0-length strings
     
     
     // create the package name for an entity or embeddable

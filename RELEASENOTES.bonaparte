@@ -313,6 +313,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: generate meta$$this which describes a reference to the class itself, useful for compactComposers
 - CompactComposers: Don't serialize -11, -12 and 61..63 as a single byte sequence, instead reserve these for future expansions or more frequently used shortcuts
 
+3.3.0:
+- add get$Active / set$Active to Bonaportable interface, for noSQL persistence layers operating directly on the DTO
+
 
 ROADMAP / PLANS:
 - make fields in immutable classes final, adjust constructors accordingly, omit deserializer and have empty treeWalk

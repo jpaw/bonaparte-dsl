@@ -258,20 +258,15 @@ class JavaDDLGeneratorMain implements IGenerator {
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
                         «ENDIF»
-                        // specific getter/setters for the version field
-                        public void set$Version(«fld.JavaDataTypeNoName(false)» _v) {
-                            set«myName.toFirstUpper»(_v);
-                        }
-                        public «fld.JavaDataTypeNoName(false)» get$Version() {
-                            return get«myName.toFirstUpper»();
-                        }
                     «ENDIF»
                     «IF fld.properties.hasProperty(PROP_ACTIVE)»
                         «setHaveActive»
                         // specific getter/setters for the active flag
+                        @Override
                         public void set$Active(boolean _a) {
                             set«myName.toFirstUpper»(_a);
                         }
+                        @Override
                         public boolean get$Active() {
                             return get«myName.toFirstUpper»();
                         }
@@ -340,26 +335,32 @@ class JavaDDLGeneratorMain implements IGenerator {
             «writeRtti(e.pojoType)»
             «IF !haveActive»
                 // no isActive column in this entity, create stubs to satisfy interface
+                @Override
                 public void set$Active(boolean _a) {
                     // throw new RuntimeException("Entity «e.name» does not have an isActive field");
                 }
+                @Override
                 public boolean get$Active() {
                     return true;  // no isActive column => all rows are active by default
                 }
             «ENDIF»
             «IF haveIntVersion === null»
                 // no version column of type int or Integer, write stub
+                @Override
                 public void set$IntVersion(int _v) {
                     // throw new RuntimeException("Entity «e.name» does not have an integer type version field");
                 }
+                @Override
                 public int get$IntVersion() {
                     return -1;
                 }
             «ELSE»
                 // version column of type int or Integer exists, write proxy
+                @Override
                 public void set$IntVersion(int _v) {
                     set«haveIntVersion.name.toFirstUpper»(_v);
                 }
+                @Override
                 public int get$IntVersion() {
                     return get«haveIntVersion.name.toFirstUpper»();
                 }

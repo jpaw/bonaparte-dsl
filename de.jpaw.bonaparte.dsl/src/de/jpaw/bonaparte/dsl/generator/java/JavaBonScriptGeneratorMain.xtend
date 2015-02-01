@@ -205,12 +205,14 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
+        val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
         val xmlNs = d.xmlNs
         val doExt = d.externalizable
         val doHazel = d.hazelSupport
         val doBeanVal = d.beanValidation
         val myKey = d.recursePkClass
         imports.addImport(myKey)
+        val activeColumn = d.fields.filter[properties.hasProperty(PROP_ACTIVE)].head
         
         if (d.orderedByList !== null)
             d.checkOrderedByList()
@@ -301,6 +303,28 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             public String toString() {
                 return ToStringHelper.toStringSL(this);
             }
+
+            «IF activeColumn !== null»
+                @Override
+                public void set$Active(boolean _a) {
+                    «activeColumn.name» = _a;
+                }
+                «xmlTransient»
+                @Override
+                public boolean get$Active() {
+                    return «activeColumn.name»;
+                }
+            «ELSEIF d.parent === null»
+                @Override
+                public void set$Active(boolean _a) throws ObjectValidationException {
+                    throw new ObjectValidationException(ObjectValidationException.NO_ACTIVE_FIELD, null, _PARTIALLY_QUALIFIED_CLASS_NAME);
+                }
+                «xmlTransient»
+                @Override
+                public boolean get$Active() {
+                    return true;  // no active field in this class, returning default
+                }
+            «ENDIF»
         }
     '''
     }
