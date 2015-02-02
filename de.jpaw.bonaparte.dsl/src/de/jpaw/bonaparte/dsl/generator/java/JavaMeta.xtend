@@ -207,7 +207,7 @@ class JavaMeta {
 
             «IF !d.abstract»
                 // myself (for Compact*Composer)
-                public static final FieldDefinition meta$$this = new ObjectReference(
+                public static final ObjectReference meta$$this = new ObjectReference(
                     Visibility.PUBLIC, false, "this",
                     Multiplicity.SCALAR, IndexType.NONE, 0, 0,
                     DataCategory.OBJECT, "«d.name»", false, false,
