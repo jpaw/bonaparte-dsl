@@ -3,7 +3,7 @@
  */
 package de.jpaw.bonaparte.noSQL.dsl.generator
 
-import de.jpaw.bonaparte.noSQL.dsl.generator.java.JavaAesGeneratorMain
+import de.jpaw.bonaparte.noSQL.dsl.generator.java.JavaGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import org.apache.log4j.Logger
@@ -23,14 +23,14 @@ class BDslGenerator implements IGenerator {
     private final int localId = globalId.incrementAndGet
     
     @Inject BonScriptGenerator bonaparteGenerator
-    @Inject JavaAesGeneratorMain generatorJava
+    @Inject JavaGeneratorMain generatorJava
     
     def private String filterInfo() {
         "#" + localId + ": "   
     }
     
     public new() {
-        logger.info("BDDLGenerator constructed. " + filterInfo)
+        logger.info("BDslGenerator constructed. " + filterInfo)
     }
     
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {

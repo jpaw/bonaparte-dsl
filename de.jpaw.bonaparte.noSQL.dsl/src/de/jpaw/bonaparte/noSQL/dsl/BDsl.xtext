@@ -42,7 +42,9 @@ DefaultsDefinition:
 
 TableCategoryDefinition:
     'category' name=ID '{'
-    ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId])?
+    ('trackinggroup' trackingColumns=[pojos::ClassDefinition|QualifiedId]
+     'trackingupdater' trackingUpdater=[jvmTypes::JvmGenericType|QualifiedId]
+    )?
     ('setnamepattern' namePattern=STRING ('dropSuffix' dropSuffix=STRING)?)?
     ('namespace' tablespaceName=ID)?
     '}'
@@ -60,25 +62,26 @@ BDSLPackageDefinition:
     '}'
 ;
 
+enum StorageProvider:
+    AEROSPIKE='aerospike' | CASSANDRA='Cassandra' | EHCACHE='ehcache' | HAZELCAST='hazelcast' | OFFHEAPMAP='ohm' | OPENHFT='openHFT';
 
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    (isAbstract?='abstract')?
-    'entity' name = ID      // abstract means mappedSuperclass
+//    (isAbstract?='abstract')?
+    'entity' name = ID
         // 'type' tabletype=TableType
         'category' tableCategory=[TableCategoryDefinition|QualifiedId]
         'is' pojoType=[pojos::ClassDefinition|QualifiedId]
         ('setname' tablename = ID)?  // overwrite auto-generated tablename
+        provider = StorageProvider
         ('namespace' tablespaceName=ID)?
         (('inherits' (extends=[EntityDefinition|QualifiedId])))?
-        (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
-         | ('extendsJava' extendsJava=QualifiedId)
-        )?
+        ('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])?  // unused / unusable? or mapped superclass?
         ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
     '{'
         ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId])?
-        ('tenant'      tenantId = SingleColumn)?
+//        ('tenant'      tenantId = SingleColumn)?
         ('pk'          pk       = ListOfColumns )
         ('index'       indexes += IndexDefinition)*
         ('bins'        bins     = ListOfColumns)?       // defines explicit bins
@@ -86,11 +89,13 @@ EntityDefinition:
 ;
 
 IndexDefinition:
-    name = STRING
-    'is'
-    column = SingleColumn
-     ';'
+    (isUnique ?= 'unique')?
+    name = [pojos::ClassDefinition|QualifiedId]
+    columns = ListOfColumns
 ;
+
+
+
 
 // by custom ScopeProvider implementation, an appropriate importedNamespace will be added here
 ListOfColumns:

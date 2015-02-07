@@ -1,41 +1,18 @@
 package de.jpaw.bonaparte.noSQL.dsl.generator.java
 
-import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
-import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.noSQL.dsl.bDsl.BDSLPackageDefinition
+import static extension de.jpaw.bonaparte.noSQL.dsl.generator.java.ZUtil.*
 
-class JavaAesGeneratorMain implements IGenerator {
-    // create the filename to store a generated java class source in. Assumes subdirectory ./java
-    def private static getJavaFilename(String pkg, String name) {
-        return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
-    }
-    def public static getPackageName(BDSLPackageDefinition p) {
-        (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
-    }
-
-    // create the package name for an entity
-    def public static getPackageName(EntityDefinition d) {
-        getPackageName(d.eContainer as BDSLPackageDefinition)
-    }
-    
-    override doGenerate(Resource input, IFileSystemAccess fsa) {
-        // java
-        for (e : input.allContents.toIterable.filter(typeof(EntityDefinition))) {
-            fsa.generateFile(getJavaFilename(getPackageName(e), e.name), e.javaSetOut)
-        }
-    }
+class AesGeneratorMain {
     
     def private static writeObjectRef(ClassDefinition c, String name) '''
         new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, IndexType.NONE, 0, 0, DataCategory.OBJECT, "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
      
-    def private static javaSetOut(EntityDefinition e) {
-        val String myPackageName = getPackageName(e)
+    def public static javaSetOut(EntityDefinition e) {
+        val String myPackageName = e.packageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
         val tracking = e.tableCategory.trackingColumns
@@ -60,7 +37,7 @@ class JavaAesGeneratorMain implements IGenerator {
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
-        package «getPackageName(e)»;
+        package «e.packageName»;
         
         import org.joda.time.Instant;
         
@@ -90,13 +67,13 @@ class JavaAesGeneratorMain implements IGenerator {
         «imports.createImports»
         
         @SuppressWarnings("all")
-        public class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» {
+        public class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» {
             static public final ObjectReference my$data = «writeObjectRef(e.pojoType, "$data")»;
             «IF tracking !== null»
                 static public final ObjectReference my$tracking = «writeObjectRef(tracking, "$tracking")»;
             «ENDIF»
             static public final int NUM_BINS = «numBins»;
-            
+
             static public Key createKey(«e.pojoType.name» obj) throws AerospikeException {
                 «IF e.pk.columnName.size == 1»
                     return obj.get«e.pk.columnName.get(0).name.toFirstUpper»();
@@ -108,7 +85,7 @@ class JavaAesGeneratorMain implements IGenerator {
                     return new Key("«e.tableCategory.tablespaceName»", "«e.name»", keyComposer.toString());
                 «ENDIF»
             }
-            
+
             static public Bin [] createBins(«e.pojoType.name» obj) {
                 AerospikeBinComposer abc = new AerospikeBinComposer(«numBins», false);
                 // FoldingComposer fbc = new FoldingComposer(abc, FoldingComposer.EMPTY_MAPPING, FoldingStrategy.FORWARD_OBJECTS);
@@ -117,7 +94,7 @@ class JavaAesGeneratorMain implements IGenerator {
                     abc.addField(my$tracking, null);  // TODO!
                 «ENDIF»
                 «FOR i : e.indexes»
-                    abc.addField(«e.pojoType.name».meta$$«i.column.singleColumnName.name», obj.get«i.column.singleColumnName.name.toFirstUpper»());
+                    abc.addField(«e.pojoType.name».meta$$«i.columns.columnName.get(0).name», obj.get«i.columns.columnName.get(0).name.toFirstUpper»());
                 «ENDFOR»
                 «IF e.bins !== null»
                     «FOR i : e.bins.columnName»
@@ -126,7 +103,7 @@ class JavaAesGeneratorMain implements IGenerator {
                 «ENDIF»
                 return abc.toArray();
             }
-            
+
             static public void put(AerospikeClient client, WritePolicy policy, «e.pojoType.name» obj) throws AerospikeException {
                 client.put(policy, createKey(obj), createBins(obj));
             }
