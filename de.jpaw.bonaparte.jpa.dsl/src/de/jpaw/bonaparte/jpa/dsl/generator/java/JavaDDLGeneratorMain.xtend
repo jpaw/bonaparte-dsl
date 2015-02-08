@@ -370,11 +370,11 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     def private writeKeyInterfaceMethods(EntityDefinition e, String pkType) '''
         «IF !e.noDataKeyMapper»
-        public static Class<«pkType»> class$KeyClass() {
+        public static Class<«if (pkType == "long") "?" else pkType»> class$KeyClass() {
             return «pkType».class;
         }
         @Override
-        public Class<«pkType»> get$KeyClass() {
+        public Class<«if (pkType == "long") "?" else pkType»> get$KeyClass() {
             return «pkType».class;
         }
         @Override
@@ -395,7 +395,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         @Override
         public void set$Key(«pkType» _k) {
-            «IF pkType.equals("Serializable")»
+            «IF pkType == "Serializable"»
                 // FIXME! not yet implemented!!!
             «ELSE»
                 «IF e.embeddablePk !== null»
@@ -478,10 +478,18 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
         if (e.noDataKeyMapper)
             '''BonaPersistableTracking<«trackingType»>'''
-        else if (e.noDataMapper)
-            '''BonaPersistableNoData<«pkType», «trackingType»>'''
-        else
-            '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
+        else if (pkType == 'long') {
+            // Java generics does not work with primitive types 
+            if (e.noDataMapper)
+                '''BonaPersistableNoDataLong<«trackingType»>'''
+            else
+                '''BonaPersistableLong<«e.pojoType.name», «trackingType»>'''
+        } else {
+            if (e.noDataMapper)
+                '''BonaPersistableNoData<«pkType», «trackingType»>'''
+            else
+                '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
+        }
     }
 
     
@@ -617,15 +625,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeDefaultImports»
         import java.io.Serializable;
 
-        import de.jpaw.bonaparte.jpa.BonaPersistableNoData;
-        import de.jpaw.bonaparte.jpa.BonaPersistableTracking;
-        import de.jpaw.bonaparte.jpa.BonaPersistableBase;
-        import de.jpaw.bonaparte.jpa.BonaPersistable;
-        import de.jpaw.bonaparte.jpa.KeyClass;
-        import de.jpaw.bonaparte.jpa.DataClass;
-        import de.jpaw.bonaparte.jpa.TrackingClass;
-        import de.jpaw.bonaparte.jpa.BonaPersistable;
-        import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
+        import de.jpaw.bonaparte.jpa.*;
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».ByteArrayComposer;
         import «bonaparteInterfacesPackage».ByteArrayParser;

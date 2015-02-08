@@ -185,10 +185,18 @@ class EqualsHash {
         «ENDFOR»
     '''
 
+    def private static notNullForNonPrimitives(FieldDefinition f) {
+        val ref = DataTypeExtension::get(f.datatype)
+        if (!ref.isPrimitive)
+            '''
+                && «f.name» != null   // not yet assigned => treat it as different
+            '''
+    }
+    
     def private static writeEqualsConditionForListOfFields(List<FieldDefinition> fields) '''
         return true
         «FOR f : fields»
-             && «f.name» != null   // not yet assigned => treat it as different
+             «f.notNullForNonPrimitives»
         «ENDFOR»
         «fields.writeEqualsSubForListOfFields»
             ;

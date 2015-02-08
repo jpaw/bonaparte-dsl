@@ -315,6 +315,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.3.0:
 - add get$Active / set$Active to Bonaportable interface, for noSQL persistence layers operating directly on the DTO
+- provide separate parser methods for primitives to reduce autoboxing
+
+3.3.1:
+- BDDL: support special workarounds for primitive long keys (work around limitations of Java generics)
+
 
 
 ROADMAP / PLANS:

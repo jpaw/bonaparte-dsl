@@ -237,7 +237,7 @@ class JavaFieldWriter {
                     try {
                         return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
                     } catch (MessageParserException _e) {
-                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key().toString());
+                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key());
                         return null;
                     }'''
                 setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
