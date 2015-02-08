@@ -30,21 +30,22 @@ import de.jpaw.bonaparte.dsl.generator.XUtil
 class JavaDeserialize {
     
     def private static makeRead(String metaName, ElementaryDataType i, DataTypeExtension ref) {
+        val prim = if (ref.isPrimitive) '''Primitive'''
         switch i.name.toLowerCase {
         // numeric (non-float) types
-        case 'byte':      '''_p.readByte      («metaName»)'''
-        case 'short':     '''_p.readShort     («metaName»)'''
-        case 'long':      '''_p.readLong      («metaName»)'''
-        case 'int':       '''_p.readInteger   («metaName»)'''
-        case 'integer':   '''_p.readInteger   («metaName»)'''
+        case 'byte':      '''_p.read«prim»Byte      («metaName»)'''
+        case 'short':     '''_p.read«prim»Short     («metaName»)'''
+        case 'long':      '''_p.read«prim»Long      («metaName»)'''
+        case 'int':       '''_p.read«prim»Integer   («metaName»)'''
+        case 'integer':   '''_p.read«prim»Integer   («metaName»)'''
         case 'number':    '''_p.readBigInteger(«metaName»)'''
         case 'decimal':   '''_p.readBigDecimal(«metaName»)'''
         // float/double, char and boolean
-        case 'float':     '''_p.readFloat     («metaName»)'''
-        case 'double':    '''_p.readDouble    («metaName»)'''
-        case 'boolean':   '''_p.readBoolean   («metaName»)'''
-        case 'char':      '''_p.readCharacter («metaName»)'''
-        case 'character': '''_p.readCharacter («metaName»)'''
+        case 'float':     '''_p.read«prim»Float     («metaName»)'''
+        case 'double':    '''_p.read«prim»Double    («metaName»)'''
+        case 'boolean':   '''_p.read«prim»Boolean   («metaName»)'''
+        case 'char':      '''_p.read«prim»Character («metaName»)'''
+        case 'character': '''_p.read«prim»Character («metaName»)'''
         // text
         case 'uppercase': '''_p.readString    («metaName»)'''
         case 'lowercase': '''_p.readString    («metaName»)'''
