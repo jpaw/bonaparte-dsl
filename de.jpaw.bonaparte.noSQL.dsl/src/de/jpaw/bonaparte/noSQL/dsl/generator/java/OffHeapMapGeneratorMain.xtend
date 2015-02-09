@@ -6,6 +6,7 @@ import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 
 import static extension de.jpaw.bonaparte.noSQL.dsl.generator.java.ZUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class OffHeapMapGeneratorMain {
     def private static isTenant(FieldDefinition f, EntityDefinition e) {
@@ -34,6 +35,11 @@ class OffHeapMapGeneratorMain {
         val tr = if (tracking !== null) tracking.name else "TrackingBase"
         val dt = '''«e.pojoType.name», «tr»'''
         
+        val pkField = e.pk.columnName.head
+        val pkRef = DataTypeExtension.get(pkField.datatype)
+        val packageSuffix = if (pkRef.isPrimitive) "p" else "w"
+        val pkJavaType = if (pkRef.isPrimitive) "long" else "Long"
+                
         val refPojo = e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)
@@ -51,19 +57,19 @@ class OffHeapMapGeneratorMain {
         import org.slf4j.LoggerFactory;
 
         import de.jpaw.bonaparte.core.BonaPortable;
-        import de.jpaw.bonaparte.noSQL.ohm.OffHeapEntity;
-        import de.jpaw.bonaparte.noSQL.ohm.impl.AbstractRefResolver;
-        import de.jpaw.bonaparte.noSQL.ohm.impl.BonaPortableOffHeapConverter;
+        import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».OffHeapEntity;
+        import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».impl.AbstractRefResolver;
+        import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».impl.BonaPortableOffHeapConverter;
         import de.jpaw.bonaparte.noSQL.ohm.impl.OffHeapBonaPortableMap;
         import de.jpaw.bonaparte.noSQL.ohm.impl.PersistenceProviderOHM;
         import de.jpaw.bonaparte.pojos.api.DataWithTracking;
-        import de.jpaw.bonaparte.pojos.api.Ref;
+        import de.jpaw.bonaparte.pojos.api«packageSuffix».Ref;
         import de.jpaw.bonaparte.pojos.api.TrackingBase;
         import de.jpaw.bonaparte.pojos.meta.ClassDefinition;
         import de.jpaw.bonaparte.refs.PersistenceException;
-        import de.jpaw.bonaparte.refs.RefResolver;
-        import de.jpaw.bonaparte.refs.ReferencingComposer;
-        import de.jpaw.bonaparte.refs.RequestContext;
+        import de.jpaw.bonaparte.refs«packageSuffix».RefResolver;
+        import de.jpaw.bonaparte.refs«packageSuffix».ReferencingComposer;
+        import de.jpaw.bonaparte.refs«packageSuffix».RequestContext;
         import de.jpaw.collections.DuplicateIndexException;
         import de.jpaw.dp.Jdp;
         import de.jpaw.dp.Provider;
@@ -231,7 +237,7 @@ class OffHeapMapGeneratorMain {
             // cases null and filled objectRef have been covered by the abstract superclass already
             // read only, no tx required 
             @Override
-            protected long getUncachedKey(«refPojo.name» refObject) throws PersistenceException {
+            protected «pkJavaType» getUncachedKey(«refPojo.name» refObject) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
                 «FOR i: e.indexes»
                     if (refObject instanceof «i.name.name») {
@@ -259,7 +265,7 @@ class OffHeapMapGeneratorMain {
             }
 
             @Override
-            protected DataWithTracking<«dt»> getUncached(long ref) {
+            protected DataWithTracking<«dt»> getUncached(«pkJavaType» ref) {
                 return (DataWithTracking<«dt»>) db.get(ref);
             }
         }

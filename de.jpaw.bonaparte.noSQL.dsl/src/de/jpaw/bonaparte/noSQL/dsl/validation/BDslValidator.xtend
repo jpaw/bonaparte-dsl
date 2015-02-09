@@ -36,9 +36,10 @@ class BDslValidator extends AbstractBDslValidator {
                 val grandfather = ref.extendsClass?.classRef
                 if (grandfather === null) {
                     error('''POJO must inherit from some Ref which inherits from Ref''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
-                    
                 }
             }
+            if (e.pk.columnName.size != 1)
+                    error('''primary key must be a single field''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
 //            if (e.tableCategory.trackingColumns === null) {
 //                error('''category must specify tracking columns''', BDslPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY)
 //            }
