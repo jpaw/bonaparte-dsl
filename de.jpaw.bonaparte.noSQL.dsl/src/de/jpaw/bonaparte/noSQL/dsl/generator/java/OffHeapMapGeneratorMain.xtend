@@ -84,7 +84,7 @@ class OffHeapMapGeneratorMain {
         // @SuppressWarnings("all")
         @Singleton
         public class «e.name» extends AbstractRefResolver<«refPojo.name», «dt»>
-          implements OffHeapEntity, RefResolver<«refPojo.name», «dt»> {
+          implements OffHeapEntity, RefResolver<«refPojo.name», «dt»>«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {
             private static final Logger LOGGER = LoggerFactory.getLogger(«e.name».class);
             static final public String ENTITY_NAME = "«refPojo.name»";
             static protected final int HASH_MAP_SIZE = 100_000;
@@ -218,9 +218,9 @@ class OffHeapMapGeneratorMain {
             }
 
             @Override
-            protected void uncachedUpdate(DataWithTracking<CustomerDTO, ReadWriteTracking> dwt, CustomerDTO obj) throws PersistenceException {
+            protected void uncachedUpdate(DataWithTracking<«dt»> dwt, «e.pojoType.name» obj) throws PersistenceException {
                 ohmProvider.get();
-                // no change customerId by definition
+                // milestone 1: assumed no change of any index
                 // therefore only the obj must be updated. Here we assume no malfunction can happen.
                 dwt.setData(obj);
                 updater.preUpdate(contextProvider.get(), dwt.getTracking());        // just overwrite, no need to keep the old one in this case
