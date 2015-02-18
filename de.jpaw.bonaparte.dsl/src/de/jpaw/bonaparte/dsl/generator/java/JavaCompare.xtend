@@ -165,7 +165,7 @@ class JavaCompare {
                 «IF d.root.isImmutable»
                     _hash$cache = _hash;  // store the value for subsequent invocations
                 «ELSE»
-                    if (_is$Frozen)
+                    if (is$Frozen())
                         _hash$cache = _hash;  // store the value for subsequent invocations
                 «ENDIF»
                 return _hash;
