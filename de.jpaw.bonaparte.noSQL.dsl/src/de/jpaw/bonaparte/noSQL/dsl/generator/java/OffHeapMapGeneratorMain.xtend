@@ -63,7 +63,7 @@ class OffHeapMapGeneratorMain {
         import de.jpaw.bonaparte.noSQL.ohm.impl.OffHeapBonaPortableMap;
         import de.jpaw.bonaparte.noSQL.ohm.impl.PersistenceProviderOHM;
         import de.jpaw.bonaparte.pojos.api.DataWithTracking;
-        import de.jpaw.bonaparte.pojos.api«packageSuffix».Ref;
+        import de.jpaw.bonaparte.pojos.api.AbstractRef;
         import de.jpaw.bonaparte.pojos.api.TrackingBase;
         import de.jpaw.bonaparte.pojos.meta.ClassDefinition;
         import de.jpaw.bonaparte.refs.PersistenceException;
@@ -104,7 +104,7 @@ class OffHeapMapGeneratorMain {
             public void open(Shard shard,                       // transaction management
                     BonaPortableOffHeapConverter converter,     // data object converter
                     ReferencingComposer composer,               // index composer
-                    Map<ClassDefinition, RefResolver<Ref, ?, ?>> resolvers
+                    Map<ClassDefinition, RefResolver<AbstractRef, ?, ?>> resolvers
                 ) {
                 entityName = ENTITY_NAME;
                 myComposer = composer;
