@@ -135,7 +135,32 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         }
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }
-
+    
+    def private static writeRef(ClassDefinition d) '''
+        «IF d.refPFunction !== null && d.refPFunction.trim.length != 0»
+            @Override
+            public long get$RefP() {
+                «d.refPFunction»
+            }
+            @Override
+            public Long get$RefW() {
+                return Long.valueOf(get$RefP());
+            }
+        «ELSEIF d.refWFunction !== null && d.refWFunction.trim.length != 0»
+            @Override
+            public Long get$RefW() {
+                «d.refWFunction»
+            }
+            @Override
+            public long get$RefP() {
+                return get$RefW().longValue();
+            }
+        «ENDIF»
+    '''
+    
+    // constract the interface name, which includes the get$Ref variant
+    def private static refExtension(ClassDefinition d)
+        '''BonaPortable«IF d.refPFunction !== null || d.refWFunction !== null»Ref«ENDIF»'''
 
 /* currently unused
             «JavaMethods::writeMethods(d)»
@@ -245,6 +270,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF myKey !== null»
             import de.jpaw.bonaparte.annotation.RelatedKey;
         «ENDIF»
+        «IF d.refPFunction !== null || d.refWFunction !== null»
+            import «bonaparteInterfacesPackage».BonaPortableRef;
+        «ENDIF»
         import «bonaparteInterfacesPackage».BonaPortable;
         import «bonaparteInterfacesPackage».BonaPortableClass;
         import «bonaparteInterfacesPackage».MessageParser;
@@ -274,7 +302,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         «d.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
-          implements BonaPortable«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
+          implements «d.refExtension»«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaRtti::writeRtti(d)»
@@ -299,6 +327,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(d)»
 
+            «d.writeRef»
+            
             @Override
             public String toString() {
                 return ToStringHelper.toStringSL(this);

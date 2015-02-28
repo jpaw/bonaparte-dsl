@@ -334,7 +334,14 @@ ROADMAP / PLANS:
 - checked exceptions should be history. Inherit ApplicationException from RuntimeException, this significantly reduces boilerplate code, for example in the functional interfaces in bonaparte8-util.
 - add httpURL parser / composer. (optional includes path prefix (pqon or part of it), or just parameters for provided class contents.
 - the dynamic BonaPortable (metadata received via interface or initialization)
+- optional transmission support, similar to JAXB fragment, to control creation of header / footer
+- immutable enumSets (similar to immutable List / Map) for immutable classes
 
+ROADMAP major release 4:
+- message versions / class versions support
+- review meta data
+- remove 2nd parameter of readObject()
+- .NET C# support, C++ support
 
 
 additional plausis:

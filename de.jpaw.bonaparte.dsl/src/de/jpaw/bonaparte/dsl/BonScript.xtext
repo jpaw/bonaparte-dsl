@@ -190,6 +190,8 @@ ClassDefinition:
     (haveCustomAddons ?= 'customAddons')?
     ('return' returnsClassRef = ClassReference)?
     ('pk' pkClass = [ClassDefinition|QualifiedId])?
+    ('refp' refPFunction = STRING)?
+    ('refw' refWFunction = STRING)?
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
