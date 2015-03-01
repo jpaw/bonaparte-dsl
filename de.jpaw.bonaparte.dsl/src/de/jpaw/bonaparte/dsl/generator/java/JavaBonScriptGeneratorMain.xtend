@@ -67,7 +67,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
             fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
-                print('''output of xml adpater for «d.name»''')
+                print('''output of xml adapter for «d.name»''')
                 fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
             }
         }

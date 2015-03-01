@@ -342,7 +342,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         
         // verify settings for custom types. These limitations may be lifted in some future extension
         if (cd.externalType !== null) {
-            // currently, if specifying an adpater, "static" must be set, and vice versa
+            // currently, if specifying an adapter, "static" must be set, and vice versa
             if (!cd.final) {
                 error("Currently external types must be declared as final", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
             }
