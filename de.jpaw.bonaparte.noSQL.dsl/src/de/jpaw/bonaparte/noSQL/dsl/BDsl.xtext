@@ -82,7 +82,9 @@ EntityDefinition:
     '{'
         ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId])?
 //        ('tenant'      tenantId = SingleColumn)?
+        ('ref' refClass = [pojos::ClassDefinition|QualifiedId])?
         ('pk'          pk       = ListOfColumns )
+        (('refp' refPFunction = STRING) | ('refw' refWFunction = STRING))?
         ('index'       indexes += IndexDefinition)*
         ('bins'        bins     = ListOfColumns)?       // defines explicit bins
     '}'       

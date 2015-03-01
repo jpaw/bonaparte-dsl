@@ -13,6 +13,19 @@ class OffHeapMapGeneratorMain {
         return e.tenantClass !== null && e.tenantClass.fields.filter[it == f].head !== null
     }
     
+    def private static wrDefP(ClassDefinition refPojo) '''
+        @Override
+        public «refPojo.name» createKey(long ref) {
+            return ref <= 0L ? null : createKey(Long.valueOf(ref));
+        }
+    '''
+    def private static wrDefW(ClassDefinition refPojo) '''
+        @Override
+        public «refPojo.name» createKey(Long ref) {
+            return ref == null ? null : createKey(ref.longValue());
+        }
+    '''
+    
     def public static javaSetOut(EntityDefinition e) {
         val String myPackageName = e.packageName
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -40,7 +53,7 @@ class OffHeapMapGeneratorMain {
         val packageSuffix = if (pkRef.isPrimitive) "p" else "w"
         val pkJavaType = if (pkRef.isPrimitive) "long" else "Long"
                 
-        val refPojo = e.pojoType.extendsClass?.classRef
+        val refPojo = e.refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)
             imports.addImport(i.name)
@@ -145,7 +158,7 @@ class OffHeapMapGeneratorMain {
             public void uncachedRemove(DataWithTracking<«dt»> previous) {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();      // register transaction
-                long key = previous.getData().getObjectRef();
+                long key = previous.getData().get$RefP();
                 db.delete(key);
 
                 «IF e.indexes.size > 0»
@@ -174,7 +187,7 @@ class OffHeapMapGeneratorMain {
             protected DataWithTracking<«dt»> uncachedCreate(«e.pojoType.name» obj) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();
-                long key = obj.getObjectRef();
+                long key = obj.get$RefP();
                 DataWithTracking<«dt»> dwt = new DataWithTracking<>();
                 dwt.setData(obj);
                 «IF tracking !== null»
@@ -224,7 +237,7 @@ class OffHeapMapGeneratorMain {
                 // therefore only the obj must be updated. Here we assume no malfunction can happen.
                 dwt.setData(obj);
                 updater.preUpdate(contextProvider.get(), dwt.getTracking());        // just overwrite, no need to keep the old one in this case
-                long key = obj.getObjectRef();
+                long key = obj.get$RefP();
                 
                 if (!setDTO(key, dwt))
                     throw new PersistenceException(PersistenceException.RECORD_DOES_NOT_EXIST_ILE, key, ENTITY_NAME);
@@ -268,6 +281,32 @@ class OffHeapMapGeneratorMain {
             protected DataWithTracking<«dt»> getUncached(«pkJavaType» ref) {
                 return (DataWithTracking<«dt»>) db.get(ref);
             }
+            
+            «IF e.refPFunction !== null»
+                @Override
+                public «refPojo.name» createKey(long ref) {
+                    «e.refPFunction»
+                }
+                «refPojo.wrDefW»
+            «ELSEIF e.refWFunction !== null»
+                @Override
+                public «refPojo.name» createKey(Long ref) {
+                    «e.refWFunction»
+                }
+                «refPojo.wrDefP»
+            «ELSEIF pkRef.isPrimitive»
+                @Override
+                public «refPojo.name» createKey(long ref) {
+                    return ref <= 0L ? null : new «refPojo.name»(ref);
+                }
+                «refPojo.wrDefW»
+            «ELSE»
+                @Override
+                public «refPojo.name» createKey(Long ref) {
+                    return ref == null ? null : new «refPojo.name»(ref);
+                }
+                «refPojo.wrDefP»
+            «ENDIF»
         }
         '''
     }
