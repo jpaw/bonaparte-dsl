@@ -189,8 +189,11 @@ ClassDefinition:
     ('implements' implementsInterfaceList = InterfaceListDefinition)?
     (haveCustomAddons ?= 'customAddons')?
     ('return' returnsClassRef = ClassReference)?
-    ('pk' pkClass = [ClassDefinition|QualifiedId])?
+    (isRefClass ?= 'isRef')?                              // reference superclass of this one (cannot have 2 in same class hierarchy) 
+    (('pk' pkClass = [ClassDefinition|QualifiedId]) | (isPkClass ?= 'isPk')?)
     (('refp' refPFunction = STRING) | ('refw' refWFunction = STRING))?
+    (('keyp' keyPFunction = STRING) | ('keyw' keyWFunction = STRING))?
+    ('tracking' trackingClass = [ClassDefinition|QualifiedId])? // references tracking columns. Can in some cases be overridden by inherited classes if required.
     (doCacheHash ?= 'cacheHash')?
     (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
     ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]

@@ -140,7 +140,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.refPFunction !== null && d.refPFunction.trim.length != 0»
             @Override
             public long get$RefP() {
-                «d.refPFunction»
+                return «d.refPFunction»;
             }
             @Override
             public Long get$RefW() {
@@ -149,11 +149,26 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ELSEIF d.refWFunction !== null && d.refWFunction.trim.length != 0»
             @Override
             public Long get$RefW() {
-                «d.refWFunction»
+                return «d.refWFunction»;
             }
             @Override
             public long get$RefP() {
                 return get$RefW().longValue();
+            }
+        «ENDIF»
+        «IF d.keyPFunction !== null»
+            public static «(d.recursePkClass ?: d).name» get$Key(long ref) {
+                return ref <= 0L ? null : «d.keyPFunction»;
+            }
+            public static «(d.recursePkClass ?: d).name» get$Key(Long ref) {
+                return ref == null ? null : get$Key(ref.longValue());
+            }
+        «ELSEIF d.keyWFunction !== null»
+            public static «(d.recursePkClass ?: d).name» get$Key(Long ref) {
+                return ref == null ? null : «d.keyWFunction»;
+            }
+            public static «(d.recursePkClass ?: d).name» get$Key(long ref) {
+                return ref <= 0L ? null : get$Key(Long.valueOf(ref));
             }
         «ENDIF»
     '''
@@ -237,6 +252,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val doBeanVal = d.beanValidation
         val myKey = d.recursePkClass
         imports.addImport(myKey)
+        imports.addImport(d.pkClass)
+        imports.addImport(d.trackingClass)
         val activeColumn = d.fields.filter[properties.hasProperty(PROP_ACTIVE)].head
         
         if (d.orderedByList !== null)
@@ -281,6 +298,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».ObjectValidationException;
         import «bonaparteInterfacesPackage».DataConverter;
         import «bonaparteInterfacesPackage».StaticMeta;
+        import de.jpaw.bonaparte.annotation.*;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
 
@@ -298,7 +316,16 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
         @SuppressWarnings("all")
         «IF d.isDeprecated»
-        @Deprecated
+            @Deprecated
+        «ENDIF»
+        «IF d.isIsRefClass»
+            @IsRefClass
+        «ENDIF»
+        «IF d.pkClass !== null»
+            @KeyClass(«d.pkClass.name».class)
+        «ENDIF»
+        «IF d.trackingClass !== null»
+            @TrackingClass(«d.trackingClass.name».class)
         «ENDIF»
         «d.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»

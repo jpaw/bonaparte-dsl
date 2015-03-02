@@ -49,13 +49,19 @@ class OffHeapMapGeneratorMain {
         val tr = if (tracking !== null) tracking.name else "TrackingBase"
         val dt = '''«e.pojoType.name», «tr»'''
         
-        val pkField = e.pkClass.firstField
+        val pkClass = e.pojoType.recursePkClass
+        val refClass = e.pojoType.recurseRefClass
+        val trackingClass = e.pojoType.recurseTrackingClass
+        
+        val pkField = pkClass.firstField
         val pkRef = DataTypeExtension.get(pkField.datatype)
-        val isPrimitive = (e.refPFunction !== null) || (e.refWFunction === null && pkRef.isPrimitive) 
+        val keyP = e.pojoType.recurseKeyP
+        val keyW = e.pojoType.recurseKeyW
+        val isPrimitive = (keyP !== null) || (keyW === null && pkRef.isPrimitive) 
         val packageSuffix = if (isPrimitive) "p" else "w"
         val pkJavaType = if (isPrimitive) "long" else "Long"
                 
-        val refPojo = e.refClass ?: e.pojoType.extendsClass?.classRef
+        val refPojo = refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)
             imports.addImport(i.name)
@@ -284,45 +290,45 @@ class OffHeapMapGeneratorMain {
                 return (DataWithTracking<«dt»>) db.get(ref);
             }
             
-            «IF e.refPFunction !== null»
+            «IF keyP !== null»
                 @Override
-                public «e.pkClass.name» createKey(long ref) {
-                    «e.refPFunction»
+                public «pkClass.name» createKey(long ref) {
+                    return «keyP»;
                 }
                 «refPojo.wrDefW»
-            «ELSEIF e.refWFunction !== null»
+            «ELSEIF keyW !== null»
                 @Override
-                public «e.pkClass.name» createKey(Long ref) {
-                    «e.refWFunction»
+                public «pkClass.name» createKey(Long ref) {
+                    return «keyW»;
                 }
                 «refPojo.wrDefP»
             «ELSEIF pkRef.isPrimitive»
                 @Override
-                public «e.pkClass.name» createKey(long ref) {
-                    return ref <= 0L ? null : new «e.pkClass.name»(ref);
+                public «pkClass.name» createKey(long ref) {
+                    return ref <= 0L ? null : new «pkClass.name»(ref);
                 }
                 «refPojo.wrDefW»
             «ELSE»
                 @Override
-                public «e.pkClass.name» createKey(Long ref) {
-                    return ref == null ? null : new «e.pkClass.name»(ref);
+                public «pkClass.name» createKey(Long ref) {
+                    return ref == null ? null : new «pkClass.name»(ref);
                 }
                 «refPojo.wrDefP»
             «ENDIF»
 
-            «IF e.refPFunction !== null || e.refWFunction !== null»
+            «IF keyP !== null || keyW !== null»
                 // additional convenience methods as defined in refsc.RefResolver
                 //@Override
-                //public void remove(«e.pkClass.name» key) throws ApplicationException {
+                //public void remove(«pkClass.name» key) throws ApplicationException {
                 //    remove(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
                 //}
                 //@Override
-                //public «tr» getTracking(«e.pkClass.name» key) throws ApplicationException {
+                //public «tr» getTracking(«pkClass.name» key) throws ApplicationException {
                 //    return getTracking(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
                 //}
                 // the next one has an incompatible type
                 //@Override
-                //public «e.pkClass.name» getRef(«refPojo.name» ref) throws ApplicationException {
+                //public «pkClass.name» getRef(«refPojo.name» ref) throws ApplicationException {
                 //    return createKey();
                 //}
             «ENDIF»

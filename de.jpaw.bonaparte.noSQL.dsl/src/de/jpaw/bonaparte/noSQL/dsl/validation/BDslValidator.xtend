@@ -32,6 +32,8 @@ class BDslValidator extends AbstractBDslValidator {
     def checkEntityDefinition(EntityDefinition e) {
         // with aerospike, indexes must be single column...
         if (e.provider == StorageProvider.AEROSPIKE) {
+            if (e.pk === null || e.pk.columnName.empty)
+                error("PK must be provided for this persistence type", BDslPackage.Literals.ENTITY_DEFINITION__PK)
             for (i : e.indexes) {
                 if (i.isIsUnique)
                     error('''nonunique indexes supported only for Aerospike''', BDslPackage.Literals.ENTITY_DEFINITION__PROVIDER)
@@ -42,27 +44,20 @@ class BDslValidator extends AbstractBDslValidator {
             }
         } else {
             // non Aerospike
-            val ref = e.pojoType.extendsClass?.classRef 
-            if (ref === null) {
-                error('''POJO must inherit from some Ref''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
-            } else {
-                val grandfather = ref.extendsClass?.classRef
-                if (grandfather === null) {
-                    error('''POJO must inherit from some Ref which inherits from Ref''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
-                }
-            }
-            if (e.refClass === null)
-                error('''Need ref class''', BDslPackage.Literals.ENTITY_DEFINITION__NAME)
-            if (e.pkClass === null)
-                error('''Need object type primary key''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
-            else if (e.pkClass.firstField === null)
-                error('''PK class cannot be empty''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            if (e.pk !== null)
+                error("PK must be defined in bon file for this persistence type", BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            val refClass = e.pojoType.recurseRefClass
+            val pkClass = e.pojoType.recursePkClass 
+            if (refClass === null)
+                error('''Need ref class''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
+            if (pkClass === null)
+                error('''Need object type primary key''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
             
 //            if (e.tableCategory.trackingColumns === null) {
 //                error('''category must specify tracking columns''', BDslPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY)
 //            }
-            checkParentOf(e.pkClass, e.refClass, "PK must be a parent of ref", BDslPackage.Literals.ENTITY_DEFINITION__PK)
-            checkParentOf(e.pojoType, e.pkClass, "DTO must be a parent of PK", BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
+            checkParentOf(pkClass, refClass, "PK must be a parent of ref", BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
+            checkParentOf(e.pojoType, pkClass, "DTO must be a parent of PK", BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
         }
     }
 }

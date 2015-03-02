@@ -320,6 +320,8 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                         BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
                 p = p.extendsClass?.classRef
             }        
+            if (cd.pkClass.firstField === null)
+                error('''PK class cannot be empty''', BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
         }
         
         // do various checks if the class has been defined as freezable or is a child of a freezable one
