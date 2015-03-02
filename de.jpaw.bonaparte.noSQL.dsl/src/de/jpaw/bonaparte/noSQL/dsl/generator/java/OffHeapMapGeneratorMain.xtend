@@ -286,28 +286,44 @@ class OffHeapMapGeneratorMain {
             
             «IF e.refPFunction !== null»
                 @Override
-                public «refPojo.name» createKey(long ref) {
+                public «e.pkClass.name» createKey(long ref) {
                     «e.refPFunction»
                 }
                 «refPojo.wrDefW»
             «ELSEIF e.refWFunction !== null»
                 @Override
-                public «refPojo.name» createKey(Long ref) {
+                public «e.pkClass.name» createKey(Long ref) {
                     «e.refWFunction»
                 }
                 «refPojo.wrDefP»
             «ELSEIF pkRef.isPrimitive»
                 @Override
-                public «refPojo.name» createKey(long ref) {
-                    return ref <= 0L ? null : new «refPojo.name»(ref);
+                public «e.pkClass.name» createKey(long ref) {
+                    return ref <= 0L ? null : new «e.pkClass.name»(ref);
                 }
                 «refPojo.wrDefW»
             «ELSE»
                 @Override
-                public «refPojo.name» createKey(Long ref) {
-                    return ref == null ? null : new «refPojo.name»(ref);
+                public «e.pkClass.name» createKey(Long ref) {
+                    return ref == null ? null : new «e.pkClass.name»(ref);
                 }
                 «refPojo.wrDefP»
+            «ENDIF»
+
+            «IF e.refPFunction !== null || e.refWFunction !== null»
+                // additional convenience methods as defined in refsc.RefResolver
+                @Override
+                public void remove(«e.pkClass.name» key) throws ApplicationException {
+                    remove(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                }
+                @Override
+                public «tr» getTracking(«e.pkClass.name» key) throws ApplicationException {
+                    return getTracking(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                }
+                //@Override
+                //public «e.pkClass.name» getRef(«refPojo.name» ref) throws ApplicationException {
+                //    return createKey();
+                //}
             «ENDIF»
         }
         '''
