@@ -4,6 +4,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.noSQL.dsl.generator.java.ZUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
@@ -48,10 +49,11 @@ class OffHeapMapGeneratorMain {
         val tr = if (tracking !== null) tracking.name else "TrackingBase"
         val dt = '''«e.pojoType.name», «tr»'''
         
-        val pkField = e.pk.columnName.head
+        val pkField = e.pkClass.firstField
         val pkRef = DataTypeExtension.get(pkField.datatype)
-        val packageSuffix = if (pkRef.isPrimitive) "p" else "w"
-        val pkJavaType = if (pkRef.isPrimitive) "long" else "Long"
+        val isPrimitive = (e.refPFunction !== null) || (e.refWFunction === null && pkRef.isPrimitive) 
+        val packageSuffix = if (isPrimitive) "p" else "w"
+        val pkJavaType = if (isPrimitive) "long" else "Long"
                 
         val refPojo = e.refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)

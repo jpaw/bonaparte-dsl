@@ -3,10 +3,13 @@
  */
 package de.jpaw.bonaparte.noSQL.dsl.validation
 
-import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
-import org.eclipse.xtext.validation.Check
-import de.jpaw.bonaparte.noSQL.dsl.bDsl.StorageProvider
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.noSQL.dsl.bDsl.BDslPackage
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
+import de.jpaw.bonaparte.noSQL.dsl.bDsl.StorageProvider
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.xtext.validation.Check
 
 /**
  * Custom validation rules. 
@@ -15,6 +18,16 @@ import de.jpaw.bonaparte.noSQL.dsl.bDsl.BDslPackage
  */
 class BDslValidator extends AbstractBDslValidator {
 
+    def void checkParentOf(ClassDefinition parent, ClassDefinition of, String msg, EReference whereIsTheProblem) {
+        var e = parent
+        while (e !== null) {
+            if (e === of)
+                return;
+            e = e.extendsClass?.classRef
+        }
+        error(msg, whereIsTheProblem)
+    }
+    
     @Check
     def checkEntityDefinition(EntityDefinition e) {
         // with aerospike, indexes must be single column...
@@ -38,11 +51,18 @@ class BDslValidator extends AbstractBDslValidator {
                     error('''POJO must inherit from some Ref which inherits from Ref''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
                 }
             }
-            if (e.pk.columnName.size != 1)
-                    error('''primary key must be a single field''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            if (e.refClass === null)
+                error('''Need ref class''', BDslPackage.Literals.ENTITY_DEFINITION__NAME)
+            if (e.pkClass === null)
+                error('''Need object type primary key''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            else if (e.pkClass.firstField === null)
+                error('''PK class cannot be empty''', BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            
 //            if (e.tableCategory.trackingColumns === null) {
 //                error('''category must specify tracking columns''', BDslPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY)
 //            }
+            checkParentOf(e.pkClass, e.refClass, "PK must be a parent of ref", BDslPackage.Literals.ENTITY_DEFINITION__PK)
+            checkParentOf(e.pojoType, e.pkClass, "DTO must be a parent of PK", BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
         }
     }
 }
