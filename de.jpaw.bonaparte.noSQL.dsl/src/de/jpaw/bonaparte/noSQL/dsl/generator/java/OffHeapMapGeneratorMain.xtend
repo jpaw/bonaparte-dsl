@@ -312,14 +312,15 @@ class OffHeapMapGeneratorMain {
 
             «IF e.refPFunction !== null || e.refWFunction !== null»
                 // additional convenience methods as defined in refsc.RefResolver
-                @Override
-                public void remove(«e.pkClass.name» key) throws ApplicationException {
-                    remove(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
-                }
-                @Override
-                public «tr» getTracking(«e.pkClass.name» key) throws ApplicationException {
-                    return getTracking(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
-                }
+                //@Override
+                //public void remove(«e.pkClass.name» key) throws ApplicationException {
+                //    remove(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                //}
+                //@Override
+                //public «tr» getTracking(«e.pkClass.name» key) throws ApplicationException {
+                //    return getTracking(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                //}
+                // the next one has an incompatible type
                 //@Override
                 //public «e.pkClass.name» getRef(«refPojo.name» ref) throws ApplicationException {
                 //    return createKey();
