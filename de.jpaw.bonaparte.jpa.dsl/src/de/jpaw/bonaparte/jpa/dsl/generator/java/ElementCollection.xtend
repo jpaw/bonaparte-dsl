@@ -20,10 +20,10 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 
 class ElementCollections {
-    
+
     def static private makeJoin(ElementCollectionRelationship ec, int i)
         '''@JoinColumn(name="«ec.keyColumns.get(i)»")'''
-        
+
     def private static writeJoinColumns(ElementCollectionRelationship ec, FieldDefinition c) {
         if (ec.keyColumns.size == 1) {
             '''«ec.makeJoin(0)»'''
@@ -31,7 +31,7 @@ class ElementCollections {
             '''{«(0 .. ec.keyColumns.size-1).map[ec.makeJoin(it)].join(', ')»}'''
         }
     }
-    
+
     def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, ElementCollectionRelationship it) '''
         @ElementCollection«IF fetchType !== null»(fetch=FetchType.«fetchType»)«ENDIF»
         @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)

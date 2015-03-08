@@ -13,7 +13,7 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 package de.jpaw.bonaparte.dsl.generator
 
 import org.eclipse.emf.ecore.resource.Resource
@@ -31,28 +31,28 @@ class BonScriptGenerator implements IGenerator {
     private static final Logger logger = Logger.getLogger(BonScriptGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
-    
+
     @Inject DebugBonScriptGeneratorMain generatorDebug
     @Inject JavaBonScriptGeneratorMain generatorJava
-    
+
     def private String filterInfo() {
-        "@" + localId + ": "   
+        "@" + localId + ": "
     }
-    
+
     public new() {
         logger.info("BonScriptGenerator constructed. " + filterInfo)
     }
-        
+
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
-        
+
             if (BonScriptPreferences.currentPrefs.doDebugOut) {
                 logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
                 generatorDebug.doGenerate(resource, fsa)
             }
-        
+
             logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
             generatorJava.doGenerate(resource, fsa)
-        
+
             logger.info(filterInfo + "start cleanup");
             DataTypeExtension::clear()
     }

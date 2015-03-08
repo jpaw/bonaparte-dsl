@@ -43,27 +43,27 @@ public class ImportCollector {
     def void addImport(XEnumDefinition cl) {
         if (cl !== null) {
             addImport(getBonPackageName(cl), cl.name)
-            addImport(cl.myEnum)    
+            addImport(cl.myEnum)
             val root = XUtil.getRoot(cl)
             if (root != cl)
                 addImport(root) // avoid endless loop
         }
     }
-    
+
     def void addImport(EnumSetDefinition cl) {
         if (cl !== null) {
             addImport(getBonPackageName(cl), cl.name)
-            addImport(cl.myEnum)    
+            addImport(cl.myEnum)
         }
     }
 
     def void addImport(XEnumSetDefinition cl) {
         if (cl !== null) {
             addImport(getBonPackageName(cl), cl.name)
-            addImport(cl.myXEnum)    
+            addImport(cl.myXEnum)
         }
     }
-    
+
     // same code as in JavaBonScriptGenerator...
     def void recurseImports(ClassDefinition d, boolean recurseFields) {
         if (d === null)
@@ -104,11 +104,11 @@ public class ImportCollector {
             for (gp : d.genericParameters)
                 if (gp.^extends !== null)
                     addImport(gp.^extends)
-                    
+
         // external types, unless advised not to do so
         if (!d.useFqn)
            addImport(d.externalType?.qualifiedName)
-        
+
         // finally, possibly the parent object
         addImport(d.extendsClass)
         if (recurseFields && d.extendsClass !== null && d.extendsClass.classRef !== null)
@@ -130,9 +130,9 @@ public class ImportCollector {
             val ind = fqon.lastIndexOf('.')
             if (ind > 0)
                 addImport(fqon.substring(0, ind), fqon.substring(ind+1))
-        }        
+        }
     }
-    
+
     def void addImport(String packageName, String objectName) {
         val String currentEntry = requiredImports.get(objectName)
         if (currentEntry === null) // not yet in, fine, add it!

@@ -13,7 +13,7 @@ class OffHeapMapGeneratorMain {
     def private static isTenant(FieldDefinition f, EntityDefinition e) {
         return e.tenantClass !== null && e.tenantClass.fields.filter[it == f].head !== null
     }
-    
+
     def private static wrDefP(ClassDefinition refPojo) '''
         @Override
         public «refPojo.name» createKey(long ref) {
@@ -26,14 +26,14 @@ class OffHeapMapGeneratorMain {
             return ref == null ? null : createKey(ref.longValue());
         }
     '''
-    
+
     def public static javaSetOut(EntityDefinition e) {
         val String myPackageName = e.packageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
         val tracking = e.tableCategory.trackingColumns
         val updater = e.tableCategory.trackingUpdater
-         
+
         if (tracking !== null) {
             imports.recurseImports(tracking, true)
         }
@@ -48,25 +48,25 @@ class OffHeapMapGeneratorMain {
         }
         val tr = if (tracking !== null) tracking.name else "TrackingBase"
         val dt = '''«e.pojoType.name», «tr»'''
-        
+
         val pkClass = e.pojoType.recursePkClass
         val refClass = e.pojoType.recurseRefClass
         val trackingClass = e.pojoType.recurseTrackingClass
-        
+
         val pkField = pkClass.firstField
         val pkRef = DataTypeExtension.get(pkField.datatype)
         val keyP = e.pojoType.recurseKeyP
         val keyW = e.pojoType.recurseKeyW
-        val isPrimitive = (keyP !== null) || (keyW === null && pkRef.isPrimitive) 
+        val isPrimitive = (keyP !== null) || (keyW === null && pkRef.isPrimitive)
         val packageSuffix = if (isPrimitive) "p" else "w"
         val pkJavaType = if (isPrimitive) "long" else "Long"
-                
+
         val refPojo = refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)
             imports.addImport(i.name)
-        
-        
+
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -207,7 +207,7 @@ class OffHeapMapGeneratorMain {
 
                 // set a safepoint
                 int mySafepoint = transaction.defineSafepoint();
-                
+
                 «IF e.indexes.size > 0»
                     // add the index first (highest probability that it fails)
                     int currentWriterPos = builder.length();
@@ -246,17 +246,17 @@ class OffHeapMapGeneratorMain {
                 dwt.setData(obj);
                 updater.preUpdate(contextProvider.get(), dwt.getTracking());        // just overwrite, no need to keep the old one in this case
                 long key = obj.get$RefP();
-                
+
                 if (!setDTO(key, dwt))
                     throw new PersistenceException(PersistenceException.RECORD_DOES_NOT_EXIST_ILE, key, ENTITY_NAME);
             }
-        
+
             @Override
             public void flush() {
             }
-        
+
             // cases null and filled objectRef have been covered by the abstract superclass already
-            // read only, no tx required 
+            // read only, no tx required
             @Override
             protected «pkJavaType» getUncachedKey(«refPojo.name» refObject) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
@@ -289,7 +289,7 @@ class OffHeapMapGeneratorMain {
             protected DataWithTracking<«dt»> getUncached(«pkJavaType» ref) {
                 return (DataWithTracking<«dt»>) db.get(ref);
             }
-            
+
             «IF keyP !== null»
                 @Override
                 public «pkClass.name» createKey(long ref) {
@@ -335,6 +335,6 @@ class OffHeapMapGeneratorMain {
         }
         '''
     }
-    
-    
+
+
 }

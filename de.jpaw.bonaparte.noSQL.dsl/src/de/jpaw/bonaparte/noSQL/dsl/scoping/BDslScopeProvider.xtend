@@ -18,13 +18,13 @@ import de.jpaw.bonaparte.noSQL.dsl.bDsl.ListOfColumns
 
 /**
  * This class contains custom scoping description.
- * 
+ *
  * see : http://www.eclipse.org/Xtext/documentation.html#scoping
- * on how and when to use it 
+ * on how and when to use it
  *
  */
 class BDslScopeProvider extends ImportedNamespaceAwareLocalScopeProvider {
-    
+
     def private void recursivelyAddColumnsOfClassAndParents(List<ImportNormalizer> preliminaryResult,
             ClassDefinition cl, boolean ignoreCase) {
         var cr = cl

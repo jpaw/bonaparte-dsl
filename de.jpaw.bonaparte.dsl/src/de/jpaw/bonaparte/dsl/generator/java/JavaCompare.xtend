@@ -37,7 +37,7 @@ class JavaCompare {
         "boolean" -> "Boolean",
         "char" -> "Character"
     }
-    
+
     def private static writeCompareToField(ClassDefinition d, FieldDefinition f) {
         val ref = DataTypeExtension::get(f.datatype)
         if (!f.isRequired)
@@ -149,14 +149,14 @@ class JavaCompare {
             _hash = 29 * _hash + «writeHash(i, DataTypeExtension::get(i.datatype))»;
         «ENDFOR»
     '''
-    
+
     def public static writeHash(ClassDefinition d) '''
         «IF d.doCacheHashHere»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
                 @XmlTransient
             «ENDIF»
             private transient int _hash$cache = 0;
-            
+
             @Override
             public int hashCode() {
                 if (_hash$cache != 0)

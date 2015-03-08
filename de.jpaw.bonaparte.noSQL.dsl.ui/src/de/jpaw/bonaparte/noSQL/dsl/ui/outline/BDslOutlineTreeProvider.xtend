@@ -9,5 +9,5 @@ package de.jpaw.bonaparte.noSQL.dsl.ui.outline
  * see http://www.eclipse.org/Xtext/documentation.html#outline
  */
 class BDslOutlineTreeProvider extends org.eclipse.xtext.ui.editor.outline.impl.DefaultOutlineTreeProvider {
-    
+
 }

@@ -27,16 +27,16 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to int. Value is " + x.toString());
         return 30;
     }
-    
+
     private boolean toBool(Object x) {
         if (x == null)
             return false;
         if (x instanceof Boolean)
-            return ((Boolean) x); 
+            return ((Boolean) x);
         if (x instanceof String)
             return Boolean.valueOf((String)x);
         if (x instanceof Integer)
-            return ((Integer) x).intValue() != 0; 
+            return ((Integer) x).intValue() != 0;
         System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to boolean. Value is " + x.toString());
         return false;
     }
@@ -63,7 +63,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // empty line to have some spacing (there may be a better way to do that!)
         new Label(myParent, SWT.NONE).setText(" ");
         new Label(myParent, SWT.NONE).setText(" ");
-        
+
         // output
         Group outputGroup = new Group(myParent, SWT.SHADOW_IN);
         outputGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -127,7 +127,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.defaultHazelcastPo = store.getBoolean("HazelcastPo");
         currentSettings.defaulthazelcastFactoryId = store.getInt("FactoryId");
         BonScriptPreferences.currentPrefs  = currentSettings;
-        
+
         store.addPropertyChangeListener(new IPropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent event) {

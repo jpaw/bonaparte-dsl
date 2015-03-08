@@ -135,7 +135,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         }
         requiredImports.clear()  // cleanup, we don't know how long this object will live
     }
-    
+
     def private static writeRef(ClassDefinition d) '''
         «IF d.refPFunction !== null && d.refPFunction.trim.length != 0»
             @Override
@@ -172,7 +172,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             }
         «ENDIF»
     '''
-    
+
     // constract the interface name, which includes the get$Ref variant
     def private static refExtension(ClassDefinition d)
         '''BonaPortable«IF d.refPFunction !== null || d.refWFunction !== null»Ref«ENDIF»'''
@@ -205,11 +205,11 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static interfaceOut(InterfaceListDefinition l) {
         '''«IF l !== null»«FOR i : l.ilist», «i.qualifiedName»«ENDFOR»«ENDIF»'''
     }
-    
+
     def private void checkOrderedByList(ClassDefinition d) {
-        
+
     }
-    
+
     def private static intComparable(ClassDefinition d) {
         if (d.orderedByList !== null)
             ''', Comparable<«d.name»>'''
@@ -224,7 +224,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 ", BonaparteIdentifiedDataSerializable"
             case PORTABLE:
                 ", BonapartePortable"
-            case BOTH:                  // does not make sense? 
+            case BOTH:                  // does not make sense?
                 ", BonapartePortable, BonaparteIdentifiedDataSerializable"
         }
     }
@@ -255,7 +255,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         imports.addImport(d.pkClass)
         imports.addImport(d.trackingClass)
         val activeColumn = d.fields.filter[properties.hasProperty(PROP_ACTIVE)].head
-        
+
         if (d.orderedByList !== null)
             d.checkOrderedByList()
     return '''
@@ -263,7 +263,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getBonPackageName(d)»;
-        
+
         «writeDefaultImports»
         «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
             import javax.xml.bind.annotation.XmlAccessorType;
@@ -327,7 +327,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF d.trackingClass !== null»
             @TrackingClass(«d.trackingClass.name».class)
         «ENDIF»
-        «d.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»    
+        «d.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements «d.refExtension»«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
@@ -355,7 +355,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaConstructor::writeConstructorCode(d)»
 
             «d.writeRef»
-            
+
             @Override
             public String toString() {
                 return ToStringHelper.toStringSL(this);

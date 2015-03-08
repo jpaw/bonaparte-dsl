@@ -70,19 +70,19 @@ class SqlViewOut {
             return true
         return (e.extends !== null) && e.extends.usesJoinInheritance
     }
-    
+
     def private static CharSequence joinedTables(EntityDefinition e, int level) {
         if (e.extends === null || !e.usesJoinInheritance)
             return ''''''
         return ''', «mkTablename(e.extends, false)» t«level+1»«joinedTables(e.extends, level+1)»'''
     }
-    
+
     def private static CharSequence joinConditions(EntityDefinition e, int level) {
         if (e.extends === null || !e.usesJoinInheritance)
             return ''''''
         return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.objectRef = t«level+1».objectRef«joinConditions(e.extends, level+1)»'''
     }
-    
+
     def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
         CREATE OR REPLACE VIEW «mkTablename(e, false)»«suffix» AS SELECT
             «recurseInheritance(e, databaseFlavour, includeTracking, 0, new Delimiter("", ", "))»

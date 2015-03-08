@@ -44,7 +44,7 @@ class JavaHazelSupport {
             import «BONAPARTE_HAZEL_PACKAGE».HazelcastPortableComposer;
         «ENDIF»
     '''
-    
+
     // factoryId retrieval method is the same for IDS and Portable
     def private static writeHazelFactoryId(ClassDefinition d) '''
         @Override
@@ -66,10 +66,10 @@ class JavaHazelSupport {
             return «d.effectiveClassId»;
         }
     '''
-    
+
     def private static writeDataSerializable(ClassDefinition d, boolean recommendIdentifiable) '''
         @Override
-        public void writeData(ObjectDataOutput _out) throws IOException { 
+        public void writeData(ObjectDataOutput _out) throws IOException {
             HazelcastComposer.serialize(this, _out, «recommendIdentifiable»);
         }
         @Override
@@ -77,10 +77,10 @@ class JavaHazelSupport {
             HazelcastParser.deserialize(this, _in);
         }
     '''
-    
+
     def private static writePortable(ClassDefinition d) '''
         @Override
-        public void writePortable(PortableWriter _out) throws IOException { 
+        public void writePortable(PortableWriter _out) throws IOException {
             HazelcastPortableComposer.serialize(this, _out);
         }
         @Override
@@ -88,7 +88,7 @@ class JavaHazelSupport {
             HazelcastPortableParser.deserialize(this, _in);
         }
     '''
-    
+
     def public static writeHazelIO(ClassDefinition d, XHazelcast doHazel) {
         switch (doHazel) {
             case NOHAZEL:
@@ -106,7 +106,7 @@ class JavaHazelSupport {
                 «d.writeHazelClassId»
             '''
             case BOTH:                     // does not make sense?
-            ''' 
+            '''
                 «d.writeDataSerializable(true)»
                 «d.writePortable»
                 «d.writeHazelFactoryId»

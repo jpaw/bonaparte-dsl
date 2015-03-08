@@ -29,13 +29,13 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class SqlTriggerOut {
-    
+
     def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
         // println('''trigger field for «f.name» in «e.name»''')
         return f.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", func)
     }
-    
+
     def static private recurseTrigger(EntityDefinition e, List<FieldDefinition> columns,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
         val embeddables = e.theEmbeddables
@@ -45,7 +45,7 @@ class SqlTriggerOut {
             «ENDFOR»
         '''
     }
-    
+
     def private static buildNvl(FieldDefinition f) {
         val colname = f.name.java2sql
         val ref = DataTypeExtension::get(f.datatype)
@@ -67,7 +67,7 @@ class SqlTriggerOut {
         else
             return '''NVL(:OLD.«colname», «nullReplacement») <> NVL(:NEW.«colname», «nullReplacement»)'''
     }
-    
+
     def private static v(FieldDefinition f, boolean categorySetting, CharSequence regularData) {
         val ref = DataTypeExtension::get(f.datatype)
         val isTechUser = f.properties.hasProperty(PROP_CURRENT_USER) && ref.category == DataCategory.STRING
@@ -88,7 +88,7 @@ class SqlTriggerOut {
             return regularData
         }
     }
-    
+
     def public static triggerOutOracle(EntityDefinition e) {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
@@ -101,7 +101,7 @@ class SqlTriggerOut {
         val keyFieldNames = myPrimaryKeyColumns.map[name]
         val allColumns = new ArrayList<FieldDefinition>(myPrimaryKeyColumns)
         nonPrimaryKeyColumns.filter[!keyFieldNames.contains(it.name)].forEach[allColumns.add(it)]
-        
+
         return '''
             -- This source has been automatically created by the bonaparte DSL (bonaparte.jpa addon). Do not modify, changes will be lost.
             -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.

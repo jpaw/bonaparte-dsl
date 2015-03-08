@@ -103,7 +103,7 @@ class XUtil {
     def public static boolean parentCacheHash(ClassDefinition d) {
         if (d === null)
             return false
-        return d.doCacheHash || parentCacheHash(d.parent) 
+        return d.doCacheHash || parentCacheHash(d.parent)
     }
 
     def public static getRelevantXmlAccess(ClassDefinition d) {
@@ -142,7 +142,7 @@ class XUtil {
             return getLowerBound(r.genericsParameterRef.extends);
         return r.classRef
     }
-    
+
     // determines of an instance of potentialSubClass can be assigned to superClass.
     // in case of generics, lower bounds are used.
     // superClass may not be null
@@ -153,15 +153,15 @@ class XUtil {
         if (superClass == currentLowerBound)
             return true
         return superClass.isSuperClassOf(currentLowerBound.extendsClass)
-    } 
+    }
 
     def public static String externalName(ClassDefinition cd) {
         if (cd.useFqn)
             return cd.externalType.qualifiedName    // qualifiedName desired due to possible naming conflict
         else
             return cd.externalType.simpleName       // qualifiedName should not be required, we added the import!
-    }   
-     
+    }
+
     def public static String genericRef2String(ClassReference r) {
         if (r.plainObject)
             return "BonaPortable"
@@ -219,7 +219,7 @@ class XUtil {
         if (f === null) return "null"
         if (f) "true" else "false"
     }
-    
+
     // convert a String to Java source token, keeping nulls
     def public static s2A(String s) {
         if (s === null) return "null" else return '''"«Util::escapeString2Java(s)»"'''
@@ -280,26 +280,26 @@ class XUtil {
         else
             ref.javaType
     }
-    
+
     def public static String getNameCapsed(String fieldname, ClassDefinition d) {
         if (d.beanNames == XBeanNames::ONLY_BEAN_NAMES)
             return fieldname.beanName
         else
-            return fieldname.toFirstUpper    
+            return fieldname.toFirstUpper
     }
-    
+
     def public static String getBeanName(String fieldname) {
         if (fieldname.length >= 2) {
             if (Character::isLowerCase(fieldname.charAt(0)) && Character.isUpperCase(fieldname.charAt(1)))
                 return fieldname
-        }            
+        }
         return fieldname.toFirstUpper
     }
-    
+
     def public static getBeanNames(ClassDefinition d) {
         d.doBeanNames?.x ?: getPackage(d).doBeanNames?.x ?: XBeanNames::BEAN_AND_SIMPLE_NAMES  // default to creation of no bean validation annotations
     }
-    
+
     def public static aggregateOf(FieldDefinition i, String dataClass) {
          if (i.isArray !== null)
             dataClass + "[]"
@@ -350,9 +350,9 @@ class XUtil {
         // now check if an explicit specification has been made
         if (i.required !== null)
             return i.required.x == XRequired::REQUIRED
-            
+
         // neither ref.isRequired is set nor an explicit specification made.  Fall back to defaults of the embedding class or package
-        
+
         // DEBUG
         //if (i.name.equals("fields"))
         //    System::out.println("fields.required = " + i.required + ", defaultreq = " + ref.defaultRequired)
@@ -408,7 +408,7 @@ class XUtil {
             return "Set"
         if (c.isMap !== null)
             return "Map"
-        null       
+        null
     }
     // determines if the field is an aggregate type (array / list / map and possibly later additional
     def public static int aggregateMaxSize(FieldDefinition c) {
@@ -420,7 +420,7 @@ class XUtil {
             return c.isSet.maxcount
         if (c.isMap !== null)
             return c.isMap.maxcount
-        0        
+        0
     }
 
     def public static getFieldVisibility(ClassDefinition d, FieldDefinition i) {
@@ -466,7 +466,7 @@ class XUtil {
         import «BonScriptPreferences.getDateTimePackage».LocalDate;
         import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
     '''
-    
+
     // returns an enum if any indirection of the type references it
     def public static enumForEnumOrXenum(DataTypeExtension ref) {
         val e = ref.elementaryDataType
@@ -483,7 +483,7 @@ class XUtil {
         else
             return null
     }
-    
+
     // returns true if this an enum or an xenum which can have an instance of null
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {
         val ref = DataTypeExtension.get(f.datatype)
@@ -501,33 +501,33 @@ class XUtil {
     }
 
     // freezable checks can be cyclic! We know the class hierarchy is acyclic, so a assume all OK if no issue found after a certain nesting depth
-    
+
     def private static boolean isFreezable(ClassReference it, int remainingDepth) {
         if (remainingDepth <= 0)
             return true
         classRef === null || (classRef.isFreezable(remainingDepth-1) && !classRefGenericParms.exists[!isFreezable(remainingDepth-1)])
     }
-    
+
     // a class is considered to be freezable if it does not contain any mutable and non freezable subtypes.
     // by deduction, this means that immutable classes must also be considered as freezable, because they are immutable itself.
     // (the recursive definition of freezable would not work otherwise).
-    // Therefore, in order to determine if a class can have both states, frozen and unfrozen, the correct condition is (freezable && !immutable)  
+    // Therefore, in order to determine if a class can have both states, frozen and unfrozen, the correct condition is (freezable && !immutable)
     def public static boolean isFreezable(ClassReference it) {
         it.isFreezable(100)
     }
-    
+
     def private static boolean isFreezable(ClassDefinition cd, int remainingDepth) {
         if (remainingDepth <= 0)
             return true
-        !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) && 
+        !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) &&
             !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
             !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
     }
-    
+
     def public static boolean isFreezable(ClassDefinition cd) {
         cd.isFreezable(100)
     }
-    
+
     def public static int getEffectiveFactoryId(ClassDefinition cd) {
         val pkg = cd.getPackage
         if (pkg.hazelcastFactoryId == 0)
@@ -541,7 +541,7 @@ class XUtil {
         else
             return '''«cd.hazelcastId»'''
     }
-    
+
     def public static String getAdapterClassName(ClassDefinition cd) {
         return cd.bonaparteAdapterClass ?: cd.externalName  // the adapter classname or the external type (in either qualifier or unqualified form)
     }
@@ -551,12 +551,12 @@ class XUtil {
             return "Integer"
         return e.indexType.toFirstUpper
     }
-    
+
     // get the first field of this or a parent (for external types). Assumption is there is only one field in total (singleFirst types).
     def public static FieldDefinition getFirstField(ClassDefinition cd) {
-        return if (cd.fields.size > 0) cd.fields.get(0) else cd.extendsClass.classRef.firstField 
+        return if (cd.fields.size > 0) cd.fields.get(0) else cd.extendsClass.classRef.firstField
     }
-    
+
     def public static writeIfDeprecated(FieldDefinition i) {
         if (i.isDeprecated)
             return "@Deprecated"

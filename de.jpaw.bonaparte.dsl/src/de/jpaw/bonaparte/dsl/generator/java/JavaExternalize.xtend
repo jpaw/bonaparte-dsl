@@ -29,7 +29,7 @@ class JavaExternalize {
         import «bonaparteInterfacesPackage».ExternalizableComposer;
         import «bonaparteInterfacesPackage».ExternalizableParser;
     '''
-    
+
     def public static writeExternalize(ClassDefinition d) '''
         @Override
         public void writeExternal(ObjectOutput _out) throws IOException {
@@ -39,6 +39,6 @@ class JavaExternalize {
         public void readExternal(ObjectInput _in) throws IOException, ClassNotFoundException {
             ExternalizableParser.deserialize(this, _in);
         }
-        
+
     '''
 }

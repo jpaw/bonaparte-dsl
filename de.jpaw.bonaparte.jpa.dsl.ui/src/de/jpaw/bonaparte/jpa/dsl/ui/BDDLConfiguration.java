@@ -27,31 +27,31 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to int. Value is " + x.toString());
         return 30;
     }
-    
+
     private boolean toBool(Object x) {
         if (x == null)
             return false;
         if (x instanceof Boolean)
-            return ((Boolean) x); 
+            return ((Boolean) x);
         if (x instanceof String)
             return Boolean.valueOf((String)x);
         if (x instanceof Integer)
-            return ((Integer) x).intValue() != 0; 
+            return ((Integer) x).intValue() != 0;
         System.out.println("Problem: cannot convert object of type " + x.getClass().getCanonicalName() + " to boolean. Value is " + x.toString());
         return false;
     }
-    
+
     @Override protected void createFieldEditors() {
         super.createFieldEditors();
-        
+
         Composite myParent = getFieldEditorParent();
-        
+
 //        Composite myParent = new Composite(outer, SWT.FILL);
 //        FillLayout myLayout = new FillLayout(SWT.VERTICAL);
 //        myLayout.marginHeight = 4;
 //        myLayout.marginWidth = 4;
 //        myParent.setLayout(myLayout);
-        
+
         // Validation
         Group validationGroup = new Group(myParent, SWT.SHADOW_IN);
         validationGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -68,7 +68,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         // empty line to have some spacing (there may be a better way to do that!)
         new Label(myParent, SWT.NONE).setSize(10, 16);
         new Label(myParent, SWT.NONE).setText(" ");
-        
+
         // output
         Group outputGroup = new Group(myParent, SWT.SHADOW_IN);
         outputGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -86,11 +86,11 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         // blank, to fill the second column
         new Label(myParent, SWT.NONE).setText(" ");
 
-        
+
         // empty line to have some spacing (there may be a better way to do that!)
         new Label(myParent, SWT.NONE).setSize(10, 16);
         new Label(myParent, SWT.NONE).setText(" ");
-        
+
         // JPA 2.1 code generation options
         Group jpa21Group = new Group(myParent, SWT.SHADOW_IN);
         jpa21Group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
@@ -108,7 +108,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("UserTypeSingleFieldExternals", "singleField external types", jpa21group));
         addField(new BooleanFieldEditor("UserTypeBonaPortable",         "BonaPortables",        jpa21group));
         jpa21Group.pack();
-        
+
         // blank, to fill the second column
         new Label(myParent, SWT.NONE).setText(" ");
     }
@@ -134,7 +134,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        store.setDefault("UserTypeXEnumset",            defaults.doUserTypeForXEnumset);
         store.setDefault("UserTypeSingleFieldExternals",defaults.doUserTypeForSFExternals);
         store.setDefault("UserTypeBonaPortable",        defaults.doUserTypeForBonaPortable);
-        
+
         BDDLPreferences currentSettings = new BDDLPreferences();
         currentSettings.maxFieldnameLength          = store.getInt("MaxFieldLen");
         currentSettings.maxTablenameLength          = store.getInt("MaxTableLen");
@@ -144,7 +144,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         currentSettings.doMsSQLServerOut            = store.getBoolean("MSSQL");
         currentSettings.doMySQLOut                  = store.getBoolean("MySQL");
         currentSettings.doSapHanaOut                = store.getBoolean("SapHana");
-        
+
         currentSettings.doUserTypeForEnum           = store.getBoolean("UserTypeEnum");
         currentSettings.doUserTypeForEnumAlpha      = store.getBoolean("UserTypeEnumAlpha");
         currentSettings.doUserTypeForXEnum          = store.getBoolean("UserTypeXEnum");
@@ -153,9 +153,9 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        currentSettings.doUserTypeForXEnumset       = store.getBoolean("UserTypeXEnumset");
         currentSettings.doUserTypeForSFExternals    = store.getBoolean("UserTypeSingleFieldExternals");
         currentSettings.doUserTypeForBonaPortable   = store.getBoolean("UserTypeBonaPortable");
-        
+
         BDDLPreferences.currentPrefs = currentSettings;
-        
+
         store.addPropertyChangeListener(new IPropertyChangeListener() {
                 @Override
                 public void propertyChange(PropertyChangeEvent event) {
@@ -184,7 +184,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                   case "SapHana":
                       BDDLPreferences.currentPrefs.doSapHanaOut            = toBool(event.getNewValue());
                       break;
-                      
+
                   case "UserTypeEnum":
                       BDDLPreferences.currentPrefs.doUserTypeForEnum        = toBool(event.getNewValue());
                       break;

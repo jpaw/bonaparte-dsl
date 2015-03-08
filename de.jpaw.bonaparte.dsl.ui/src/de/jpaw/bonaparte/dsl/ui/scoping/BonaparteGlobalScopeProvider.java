@@ -18,15 +18,15 @@ import com.google.inject.Inject;
 
 //TODO Types scope provider is just used, because it is bound in runtime module as well.
 public class BonaparteGlobalScopeProvider extends TypesAwareDefaultGlobalScopeProvider {
-    
+
     Logger LOG = Logger.getLogger(BonaparteGlobalScopeProvider.class);
-    
+
     @Inject IJavaProjectProvider javaProjectProvider;
 
     @Override
     protected List<IContainer> getVisibleContainers(Resource resource) {
 //      List<IContainer> result = super.getVisibleContainers(resource);
-//      if (!result.isEmpty()) 
+//      if (!result.isEmpty())
 //          return result;
         // fall back strategy for https://bugs.eclipse.org/bugs/show_bug.cgi?id=416638
         IJavaProject project = javaProjectProvider.getJavaProject(resource.getResourceSet());

@@ -66,7 +66,7 @@ class JavaPackages {
         for (value : d.values)
             myUID = 97L * myUID + value.hashCode
         for (value : d.avalues)
-            myUID = 17L * myUID + value.token.hashCode + 11 * value.name.hashCode 
+            myUID = 17L * myUID + value.token.hashCode + 11 * value.name.hashCode
         return myUID
     }
     // create a serialVersionUID which depends on class name and revision, plus the same for any parent classes only

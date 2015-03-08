@@ -151,7 +151,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
     }
-    
+
     @Check
     def public void checkEnumDeprecation(ElementaryDataType dt) {
         if (dt.enumType !== null) {
@@ -163,7 +163,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 warning(dt.xenumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__XENUM_TYPE)
         }
     }
-    
+
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
         if (extendedBundle === null)
             return true;  // everything is a sub-bundle of the static data
@@ -175,8 +175,8 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         return (myBundle.length() == extendedBundle.length())
                 || ((myBundle.length() > extendedBundle.length()) && (myBundle.charAt(extendedBundle.length()) == '.'));
     }
-    
-    // a test for cyclic inheritance    
+
+    // a test for cyclic inheritance
     def static private void checkInheritance(ClassDefinition d, int remaining) {
         if (d.extendsClass?.classRef !== null) {
             if (remaining <= 0)
@@ -184,7 +184,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             d.extendsClass?.classRef.checkInheritance(remaining - 1)
         }
     }
-    
+
     @Check
     def public void checkClassDefinition(ClassDefinition cd) {
         val s = cd.getName();
@@ -198,7 +198,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         }
         if (cd.hazelcastId != 0 && (cd.abstract || cd.isSingleField))
             warning("abstract classes and singleField adapters don't need a classId", BonScriptPackage.Literals.CLASS_DEFINITION__HAZELCAST_ID)
-        
+
         if (cd.extendsClass !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
             if (cd.getExtendsClass().getClassRef() === null) {
@@ -211,7 +211,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 } catch (Exception ex) {
                     error("Cyclic inheritance", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
                     return
-                }               
+                }
                 // check the number of generic parameters
                 val ClassDefinition parent = cd.getExtendsClass().getClassRef();
                 val EList<GenericsDef> args = parent.getGenericParameters();
@@ -271,7 +271,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             if (!haveAnchestorWithAbsoluteRtti && cd.isAddRtti()) {
                 error("For relative RTTI definition, at least one anchestor must have an absolute RTTI", BonScriptPackage.Literals.CLASS_DEFINITION__ADD_RTTI);
             }
-            
+
             // an custom class cannot extend a non-custom class and vice versa, as the freezing stuff etc won't work
             if (cd.externalType !== null) {
                 if (cd.extendsClass.classRef.externalType === null)
@@ -283,7 +283,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                             BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
         }
-        
+
         // check the number of fields, unless noAllFieldsConstructor is set
         if (!cd.isNoAllFieldsConstructor()) {
             // count the fields. We can have 255 at max, due to JVM limitations
@@ -294,7 +294,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 if (p.isNoAllFieldsConstructor()) {
                     error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.getName() + " does not)",
                             BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
-                    return;    
+                    return;
                 }
                 numFields = numFields + p.fields.size
                 if (p.getExtendsClass() === null)
@@ -307,11 +307,11 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                         BonScriptPackage.Literals.CLASS_DEFINITION__FIELDS);
             }
         }
-        
+
         if (cd.pkClass !== null) {
             if (cd.pkClass.isDeprecated && !cd.isDeprecated)
                 warning(cd.pkClass.name + " is deprecated", BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
-                
+
             // check that there is no conflict with a prior definition
             var p = cd.extendsClass?.classRef
             while (p !== null) {
@@ -319,11 +319,11 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                     error('''Inconsistent redefinition of pk: was defined as «p.pkClass.name» in inherited class «p.name»''',
                         BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
                 p = p.extendsClass?.classRef
-            }        
+            }
             if (cd.pkClass.firstField === null)
                 error('''PK class cannot be empty''', BonScriptPackage.Literals.CLASS_DEFINITION__PK_CLASS)
         }
-        
+
         // do various checks if the class has been defined as freezable or is a child of a freezable one
         if (!cd.unfreezable) {   // no explicit immutability advice
             // may not have mutable fields
@@ -341,7 +341,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 error("Caching the hashcode makes no sense if the class is neither immutable nor can be frozen", BonScriptPackage.Literals.CLASS_DEFINITION__DO_CACHE_HASH)
             }
         }
-        
+
         // verify settings for custom types. These limitations may be lifted in some future extension
         if (cd.externalType !== null) {
             // currently, if specifying an adapter, "static" must be set, and vice versa
@@ -351,7 +351,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             if (!cd.immutable) {
                 error("Currently external types must be declared as immutable", BonScriptPackage.Literals.CLASS_DEFINITION__EXTERNAL_TYPE)
             }
-            
+
             if (cd.singleField) {
                 if (cd.rtti != 0)
                     warning("singleField adapters don't need a RTTI value, because the class is just a wrapper", BonScriptPackage.Literals.CLASS_DEFINITION__RTTI)
@@ -360,18 +360,18 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 // there must be extactly one internal field, independent of externally added attributes
                 if (cd.countFields != 1)
                     error("singleField adapters must declare exactly one field (itself or in superclasses), found " + cd.countFields,
-                      BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS) 
+                      BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
             }
         }
     }
-    
+
     def private int countFields(ClassDefinition d) {
         if (d.extendsClass?.classRef === null)
             return d.fields.size
         else
             return d.fields.size + d.extendsClass.classRef.countFields
     }
-    
+
     def private boolean inheritsClass(ClassDefinition myInitialReturnType, ClassDefinition superclassReturnType) {
         var myReturnType = myInitialReturnType
         while (myReturnType !== null) {
@@ -480,7 +480,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 //            }
         }
     }
-    
+
 
     @Check
     def public void checkPropertyUse(PropertyUse pu) {
@@ -521,7 +521,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.MAP_MODIFIER__MINCOUNT);
     }
-    
+
     // if two object references are provides, verify that the second is a subclass of the first, as the generated data type is
     // provided by the first and the second must be storable in the same field
     @Check
@@ -533,19 +533,19 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 error("Secondary data type must be a subclass of the first!", BonScriptPackage.Literals.DATA_TYPE__OR_SECONDARY_SUPER_CLASS)
             }
         }
-        
+
         // check the extra parameter, it may be supplied if and only if the referenced type has an adapter with that flag set!
         if (objectDataType?.classRef !== null) {
             if (objectDataType.classRef.needExtraParam) {
-                if (extraParameter === null && extraParameterString === null) 
+                if (extraParameter === null && extraParameterString === null)
                     error("Need extra parameter for a reference to " + objectDataType.classRef.name, BonScriptPackage.Literals.DATA_TYPE__EXTRA_PARAMETER)
             } else {
-                if (extraParameter !== null || extraParameterString !== null) 
+                if (extraParameter !== null || extraParameterString !== null)
                     error("Extra parameter not requested by referenced object" + objectDataType.classRef.name, BonScriptPackage.Literals.DATA_TYPE__EXTRA_PARAMETER)
-            }        
+            }
         }
     }
-    
+
     @Check
     def public void checkComparableFields(ComparableFieldsList fl) {
         for (f : fl.field) {
@@ -561,8 +561,8 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
     }
-     
-    
+
+
     @Check
     def public void checkEnumIDsAndTokens(EnumDefinition e) {
         // any used ID or token may be 63 characters max length.
@@ -588,7 +588,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
     }
-    
+
     @Check
     def public void checkEnumAlphaValueDefinition(EnumAlphaValueDefinition aval) {
         if (aval.name.length > 63)
@@ -597,7 +597,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             error("Token is too long (max 63 characters allowed, found " + aval.token.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__TOKEN)
     }
 
-    // a test for cyclic inheritance    
+    // a test for cyclic inheritance
     def static private void checkInheritance(XEnumDefinition e, int remaining) {
         if (e.extendsXenum !== null) {
             if (remaining <= 0)
@@ -605,7 +605,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             e.extendsXenum.checkInheritance(remaining - 1)
         }
     }
-    
+
     @Check
     def public void checkXEnum(XEnumDefinition e) {
         try {
@@ -644,11 +644,11 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 if (mine > e.maxlength) {
                     error("enum tokens are longer than specified: here " + mine + ", limit = " + e.maxlength, BonScriptPackage.Literals.XENUM_DEFINITION__MAXLENGTH)
                     return
-                }                   
+                }
             }
         }
     }
-   
+
     @Check
     def public void checkImplements(InterfaceListDefinition il) {
         if (il.ilist !== null) {
@@ -657,7 +657,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                     error('''«intrface.qualifiedName» is not an interface''', BonScriptPackage.Literals.INTERFACE_LIST_DEFINITION__ILIST)
         }
     }
-    
+
     def private void hasMoreThan(EnumDefinition e, int entries) {
         var num = 0
         if (e.avalues !== null && e.avalues.size > 0)
@@ -667,7 +667,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         if (num > entries)
             error("enum has more than " + entries + " instances", BonScriptPackage.Literals.ENUM_SET_DEFINITION__MY_ENUM)
     }
-    
+
     @Check
     def public void checkEnumSetDefinition(EnumSetDefinition es) {
         if ("String" == es.indexType) {
@@ -698,14 +698,14 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             es.myEnum.hasMoreThan(63)
         }
     }
-    
+
     @Check
     def public void checkXEnumSetDefinition(XEnumSetDefinition es) {
         val tokenLength = getOverallMaxLength(es.myXEnum)
         if (tokenLength != 1)
             error("max length of tokens must be 1, but is " + tokenLength, BonScriptPackage.Literals.XENUM_SET_DEFINITION__MY_XENUM)
     }
-    
+
     @Check
     def public void checkPackageDefinition(PackageDefinition p) {
         if (p.hazelcastFactoryId != 0) {

@@ -6,7 +6,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
 @Data
 public class ConfigReader {
     String prefix;
-    
+
     def String getProp(String name, String defaultValue) {
         var String result
         try {
@@ -24,14 +24,14 @@ public class ConfigReader {
         System.out.println('''Setting «prefix».«name» is «result ?: defaultValue»''')
         return result ?: defaultValue
     }
-    
+
     def boolean getProp(String name, boolean defaultValue) {
         return Boolean.valueOf(getProp(name, defaultValue.toString))
     }
     def int getProp(String name, int defaultValue) {
         return Integer.valueOf(getProp(name, defaultValue.toString))
     }
-} 
+}
 
 public class BonScriptPreferences {
     static private final ConfigReader configReader = new ConfigReader("bonaparte")
@@ -56,11 +56,11 @@ public class BonScriptPreferences {
     public boolean defaultHazelcastId = defaultHazelcastIdDefault;
     public boolean defaultHazelcastPo = defaultHazelcastPoDefault;
     public int defaulthazelcastFactoryId = defaulthazelcastFactoryIdDefault;
-    
+
     public static BonScriptPreferences currentPrefs = new BonScriptPreferences
-    
+
     def public static String getDateTimePackage() {
-        return if (currentPrefs.doDateTime) "java.time" else "org.joda.time" 
+        return if (currentPrefs.doDateTime) "java.time" else "org.joda.time"
     }
     def public static getHazelSupport() {
         if (currentPrefs.defaultHazelcastPo) {

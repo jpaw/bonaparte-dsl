@@ -24,7 +24,7 @@ public class BDDLRuntimeModule extends de.jpaw.bonaparte.jpa.dsl.AbstractBDDLRun
         logger.info("BON Value converter bound for BDDL");
         return CommentConverter.class;
     }
-    
+
     // must bind my subclass of ImportedNamespaceAwareScopeProvider here!
     // for implicit importedNamespace
     @Override

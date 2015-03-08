@@ -39,11 +39,11 @@ public class BDDLUiModule extends de.jpaw.bonaparte.jpa.dsl.ui.AbstractBDDLUiMod
     public Class<? extends IEObjectHoverProvider> bindIEObjectHoverProvider() {
         return BDDLEObjectHoverProvider.class;
     }
- 
+
     public Class<? extends IEObjectDocumentationProvider> bindIEObjectDocumentationProviderr() {
         return BDDLEObjectDocumentationProvider.class;
     } */
-    
+
 /*  // contributed by org.eclipse.xtext.generator.parser.antlr.XtextAntlrGeneratorFragment
     public Class<? extends org.eclipse.jface.text.rules.ITokenScanner> bindITokenScanner() {
         return AbstractTokenScanner.class;
@@ -52,7 +52,7 @@ public class BDDLUiModule extends de.jpaw.bonaparte.jpa.dsl.ui.AbstractBDDLUiMod
     public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
         return BonAntlrTokenToAttributeIdMapper.class ;
     }
-    
+
     public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
         return BDDLGlobalScopeProvider.class;
     }

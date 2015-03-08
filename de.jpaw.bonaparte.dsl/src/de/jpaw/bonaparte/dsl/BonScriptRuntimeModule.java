@@ -15,8 +15,8 @@ public class BonScriptRuntimeModule extends de.jpaw.bonaparte.dsl.AbstractBonScr
     public BonScriptRuntimeModule() {
         logger.info("BON Runtime module constructed");
     }
-    
-    
+
+
     @Override
     public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
         logger.info("BON Value converter bound");

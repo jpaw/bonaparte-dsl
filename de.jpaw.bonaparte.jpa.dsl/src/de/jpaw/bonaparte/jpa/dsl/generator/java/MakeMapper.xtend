@@ -35,15 +35,15 @@ class MakeMapper {
                 return null
             if (setter)
                 getMe = '''_r.set«i.name.toFirstUpper»(«getMe»);'''
-            return getMe 
+            return getMe
         }
         return null
     }
-    
+
     def private static List<String> recurseDataGetter(ClassDefinition cl, boolean setter) {
         return cl.allFields.map[simpleGetter(setter)].filterNull.toList
     }
-    
+
     def private static returnAsType(ClassDefinition cl) '''
         «IF cl.immutable»
             return new «cl.name»(«cl.recurseDataGetter(false).join(', ')»);
@@ -53,7 +53,7 @@ class MakeMapper {
             return _r;
          «ENDIF»
     '''
-    
+
     def private static simpleSetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore) '''
         «FOR i:pojo.fields»
             «IF !hasProperty(i.properties, PROP_NOJAVA) && !inList(fieldsToIgnore, i)»
@@ -71,7 +71,7 @@ class MakeMapper {
         «ENDIF»
         «simpleSetter("_d", cl, fieldsToIgnore)»
     '''
-    
+
 
     def public static writeDataMapperMethods(ClassDefinition pojo, boolean isRootEntity, ClassDefinition rootPojo, List<EmbeddableUse> embeddables,
         List<FieldDefinition> fieldsNotToSet) '''
@@ -109,7 +109,7 @@ class MakeMapper {
             «ENDIF»
         }
     '''
-    
+
     def public static writeTrackingMapperMethods(ClassDefinition pojo, String pojoname) '''
         public static Class<«pojoname»> class$TrackingClass() {
             «IF pojo === null»
@@ -134,7 +134,7 @@ class MakeMapper {
                 return «pojoname».class;
             «ENDIF»
         }
-        
+
         @Override
         public «pojoname» get$Tracking() {
             «IF pojo === null»

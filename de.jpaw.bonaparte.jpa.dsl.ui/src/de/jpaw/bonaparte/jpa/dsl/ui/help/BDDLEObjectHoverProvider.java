@@ -7,9 +7,9 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToOne;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
- 
+
 public class BDDLEObjectHoverProvider extends DefaultEObjectHoverProvider {
- 
+
     @Override
     protected String getFirstLine(EObject o) {
         if (o instanceof Relationship) {
@@ -30,5 +30,5 @@ public class BDDLEObjectHoverProvider extends DefaultEObjectHoverProvider {
         }
         return super.getFirstLine(o);
     }
- 
+
 }

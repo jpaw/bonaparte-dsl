@@ -7,10 +7,10 @@ import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 import static extension de.jpaw.bonaparte.noSQL.dsl.generator.java.ZUtil.*
 
 class AesGeneratorMain {
-    
+
     def private static writeObjectRef(ClassDefinition c, String name) '''
         new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, IndexType.NONE, 0, 0, DataCategory.OBJECT, "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
-     
+
     def public static javaSetOut(EntityDefinition e) {
         val String myPackageName = e.packageName
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -21,7 +21,7 @@ class AesGeneratorMain {
             numBins += 1;   // another one for the tracking record
         if (e.bins !== null)
             numBins += e.bins.columnName.size
-         
+
         imports.recurseImports(tracking, true)
         imports.recurseImports(e.pojoType, true)
         imports.addImport(myPackageName, e.name)  // add myself as well
@@ -31,16 +31,16 @@ class AesGeneratorMain {
             imports.addImport(getPackageName(e.^extends), e.^extends.name)
             stopper = e.^extends.pojoType
         }
-        
-        
+
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «e.packageName»;
-        
+
         import org.joda.time.Instant;
-        
+
         import com.aerospike.client.AerospikeClient;
         import com.aerospike.client.Bin;
         import com.aerospike.client.Key;
@@ -50,9 +50,9 @@ class AesGeneratorMain {
         import com.aerospike.client.listener.WriteListener;
         import com.aerospike.client.listener.RecordSequenceListener;
         import com.aerospike.client.Record;
-        
+
         import de.jpaw.bonaparte.noSQL.aerospike.AerospikeBinComposer;
-        
+
         import de.jpaw.bonaparte.core.BonaPortable;
         import de.jpaw.bonaparte.core.BonaPortableClass;
         import de.jpaw.bonaparte.core.MessageParser;
@@ -65,7 +65,7 @@ class AesGeneratorMain {
         import de.jpaw.bonaparte.pojos.meta.*;
 
         «imports.createImports»
-        
+
         @SuppressWarnings("all")
         public class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» {
             static public final ObjectReference my$data = «writeObjectRef(e.pojoType, "$data")»;
@@ -110,5 +110,5 @@ class AesGeneratorMain {
         }
         '''
     }
-    
+
 }

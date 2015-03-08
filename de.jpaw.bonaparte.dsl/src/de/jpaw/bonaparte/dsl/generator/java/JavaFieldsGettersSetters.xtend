@@ -41,11 +41,11 @@ class JavaFieldsGettersSetters {
         put("integer", "Integer")
         put("long", "Long")
     ]
-    
+
     def private static xmlAnnotation(XEnumDefinition d) '''
         @XmlJavaTypeAdapter(«d.root.bonPackageName».«d.root.name»XmlAdapter.class)
     '''
-    
+
     def private static xmlAnnotation(DataTypeExtension ref) {
         val namePart = xmlAdapterMap.get(ref.javaType.toFirstLower)
         val decimals = ref.elementaryDataType.decimals
@@ -54,18 +54,18 @@ class JavaFieldsGettersSetters {
                 @XmlJavaTypeAdapter(de.jpaw.xml.jaxb.scaledFp.Scaled«namePart»Adapter«decimals»«IF ref.effectiveRounding»Round«ELSE»Exact«ENDIF».class)
             '''
     }
-     
+
     def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
         if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
             return ''''''
-            
+
         if (i.defaultString === null) {
             // check for enum defaults, these use a different mechanism.
             if ((ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA || ref.category == DataCategory.XENUM) && ref.enumMaxTokenLength >= -1 && ref.effectiveEnumDefault) {
                 switch (ref.enumMaxTokenLength) {
                 case -1:        // numeric enum
                     return ''' = «JavaDataTypeNoName(i, false)».«ref.elementaryDataType.enumType.values.get(0)»'''        // the first one is the default
-                default:        // alphanumeric enum    
+                default:        // alphanumeric enum
                     return ''' = «JavaDataTypeNoName(i, false)».«ref.elementaryDataType.enumType.avalues.get(0).name»'''  // the first one is the default
                 }
             }
@@ -88,15 +88,15 @@ class JavaFieldsGettersSetters {
     '''
 
     def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
-        i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')    
+        i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')
     }
-    
+
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
         // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
         // System::out.println('''writing one field «d.name»:«i.name» needs XmlAccess=«i.needsXmlObjectType» has XmlAccess «d.getRelevantXmlAccess»''')
-        
+
         return '''
             «i.writeFieldComments»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
@@ -158,10 +158,10 @@ class JavaFieldsGettersSetters {
             «ENDIF»
         '''
     }
-    
+
     // write the standard setter plus maybe some indexed one
     def private static writeOneSetter(FieldDefinition i, String setterName, boolean isFreezable) {
-        val ref = DataTypeExtension::get(i.datatype) 
+        val ref = DataTypeExtension::get(i.datatype)
         return
      '''
         «i.writeIfDeprecated»
@@ -189,7 +189,7 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
     }
-    
+
     // the following was not possible above, due to the dreaded Java type erasure:
 //        «IF ref.category == DataCategory.XENUM»
 //            «IF !i.aggregate»
@@ -205,9 +205,9 @@ class JavaFieldsGettersSetters {
 //                }
 //            «ENDIF»
 //        «ENDIF»
-    
-    
-    
+
+
+
     def private static writeEnumSetterWithConverter(FieldDefinition i, String setterName, boolean isFreezable, DataTypeExtension ref, String type) '''
         // mapping setter from enum to xenum
         «i.writeIfDeprecated»
@@ -218,7 +218,7 @@ class JavaFieldsGettersSetters {
             this.«i.name» = «XUtil.xEnumFactoryName(ref)».of(_i);
         }
     '''
-    
+
     def public static writeGettersSetters(ClassDefinition d) {
         val isFreezable = d.freezable
         val doNames = d.beanNames

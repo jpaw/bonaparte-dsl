@@ -12,7 +12,7 @@ import org.eclipse.emf.ecore.EReference
 import org.eclipse.xtext.validation.Check
 
 /**
- * Custom validation rules. 
+ * Custom validation rules.
  *
  * see http://www.eclipse.org/Xtext/documentation.html#validation
  */
@@ -27,7 +27,7 @@ class BDslValidator extends AbstractBDslValidator {
         }
         error(msg, whereIsTheProblem)
     }
-    
+
     @Check
     def checkEntityDefinition(EntityDefinition e) {
         // with aerospike, indexes must be single column...
@@ -47,12 +47,12 @@ class BDslValidator extends AbstractBDslValidator {
             if (e.pk !== null)
                 error("PK must be defined in bon file for this persistence type", BDslPackage.Literals.ENTITY_DEFINITION__PK)
             val refClass = e.pojoType.recurseRefClass
-            val pkClass = e.pojoType.recursePkClass 
+            val pkClass = e.pojoType.recursePkClass
             if (refClass === null)
                 error('''Need ref class''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
             if (pkClass === null)
                 error('''Need object type primary key''', BDslPackage.Literals.ENTITY_DEFINITION__POJO_TYPE)
-            
+
 //            if (e.tableCategory.trackingColumns === null) {
 //                error('''category must specify tracking columns''', BDslPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY)
 //            }

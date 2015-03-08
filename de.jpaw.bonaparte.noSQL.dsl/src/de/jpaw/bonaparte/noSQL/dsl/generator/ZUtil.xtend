@@ -4,15 +4,15 @@ import de.jpaw.bonaparte.noSQL.dsl.bDsl.EntityDefinition
 import org.eclipse.emf.ecore.EObject
 
 class ZUtil {
-    
+
     def public static getInheritanceRoot(EntityDefinition e) {
         var EntityDefinition ee = e
         while (ee.^extends !== null)
             ee = ee.^extends
         return ee
     }
-    
-    
+
+
     /** Returns the Entity in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
      * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
      */
@@ -28,5 +28,5 @@ class ZUtil {
         else
             throw new Exception("getBaseEntity() called for " + ee.toString())
     }
-    
+
 }

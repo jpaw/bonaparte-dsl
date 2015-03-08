@@ -4,11 +4,11 @@ import de.jpaw.bonaparte.dsl.ConfigReader
 
 public class BDDLPreferences {
     static private final ConfigReader configReader = new ConfigReader("BDDL")
-    
+
     // general size check options
     static private final int maxFieldnameLengthDefault              = configReader.getProp("MaxFieldLen", 30);
     static private final int maxTablenameLengthDefault              = configReader.getProp("MaxTableLen", 27);
-    
+
     // output options
     static private final boolean doDebugOutDefault                  = configReader.getProp("DebugOut",  false);
     static private final boolean doPostgresOutDefault               = configReader.getProp("Postgres",  true);
@@ -16,7 +16,7 @@ public class BDDLPreferences {
     static private final boolean doMsSQLServerOutDefault            = configReader.getProp("MSSQL",     true);
     static private final boolean doMySQLOutDefault                  = configReader.getProp("MySQL",     false);
     static private final boolean doSapHanaOutDefault                = configReader.getProp("SapHana",   false);
-    
+
     // JPA 2.1 code generation options
     static private final boolean doUserTypeForEnumDefault           = configReader.getProp("UserTypeEnum",      false);
     static private final boolean doUserTypeForEnumAlphaDefault      = configReader.getProp("UserTypeEnumAlpha", false);
@@ -30,7 +30,7 @@ public class BDDLPreferences {
     // general size check options
     public int maxFieldnameLength               = maxFieldnameLengthDefault
     public int maxTablenameLength               = maxTablenameLengthDefault
-    
+
     // output options
     public boolean doDebugOut                   = doDebugOutDefault
     public boolean doPostgresOut                = doPostgresOutDefault
@@ -38,7 +38,7 @@ public class BDDLPreferences {
     public boolean doMsSQLServerOut             = doMsSQLServerOutDefault
     public boolean doMySQLOut                   = doMySQLOutDefault
     public boolean doSapHanaOut                 = doSapHanaOutDefault
-    
+
     // JPA 2.1 code generation options
     public boolean doUserTypeForEnum            = doUserTypeForEnumDefault
     public boolean doUserTypeForEnumAlpha       = doUserTypeForEnumAlphaDefault
@@ -48,6 +48,6 @@ public class BDDLPreferences {
 //    public boolean doUserTypeForXEnumset        = doUserTypeForXEnumsetDefault
     public boolean doUserTypeForSFExternals     = doUserTypeForSFExternalsDefault
     public boolean doUserTypeForBonaPortable    = doUserTypeForBonaPortableDefault
-    
+
     public static BDDLPreferences currentPrefs = new BDDLPreferences
 }

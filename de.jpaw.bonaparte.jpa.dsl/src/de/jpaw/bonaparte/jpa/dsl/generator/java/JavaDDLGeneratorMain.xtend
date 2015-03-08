@@ -43,7 +43,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
-    
+
     var JavaFieldWriter fieldWriter = null
 
     var FieldDefinition haveIntVersion = null
@@ -98,12 +98,12 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     def private hasECin(FieldDefinition c, List <ElementCollectionRelationship> el) {
         el !== null && el.map[name].contains(c)
-        /*        
+        /*
         val result = e.elementCollections !== null && e.elementCollections.map[name].contains(c)
         System::out.println('''Testing for «c.name» in «e.name» gives «result»''')
-        return result  */        
+        return result  */
     }
-    
+
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables,
             String prefix, String suffix, String currentIndex,
@@ -150,7 +150,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 System::out.println('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
-                
+
                 val newPojo =
                     if (pojo.singleField)       // adapter, and special type of it?
                         '''«myName».get«pojo.firstField.name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
@@ -163,7 +163,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                         '''get«emb.field.datatype.extraParameter.name.toFirstUpper»(), '''
                 }
                 val marshaller = if (pojo.bonaparteAdapterClass !== null) '''«pojo.adapterClassName».marshal(_x)''' else '''_x.marshal()'''
-                
+
                 return '''
                     «IF newPrefix != "" || newSuffix != ""»
                         @AttributeOverrides({
@@ -212,7 +212,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             }
         }
     }
-    
+
     // a generic iterator over the fields of a specific class, plus certain super classes.
     // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
@@ -231,13 +231,13 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDFOR»
         «ENDIF»
     '''
-    
-    // shorthand call for entities    
+
+    // shorthand call for entities
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType) {
         cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, primaryKeyType);
     }
-    
+
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
         List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, boolean doBeanVal,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType
@@ -276,7 +276,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         )
     }
 
-    
+
     def private static CharSequence recurseForCopyOf(ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludes,
         (FieldDefinition, String, RequiredType) => CharSequence fieldOutput, EntityDefinition e) '''
         «IF cl != stopAt»
@@ -288,7 +288,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDFOR»
         «ENDIF»
     '''
-                    
+
     def private writeCopyOf(EntityDefinition e, String pkType, String trackingType) {
         // FT-1588 may have an issue with lazy loaded proxies here...
 //        val myPrinter = [ FieldDefinition fld, String myName, RequiredType req | '''«myName» = _x.«myName»;
@@ -414,7 +414,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
     '''
 
-    // TODO: does not work for embeddables!  Would need dot notation for that 
+    // TODO: does not work for embeddables!  Would need dot notation for that
     def private CharSequence writeStaticFindByMethods(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e) {
         recurse(cl, stopAt, false, [ true ], e.embeddables, [ '''''' ], [ fld, myName, req | '''
                 «IF fld.properties.hasProperty(PROP_FINDBY)»
@@ -449,7 +449,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             ''']
         )
     }
-    
+
     def private static writeGetSelf(EntityDefinition e) '''
         /** Method that allows generic proxy resolution by returning {@code this}. */
         @Override
@@ -474,12 +474,12 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static noDataKeyMapper(EntityDefinition e) {
         !e.doMapper && (e.noKeyMapper || (e.eContainer as BDDLPackageDefinition).isNoKeyMapper)
     }
-    
+
     def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
         if (e.noDataKeyMapper)
             '''BonaPersistableTracking<«trackingType»>'''
         else if (pkType == 'long') {
-            // Java generics does not work with primitive types 
+            // Java generics does not work with primitive types
             if (e.noDataMapper)
                 '''BonaPersistableNoDataLong<«trackingType»>'''
             else
@@ -492,7 +492,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
 
-    
+
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
             , uniqueConstraints={
@@ -506,7 +506,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         imports.recurseImports(e.tableCategory.trackingColumns, true)
         imports.recurseImports(e.pojoType, true)
-        
+
         // reset tracking flags
         haveIntVersion = null
         haveActive = false
@@ -535,7 +535,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             imports.recurseImports(e.pojoType, true)
         }
         imports.addImport(e.pkPojo)
-        
+
 
         var List<FieldDefinition> pkColumns = null
         var String pkType0 = null
@@ -551,7 +551,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 pkType0 = pkColumns.get(0).JavaDataTypeNoName(true)
         } else if (e.pkPojo !== null) {
             pkColumns = e.pkPojo.fields
-            pkType0 = e.pkPojo.name 
+            pkType0 = e.pkPojo.name
         }
         val String pkType = pkType0 ?: "Serializable"
         if (e.tableCategory.trackingColumns !== null) {
@@ -635,7 +635,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
         import de.jpaw.util.ByteBuilder;
-        
+
         «imports.createImports»
 
         «IF e.javadoc !== null»
@@ -716,7 +716,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         imports.addImport(myPackageName, myName)  // add myself as well
         fieldWriter = new JavaFieldWriter(e)
-        
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -747,7 +747,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
         import de.jpaw.util.ByteBuilder;
-        
+
         «imports.createImports»
 
         @SuppressWarnings("all")
@@ -762,7 +762,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         '''
     }
-    
+
     def private javaEmbeddableOut(EmbeddableDefinition e) {
         val String myPackageName = e.bddlPackageName
         val String myName = e.name
@@ -823,7 +823,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         '''
     }
-    
+
     def private static writeCloneable(String name) '''
         @Override
         public «name» clone() {
@@ -834,5 +834,5 @@ class JavaDDLGeneratorMain implements IGenerator {
             }
         }
     '''
-   
+
 }

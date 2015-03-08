@@ -12,7 +12,7 @@ class TreeView {
             «e.eContainer.classInfo(moreLevels-1)»
         «ENDIF»
     '''
-    
+
     def public static CharSequence getClassInfo(ClassDefinition cd) '''
         Object tree of «cd.name» is «cd.classInfo(4)»
     '''

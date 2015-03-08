@@ -7,7 +7,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToOne;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
- 
+
 public class BDDLEObjectDocumentationProvider implements IEObjectDocumentationProvider {
     private static final String RELATIONSHIP_DOC =
             "(<i>entity</i>) - The Java JPA 2.0 entity class containing the referred object<p>"
@@ -15,11 +15,11 @@ public class BDDLEObjectDocumentationProvider implements IEObjectDocumentationPr
             + "[LAZY|EAGER] - optional specification of the fetch type. For lazy fetching, the relationship can not be optional<p>"
             + "(<i>referencing fields</i>) - The fields in this entity mapping to the PK fields of the referenced entity<p>";
     private static final String URL_PART = "http://docs.oracle.com/javaee/6/api/javax/bonaparte.jpa/";
-     
+
     private String docWithUrl(String what, String add) {
         return RELATIONSHIP_DOC + add + (what == null ? "" : "<p>See also: <a href=\"" + URL_PART + what + ".html\"><b>" + what + "</b></a>");
     }
-    
+
     @Override
     public String getDocumentation(EObject o) {
         if (o instanceof Relationship) {
@@ -40,5 +40,5 @@ public class BDDLEObjectDocumentationProvider implements IEObjectDocumentationPr
         }
         return null;
     }
- 
+
 }

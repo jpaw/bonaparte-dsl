@@ -48,7 +48,7 @@ class JavaEnum {
 
         import com.google.common.collect.ImmutableList;
         import «BonScriptPreferences.getDateTimePackage».Instant;
-        
+
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         import de.jpaw.bonaparte.enums.«myInterface»;
 
@@ -63,7 +63,7 @@ class JavaEnum {
                 «FOR v:d.avalues SEPARATOR ', '»«v.name»("«v.token»")«ENDFOR»;
 
                 private final String _token;
-                
+
                 /** Constructs an enum by its token. */
                 private «d.name»(String _token) {
                     this._token = _token;
@@ -95,17 +95,17 @@ class JavaEnum {
                     }
                     return null;
                 }
-                
+
                 // static method to return the instance with the null token, or null if no such exists
                 public static «d.name» getNullToken() {
                     return «d.avalues.findFirst[token == ""]?.name ?: "null"»;
                 }
-                
-                /** Same as factory(), but returns the special enum instance with a tokens of zero length (in case such a token exists) for null. */ 
+
+                /** Same as factory(), but returns the special enum instance with a tokens of zero length (in case such a token exists) for null. */
                 public static «d.name» factoryNWZ(String _token) {
                     return «IF isSpecialAlpha»_token == null ? «d.avalues.findFirst[token == ""].name» : «ENDIF»factory(_token);
                 }
-                
+
                 /** Retrieves the token for a given instance. Returns null for the zero length token. */
                 public static String getTokenNWZ(«d.name» _obj) {
                     return _obj == null«IF isSpecialAlpha» || _obj == «d.avalues.findFirst[token == ""].name»«ENDIF» ? null : _obj.getToken();
@@ -113,9 +113,9 @@ class JavaEnum {
             «ENDIF»
 
             private static final long serialVersionUID = «getSerialUID(d)»L;
-            
+
             «d.writeEnumMetaData»
-            
+
             /** Returns the enum instance which has the ordinal as specified by the parameter. Returns null for a null parameter.
               * valueOf by default only exists for String type parameters for enums. */
             public static «d.name» valueOf(Integer ordinal) {
@@ -138,7 +138,7 @@ class JavaEnum {
         }
         '''
     }
-    
+
     def private static writeEnumMetaData(EnumDefinition d) {
         val isAlphaEnum = d.isAlphaEnum
         val myPackage = d.package
@@ -146,7 +146,7 @@ class JavaEnum {
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
-            
+
             private static final ImmutableList<String> _ids = new ImmutableList.Builder<String>()
                 «IF !isAlphaEnum»
                     «FOR id: d.values»
@@ -165,7 +165,7 @@ class JavaEnum {
                     «ENDFOR»
                     .build();
             «ENDIF»
-            
+
             // extended meta data (for the enhanced interface)
             private static final EnumDefinition my$MetaData = new EnumDefinition(
                 «d.name».class,

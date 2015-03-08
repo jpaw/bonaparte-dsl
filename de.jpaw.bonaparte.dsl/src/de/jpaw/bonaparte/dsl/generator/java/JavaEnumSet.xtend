@@ -23,7 +23,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnumSet {
-    
+
     def static public writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
         val bitmapType = d.indexType ?: "int"       // default to int
@@ -37,20 +37,20 @@ class JavaEnumSet {
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getBonPackageName(d)»;
-        
+
         import java.util.Iterator;
         import org.joda.time.Instant;
-        
+
         import de.jpaw.enums.Abstract«nameComponent»EnumSet;
         import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;
         import de.jpaw.bonaparte.core.ExceptionConverter;
         import de.jpaw.bonaparte.pojos.meta.EnumSetDefinition;
         import de.jpaw.bonaparte.pojos.meta.IndexType;
-        
+
         «IF d.myEnum.package !== d.package»
             import «getBonPackageName(d.myEnum)».«eName»;
         «ENDIF»
-        
+
         «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
@@ -59,7 +59,7 @@ class JavaEnumSet {
         «ENDIF»
         public final class «d.name» extends Abstract«nameComponent»EnumSet<«eName»> implements Bona«nameComponent»EnumSet<«eName»> {
             private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;
-            
+
             private static final «eName»[] VALUES = «eName».values();
             private static final int NUMBER_OF_INSTANCES = VALUES.length;
 
@@ -86,7 +86,7 @@ class JavaEnumSet {
             public static «d.name» of(final «eName»... args) {
                 return new «d.name»(bitmapOf(args));
             }
-            
+
             // add code for a singleField adapter
             public «bitmapType» marshal() {
                 return getBitmap();
@@ -110,17 +110,17 @@ class JavaEnumSet {
                 }
             }
         }
-    '''    
+    '''
     }
 
     def private static writeEnumSetMetaData(EnumSetDefinition d, String indexType) {
         val myPackage = d.package
-        
+
         return '''
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
-            
+
             // extended meta data (for the enhanced interface)
             private static final EnumSetDefinition my$MetaData = new EnumSetDefinition(
                 «d.name».class,

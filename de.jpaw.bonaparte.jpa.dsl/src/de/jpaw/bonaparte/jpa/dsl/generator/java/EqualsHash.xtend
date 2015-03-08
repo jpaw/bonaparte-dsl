@@ -30,7 +30,7 @@ class EqualsHash {
     /////////////////////////////////////////////////////////////////////
     // hashCode
     /////////////////////////////////////////////////////////////////////
-    
+
     def private static hashSub33(FieldDefinition i) {
         val myIndexList = i.indexList
         return '''
@@ -41,7 +41,7 @@ class EqualsHash {
             «ENDIF»
         '''
     }
-    
+
     def private static writeHashExpressionForSingleField(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray !== null)
@@ -67,7 +67,7 @@ class EqualsHash {
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
                 if (ref.javaType !== null && (ref.javaType.equals("byte []") || ref.javaType.equals("BonaPortable")))
-                    // special treatment required, again! (but not for ByteArray, we do this with usertypes now as well...) 
+                    // special treatment required, again! (but not for ByteArray, we do this with usertypes now as well...)
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
                 else
                     return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
@@ -86,7 +86,7 @@ class EqualsHash {
         «d.extendsClass?.classRef?.writeHashSubForAllClassFields»
         «d.fields.writeHashSubForListOfFields»
     '''
-    
+
     def public static writeHashMethodForClassPlusExtraFields(ClassDefinition cls, List<FieldDefinition> fields) '''
         @Override
         public int hashCode() {
@@ -96,11 +96,11 @@ class EqualsHash {
             return _hash;
         }
     '''
-    
+
     /////////////////////////////////////////////////////////////////////
     // combined equals and hashCode (for entities embeddable key)
     /////////////////////////////////////////////////////////////////////
-    
+
     def private static writeEqualsAndHashCodeForEmbeddable(EntityDefinition e, String name) '''
         @Override
         public int hashCode() {
@@ -115,12 +115,12 @@ class EqualsHash {
             return «name» != null && «name».equals(((«e.name»)_that).«name»);
         }
     '''
-        
+
     /////////////////////////////////////////////////////////////////////
     // equals
     /////////////////////////////////////////////////////////////////////
 
-    // equals delegator to ensure correct type. anything below is using the appropriate type    
+    // equals delegator to ensure correct type. anything below is using the appropriate type
     def private static writeEqualsDelegator(EntityDefinition e, CharSequence codeToInsert) '''
         @Override
         public boolean equals(Object _that) {
@@ -139,7 +139,7 @@ class EqualsHash {
         }
     '''
 
-    
+
     // only caller in next method
     def private static writeCompareStuffSub(FieldDefinition i, String index) {
         switch (getJavaDataType(i.datatype)) {
@@ -192,7 +192,7 @@ class EqualsHash {
                 && «f.name» != null   // not yet assigned => treat it as different
             '''
     }
-    
+
     def private static writeEqualsConditionForListOfFields(List<FieldDefinition> fields) '''
         return true
         «FOR f : fields»
@@ -201,7 +201,7 @@ class EqualsHash {
         «fields.writeEqualsSubForListOfFields»
             ;
     '''
-    
+
     def private static equalsConditionSubMethodForAllFieldsOfEntity(EntityDefinition e) '''
         «IF e.extendsClass !== null»
             return super.equalsSub(_that)
@@ -213,7 +213,7 @@ class EqualsHash {
     '''
 
 
-    
+
     def public static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         switch (primaryKeyType) {
         case PrimaryKeyType::IMPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
@@ -234,7 +234,7 @@ class EqualsHash {
             '''
         }
     }
-    
+
     // invoked where the container is not an entity and therefore extends... does not work. But we know there is no parent
     def public static writeKeyEquals(String name, List<FieldDefinition> fields) '''
         @Override

@@ -31,7 +31,7 @@ class JavaTreeWalker {
         «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, DataCategory::OBJECT)»
         «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, null)»
     '''
-    
+
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
         @Override
         public void treeWalk«javaType»(DataConverter<«javaType»,«metadataType»> _cvt, boolean _descend) {

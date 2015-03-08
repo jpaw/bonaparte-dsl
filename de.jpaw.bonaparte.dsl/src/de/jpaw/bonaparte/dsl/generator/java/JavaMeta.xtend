@@ -32,7 +32,7 @@ class JavaMeta {
     // defines the maximum number of digits which could be encountered for a given number
     public static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 3, 'short' -> 5, 'int' -> 10, 'long' -> 19, 'float' -> 9, 'double' -> 15, 'integer' -> 10, 'biginteger' -> 4000 }
     public static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0, 'biginteger' -> 0 }
-    
+
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -165,12 +165,12 @@ class JavaMeta {
             «FOR i : d.fields»
                 «makeMeta(d, i)»
             «ENDFOR»
-            
+
             // private (immutable) List of fields
             private static final ImmutableList<FieldDefinition> my$fields = ImmutableList.<FieldDefinition>of(
                 «d.fields.map['''meta$$«name»'''].join(', ')»
             );
-            
+
             // extended meta data (for the enhanced interface)
             private static final «externalPrefix»ClassDefinition my$MetaData = new «externalPrefix»ClassDefinition(
                 «d.name».class,
@@ -331,7 +331,7 @@ class JavaMeta {
                     «ENDIF»
                 }
             }
-            
+
             @Override
             public BonaPortableClass<? extends BonaPortable> get$BonaPortableClass() {
                 return BClass.getInstance();
@@ -340,10 +340,10 @@ class JavaMeta {
             public static BonaPortableClass<? extends BonaPortable> class$BonaPortableClass() {
                 return BClass.getInstance();
             }
-            
+
         '''
     }
-    
+
     // write the access methods for the interface BonaMeta
     def static public writeCommonMetaData() '''
         // convenience functions for faster access if the metadata structure is not used

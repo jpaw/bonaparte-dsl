@@ -28,7 +28,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class JavaDeserialize {
-    
+
     def private static makeRead(String metaName, ElementaryDataType i, DataTypeExtension ref) {
         val prim = if (ref.isPrimitive) '''Primitive'''
         switch i.name.toLowerCase {
@@ -59,15 +59,15 @@ class JavaDeserialize {
         case 'instant':   '''_p.readInstant   («metaName»)'''
         case 'timestamp': '''_p.readDayTime   («metaName»)'''
         case 'day':       '''_p.readDay       («metaName»)'''
-                          
+
         // enum
         case 'enum':      '''«getBonPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(_p.readString(«metaName»$token))«ELSE»valueOf(_p.readInteger(«metaName»$token))«ENDIF»'''
         case 'xenum':     '''_p.readXEnum(«metaName», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
-        
+
         // enum sets
         case 'enumset':   '''«ref.javaType».unmarshal(_p.read«i.enumsetType.mapEnumSetIndex»(«metaName»), _p)'''
         case 'xenumset':  '''«ref.javaType».unmarshal(_p.readString(«metaName»), _p)'''
-        
+
         // objects
         case 'object':    '''_p.readObject(«metaName», BonaPortable.class)'''
         }
@@ -112,12 +112,12 @@ class JavaDeserialize {
             return '''«objectType.adapterClassName».unmarshal(«extraArg»«middleArg»«exceptionConverterArg»)'''
         }
     }
-    
+
     def private static makeRead2(ClassDefinition d, FieldDefinition i, String metaPrefixOtherClass) {
         val ref = DataTypeExtension::get(i.datatype)
         if (ref.elementaryDataType !== null)
             return makeRead('''«metaPrefixOtherClass»meta$$«i.name»''', ref.elementaryDataType, ref)
-        else        
+        else
             return makeRead(i, ref.objectDataType, ref, metaPrefixOtherClass)
     }
     def private static makeRead2(ClassDefinition d, FieldDefinition i) {

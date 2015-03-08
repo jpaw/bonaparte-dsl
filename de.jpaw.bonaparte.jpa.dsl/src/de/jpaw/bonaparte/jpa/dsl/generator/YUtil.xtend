@@ -42,14 +42,14 @@ class YUtil {
     public static final String PROP_LISTBY      = "listBy";
     public static final String PROP_LIACBY      = "listActiveBy";
     public static final String PROP_SERIALIZED  = "serialized";
-    public static final String PROP_COMPACT     = "compact";                // compact serialized form (addon attribute to serialized)  
+    public static final String PROP_COMPACT     = "compact";                // compact serialized form (addon attribute to serialized)
     public static final String PROP_REF         = "ref";
     public static final String PROP_SIMPLEREF   = "simpleref";
     public static final String PROP_SQL_DEFAULT = "SQLdefault";
     public static final String PROP_NOTNULL     = "notNull";                // make a field optional in Java, but required on the DB
     public static final String PROP_NULL_WHEN_ZERO = "nullWhenZero";        // null for number 0 or for 0-length strings
-    
-    
+
+
     // create the package name for an entity or embeddable
     def public static String getBddlPackageName(EObject p) {
         if (p instanceof BDDLPackageDefinition)
@@ -68,7 +68,7 @@ class YUtil {
         return (f.isRequired  || f.properties.hasProperty(PROP_NOTNULL))
             && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull && !f.properties.hasProperty(PROP_NULL_WHEN_ZERO)
     }
-    
+
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
     def public static String quoteSQL(String text) {
         return text.replace("'", "''").replace("\\", "\\\\");
@@ -224,7 +224,7 @@ class YUtil {
                             .replace("(di)",       (if (forIndex) "i" else "d"))
         }
     }
-    
+
     // a generic iterator over the fields of a specific class, plus certain super classes.
     // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
@@ -243,7 +243,7 @@ class YUtil {
             «ENDFOR»
         «ENDIF»
     '''
-    
+
     def public static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
         if (cl !== null && cl != stopAt) {
             // add fields of subclasses
@@ -288,11 +288,11 @@ class YUtil {
         else
             '''«prefix»«myName.toFirstUpper»«suffix»'''
     }
-    
+
     def private static listForPattern(String pattern, int max) {
         return (1..max).map[String.format(pattern, it)]
     }
-    
+
     def public static indexList(FieldDefinition f) {
         if (f.isList === null || !f.properties.hasProperty(PROP_UNROLL))
             return null
@@ -303,7 +303,7 @@ class YUtil {
             return listForPattern(userPattern, f.isList.maxcount)      // user specific counter
         return Arrays.asList(userPattern.split(','))                    // fallback: explicit list of field names, length of it also determines the maximum number of entries
     }
-    
+
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
     def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
         RequiredType reqType,
@@ -340,7 +340,7 @@ class YUtil {
             }
         }
     }
-    
+
     def public static countEmbeddablePks(EntityDefinition e) {
         if (e.embeddables === null)
             return 0
@@ -349,7 +349,7 @@ class YUtil {
     def public static getEmbeddablePk(EntityDefinition e) {
         return e?.embeddables.filter[isPk !== null].head
     }
-    
+
     def public static determinePkType(EntityDefinition e) {
         if (e.pk !== null) {
             if (e.pk.columnName.size > 1)
@@ -363,7 +363,7 @@ class YUtil {
         else
             PrimaryKeyType::NONE
     }
-    
+
     // checks if the field f is an elementcollection for entity e
     // this methods checks the definitions of the entity itself, as well as in any parent entity
     def public static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
@@ -375,12 +375,12 @@ class YUtil {
         }
         return false
     }
-    
+
     /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
      * The fields not included are:
      * element collection map key,
      * history sequence number
-     * 
+     *
      */
     def public static primaryKeyColumns(EntityDefinition e) {
         val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
@@ -392,11 +392,11 @@ class YUtil {
                 baseEntity.pkPojo.fields
             else null
     }
-        
+
     /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.
      * The non-included columns are:
      * discriminators for inheritance, history change type
-     * 
+     *
      */
     def public static nonPrimaryKeyColumns(EntityDefinition t, boolean descendForTablePerClass) {
         val resultList = new ArrayList<FieldDefinition>(50)
@@ -407,7 +407,7 @@ class YUtil {
             baseEntity.tenantClass
         else
             t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
-            
+
         if (stopAt === null)
             recurseAddDDL(resultList, t.tableCategory.trackingColumns, null, myPrimaryKeyColumns)
         recurseAddDDL(resultList, tenantClass, null, myPrimaryKeyColumns)

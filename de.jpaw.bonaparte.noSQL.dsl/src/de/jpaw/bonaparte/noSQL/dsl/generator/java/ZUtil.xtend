@@ -11,7 +11,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.noSQL.dsl.bDsl.BDSLPackageDefinition
 
 class ZUtil {
-    
+
     // create the filename to store a generated java class source in. Assumes subdirectory ./java
     def public static getJavaFilename(String pkg, String name) {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
@@ -24,5 +24,5 @@ class ZUtil {
     def public static getPackageName(EntityDefinition d) {
         getPackageName(d.eContainer as BDSLPackageDefinition)
     }
-    
+
 }

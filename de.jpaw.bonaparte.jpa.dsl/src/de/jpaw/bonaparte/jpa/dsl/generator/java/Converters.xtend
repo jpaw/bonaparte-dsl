@@ -25,14 +25,14 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaEnum.*
 
 /** Create output for JPA 2.1 type converters. */
 class Converters {
-    
+
     def public static CharSequence writeTypeConverter(ConverterDefinition e) {
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var dbType = "XXXX"
         var srcType = "YYY"
         var marshal = "toString()"      // full expression
-        var unmarshal = "parse()" 
+        var unmarshal = "parse()"
         var String m = null             // short form: auto-adds return obj == null ? null : $m;
         var String unm = null           // short form: auto-adds return col == null ? null : $unm;
 
@@ -43,11 +43,11 @@ class Converters {
             if (!isAlphaEnum) {
                 dbType = "Integer"
                 m = "obj.ordinal()"
-                unmarshal = '''return «srcType».valueOf(col);''' 
+                unmarshal = '''return «srcType».valueOf(col);'''
             } else {
                 dbType = "String"
                 marshal = '''return «srcType».getTokenNWZ(obj);'''
-                unmarshal = '''return «srcType».factoryNWZ(col);''' 
+                unmarshal = '''return «srcType».factoryNWZ(col);'''
             }
         } else if (e.myXEnum !== null) {
             imports.addImport(e.myXEnum)
@@ -76,18 +76,18 @@ class Converters {
             m = '''«IF e.myAdapter.bonaparteAdapterClass !== null»«e.myAdapter.bonaparteAdapterClass».marshal(obj)«ELSE»obj.marshal()«ENDIF»'''
             unm = '''«e.myAdapter.adapterClassName».unmarshal(col«exceptionArg»)'''
         }
-        
+
         return '''
             // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
             // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
             // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
             package «myPackageName»;
-            
+
             import javax.persistence.AttributeConverter;
             import javax.persistence.Converter;
-            
+
             «imports.createImports»
-            
+
             «e.javadoc»
             // @SuppressWarnings("all")
             «IF e.isDeprecated»
@@ -103,7 +103,7 @@ class Converters {
                         «marshal»
                     «ENDIF»
                 }
-                
+
                 @Override
                 public «srcType» convertToEntityAttribute(«dbType» col) {
                     «IF unm !== null»
@@ -113,6 +113,6 @@ class Converters {
                     «ENDIF»
                 }
             }
-        '''        
-    }   
+        '''
+    }
 }

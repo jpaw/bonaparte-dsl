@@ -10,7 +10,7 @@ import de.jpaw.bonaparte.jpa.dsl.BDDLStandaloneSetupGenerated;
 public class BDDLStandaloneSetup extends BDDLStandaloneSetupGenerated{
 
     public static void doSetup() {
-        // Injector inj = 
+        // Injector inj =
         new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 }

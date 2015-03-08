@@ -26,7 +26,7 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 class JavaSerialize {
 
     def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
-        if (ref.category == DataCategory.ENUM || ref.category == DataCategory.XENUM || ref.category == DataCategory.ENUMALPHA) {        
+        if (ref.category == DataCategory.ENUM || ref.category == DataCategory.XENUM || ref.category == DataCategory.ENUMALPHA) {
             return '''_w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);''' // enums / xenums to be written as their ordinals or tokens, the meta for the enum as well as the expansion are provided
         } else if (ref.category == DataCategory.ENUMSET || ref.category == DataCategory.ENUMSETALPHA || ref.category == DataCategory.XENUMSET) { // enum sets to be written by their marshalled data. A null check is required.
             '''if («indexedName» == null) _w.writeNull(meta$$«i.name»); else _w.addField(meta$$«i.name», «indexedName».marshal());'''
@@ -55,7 +55,7 @@ class JavaSerialize {
             }
         }
     }
-    
+
     def private static makeWrite2(ClassDefinition d, FieldDefinition i, String index) {
         val ref = DataTypeExtension::get(i.datatype)
         if (ref.elementaryDataType !== null)

@@ -260,7 +260,7 @@ public class DataTypeExtension {
                             : XTrimming.NOTRIM;
         r.effectiveTrim = trim == XTrimming.TRIM;
 
-        XEnumDefaults enumDefault = 
+        XEnumDefaults enumDefault =
                 classdefs != null && classdefs.getEnumDefault() != null
                         ? classdefs.getEnumDefault().getX()
                         : p.getDefaults() != null && p.getDefaults().getEnumDefault() != null
@@ -349,7 +349,7 @@ public class DataTypeExtension {
                 else
                     r.secondaryObjectDataType = XUtil.getLowerBound(key.getSecondaryObjectDataType());  // this call should also work with the other if() branch...
                 r.orSecondarySuperClass = key.isOrSecondarySuperClass();
-            }           
+            }
             // merge the defaults specifications
             mergeFieldSpecsWithDefaultsForObjects(r, key);
         }
@@ -402,15 +402,15 @@ public class DataTypeExtension {
                     }
                     break;
                 case SPECIAL_DATA_TYPE_XENUM:  // special case for xenum types: replace java type by referenced class
-                    XEnumDefinition root = XUtil.getRoot(e.getXenumType()); 
+                    XEnumDefinition root = XUtil.getRoot(e.getXenumType());
                     r.javaType = root.getName();
                     r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
                     break;
                 case SPECIAL_DATA_TYPE_ENUMSET:
                     r.javaType = e.getEnumsetType().getName();
                     EnumDefinition myEnum = e.getEnumsetType().getMyEnum();
-                    r.enumMaxTokenLength = (myEnum.getAvalues() != null && myEnum.getAvalues().size() > 0) ? myEnum.getAvalues().size() : ENUM_NUMERIC; 
-                    
+                    r.enumMaxTokenLength = (myEnum.getAvalues() != null && myEnum.getAvalues().size() > 0) ? myEnum.getAvalues().size() : ENUM_NUMERIC;
+
                     // possibly refine the category, based on the index type.  Please note that enumMaxTokenLength should not be used as criteria if the type if alphanumeric, therefore nulling it
                     if ("String".equals(e.getEnumsetType().getIndexType())) {
                         r.category = DataCategory.ENUMSETALPHA;             // have a separate category for this!
@@ -480,11 +480,11 @@ public class DataTypeExtension {
         }
         return r;
     }
-    
+
     private static String nvl(String me, String them) {
         return me != null ? me : them;
     }
-    
+
     private static String prtParent(EObject parent) {
         if (parent instanceof FieldDefinition)
             return " FIELD " + ((ClassDefinition)(parent.eContainer())).getName() + "." + ((FieldDefinition)parent).getName();

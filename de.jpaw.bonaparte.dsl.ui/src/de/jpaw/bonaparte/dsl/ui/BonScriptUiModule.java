@@ -36,7 +36,7 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
     public Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
         return BonAntlrTokenToAttributeIdMapper.class ;
     }
-    
+
     public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
         return BonaparteGlobalScopeProvider.class;
     }

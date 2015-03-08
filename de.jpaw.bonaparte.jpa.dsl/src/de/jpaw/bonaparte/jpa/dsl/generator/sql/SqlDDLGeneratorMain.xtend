@@ -84,13 +84,13 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     def private static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
         List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
-        val pkColumnNames = pkCols?.map[name]  // cannot compare fields, because they might sit in parallel objects 
+        val pkColumnNames = pkCols?.map[name]  // cannot compare fields, because they might sit in parallel objects
         recurse(cl, stopAt, false,
             [ !properties.hasProperty(PROP_NODDL) ],
               embeddables,
             [ '''-- table columns of java class «name»
               '''],
-            [ fld, myName, reqType | 
+            [ fld, myName, reqType |
             '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkColumnNames.contains(fld.name)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
               ''']
         )
@@ -155,7 +155,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         if (prefs.doOracleOut)
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename + "_tr", "Trigger"), SqlTriggerOut.triggerOutOracle(e))
     }
-    
+
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
         var tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
@@ -176,7 +176,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
         writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | SqlColumns.doDdlColumn(fld, databaseFlavour, reqType2, d, myName) ])
     }
-    
+
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
@@ -226,7 +226,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 baseEntity.pk.columnName.map[name.java2sql].join(',')
             else
                 '???'
-        
+
         return '''
         -- This source has been automatically created by the bonaparte DSL (bonaparte.jpa addon). Do not modify, changes will be lost.
         -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -255,7 +255,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
-    
+
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
         val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
@@ -279,7 +279,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             baseEntity.tenantClass
         else
             t.tenantClass  // for joined tables, only repeat the tenant if the DSL says so
-        
+
         var grantGroup = myCategory.grantGroup
         val d = new Delimiter("  ", ", ")
         indexCount = 0

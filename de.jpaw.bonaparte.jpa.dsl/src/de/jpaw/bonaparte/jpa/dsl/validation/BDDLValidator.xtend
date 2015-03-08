@@ -27,7 +27,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*;
 
 class BDDLValidator extends AbstractBDDLValidator {
     private boolean infoDone = false
-    
+
     def private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
         // DEBUG, as this does not seem to work!
@@ -40,20 +40,20 @@ class BDDLValidator extends AbstractBDDLValidator {
             error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
                 where);
     }
-    
+
     def private void checkFieldnameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
         if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
             error("The field name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength + " characters and will not work for some database brands",
                 where);
     }
-    
+
     // check the length of all fields in the referenced class as well as classes inherited from
     def private void checkClassForColumnLengths(ClassDefinition c, EStructuralFeature where) {
         for (f : c.allFields)
             checkFieldnameLength(f.name, where)
     }
-    
+
     def static private createAndPopulateReservedSQL() {
         val RESERVED_SQL = new HashMap<String,String>(200);
         RESERVED_SQL.put("ACCESS", "-O");
@@ -167,7 +167,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         RESERVED_SQL.put("WHENEVER", "AO");
         RESERVED_SQL.put("WHERE", "AO");
         RESERVED_SQL.put("WITH", "AO");
-        
+
         return RESERVED_SQL
     }
     // SQL reserved words - column names are checked against these
@@ -176,7 +176,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     def private static boolean exists(FieldDefinition f, List<FieldDefinition> l) {
         return l.exists[it.name == f.name];
     }
-    
+
     def private void checkClassForReservedColumnNames(ClassDefinition cc, EStructuralFeature feature) {
         var c = cc
         while (c !== null) {
@@ -208,7 +208,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             // the prior check also implies that the history category does not request another history category (by grammar rule)
         }
     }
-    
+
     @Check
     def public void checkEntity(EntityDefinition e) {
         val s = e.name
@@ -233,7 +233,7 @@ class BDDLValidator extends AbstractBDDLValidator {
 
         val tablename = e.mkTablename(false);
         checkTablenameLength(tablename, if (e.getTablename() !== null) BDDLPackage.Literals.ENTITY_DEFINITION__TABLENAME else BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
-        
+
         if (e.getTableCategory().getHistoryCategory() !== null) {
             val historytablename = e.mkTablename(true);
             checkTablenameLength(historytablename, if (e.getHistorytablename() !== null) BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME else BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
@@ -297,14 +297,14 @@ class BDDLValidator extends AbstractBDDLValidator {
                 return;
             }
         }
-        
+
         if (e.getTenantClass() !== null) {
             checkClassForReservedColumnNames(e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
             checkClassForColumnLengths      (e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
         }
         checkClassForReservedColumnNames(e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
         checkClassForColumnLengths      (e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
-        
+
         // for PK pojo, all columns must exist
         if (e.getPkPojo() !== null) {
             // this must be either a final class, or a superclass
@@ -329,7 +329,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
     }
-    
+
     @Check
     def public void checkCollection(CollectionDefinition c) {
         if (c.getMap() !== null && c.getMap().getIsMap() !== null) {
@@ -420,14 +420,14 @@ class BDDLValidator extends AbstractBDDLValidator {
 //        return true;
 //
 //    }
-    
+
     @Check
     def public void checkElementCollectionRelationship(ElementCollectionRelationship ec) {
         val f = ec.getName();
-        
+
         if (f === null)  // not yet complete
             return;
-        
+
         if (ec.getMapKey() !== null) {
             // the referenced field must be of type map
             if (f.getIsMap() === null) {
@@ -453,7 +453,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             checkTablenameLength(ec.getTablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__TABLENAME);
         if (ec.getHistorytablename() !== null)
             checkTablenameLength(ec.getHistorytablename(), BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__HISTORYTABLENAME);
-        
+
         val e = getEntity(ec);
         if (e === null) {
             error("Cannot determine containing Entity", BDDLPackage.Literals.ELEMENT_COLLECTION_RELATIONSHIP__NAME);
@@ -476,7 +476,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
     }
-    
+
     def private static EntityDefinition getEntity(EObject ee) {
         var e = ee
         while (e !== null) {
@@ -486,14 +486,14 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
         return null;
     }
-    
+
     @Check
     def public void checkOneToMany(OneToMany ec) {
         if (ec.getMapKey() !== null) {
             checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY);
         }
     }
-    
+
     @Check
     def public void checkEmbeddableDefinition(EmbeddableDefinition e) {
         if (e.getPojoType() !== null) {
@@ -503,7 +503,7 @@ class BDDLValidator extends AbstractBDDLValidator {
                 error("Embeddables may not be abstract", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
         }
     }
-    
+
     @Check
     def public void checkEmbeddableUse(EmbeddableUse u) {
         var DataTypeExtension ref;
@@ -523,7 +523,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             return;
         }
     }
-    
+
     @Check
     def public void checkConverterDefinition(ConverterDefinition c) {
         val a = c.getMyAdapter();
@@ -538,5 +538,5 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
     }
-    
+
 }

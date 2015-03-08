@@ -23,7 +23,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaXEnumSet {
-    
+
     def static public writeXEnumSetDefinition(XEnumSetDefinition d) {
         val eName = d.myXEnum.name
 
@@ -44,7 +44,7 @@ class JavaXEnumSet {
         «IF d.myXEnum.package !== d.package»
             import «getBonPackageName(d.myXEnum)».«eName»;
         «ENDIF»
-        
+
         «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
@@ -102,17 +102,17 @@ class JavaXEnumSet {
                 }
             }
         }
-    '''    
+    '''
     }
-    
+
     def private static writeXEnumSetMetaData(XEnumSetDefinition d) {
         val myPackage = d.package
-        
+
         return '''
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
-            
+
             // extended meta data (for the enhanced interface)
             private static final XEnumSetDefinition my$MetaData = new XEnumSetDefinition(
                 «d.name».class,

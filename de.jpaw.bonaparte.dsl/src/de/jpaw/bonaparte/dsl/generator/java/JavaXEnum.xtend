@@ -27,7 +27,7 @@ class JavaXEnum {
         if (ed.maxlength > 0)
             return ed.maxlength
         else
-            return getInternalMaxLength(ed.myEnum, if (ed.extendsXenum !== null) getOverallMaxLength(ed.extendsXenum) else ed.maxlength) 
+            return getInternalMaxLength(ed.myEnum, if (ed.extendsXenum !== null) getOverallMaxLength(ed.extendsXenum) else ed.maxlength)
     }
     def static public int getInternalMaxLength(EnumDefinition ed, int priorMax) {
         var max = priorMax
@@ -42,11 +42,11 @@ class JavaXEnum {
     def static public boolean hasNullToken(XEnumDefinition d) {
         JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
-    
+
     def static public writeXEnumDefinition(XEnumDefinition d) {
         val boolean subClass = d.extendsXenum !== null
         val rootClass = d.root
-        
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -55,14 +55,14 @@ class JavaXEnum {
 
         import org.joda.time.Instant;
         import java.io.Serializable;
-        
+
         import de.jpaw.enums.XEnumFactory;
         «IF !subClass»
             import de.jpaw.enums.AbstractXEnumBase;
         «ENDIF»
         import de.jpaw.bonaparte.core.BonaMeta;
         import de.jpaw.bonaparte.pojos.meta.*;
-        
+
         «IF getBonPackageName(d.myEnum) != getBonPackageName(d)»
             import «getBonPackageName(d.myEnum)».«d.myEnum.name»;
         «ENDIF»
@@ -125,7 +125,7 @@ class JavaXEnum {
         }
         '''
     }
-    
+
     def public static writeXEnumMetaData(XEnumDefinition d) {
         val myPackage = d.package
         return '''
@@ -133,7 +133,7 @@ class JavaXEnum {
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = «IF (d.extendsXenum !== null)»"«getPartiallyQualifiedClassName(d.extendsXenum)»"«ELSE»null«ENDIF»;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
-            
+
             // extended meta data (for the enhanced interface)
             private static final XEnumDefinition my$MetaData = new XEnumDefinition(
                 «d.name».class,
@@ -158,15 +158,15 @@ class JavaXEnum {
             static public XEnumDefinition xenum$MetaData() {
                 return my$MetaData;
             }
-            
+
             «JavaMeta.writeCommonMetaData»
         '''
     }
-    
+
     def public static writeXEnumTypeAdapter(XEnumDefinition d) {
         if (d.extendsXenum !== null)
             return null
-            
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.

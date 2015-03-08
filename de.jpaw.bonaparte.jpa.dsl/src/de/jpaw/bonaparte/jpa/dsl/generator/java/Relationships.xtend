@@ -28,7 +28,7 @@ import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class MakeRelationships {
     private static Logger logger = Logger.getLogger(MakeRelationships)
-    
+
     def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns) '''
         @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
     '''
@@ -43,11 +43,11 @@ class MakeRelationships {
             }
         return !oneOptional
     }
-    
+
     def public static optArgs(String ... args) {
         args.filterNull.join('(',', ', ')', [it])
     }
-    
+
     /*
     def public static optArgs(String arg1, String arg2) {
         if (arg1 == null && arg2 == null)
@@ -56,10 +56,10 @@ class MakeRelationships {
             return '''(«arg1», «arg2»)'''
         if (arg1 !== null)
             return '''(«arg1»)'''
-        else        
+        else
             return '''(«arg2»)'''
     }  */
-    
+
     def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject) {
         val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
         '''
@@ -72,7 +72,7 @@ class MakeRelationships {
             «ENDIF»
         '''
     }
-    
+
     // FT-1011: writeFGS should write setters.
     // Changing last arg from false to true for first writeFGS
     // Changing m.cascade to true for the second writeFGS
@@ -85,17 +85,17 @@ class MakeRelationships {
             «m.writeJoinColumns(true, m.childObject)»
             «m.writeFGS(fieldVisibility, m.childObject.name, "", true, true)»
         «ENDFOR»
-        
+
         «FOR m : e.oneToOnes»
             @OneToOne«optArgs(
                 if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) 'optional=false',
-                if (m.cascade) 'cascade=CascadeType.ALL' 
+                if (m.cascade) 'cascade=CascadeType.ALL'
             )»
             «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
         «ENDFOR»
-        
+
         «FOR m : e.oneToManys»
             @OneToMany«optArgs(
                 'orphanRemoval=true',
@@ -109,7 +109,7 @@ class MakeRelationships {
             «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true, false)»
         «ENDFOR»
     '''
-    
+
     def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter, boolean doThis) '''
         «fieldVisibility»«type» «m.name»«initializer»;
 
@@ -126,10 +126,10 @@ class MakeRelationships {
             }
         «ENDIF»
     '''
-    
+
     def private static o2mTypeName(OneToMany m)
         '''«m.collectionType»<«IF m.collectionType == 'Map'»«m.indexType», «ENDIF»«m.relationship.childObject.name»>'''
-        
+
     def private static getInitializer(OneToMany m) {
         switch (m.collectionType) {
             case 'List': '''Array«m.o2mTypeName»'''

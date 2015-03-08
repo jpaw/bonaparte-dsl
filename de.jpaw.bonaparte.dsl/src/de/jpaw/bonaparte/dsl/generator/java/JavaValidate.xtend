@@ -129,7 +129,7 @@ class JavaValidate {
         }
     '''
 
-    
+
     def private static writeSizeCheck(FieldDefinition i) {
         if (i.isArray !== null) '''
             «IF i.isArray.mincount > 0»

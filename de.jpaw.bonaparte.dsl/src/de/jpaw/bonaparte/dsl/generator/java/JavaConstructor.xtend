@@ -70,9 +70,9 @@ class JavaConstructor {
         val result = new ArrayList<FieldDefinition>()
         result.addAll(d.extendsClass?.classRef.fieldsOfMeAndSuperClasses)
         result.addAll(d.fields)
-        return result        
+        return result
     }
-    
+
     def public static writeConstructorCode(ClassDefinition d) '''
         // default no-argument constructor
         public «d.name»() {
@@ -92,7 +92,7 @@ class JavaConstructor {
                 «ENDFOR»
             }
         «ENDIF»
-        
+
         «IF !d.isNoAllFieldsConstructor && countAllFields(d, true) > 0 && countAllFields(d, false) > countAllFields(d, true)»
             // separate constructor with only required fields, as there is at least one optional field
             public «d.name»(«allRequiredFields(new Delimiter("", ", "), new Generics, d, true)») {
@@ -104,7 +104,7 @@ class JavaConstructor {
                 «ENDFOR»
             }
         «ENDIF»
-        
+
         // copyOf clone method
         @Override
         public <T extends BonaPortable> T copyAs(Class<T> desiredSuperType) {

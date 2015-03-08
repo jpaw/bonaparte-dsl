@@ -7,7 +7,7 @@ import com.google.inject.Inject
 
 /**
  * Provides labels for a EObjects.
- * 
+ *
  * see http://www.eclipse.org/Xtext/documentation.html#labelProvider
  */
 class BDslLabelProvider extends org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider {
@@ -18,7 +18,7 @@ class BDslLabelProvider extends org.eclipse.xtext.ui.label.DefaultEObjectLabelPr
     }
 
     // Labels and icons can be computed like this:
-    
+
 //  def text(Greeting ele) {
 //      'A greeting to ' + ele.name
 //  }

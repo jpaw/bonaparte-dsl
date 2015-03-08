@@ -28,7 +28,7 @@ class JavaFrozen {
     def private static boolean supportsNoFreeze(DataTypeExtension ref) {
         return ref.objectDataType !== null && (ref.objectDataType.immutable || ref.objectDataType.externalType !== null)
     }
-    
+
     def private static boolean noFreezeBecauseImmutable(DataTypeExtension ref) {
         return (ref.elementaryDataType !== null
             && ref.category != DataCategory.OBJECT
@@ -37,28 +37,28 @@ class JavaFrozen {
             && ref.category != DataCategory.XENUMSET
           ) || (ref.objectDataType !== null && ref.objectDataType.immutable);
     }
-    
+
     def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {
         if (ref.supportsNoFreeze)
             return null  // no .freeze() required / exists
         else
-            return '''«applyOnWhat».freeze();'''       
+            return '''«applyOnWhat».freeze();'''
     }
-    
+
     def private static getFrozenClone(DataTypeExtension ref, String applyOnWhat) {
         if (ref.supportsNoFreeze)
             return applyOnWhat  // no .freeze() required / exists, return the identity
         else
-            return '''(«applyOnWhat» == null ? null : «applyOnWhat».get$FrozenClone())'''       
+            return '''(«applyOnWhat» == null ? null : «applyOnWhat».get$FrozenClone())'''
     }
-    
+
     def private static getMutableClone(DataTypeExtension ref, String applyOnWhat) {
         if (ref.supportsNoFreeze)
             return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
         else
-            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''       
+            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''
     }
-    
+
     // write the code to freeze one field.
     def private static writeFreezeField(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
@@ -89,7 +89,7 @@ class JavaFrozen {
                 }
                 '''
             } else if (i.isMap !== null) {
-                val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>''' 
+                val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
@@ -113,10 +113,10 @@ class JavaFrozen {
                         }
                     '''
             }
-        }                
+        }
 
     }
-    
+
     // write the code to freeze one field into another class
     def private static writeFreezeFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
@@ -151,12 +151,12 @@ class JavaFrozen {
                 }
                 '''
             } else if (i.isMap !== null) {
-                val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>''' 
+                val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
-                        _b.put(_i.getKey(), «ref.getFrozenClone("_i.getValue()")»); 
+                        _b.put(_i.getKey(), «ref.getFrozenClone("_i.getValue()")»);
                     _new.«i.name» = _b.build();
                 } else {
                     _new.«i.name» = null;
@@ -166,9 +166,9 @@ class JavaFrozen {
                 // scalar object
                 return '''_new.«i.name» = «ref.getFrozenClone(i.name)»;'''
             }
-        }                
+        }
     }
-    
+
     // write the code to copy one field into a mutable copy
     def private static writeToMutableFieldCopy(FieldDefinition i, ClassDefinition cd) {
         val ref = i.datatype.get
@@ -228,10 +228,10 @@ class JavaFrozen {
                 «ENDIF»
             }
             '''
-        }                
+        }
     }
 
-    
+
     // removed:
     //                «IF cd.getRelevantXmlAccess == XXmlAccess::FIELD»
     //                    @XmlTransient
@@ -241,7 +241,7 @@ class JavaFrozen {
         public static boolean class$isFreezable() {
             return «cd.isFreezable»;
         }
-        
+
         «IF cd.extendsClass === null»
             «IF cd.unfreezable || cd.root.immutable»
                 @Override
@@ -311,7 +311,7 @@ class JavaFrozen {
                     _new._is$Frozen = true;
                 «ELSE»
                     super.frozenCloneSub(_new);
-                «ENDIF»                    
+                «ENDIF»
             }
         «ENDIF»
         @Override
@@ -341,7 +341,7 @@ class JavaFrozen {
                 «ENDFOR»
                 «IF cd.extendsClass !== null»
                     super.mutableCloneSub(_new, _deepCopy, _unfreezeCollections);
-                «ENDIF»                    
+                «ENDIF»
             }
         «ENDIF»
 

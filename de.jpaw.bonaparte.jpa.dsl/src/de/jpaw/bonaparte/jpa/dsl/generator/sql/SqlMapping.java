@@ -193,7 +193,7 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("object",    "blob");                        // serialized form of an object
         dataTypeSqlSapHana.put("string",    "nvarchar(#length)");           // only up to 5000 characters, use CLOB if more!
     }
-    
+
     static private int lengthForAlphaEnumColumn(DataTypeExtension ref) {
         return ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength;
     }
@@ -251,10 +251,10 @@ public class SqlMapping {
             // alphanumeric enum! use other type!
             datatype = "unicode";
         }
-        
+
         String columnLengthString = Integer.valueOf(columnLength).toString();
         // System.out.println(databaseFlavour.toString() + ": Length of " + c.getName() + " is " + columnLengthString);
-        
+
         switch (databaseFlavour) {
         case ORACLE:
             datatype = dataTypeSqlOracle.get(datatype);
@@ -293,7 +293,7 @@ public class SqlMapping {
             if (ref.enumMaxTokenLength >= 0) {
                 datatype = "varchar(" + lengthForAlphaEnumColumn(ref) + ")";
             }
-            
+
 //            if (datatype == null)
 //                System.out.println("null for " + bkp);
             // special treatment TEXT and BLOB
@@ -332,7 +332,7 @@ public class SqlMapping {
         }
         if (datatype == null)
             return "*** UNMAPPED data type for " + c.getName() + " in dialect " + databaseFlavour.toString() + " ***";
-        
+
         //System.out.println("DEBUG: dataype = " + datatype + "(type " + c.getName() + ")");
         //System.out.println("DEBUG: length = " + Integer.valueOf(ref.elementaryDataType.getLength()).toString());
         //System.out.println("DEBUG: precision = " + Integer.valueOf(ref.elementaryDataType.getDecimals()).toString());
@@ -343,7 +343,7 @@ public class SqlMapping {
 //        }
         return datatype.replace("#length", columnLengthString).replace("#precision", Integer.valueOf(columnDecimals).toString());
     }
-    
+
     static public String getFieldForJavaType(DatabaseFlavour databaseFlavour, String javaType, String lengthString) {
         String rawType = null;
         switch (databaseFlavour) {
@@ -432,7 +432,7 @@ public class SqlMapping {
             return " DEFAULT " + value;
         }
     }
-    
+
     // for ElementCollections
     static public String sqlType(ElementCollectionRelationship ec, DatabaseFlavour databaseFlavour) {
         if (ec.getName().getIsMap() == null)

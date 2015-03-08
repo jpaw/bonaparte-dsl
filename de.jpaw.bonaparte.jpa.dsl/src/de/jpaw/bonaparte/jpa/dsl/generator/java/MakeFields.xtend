@@ -95,7 +95,7 @@ class JavaFieldWriter {
     def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal) {
         val prefs = BDDLPreferences.currentPrefs
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
-        
+
         if (ref.objectDataType !== null) {
             if (c.properties.hasProperty(PROP_SERIALIZED)) {
 
@@ -161,7 +161,7 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
                     case "ByteArray":
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
-                    case JAVA_OBJECT_TYPE: 
+                    case JAVA_OBJECT_TYPE:
                         if (prefs.doUserTypeForBonaPortable)
                             return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
                         else
@@ -192,16 +192,16 @@ class JavaFieldWriter {
     def private static sizeSpec(FieldDefinition c) {
         val prefs = BDDLPreferences.currentPrefs
         val ref = DataTypeExtension::get(c.datatype);
-        
+
         if (ref.category == DataCategory::STRING ||
             (ref.category == DataCategory::XENUMSET && !prefs.doUserTypeForEnumset))
             return ''', length=«ref.elementaryDataType.length»'''
-            
+
         if ((ref.category == DataCategory::XENUM && !prefs.doUserTypeForXEnum) ||
             (ref.category == DataCategory::ENUMALPHA && !prefs.doUserTypeForEnumAlpha)||
             (ref.category == DataCategory::ENUMSETALPHA && !prefs.doUserTypeForEnumset))
             return ''', length=«ref.enumMaxTokenLength»'''
-            
+
         if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         if (ref.category == DataCategory::BASICNUMERIC && ref.elementaryDataType !== null && ref.elementaryDataType.length > 0)
@@ -294,13 +294,13 @@ class JavaFieldWriter {
             getter = '''return ByteUtil.deepCopy(«myName»);       // deep copy'''
             setter = '''«myName» = ByteUtil.deepCopy(_x);       // deep copy'''
         } // else stay with the default
-            
+
         return '''
             «i.writeIfDeprecated»
             public «i.substitutedJavaTypeScalar» get«myName.toFirstUpper»() {
                 «getter»
             }
-            
+
             «i.writeIfDeprecated»
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
                 «setter»
@@ -333,7 +333,7 @@ class JavaFieldWriter {
         else
             return "ERROR, array not allowed here"
     }
-    
+
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
         List<EmbeddableUse> embeddables, ClassDefinition optionalClass) {
