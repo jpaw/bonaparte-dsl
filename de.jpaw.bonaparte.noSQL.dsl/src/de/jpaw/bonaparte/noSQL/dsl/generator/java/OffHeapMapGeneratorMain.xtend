@@ -79,7 +79,6 @@ class OffHeapMapGeneratorMain {
 
         import de.jpaw.bonaparte.core.BonaPortable;
         import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».OffHeapEntity;
-        import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».impl.AbstractRefResolver;
         import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».impl.BonaPortableOffHeapConverter;
         import de.jpaw.bonaparte.noSQL.ohm.impl.OffHeapBonaPortableMap;
         import de.jpaw.bonaparte.noSQL.ohm.impl.PersistenceProviderOHM;
@@ -91,6 +90,7 @@ class OffHeapMapGeneratorMain {
         import de.jpaw.bonaparte.refs«packageSuffix».RefResolver;
         import de.jpaw.bonaparte.refs«packageSuffix».ReferencingComposer;
         import de.jpaw.bonaparte.refs«packageSuffix».RequestContext;
+        import de.jpaw.bonaparte.refs«packageSuffix».impl.AbstractRefResolver;
         import de.jpaw.collections.DuplicateIndexException;
         import de.jpaw.dp.Jdp;
         import de.jpaw.dp.Provider;
