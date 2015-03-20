@@ -46,6 +46,16 @@ class JavaFieldsGettersSetters {
         @XmlJavaTypeAdapter(«d.root.bonPackageName».«d.root.name»XmlAdapter.class)
     '''
 
+    def private static xmlTemporalAnnotation(DataTypeExtension ref) {
+        switch (ref.javaType) {
+            case 'LocalDate':     return '''@XmlSchemaType(name="date")'''
+            case 'LocalTime':     return '''@XmlSchemaType(name="time")'''
+            case 'LocalDateTime': return '''@XmlSchemaType(name="dateTime")'''
+            case 'Instant':       return null
+            default:              return null
+        }
+    }
+    
     def private static xmlAnnotation(DataTypeExtension ref) {
         val namePart = xmlAdapterMap.get(ref.javaType.toFirstLower)
         val decimals = ref.elementaryDataType.decimals
@@ -108,6 +118,9 @@ class JavaFieldsGettersSetters {
                 «IF ref.category == DataCategory.XENUM»
                     «ref.elementaryDataType.xenumType.xmlAnnotation»
                 «ENDIF»
+                «IF ref.category == DataCategory.TEMPORAL»
+                    «ref.xmlTemporalAnnotation»
+                «ENDIF»
                 «IF ref.category == DataCategory.BASICNUMERIC»
                     «ref.xmlAnnotation»
                 «ENDIF»
@@ -141,6 +154,9 @@ class JavaFieldsGettersSetters {
                 «ENDIF»
                 «IF ref.category == DataCategory.XENUM»
                     «ref.elementaryDataType.xenumType.xmlAnnotation»
+                «ENDIF»
+                «IF ref.category == DataCategory.TEMPORAL»
+                    «ref.xmlTemporalAnnotation»
                 «ENDIF»
                 «IF ref.category == DataCategory.BASICNUMERIC»
                     «ref.xmlAnnotation»
