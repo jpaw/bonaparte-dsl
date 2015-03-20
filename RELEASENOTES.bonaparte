@@ -324,6 +324,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.4.0:
 - BON: generate XmlSchemaType annotations for temporal fields
+- BON: only generate XmlRootElement when explicitly requested
 
 
 ROADMAP / PLANS:

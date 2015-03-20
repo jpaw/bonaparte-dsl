@@ -177,6 +177,7 @@ ClassDefinition:
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
     ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+    (isXmlRoot?='xmlRoot')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
     (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added
     (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated

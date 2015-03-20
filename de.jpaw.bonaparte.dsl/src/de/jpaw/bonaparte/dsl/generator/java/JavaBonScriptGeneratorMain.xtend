@@ -308,7 +308,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
            «d.javadoc»
         «ENDIF»
 
-        «IF xmlAccess !== null && !d.isAbstract && !BonScriptPreferences.getNoXML»
+        «IF xmlAccess !== null && d.isIsXmlRoot && !BonScriptPreferences.getNoXML»
             @XmlRootElement«IF xmlNs !== null»(namespace = "«xmlNs»")«ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
