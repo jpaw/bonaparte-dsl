@@ -231,8 +231,11 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
             // the extended class may not be final
             if (cd.extendsClass.classRef.isFinal()) {
-                error("Classes max not extend a final class",
-                        BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+                error("Classes max not extend a final class", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
+            }
+            // this class cannot be xmlRoot as it extends another one
+            if (cd.isIsXmlRoot) {
+                error("Classes which extend another one cannot be @XmlRootElement", BonScriptPackage.Literals.CLASS_DEFINITION__IS_XML_ROOT);
             }
             // the extended class must be in the same bundle or a superbundle
             val myPackage = cd.packageOrNull
@@ -542,6 +545,16 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             } else {
                 if (extraParameter !== null || extraParameterString !== null)
                     error("Extra parameter not requested by referenced object" + objectDataType.classRef.name, BonScriptPackage.Literals.DATA_TYPE__EXTRA_PARAMETER)
+            }
+            // cannot reference an Xml root element
+            if (objectDataType.classRef.root.isIsXmlRoot) {
+                error("Cannot reference an xmlRoot Element", BonScriptPackage.Literals.DATA_TYPE__OBJECT_DATA_TYPE)
+            }
+        }
+        // cannot reference an Xml root element
+        if (secondaryObjectDataType?.classRef !== null) {
+           if (secondaryObjectDataType.classRef.root.isIsXmlRoot) {
+                error("Cannot reference an xmlRoot Element", BonScriptPackage.Literals.DATA_TYPE__SECONDARY_OBJECT_DATA_TYPE)
             }
         }
     }
