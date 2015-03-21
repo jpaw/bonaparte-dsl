@@ -88,12 +88,12 @@ class JavaXEnumSet {
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
 
-            public «d.name» get$MutableClone(boolean deepCopy, boolean unfreezeCollections) {
+            public «d.name» ret$MutableClone(boolean deepCopy, boolean unfreezeCollections) {
                 return new «d.name»(getBitmap());
             }
 
-            public «d.name» get$FrozenClone() {
-                if (is$Frozen()) {
+            public «d.name» ret$FrozenClone() {
+                if (was$Frozen()) {
                     return this;
                 } else {
                     «d.name» _new = new «d.name»(getBitmap());

@@ -237,7 +237,7 @@ class JavaFieldWriter {
                     try {
                         return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
                     } catch (MessageParserException _e) {
-                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), get$Key());
+                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
                         return null;
                     }'''
                 setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
@@ -359,10 +359,10 @@ class JavaFieldWriter {
                         «f.JavaDataTypeNoName(false)» _r = new «f.getInitializer(f.JavaDataTypeNoName(true), '''(«f.name».size())''')»;
                         «IF f.isMap !== null»
                             for (Map.Entry<«f.isMap.indexType»,«embName»> _i : «f.name».entrySet())
-                                _r.put(_i.getKey(), _i.getValue().get$Data());
+                                _r.put(_i.getKey(), _i.getValue().ret$Data());
                         «ELSE»
                             for («embName» _i : «f.name»)
-                                _r.add(_i.get$Data());
+                                _r.add(_i.ret$Data());
                         «ENDIF»
                         return _r;
                     }
@@ -373,13 +373,13 @@ class JavaFieldWriter {
                             «IF f.isMap !== null»
                                 for (Map.Entry<«f.isMap.indexType»,«f.JavaDataTypeNoName(true)»> _i : _d.entrySet()) {
                                     «embName» _ec = new «embName»();
-                                    _ec.set$Data(_i.getValue());
+                                    _ec.put$Data(_i.getValue());
                                     «f.name».put(_i.getKey(), _ec);
                                 }
                             «ELSE»
                                 for («f.JavaDataTypeNoName(true)» _i : _d) {
                                     «embName» _ec = new «embName»();
-                                    _ec.set$Data(_i);
+                                    _ec.put$Data(_i);
                                     «f.name».add(_ec);
                                 }
                             «ENDIF»

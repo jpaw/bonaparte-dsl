@@ -139,41 +139,41 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static writeRef(ClassDefinition d) '''
         «IF d.refPFunction !== null && d.refPFunction.trim.length != 0»
             @Override
-            public long get$RefP() {
+            public long ret$RefP() {
                 return «d.refPFunction»;
             }
             @Override
-            public Long get$RefW() {
-                return Long.valueOf(get$RefP());
+            public Long ret$RefW() {
+                return Long.valueOf(ret$RefP());
             }
         «ELSEIF d.refWFunction !== null && d.refWFunction.trim.length != 0»
             @Override
-            public Long get$RefW() {
+            public Long ret$RefW() {
                 return «d.refWFunction»;
             }
             @Override
-            public long get$RefP() {
-                return get$RefW().longValue();
+            public long ret$RefP() {
+                return ret$RefW().longValue();
             }
         «ENDIF»
         «IF d.keyPFunction !== null»
-            public static «(d.recursePkClass ?: d).name» get$Key(long ref) {
+            public static «(d.recursePkClass ?: d).name» ret$Key(long ref) {
                 return ref <= 0L ? null : «d.keyPFunction»;
             }
-            public static «(d.recursePkClass ?: d).name» get$Key(Long ref) {
-                return ref == null ? null : get$Key(ref.longValue());
+            public static «(d.recursePkClass ?: d).name» ret$Key(Long ref) {
+                return ref == null ? null : ret$Key(ref.longValue());
             }
         «ELSEIF d.keyWFunction !== null»
-            public static «(d.recursePkClass ?: d).name» get$Key(Long ref) {
+            public static «(d.recursePkClass ?: d).name» ret$Key(Long ref) {
                 return ref == null ? null : «d.keyWFunction»;
             }
-            public static «(d.recursePkClass ?: d).name» get$Key(long ref) {
-                return ref <= 0L ? null : get$Key(Long.valueOf(ref));
+            public static «(d.recursePkClass ?: d).name» ret$Key(long ref) {
+                return ref <= 0L ? null : ret$Key(Long.valueOf(ref));
             }
         «ENDIF»
     '''
 
-    // constract the interface name, which includes the get$Ref variant
+    // constract the interface name, which includes the ret$Ref variant
     def private static refExtension(ClassDefinition d)
         '''BonaPortable«IF d.refPFunction !== null || d.refWFunction !== null»Ref«ENDIF»'''
 
@@ -245,7 +245,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
-        val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
+        // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
         val xmlNs = d.xmlNs
         val doExt = d.externalizable
         val doHazel = d.hazelSupport
@@ -364,22 +364,20 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
             «IF activeColumn !== null»
                 @Override
-                public void set$Active(boolean _a) {
+                public void put$Active(boolean _a) {
                     «activeColumn.name» = _a;
                 }
-                «xmlTransient»
                 @Override
-                public boolean get$Active() {
+                public boolean ret$Active() {
                     return «activeColumn.name»;
                 }
             «ELSEIF d.parent === null»
                 @Override
-                public void set$Active(boolean _a) throws ObjectValidationException {
+                public void put$Active(boolean _a) throws ObjectValidationException {
                     throw new ObjectValidationException(ObjectValidationException.NO_ACTIVE_FIELD, null, _PARTIALLY_QUALIFIED_CLASS_NAME);
                 }
-                «xmlTransient»
                 @Override
-                public boolean get$Active() {
+                public boolean ret$Active() {
                     return true;  // no active field in this class, returning default
                 }
             «ENDIF»

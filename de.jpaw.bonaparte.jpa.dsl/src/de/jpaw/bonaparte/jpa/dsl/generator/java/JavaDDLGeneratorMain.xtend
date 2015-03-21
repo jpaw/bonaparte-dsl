@@ -263,11 +263,11 @@ class JavaDDLGeneratorMain implements IGenerator {
                         «setHaveActive»
                         // specific getter/setters for the active flag
                         @Override
-                        public void set$Active(boolean _a) {
+                        public void put$Active(boolean _a) {
                             set«myName.toFirstUpper»(_a);
                         }
                         @Override
-                        public boolean get$Active() {
+                        public boolean ret$Active() {
                             return get«myName.toFirstUpper»();
                         }
                     «ENDIF»
@@ -336,32 +336,32 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF !haveActive»
                 // no isActive column in this entity, create stubs to satisfy interface
                 @Override
-                public void set$Active(boolean _a) {
+                public void put$Active(boolean _a) {
                     // throw new RuntimeException("Entity «e.name» does not have an isActive field");
                 }
                 @Override
-                public boolean get$Active() {
+                public boolean ret$Active() {
                     return true;  // no isActive column => all rows are active by default
                 }
             «ENDIF»
             «IF haveIntVersion === null»
                 // no version column of type int or Integer, write stub
                 @Override
-                public void set$IntVersion(int _v) {
+                public void put$IntVersion(int _v) {
                     // throw new RuntimeException("Entity «e.name» does not have an integer type version field");
                 }
                 @Override
-                public int get$IntVersion() {
+                public int ret$IntVersion() {
                     return -1;
                 }
             «ELSE»
                 // version column of type int or Integer exists, write proxy
                 @Override
-                public void set$IntVersion(int _v) {
+                public void put$IntVersion(int _v) {
                     set«haveIntVersion.name.toFirstUpper»(_v);
                 }
                 @Override
-                public int get$IntVersion() {
+                public int ret$IntVersion() {
                     return get«haveIntVersion.name.toFirstUpper»();
                 }
             «ENDIF»
@@ -374,11 +374,11 @@ class JavaDDLGeneratorMain implements IGenerator {
             return «pkType».class;
         }
         @Override
-        public Class<«if (pkType == "long") "?" else pkType»> get$KeyClass() {
+        public Class<«if (pkType == "long") "?" else pkType»> ret$KeyClass() {
             return «pkType».class;
         }
         @Override
-        public «pkType» get$Key() {
+        public «pkType» ret$Key() {
             «IF pkType.equals("Serializable")»
                 return null;  // FIXME! not yet implemented!
             «ELSE»
@@ -394,7 +394,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         }
         @Override
-        public void set$Key(«pkType» _k) {
+        public void put$Key(«pkType» _k) {
             «IF pkType == "Serializable"»
                 // FIXME! not yet implemented!!!
             «ELSE»
@@ -453,7 +453,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static writeGetSelf(EntityDefinition e) '''
         /** Method that allows generic proxy resolution by returning {@code this}. */
         @Override
-        public «e.name» get$Self() {
+        public «e.name» ret$Self() {
             return this;
         }
     '''

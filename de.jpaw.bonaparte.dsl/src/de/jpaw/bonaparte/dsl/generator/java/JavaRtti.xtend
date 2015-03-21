@@ -40,7 +40,7 @@ class JavaRtti {
             public static int class$rtti() {
                 return MY_RTTI;
             }
-            public int get$rtti() {
+            public int ret$rtti() {
                 return MY_RTTI;
             }
         '''

@@ -222,7 +222,7 @@ class JavaMeta {
 
             // some methods intentionally use the $ sign, because use in normal code is discouraged, so we expect no namespace conflicts here
             @Override
-            public ClassDefinition get$MetaData() {
+            public ClassDefinition ret$MetaData() {
                 return my$MetaData;
             }
 
@@ -333,7 +333,7 @@ class JavaMeta {
             }
 
             @Override
-            public BonaPortableClass<? extends BonaPortable> get$BonaPortableClass() {
+            public BonaPortableClass<? extends BonaPortable> ret$BonaPortableClass() {
                 return BClass.getInstance();
             }
             // convenience method for easier access via reflection
@@ -348,15 +348,15 @@ class JavaMeta {
     def static public writeCommonMetaData() '''
         // convenience functions for faster access if the metadata structure is not used
         @Override
-        public String get$PQON() {
+        public String ret$PQON() {
             return _PARTIALLY_QUALIFIED_CLASS_NAME;
         }
         @Override
-        public String get$Parent() {
+        public String ret$Parent() {
             return _PARENT;
         }
         @Override
-        public String get$Bundle() {
+        public String ret$Bundle() {
             return _BUNDLE;
         }
     '''

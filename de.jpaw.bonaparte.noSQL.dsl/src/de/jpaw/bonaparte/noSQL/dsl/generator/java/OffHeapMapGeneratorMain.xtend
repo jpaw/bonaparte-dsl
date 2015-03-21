@@ -166,7 +166,7 @@ class OffHeapMapGeneratorMain {
             public void uncachedRemove(DataWithTracking<«dt»> previous) {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();      // register transaction
-                long key = previous.getData().get$RefP();
+                long key = previous.getData().ret$RefP();
                 db.delete(key);
 
                 «IF e.indexes.size > 0»
@@ -195,7 +195,7 @@ class OffHeapMapGeneratorMain {
             protected DataWithTracking<«dt»> uncachedCreate(«e.pojoType.name» obj) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();
-                long key = obj.get$RefP();
+                long key = obj.ret$RefP();
                 DataWithTracking<«dt»> dwt = new DataWithTracking<>();
                 dwt.setData(obj);
                 «IF tracking !== null»
@@ -245,7 +245,7 @@ class OffHeapMapGeneratorMain {
                 // therefore only the obj must be updated. Here we assume no malfunction can happen.
                 dwt.setData(obj);
                 updater.preUpdate(contextProvider.get(), dwt.getTracking());        // just overwrite, no need to keep the old one in this case
-                long key = obj.get$RefP();
+                long key = obj.ret$RefP();
 
                 if (!setDTO(key, dwt))
                     throw new PersistenceException(PersistenceException.RECORD_DOES_NOT_EXIST_ILE, key, ENTITY_NAME);
@@ -282,7 +282,7 @@ class OffHeapMapGeneratorMain {
                         return key;
                     }
                 «ENDFOR»
-                throw new PersistenceException(PersistenceException.UNKNOWN_INDEX_TYPE, 0L, ENTITY_NAME, refObject.get$PQON(), null);
+                throw new PersistenceException(PersistenceException.UNKNOWN_INDEX_TYPE, 0L, ENTITY_NAME, refObject.ret$PQON(), null);
             }
 
             @Override
@@ -320,11 +320,11 @@ class OffHeapMapGeneratorMain {
                 // additional convenience methods as defined in refsc.RefResolver
                 //@Override
                 //public void remove(«pkClass.name» key) throws ApplicationException {
-                //    remove(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                //    remove(key.«IF isPrimitive»ret$RefP()«ELSE»ret$RefW«ENDIF»);
                 //}
                 //@Override
                 //public «tr» getTracking(«pkClass.name» key) throws ApplicationException {
-                //    return getTracking(key.«IF isPrimitive»get$RefP()«ELSE»get$RefW«ENDIF»);
+                //    return getTracking(key.«IF isPrimitive»ret$RefP()«ELSE»ret$RefW«ENDIF»);
                 //}
                 // the next one has an incompatible type
                 //@Override

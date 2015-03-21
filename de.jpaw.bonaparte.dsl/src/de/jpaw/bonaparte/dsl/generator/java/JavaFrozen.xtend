@@ -49,14 +49,14 @@ class JavaFrozen {
         if (ref.supportsNoFreeze)
             return applyOnWhat  // no .freeze() required / exists, return the identity
         else
-            return '''(«applyOnWhat» == null ? null : «applyOnWhat».get$FrozenClone())'''
+            return '''(«applyOnWhat» == null ? null : «applyOnWhat».ret$FrozenClone())'''
     }
 
     def private static getMutableClone(DataTypeExtension ref, String applyOnWhat) {
         if (ref.supportsNoFreeze)
             return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
         else
-            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».get$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''
+            return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».ret$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''
     }
 
     // write the code to freeze one field.
@@ -209,7 +209,7 @@ class JavaFrozen {
                             if (_deepCopy) {
                                 for (int _i = 0; _i < «i.name».length; ++_i)
                                     if (_new.«i.name»[_i] != null)
-                                        _new.«i.name»[_i] = _new.«i.name»[_i].get$MutableClone(_deepCopy, _unfreezeCollections);
+                                        _new.«i.name»[_i] = _new.«i.name»[_i].ret$MutableClone(_deepCopy, _unfreezeCollections);
                             }
                         «ENDIF»
                     «ELSEIF i.isList !== null»
@@ -232,11 +232,6 @@ class JavaFrozen {
     }
 
 
-    // removed:
-    //                «IF cd.getRelevantXmlAccess == XXmlAccess::FIELD»
-    //                    @XmlTransient
-    //                «ENDIF»
-    // before field _is$Frozen, as transient field do not allow XmlTransient as well
     def public static writeFreezingCode(ClassDefinition cd) '''
         public static boolean class$isFreezable() {
             return «cd.isFreezable»;
@@ -245,19 +240,19 @@ class JavaFrozen {
         «IF cd.extendsClass === null»
             «IF cd.unfreezable || cd.root.immutable»
                 @Override
-                public final boolean is$Frozen() {
+                public final boolean was$Frozen() {
                     return «cd.root.immutable»;
                 }
                 protected final void verify$Not$Frozen() {
                 }
             «ELSE»
-                private transient boolean _is$Frozen = false;      // current state of this instance
+                private transient boolean _was$Frozen = false;      // current state of this instance
                 @Override
-                public final boolean is$Frozen() {
-                    return _is$Frozen;
+                public final boolean was$Frozen() {
+                    return _was$Frozen;
                 }
                 protected final void verify$Not$Frozen() {
-                    if (_is$Frozen)
+                    if (_was$Frozen)
                         throw new RuntimeException("Setter called for frozen instance of class " + getClass().getName());
                 }
             «ENDIF»
@@ -272,14 +267,14 @@ class JavaFrozen {
                     «f.writeFreezeField(cd)»
                 «ENDFOR»
                 «IF cd.extendsClass === null»
-                    _is$Frozen = true;
+                    _was$Frozen = true;
                 «ELSE»
                     super.freeze();
                 «ENDIF»
             «ENDIF»
         }
         @Override
-        public «cd.name» get$FrozenClone() throws ObjectValidationException {
+        public «cd.name» ret$FrozenClone() throws ObjectValidationException {
             «IF cd.abstract»
                 throw new RuntimeException("This method is really not there (abstract class). Most likely someone has handcoded bonaparte classes (and missed to implement some methods).");
             «ELSE»
@@ -288,7 +283,7 @@ class JavaFrozen {
                 «ELSEIF cd.root.immutable»
                     return this;
                 «ELSE»
-                    if (is$Frozen()) // no need to copy!
+                    if (was$Frozen()) // no need to copy!
                         return this;
                     «cd.name» _new = new «cd.name»();
                     frozenCloneSub(_new);
@@ -308,14 +303,14 @@ class JavaFrozen {
                     «f.writeFreezeFieldCopy(cd)»
                 «ENDFOR»
                 «IF cd.extendsClass === null»
-                    _new._is$Frozen = true;
+                    _new._was$Frozen = true;
                 «ELSE»
                     super.frozenCloneSub(_new);
                 «ENDIF»
             }
         «ENDIF»
         @Override
-        public «cd.name» get$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+        public «cd.name» ret$MutableClone(boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
             «IF cd.abstract»
                 throw new RuntimeException("This method is really not there (abstract class). Most likely someone has handcoded bonaparte classes (and missed to implement some methods).");
             «ELSE»

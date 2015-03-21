@@ -115,7 +115,7 @@ class MakeRelationships {
 
         public «type» get«m.name.toFirstUpper»() {
             «IF doThis && m.fetchType !== null && m.fetchType == "LAZY"»
-                return «m.name» == null ? null : «m.name».get$Self();  // we want the resolved instance, not a proxy!
+                return «m.name» == null ? null : «m.name».ret$Self();  // we want the resolved instance, not a proxy!
             «ELSE»
                 return «m.name»;
             «ENDIF»

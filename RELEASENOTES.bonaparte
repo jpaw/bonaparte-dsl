@@ -325,6 +325,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.4.0:
 - BON: generate XmlSchemaType annotations for temporal fields
 - BON: only generate XmlRootElement when explicitly requested
+- BON: for easier use with Jackson, use ret$ instead of get$ and put$ instead of set$ for transient / static fields, and is$ to was$
 
 
 ROADMAP / PLANS:

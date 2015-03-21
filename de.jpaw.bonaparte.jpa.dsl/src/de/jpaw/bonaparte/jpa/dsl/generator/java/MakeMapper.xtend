@@ -76,11 +76,11 @@ class MakeMapper {
     def public static writeDataMapperMethods(ClassDefinition pojo, boolean isRootEntity, ClassDefinition rootPojo, List<EmbeddableUse> embeddables,
         List<FieldDefinition> fieldsNotToSet) '''
         @Override
-        public String get$DataPQON() {
+        public String ret$DataPQON() {
             return "«getPartiallyQualifiedClassName(pojo)»";
         }
         @Override
-        public Class<? extends «rootPojo.name»> get$DataClass() {
+        public Class<? extends «rootPojo.name»> ret$DataClass() {
             return «pojo.name».class;
         }
         «IF isRootEntity»
@@ -92,15 +92,15 @@ class MakeMapper {
         }
         «ENDIF»
         @Override
-        public «pojo.name» get$Data() {
+        public «pojo.name» ret$Data() {
             «pojo.returnAsType»
         }
         @Override
-        public void set$Data(«rootPojo.name» _d) {
+        public void put$Data(«rootPojo.name» _d) {
             «IF isRootEntity»
                 «recurseDataSetter(pojo, fieldsNotToSet, embeddables)»
             «ELSE»
-                super.set$Data(_d);
+                super.put$Data(_d);
                 if (_d instanceof «pojo.name») {
                     «pojo.name» _dd = («pojo.name»)_d;
                     // auto-generated data setter for «pojo.name»
@@ -119,7 +119,7 @@ class MakeMapper {
             «ENDIF»
         }
         @Override
-        public String get$TrackingPQON() {
+        public String ret$TrackingPQON() {
             «IF pojo === null»
                 return null;
             «ELSE»
@@ -127,7 +127,7 @@ class MakeMapper {
             «ENDIF»
         }
         @Override
-        public Class<«pojoname»> get$TrackingClass() {
+        public Class<«pojoname»> ret$TrackingClass() {
             «IF pojo === null»
                 return null;
             «ELSE»
@@ -136,7 +136,7 @@ class MakeMapper {
         }
 
         @Override
-        public «pojoname» get$Tracking() {
+        public «pojoname» ret$Tracking() {
             «IF pojo === null»
                 return null;
             «ELSE»
@@ -144,7 +144,7 @@ class MakeMapper {
             «ENDIF»
         }
         @Override
-        public void set$Tracking(«pojoname» _d) {
+        public void put$Tracking(«pojoname» _d) {
             «IF pojo !== null»
                 «recurseDataSetter(pojo, null, null)»
             «ENDIF»
