@@ -45,7 +45,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho.version>0.22.0</tycho.version>
-        <fornax.version>3.4.0</fornax.version>
+        <fornax.version>3.5.1</fornax.version>
         <xtend.version>2.7.3</xtend.version>            <!-- UPTODATE 2014-11-20 -->
 
         <build-helper.plugin.version>1.9.1</build-helper.plugin.version>
@@ -148,87 +148,38 @@
     </pluginRepositories>
 
     <repositories>
+<!--     
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
             <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases</url>
         </repository>
+ -->        
         <repository>
             <id>p2-luna</id>
             <layout>p2</layout>
             <url>http://download.eclipse.org/releases/luna</url>
         </repository>
+<!--         
         <repository>
             <id>fornax.repository</id>
             <name>Fornax Repository</name>
             <url>http://www.fornax-platform.org/m2/repository</url>
         </repository>
+ -->        
     </repositories>
 
-    <profiles>
-        <profile>
-            <id>xtendsnapshots</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>xtend.snapshots</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>xtend.snapshots</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
-        <profile>
-            <id>kreios</id>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>local-snapshots</id>
-                    <name>Local Nexus</name>
-                    <url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
-                </snapshotRepository>
-                <repository>
-                    <id>local-releases</id>
-                    <name>Local Nexus</name>
-                    <url>http://localhost:8081/nexus/content/repositories/releases/</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-        <profile>
-            <id>jpaw</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <distributionManagement>
-                <snapshotRepository>
-                    <id>repo-snapshots</id>
-                    <name>repo-snapshots</name>
-                    <url>${repo.url}/libs-snapshot-local</url>
-                </snapshotRepository>
-                <repository>
-                    <id>repo-releases</id>
-                    <name>repo-releases</name>
-                    <url>${repo.url}/libs-release-local</url>
-                </repository>
-            </distributionManagement>
-        </profile>
-    </profiles>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>repo-snapshots</id>
+            <name>repo-snapshots</name>
+            <url>${repo.url}/libs-snapshot-local</url>
+        </snapshotRepository>
+        <repository>
+            <id>repo-releases</id>
+            <name>repo-releases</name>
+            <url>${repo.url}/libs-release-local</url>
+        </repository>
+    </distributionManagement>
 
 </project>
