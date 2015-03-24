@@ -2,6 +2,7 @@ package de.jpaw.bonaparte.dsl
 
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
+import org.eclipse.xtend.lib.annotations.Data
 
 @Data
 public class ConfigReader {
