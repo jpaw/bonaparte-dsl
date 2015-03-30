@@ -246,7 +246,6 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
         // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
-        val xmlNs = d.xmlNs
         val doExt = d.externalizable
         val doHazel = d.hazelSupport
         val doBeanVal = d.beanValidation
@@ -309,7 +308,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «ENDIF»
 
         «IF xmlAccess !== null && d.isIsXmlRoot && !BonScriptPreferences.getNoXML»
-            @XmlRootElement«IF xmlNs !== null»(namespace = "«xmlNs»")«ENDIF»
+            @XmlRootElement(namespace="«d.effectiveXmlNs»")
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
         «ENDIF»
         «IF myKey !== null»

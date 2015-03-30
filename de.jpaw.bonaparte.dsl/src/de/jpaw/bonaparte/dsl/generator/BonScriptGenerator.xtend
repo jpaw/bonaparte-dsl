@@ -26,6 +26,7 @@ import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.generator.xsd.XsdBonScriptGeneratorMain
 
 class BonScriptGenerator implements IGenerator {
     private static final Logger logger = Logger.getLogger(BonScriptGenerator)
@@ -34,6 +35,7 @@ class BonScriptGenerator implements IGenerator {
 
     @Inject DebugBonScriptGeneratorMain generatorDebug
     @Inject JavaBonScriptGeneratorMain generatorJava
+    @Inject XsdBonScriptGeneratorMain generatorXsd
 
     def private String filterInfo() {
         "@" + localId + ": "
@@ -45,15 +47,20 @@ class BonScriptGenerator implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
-            if (BonScriptPreferences.currentPrefs.doDebugOut) {
-                logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
-                generatorDebug.doGenerate(resource, fsa)
-            }
+        if (BonScriptPreferences.currentPrefs.doDebugOut) {
+            logger.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+            generatorDebug.doGenerate(resource, fsa)
+        }
 
-            logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-            generatorJava.doGenerate(resource, fsa)
+        logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+        generatorJava.doGenerate(resource, fsa)
 
-            logger.info(filterInfo + "start cleanup");
-            DataTypeExtension::clear()
+        if (!BonScriptPreferences.getNoXML) {
+            logger.info(filterInfo + "start XSD creation for " + resource.URI.toString);
+            generatorXsd.doGenerate(resource, fsa)
+        }
+
+        logger.info(filterInfo + "start cleanup");
+        DataTypeExtension::clear()
     }
 }

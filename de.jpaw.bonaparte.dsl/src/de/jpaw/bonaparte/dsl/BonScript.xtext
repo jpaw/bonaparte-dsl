@@ -176,7 +176,7 @@ ClassDefinition:
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
-    ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
+    ('XML' xmlAccess = XmlAccess)?                      // set @XmlAccess annotation
     (isXmlRoot?='xmlRoot')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
     (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added
@@ -343,7 +343,7 @@ ElementaryDataType:
                  (rounding = Rounding)?
                  (autoScale = AutoScale)?
             )
-             | (name=("number"|"Number")       "(" length=INT ")")  // Deprecated until BigInteger is implemented... maps to int, long, BigInteger (currently only int)
+             | (name=("number"|"Number")       "(" length=INT ")")  // BigInteger data type
              | (name=("byte"|"Byte"|"short"|"Short"|"integer"|"Integer"|"int"|"Int"|"long"|"Long")
                  ("(" length=INT ("," decimals=INT)? ")")?
                  (rounding = Rounding)?  // silently ignore decimals (or too many decimals...)?

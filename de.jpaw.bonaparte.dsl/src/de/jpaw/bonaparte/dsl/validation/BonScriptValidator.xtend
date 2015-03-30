@@ -233,10 +233,10 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             if (cd.extendsClass.classRef.isFinal()) {
                 error("Classes max not extend a final class", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
-            // this class cannot be xmlRoot as it extends another one
-            if (cd.isIsXmlRoot) {
-                error("Classes which extend another one cannot be @XmlRootElement", BonScriptPackage.Literals.CLASS_DEFINITION__IS_XML_ROOT);
-            }
+            // this class cannot be xmlRoot as it extends another one => yes it can, see 
+//            if (cd.isIsXmlRoot) {
+//                error("Classes which extend another one cannot be @XmlRootElement", BonScriptPackage.Literals.CLASS_DEFINITION__IS_XML_ROOT);
+//            }
             // the extended class must be in the same bundle or a superbundle
             val myPackage = cd.packageOrNull
             val extendedFromPackage = cd.extendsClass.classRef.packageOrNull

@@ -37,6 +37,9 @@ import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import com.google.common.base.Joiner
+import com.google.common.base.Splitter
+import com.google.common.collect.Lists
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
@@ -66,6 +69,14 @@ class XUtil {
             dd = dd.extendsXenum
         return dd
     }
+    
+    def public static DataTypeExtension getRootDataType(FieldDefinition f) {
+        f.datatype.rootDataType
+    } 
+
+    def public static DataTypeExtension getRootDataType(DataType dt) {
+        return DataTypeExtension::get(dt)
+    } 
 
     def public static PackageDefinition getPackageOrNull(EObject ee) {
         var e = ee
@@ -110,15 +121,25 @@ class XUtil {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
         return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
     }
-    def public static getXmlNs(ClassDefinition d) {
-        d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
+    
+    /** Reverses the ordering of the simple components of a qualified ID, for example from com.foo.bar.mega to mega.bar.foo.com. */
+    def public static reverseIDs(String s) {
+        Joiner.on(".").join(Lists.reverse(Splitter.on('.').split(s).toList))        
     }
+    
+    /** Computes the schema name abbreviation. */
+    def static schemaToken(PackageDefinition pkg) {
+        return pkg.name.replace('.', '_')
+    }
+    /** Computes the full URL for the schema. */
+    def public static effectiveXmlNs(EObject d) {
+        val pkg = d.package
+        return pkg.xmlNs ?: '''http://«IF pkg.prefix !== null»«pkg.prefix.reverseIDs»«ELSE»www.jpaw.de«ENDIF»/schema/«pkg.schemaToken».xsd'''
+    }
+    
     def public static getRelevantXmlAccess(XEnumDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
         return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
-    }
-    def public static getXmlNs(XEnumDefinition d) {
-        d.xmlNs ?: getPackage(d).xmlNs     // default to no XMLAccess annotations
     }
     def public static needsXmlObjectType(FieldDefinition f) {
         if (f.datatype.objectDataType !== null) {
