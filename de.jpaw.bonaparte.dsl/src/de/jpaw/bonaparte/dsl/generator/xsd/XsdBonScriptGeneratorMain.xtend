@@ -39,6 +39,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 class XsdBonScriptGeneratorMain implements IGenerator {
     public static final String GENERATED_XSD_SUBFOLDER = "resources/xsd/";      // cannot start with a slash, must end with a slash
     //private static final boolean USE_EXTENSION = false;                         // if false, subsumption is used for inheritance, if true, extension
+    private static final boolean GENERATE_EXTENSION_FIELDS = false;               // if true, xsd:anyType fields will be generated in order to support future optional extensions (currently only possible for final fields)
 
     val Set<PackageDefinition> requiredImports = new HashSet<PackageDefinition>()
 
@@ -61,7 +62,12 @@ class XsdBonScriptGeneratorMain implements IGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         for (pkg : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             if (pkg.xmlAccess !== null) {
-                fsa.generateFile(GENERATED_XSD_SUBFOLDER + pkg.computeXsdFilename, pkg.writeXsdFile)
+                fsa.generateFile(GENERATED_XSD_SUBFOLDER + "lib/" + pkg.computeXsdFilename, pkg.writeXsdFile)
+                
+                // also generate entry points for all the root elements
+                for (cls: pkg.classes) {
+                    fsa.generateFile(GENERATED_XSD_SUBFOLDER + cls.name + ".xsd", cls.writeXsdFile)
+                }
             }
         }
     }            
@@ -272,7 +278,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             return inElement.typeWrap("xs:base64Binary")   // unbounded
         else
             return inElement.wrap('''
-                <xs:restriction base="xs:base64Binary»">
+                <xs:restriction base="xs:base64Binary">
                     <xs:maxLength value="«e.length»"/>
                 </xs:restriction>
             ''')
@@ -315,12 +321,12 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 case 'uppercase':   return e.defString(ref.effectiveTrim, "([A-Z])*", inElement)
                 case 'lowercase':   return e.defString(ref.effectiveTrim, "([a-z])*", inElement)
                 case 'ascii':       return e.defString(ref.effectiveTrim, "\\p{IsBasicLatin}*", inElement)
-                case 'object':      return inElement.typeWrap("xs:anyType")
+                case 'object':      return inElement.typeWrap("bon:BONAPORTABLE"  /* "xs:anyType" */)
                 // temporal types
                 case 'day':         return inElement.typeWrap("xs:date")
                 case 'time':        return inElement.typeWrap("xs:time")
                 case 'timestamp':   return inElement.typeWrap("xs:dateTime")
-                case 'instant':     return inElement.typeWrap("xs:unsignedLong")
+                case 'instant':     return inElement.typeWrap("xs:long")
                 // misc
                 case 'boolean':     return inElement.typeWrap("xs:boolean")
                 case 'character':   return inElement.typeWrap("bon:CHAR")
@@ -339,7 +345,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             return inElement.typeWrap(ref.objectDataType.xsdQualifiedName(pkg))
         } else {
             // plain object (i.e. any bonaportable)
-            return inElement.typeWrap("xs:anyType")
+            return inElement.typeWrap("bon:BONAPORTABLE"  /* "xs:anyType" */)
         }
     }
 
@@ -349,25 +355,49 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 «FOR f: cls.fields»
                     <xs:element name="«f.name»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
                 «ENDFOR»
-                <!-- <xs:any minOccurs="0" processContents="skip"/> declare that future releases may add new (optional) fields -->
+                «IF GENERATE_EXTENSION_FIELDS && cls.final»
+                    <!-- allow for upwards compatible type extensions -->
+                    <xs:element name="reserved«cls.name»" type="xs:anyType" minOccurs="0" maxOccurs="unbounded" nillable="true"/>
+                «ENDIF»
             </xs:sequence>
         '''
-    }   
+    }
      
+    /** Inserts code to refer to a substitution group. */
+    def public printSubstGroup(ClassDefinition cls) {
+//        if (cls.extendsClass?.classRef !== null) {
+//            return ''' substitutionGroup="«cls.extendsClass?.classRef.xsdQualifiedName(cls.package)»"'''
+//        } else {
+//            return ''' substitutionGroup="bon:BONAPORTABLE"'''
+//        }
+        return null
+    }
+    
     /** Creates all complexType definitions for the package. */
     def public createObjects(PackageDefinition pkg) {
+//        return '''
+//            «FOR cls: pkg.classes»
+//                <xs:complexType name="«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«if (cls.final) ' block="#all" final="#all"'»«cls.printSubstGroup»>
+//                    «IF cls.extendsClass?.classRef !== null»
+//                        <xs:complexContent>
+//                            <xs:extension base="«cls.extendsClass?.classRef.xsdQualifiedName(pkg)»">
+//                                «cls.listDeclaredFields(pkg)»
+//                            </xs:extension>
+//                        </xs:complexContent>
+//                    «ELSE»
+//                        «cls.listDeclaredFields(pkg)»
+//                    «ENDIF»
+//                </xs:complexType>
+//            «ENDFOR»
+//        '''
         return '''
             «FOR cls: pkg.classes»
                 <xs:complexType name="«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«if (cls.final) ' block="#all" final="#all"'»«cls.printSubstGroup»>
-                    «IF cls.extendsClass?.classRef !== null»
-                        <xs:complexContent>
-                            <xs:extension base="«cls.extendsClass?.classRef.xsdQualifiedName(pkg)»">
-                                «cls.listDeclaredFields(pkg)»
-                            </xs:extension>
-                        </xs:complexContent>
-                    «ELSE»
-                        «cls.listDeclaredFields(pkg)»
-                    «ENDIF»
+                    <xs:complexContent>
+                        <xs:extension base="«cls.extendsClass?.classRef?.xsdQualifiedName(pkg) ?: "bon:BONAPORTABLE"»">
+                            «cls.listDeclaredFields(pkg)»
+                        </xs:extension>
+                    </xs:complexContent>
                 </xs:complexType>
             «ENDFOR»
         '''
@@ -385,23 +415,16 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''«cls.package.schemaToken»:«cls.name»''' 
     }
     
-    /** Inserts code to refer to a substitution group. */
-    def public printSubstGroup(ClassDefinition cls) {
-        if (cls.extendsClass?.classRef !== null) {
-            return ''' substitutionGroup="«cls.extendsClass?.classRef.xsdQualifiedName(cls.package)»"'''
-        }
-    }
-    
-    /** Creates all the top level element definitions. Each element corresponds to a class.
-     * TODO: clarify if only required for the xmlRoot elements.
-     */
-    def public createTopLevelElements(PackageDefinition pkg) {
-        return '''
-            «FOR cls: pkg.classes»
-                <xs:element name="«cls.name»" type="«pkg.schemaToken»:«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«cls.printSubstGroup»/>
-            «ENDFOR»
-        '''
-    }
+//    /** Creates all the top level element definitions. Each element corresponds to a class.
+//     * TODO: clarify if only required for the xmlRoot elements.
+//     */
+//    def public createTopLevelElements(PackageDefinition pkg) {
+//        return '''
+//            «FOR cls: pkg.classes»
+//                <xs:element name="«cls.name»" type="«pkg.schemaToken»:«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«cls.printSubstGroup»/>
+//            «ENDFOR»
+//        '''
+//    }
     
     /** Top level entry point to create the XSD file for a whole package. */
     def private writeXsdFile(PackageDefinition pkg) {
@@ -421,7 +444,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               «ENDFOR»
               elementFormDefault="qualified">
 
-                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="bonaparte/bonaparte.xsd"/>
+                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="../bonaparte.xsd"/>
                 «FOR imp: requiredImports»
                     <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«imp.computeXsdFilename»"/>
                 «ENDFOR»
@@ -433,5 +456,31 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 «pkg.createObjects»
             </xs:schema>
         '''           
+    }
+    
+    /** Top level entry point to create the XSD file for a root element. */
+    def private writeXsdFile(ClassDefinition cls) {
+        val pkg = cls.package
+        return '''
+            <?xml version="1.0" encoding="UTF-8"?>
+            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+              xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
+              elementFormDefault="qualified">
+
+                <xs:import namespace="«pkg.effectiveXmlNs»" schemaLocation="lib/«pkg.computeXsdFilename»"/>
+
+                «IF cls.xmlListName !== null»
+                    <xs:element name="«cls.xmlListName»">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="«cls.name»" type="«pkg.schemaToken»:«cls.name»" minOccurs="0" maxOccurs="unbounded"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                «ELSE»
+                    <xs:element name="«cls.name»" type="«pkg.schemaToken»:«cls.name»"/>
+                «ENDIF»
+            </xs:schema>
+        '''
     }
 }

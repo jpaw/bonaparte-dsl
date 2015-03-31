@@ -329,6 +329,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 3.5.0:
 - switch to Xtext 2.8.1
+- BON: output XSDs
 
 
 
