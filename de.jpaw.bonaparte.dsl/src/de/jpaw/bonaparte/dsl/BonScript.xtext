@@ -42,10 +42,10 @@ terminal ML_COMMENT: '/*' !'*'-> '*/' ;     // overwrite ML_COMMENT to derive th
 terminal JAVADOC_COMMENT: '/**' -> '*/';    // and provide a separate JavaDoc multiline comment
 
 
-QualifiedId: 
+QualifiedId hidden(): 
     ID ('.' ID)*
 ;
-QualifiedIdWithWildcard: 
+QualifiedIdWithWildcard hidden(): 
     QualifiedId ('.*')?
 ;
 

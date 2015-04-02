@@ -331,6 +331,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - switch to Xtext 2.8.1
 - BON: output XSDs
 
+3.5.1:
+- replace the deprecated generator fragment in bonaparte.dsl and bonaparte.jpa.dsl, genmodel is now generated to model/generated instead of somewhere beneath src-gen
+
 
 
 

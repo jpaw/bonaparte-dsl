@@ -19,7 +19,7 @@ Workflow {
 //    	registerGeneratedEPackage = "org.eclipse.xtext.xbase.XbasePackage"
 //    	registerGenModelFile = "platform:/resource/org.eclipse.xtext.xbase/model/Xbase.genmodel"
         registerGeneratedEPackage = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
-        registerGenModelFile = "platform:/resource/de.jpaw.bonaparte.dsl/src-gen/de/jpaw/bonaparte/dsl/BonScript.genmodel"
+        registerGenModelFile = "platform:/resource/de.jpaw.bonaparte.dsl/model/generated/BonScript.genmodel"
     }
     
     component = DirectoryCleaner {
