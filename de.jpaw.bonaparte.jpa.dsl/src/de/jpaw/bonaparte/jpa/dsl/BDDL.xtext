@@ -148,7 +148,7 @@ EntityDefinition:
         ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId] (tenantInJoinedTables?='join')?)?
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
-        ('pk'     ('is' pkPojo = [pojos::ClassDefinition|QualifiedId])? (pk = ListOfColumns)? )?
+        ('pk'     ('is' pkPojo = [pojos::ClassDefinition|QualifiedId])? (pk = ListOfColumns (isIdGenerated?='generated' ('=' generatedIdDetails=STRING)?)?)? )?
         ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
         (('@ManyToOne' manyToOnes += Relationship ) |

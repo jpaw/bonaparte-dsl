@@ -234,13 +234,13 @@ class JavaDDLGeneratorMain implements IGenerator {
 
     // shorthand call for entities
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
-        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType) {
-        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, primaryKeyType);
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails) {
+        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails);
     }
 
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
         List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, boolean doBeanVal,
-        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails
     ) {
         // include aggregates if there is an @ElementCollection defined for them
         //        «IF embeddables?.filter[isPk !== null].head?.field == fld»
@@ -251,6 +251,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             ''' ], [ fld, myName, ind | '''
                 «IF (primaryKeyType == PrimaryKeyType::SINGLE_COLUMN || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
                     @Id
+                    «IF isIdGenerated»
+                        @GeneratedValue«IF generatedIdDetails !== null»(«generatedIdDetails»)«ENDIF»
+                    «ENDIF»
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
                     «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl)»
@@ -564,29 +567,33 @@ class JavaDDLGeneratorMain implements IGenerator {
         package «myPackageName»;
 
         «IF e.tenantId !== null»
-        //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
-        import org.eclipse.bonaparte.jpa.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
+            //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
+            import org.eclipse.bonaparte.jpa.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheSize != 0»
-        import org.eclipse.bonaparte.jpa.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
+            import org.eclipse.bonaparte.jpa.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheable»
-        import javax.persistence.Cacheable;
+            import javax.persistence.Cacheable;
         «ENDIF»
         «IF e.xinheritance !== null && e.xinheritance != Inheritance::NONE»
-        import javax.persistence.Inheritance;
-        import javax.persistence.InheritanceType;
+            import javax.persistence.Inheritance;
+            import javax.persistence.InheritanceType;
         «ENDIF»
         «IF e.discname !== null»
-        import javax.persistence.DiscriminatorType;
-        import javax.persistence.DiscriminatorColumn;
-        import javax.persistence.DiscriminatorValue;
+            import javax.persistence.DiscriminatorType;
+            import javax.persistence.DiscriminatorColumn;
+            import javax.persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.^extends !== null»
-        import javax.persistence.DiscriminatorValue;
+            import javax.persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.mappedSuperclass || e.isAbstract»
-        import javax.persistence.MappedSuperclass;
+            import javax.persistence.MappedSuperclass;
+        «ENDIF»
+        «IF e.isIdGenerated»
+            import javax.persistence.GeneratedValue;
+            import javax.persistence.GenerationType;
         «ENDIF»
         import javax.persistence.EntityManager;
         import javax.persistence.Entity;
@@ -689,9 +696,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF stopper === null && primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
-            «IF stopper === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType)»«ENDIF»
-            «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType)»
-            «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType)»
+            «IF stopper === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»«ENDIF»
+            «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
+            «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
             «IF stopper === null»«EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»«ENDIF»
             «writeStubs(e)»
             «IF e.^extends === null»
@@ -815,7 +822,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             @Deprecated
         «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
-            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE)»
+            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE, false, null)»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
