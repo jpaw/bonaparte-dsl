@@ -32,6 +32,7 @@ import org.eclipse.xtext.generator.IGenerator
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaEnum.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 
 /** Generator which produces xsds.
  * It is only called if XML has not been suppressed in the preferences.
@@ -43,7 +44,21 @@ class XsdBonScriptGeneratorMain implements IGenerator {
 
     val Set<PackageDefinition> requiredImports = new HashSet<PackageDefinition>()
 
-    
+    def private static computeRelativePathPrefix(PackageDefinition pkg) {
+        if (pkg.bundle === null)
+            return ""
+        val buff = new StringBuilder
+        var int n = -1;
+        val bundle = pkg.bundle
+        do {
+            val k = bundle.indexOf('.', n+1)
+            if (k >= 0)
+                buff.append("../")
+            n = k
+        } while (n >= 0)
+        return buff.toString
+    }
+
     /** Creates the filename to store a generated xsd file in. */
     def private static computeXsdFilename(PackageDefinition pkg) {
         if (pkg.bundle === null)
@@ -66,7 +81,8 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 
                 // also generate entry points for all the root elements
                 for (cls: pkg.classes) {
-                    fsa.generateFile(GENERATED_XSD_SUBFOLDER + cls.name + ".xsd", cls.writeXsdFile)
+                    if (cls.isXmlRoot)
+                        fsa.generateFile(GENERATED_XSD_SUBFOLDER + cls.name + ".xsd", cls.writeXsdFile)
                 }
             }
         }
@@ -78,10 +94,19 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             requiredImports.add(pkg)
     }
     
+    def private void addGenericArgs(ClassReference r) {
+        if (r !== null) {
+            r.classRef.addConditionally
+            r.genericsParameterRef?.extends?.addGenericArgs
+            for (arg: r.classRefGenericParms)
+                arg.addGenericArgs
+        }
+    }
+    
     def private collectXmlImports(PackageDefinition pkg) {
         for (cls : pkg.classes) {
             // import the parent class, if it exists
-            cls.extendsClass?.classRef.addConditionally
+            cls.extendsClass.addGenericArgs
             for (f: cls.fields) {
                 val dt = f.datatype
                 if (dt.elementaryDataType !== null) {
@@ -415,19 +440,10 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''«cls.package.schemaToken»:«cls.name»''' 
     }
     
-//    /** Creates all the top level element definitions. Each element corresponds to a class.
-//     * TODO: clarify if only required for the xmlRoot elements.
-//     */
-//    def public createTopLevelElements(PackageDefinition pkg) {
-//        return '''
-//            «FOR cls: pkg.classes»
-//                <xs:element name="«cls.name»" type="«pkg.schemaToken»:«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«cls.printSubstGroup»/>
-//            «ENDFOR»
-//        '''
-//    }
     
     /** Top level entry point to create the XSD file for a whole package. */
     def private writeXsdFile(PackageDefinition pkg) {
+        val prefix = pkg.computeRelativePathPrefix
         requiredImports.clear()     // clear hash for this new package output
         pkg.collectXmlImports
         requiredImports.remove(pkg) // no include for myself
@@ -444,9 +460,9 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               «ENDFOR»
               elementFormDefault="qualified">
 
-                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="../bonaparte.xsd"/>
+                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»../bonaparte.xsd"/>
                 «FOR imp: requiredImports»
-                    <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«imp.computeXsdFilename»"/>
+                    <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«prefix»«imp.computeXsdFilename»"/>
                 «ENDFOR»
                 «pkg.createEnumTypes»
                 «pkg.createXEnumTypes»
