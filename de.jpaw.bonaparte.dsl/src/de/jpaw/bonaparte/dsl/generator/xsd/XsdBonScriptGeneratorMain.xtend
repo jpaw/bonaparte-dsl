@@ -118,6 +118,9 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                     dt.objectDataType?.classRef.addConditionally
                 }
             }
+            // import any generic parameters references
+            for (p: cls.genericParameters)
+                p.extends.addGenericArgs
         }
     }
     
