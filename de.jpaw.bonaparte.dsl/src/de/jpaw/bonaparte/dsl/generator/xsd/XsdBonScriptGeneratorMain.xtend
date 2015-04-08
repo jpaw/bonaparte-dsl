@@ -50,11 +50,10 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         val buff = new StringBuilder
         var int n = -1;
         val bundle = pkg.bundle
+        // compose a sequence of at least one "../", plus an additional for every dot occuring in the bundle ID
         do {
-            val k = bundle.indexOf('.', n+1)
-            if (k >= 0)
-                buff.append("../")
-            n = k
+            buff.append("../")
+            n = bundle.indexOf('.', n+1)
         } while (n >= 0)
         return buff.toString
     }
@@ -440,6 +439,12 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''«cls.package.schemaToken»:«cls.name»''' 
     }
     
+    def private boolean inSameBundle(PackageDefinition p1, PackageDefinition p2) {
+        if (p1.bundle === null)
+            return p2.bundle === null
+        else
+            return p1.bundle == p2.bundle
+    }
     
     /** Top level entry point to create the XSD file for a whole package. */
     def private writeXsdFile(PackageDefinition pkg) {
@@ -462,7 +467,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
 
                 <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»../bonaparte.xsd"/>
                 «FOR imp: requiredImports»
-                    <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«prefix»«imp.computeXsdFilename»"/>
+                    <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«IF inSameBundle(pkg, imp)»«imp.schemaToken».xsd«ELSE»«prefix»«imp.computeXsdFilename»«ENDIF»"/>
                 «ENDFOR»
                 «pkg.createEnumTypes»
                 «pkg.createXEnumTypes»
