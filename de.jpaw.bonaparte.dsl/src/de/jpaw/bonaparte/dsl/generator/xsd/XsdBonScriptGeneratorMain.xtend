@@ -33,16 +33,19 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaEnum.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 /** Generator which produces xsds.
  * It is only called if XML has not been suppressed in the preferences.
  */
 class XsdBonScriptGeneratorMain implements IGenerator {
     public static final String GENERATED_XSD_SUBFOLDER = "resources/xsd/";      // cannot start with a slash, must end with a slash
-    //private static final boolean USE_EXTENSION = false;                         // if false, subsumption is used for inheritance, if true, extension
-    private static final boolean GENERATE_EXTENSION_FIELDS = false;               // if true, xsd:anyType fields will be generated in order to support future optional extensions (currently only possible for final fields)
+    //private static final boolean USE_EXTENSION = false;                       // if false, subsumption is used for inheritance, if true, extension
+    private static final boolean GENERATE_EXTENSION_FIELDS = false;             // if true, xsd:anyType fields will be generated in order to support future optional extensions (currently only possible for final fields)
+    private static final boolean GENERATE_XSD_BY_DEFAULT = true;                // if true, also generate xsds if the class or package does not explicitly specify it 
 
     val Set<PackageDefinition> requiredImports = new HashSet<PackageDefinition>()
+    val Set<EObject> visitedMarker = new HashSet<EObject>()
 
     def private static computeRelativePathPrefix(PackageDefinition pkg) {
         if (pkg.bundle === null)
@@ -75,7 +78,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
      */
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         for (pkg : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
-            if (pkg.xmlAccess !== null) {
+            if (pkg.xmlAccess?.x !== XXmlAccess.NONE && (GENERATE_XSD_BY_DEFAULT || pkg.xmlAccess !== null)) {
                 fsa.generateFile(GENERATED_XSD_SUBFOLDER + "lib/" + pkg.computeXsdFilename, pkg.writeXsdFile)
                 
                 // also generate entry points for all the root elements
@@ -87,6 +90,11 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }            
 
+
+    def private boolean notYetVisited(EObject e) {
+        return visitedMarker.add(e)
+    }
+    
     def private void addConditionally(EObject e) {
         val pkg = e?.package
         if (pkg !== null)
@@ -94,43 +102,48 @@ class XsdBonScriptGeneratorMain implements IGenerator {
     }
     
     def private void addGenericArgs(ClassReference r) {
-        if (r !== null) {
+        if (r !== null && r.notYetVisited) {
             r.classRef.addConditionally
-            r.genericsParameterRef?.extends?.addGenericArgs
+            val rr = r.genericsParameterRef?.extends
+            if (r != rr)        // avoid endless recursion for meta.AbstractObjectParent
+                rr?.addGenericArgs
             for (arg: r.classRefGenericParms)
                 arg.addGenericArgs
         }
     }
     
-    def private processDataType(DataType dt) {
-        if (dt.elementaryDataType !== null) {
-            val e = dt.elementaryDataType
-            e.enumType.addConditionally
-            e.xenumType.addConditionally
-            e.enumsetType.addConditionally
-            e.xenumsetType.addConditionally
-        } else if (dt.referenceDataType !== null) {
-            val r = dt.referenceDataType
-            if (r.datatype !== null) {
-                r.datatype.addConditionally
-                r.datatype.processDataType
+    def private void processDataType(DataType dt) {
+        if (dt.notYetVisited) {
+            if (dt.elementaryDataType !== null) {
+                val e = dt.elementaryDataType
+                e.enumType.addConditionally
+                e.xenumType.addConditionally
+                e.enumsetType.addConditionally
+                e.xenumsetType.addConditionally
+            } else if (dt.referenceDataType !== null) {
+                val r = dt.referenceDataType
+                if (r.datatype !== null) {
+                    r.datatype.addConditionally
+                    r.datatype.processDataType
+                }
+            } else {
+                dt.objectDataType?.classRef.addConditionally
             }
-        } else {
-            dt.objectDataType?.classRef.addConditionally
-        }    
+        }
     }
 
     def private collectXmlImports(PackageDefinition pkg) {
         for (cls : pkg.classes) {
-            // import the parent class, if it exists
-            cls.extendsClass.addGenericArgs
-            for (f: cls.fields) {
-                val dt = f.datatype
-                dt.processDataType
+            // process the class, unless visited before (should not happen at this point)
+            if (cls.notYetVisited) {
+                // import the parent class, if it exists
+                cls.extendsClass.addGenericArgs
+                for (f: cls.fields)
+                    f.datatype.processDataType
+                // import any generic parameters references
+                for (p: cls.genericParameters)
+                    p.extends.addGenericArgs
             }
-            // import any generic parameters references
-            for (p: cls.genericParameters)
-                p.extends.addGenericArgs
         }
     }
     
@@ -466,7 +479,8 @@ class XsdBonScriptGeneratorMain implements IGenerator {
     /** Top level entry point to create the XSD file for a whole package. */
     def private writeXsdFile(PackageDefinition pkg) {
         val prefix = pkg.computeRelativePathPrefix
-        requiredImports.clear()     // clear hash for this new package output
+        requiredImports.clear       // clear hash for this new package output
+        visitedMarker.clear         // clear marker for visited objects (speedup, but primarily to avoid endless recursion)
         pkg.collectXmlImports
         requiredImports.remove(pkg) // no include for myself
 //                «pkg.createTopLevelElements»
@@ -482,7 +496,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               «ENDFOR»
               elementFormDefault="qualified">
 
-                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»../bonaparte.xsd"/>
+                <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»bonaparte.xsd"/>
                 «FOR imp: requiredImports»
                     <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«IF inSameBundle(pkg, imp)»«imp.schemaToken».xsd«ELSE»«prefix»«imp.computeXsdFilename»«ENDIF»"/>
                 «ENDFOR»
