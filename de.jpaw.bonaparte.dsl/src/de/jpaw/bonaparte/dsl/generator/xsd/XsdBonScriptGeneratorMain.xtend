@@ -102,21 +102,31 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
     
+    def private processDataType(DataType dt) {
+        if (dt.elementaryDataType !== null) {
+            val e = dt.elementaryDataType
+            e.enumType.addConditionally
+            e.xenumType.addConditionally
+            e.enumsetType.addConditionally
+            e.xenumsetType.addConditionally
+        } else if (dt.referenceDataType !== null) {
+            val r = dt.referenceDataType
+            if (r.datatype !== null) {
+                r.datatype.addConditionally
+                r.datatype.processDataType
+            }
+        } else {
+            dt.objectDataType?.classRef.addConditionally
+        }    
+    }
+
     def private collectXmlImports(PackageDefinition pkg) {
         for (cls : pkg.classes) {
             // import the parent class, if it exists
             cls.extendsClass.addGenericArgs
             for (f: cls.fields) {
                 val dt = f.datatype
-                if (dt.elementaryDataType !== null) {
-                    val e = dt.elementaryDataType
-                    e.enumType.addConditionally
-                    e.xenumType.addConditionally
-                    e.enumsetType.addConditionally
-                    e.xenumsetType.addConditionally
-                } else {
-                    dt.objectDataType?.classRef.addConditionally
-                }
+                dt.processDataType
             }
             // import any generic parameters references
             for (p: cls.genericParameters)
@@ -279,7 +289,11 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         } else {
             // define upper and lower symmetric limits
             val limit = Strings.repeat("9", e.length)
-            minLimit = '''<xs:minInclusive value="-«limit»"/>'''
+
+            if (signed) {
+                minLimit = '''<xs:minInclusive value="-«limit»"/>'''
+            }
+
             maxLimit = '''<xs:maxInclusive value="«limit»"/>'''
         }
         return inElement.wrap('''
