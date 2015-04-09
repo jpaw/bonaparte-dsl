@@ -273,6 +273,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAnyElement;
             import javax.xml.bind.annotation.XmlSchemaType;
             import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+            import javax.xml.bind.annotation.XmlType;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
         «IF doExt»
@@ -307,9 +308,14 @@ class JavaBonScriptGeneratorMain implements IGenerator {
            «d.javadoc»
         «ENDIF»
 
-        «IF xmlAccess !== null && d.isIsXmlRoot && !BonScriptPreferences.getNoXML»
-            @XmlRootElement(namespace="«d.effectiveXmlNs»")
+        «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
+            «IF d.isIsXmlRoot»
+                @XmlRootElement(namespace="«d.effectiveXmlNs»")
+            «ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
+            «IF d.fields.size > 1»
+                @XmlType(propOrder={«d.fields.map['''"«name»"'''].join(', ')»})
+            «ENDIF»
         «ENDIF»
         «IF myKey !== null»
             @RelatedKey(«JavaPackages::getBonPackageName(myKey)».«myKey.name».class)
