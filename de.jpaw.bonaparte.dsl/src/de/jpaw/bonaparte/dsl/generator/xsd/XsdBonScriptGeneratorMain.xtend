@@ -101,18 +101,18 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             requiredImports.add(pkg)
     }
     
-    def private void addGenericArgs(ClassReference r) {
+    def private void collectClassRefImports(ClassReference r) {
         if (r !== null && r.notYetVisited) {
             r.classRef.addConditionally
             val rr = r.genericsParameterRef?.extends
             if (r != rr)        // avoid endless recursion for meta.AbstractObjectParent
-                rr?.addGenericArgs
+                rr?.collectClassRefImports
             for (arg: r.classRefGenericParms)
-                arg.addGenericArgs
+                arg.collectClassRefImports
         }
     }
     
-    def private void processDataType(DataType dt) {
+    def private void collectDataTypeImports(DataType dt) {
         if (dt.notYetVisited) {
             if (dt.elementaryDataType !== null) {
                 val e = dt.elementaryDataType
@@ -124,7 +124,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 val r = dt.referenceDataType
                 if (r.datatype !== null) {
                     r.datatype.addConditionally
-                    r.datatype.processDataType
+                    r.datatype.collectDataTypeImports
                 }
             } else {
                 dt.objectDataType?.classRef.addConditionally
@@ -133,16 +133,19 @@ class XsdBonScriptGeneratorMain implements IGenerator {
     }
 
     def private collectXmlImports(PackageDefinition pkg) {
+        for (td : pkg.types)
+            td.datatype?.collectDataTypeImports
+            
         for (cls : pkg.classes) {
             // process the class, unless visited before (should not happen at this point)
             if (cls.notYetVisited) {
                 // import the parent class, if it exists
-                cls.extendsClass.addGenericArgs
+                cls.extendsClass.collectClassRefImports
                 for (f: cls.fields)
-                    f.datatype.processDataType
+                    f.datatype.collectDataTypeImports
                 // import any generic parameters references
                 for (p: cls.genericParameters)
-                    p.extends.addGenericArgs
+                    p.extends.collectClassRefImports
             }
         }
     }

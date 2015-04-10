@@ -31,6 +31,7 @@ import java.util.Map
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
@@ -145,21 +146,28 @@ class JavaFieldsGettersSetters {
     '''
 
     // write the standard getter plus maybe some indexed one
-    def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName) {
+    // if getterWritten is true, then this is a subsequent call for a field which has seen a getter already.
+    // That is used to declare the getter as XmlTransient 
+    def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName, AtomicBoolean initialGetter) {
         val ref = DataTypeExtension::get(i.datatype)
+        val initialCall = initialGetter.getAndSet(false)
         return '''
             «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
-                «IF i.needsXmlObjectType»
-                    «xmlInterfaceAnnotation»
-                «ENDIF»
-                «IF ref.category == DataCategory.XENUM»
-                    «ref.elementaryDataType.xenumType.xmlAnnotation»
-                «ENDIF»
-                «IF ref.category == DataCategory.TEMPORAL»
-                    «ref.xmlTemporalAnnotation»
-                «ENDIF»
-                «IF ref.category == DataCategory.BASICNUMERIC»
-                    «ref.xmlAnnotation»
+                «IF initialCall»
+                    «IF i.needsXmlObjectType»
+                        «xmlInterfaceAnnotation»
+                    «ENDIF»
+                    «IF ref.category == DataCategory.XENUM»
+                        «ref.elementaryDataType.xenumType.xmlAnnotation»
+                    «ENDIF»
+                    «IF ref.category == DataCategory.TEMPORAL»
+                        «ref.xmlTemporalAnnotation»
+                    «ENDIF»
+                    «IF ref.category == DataCategory.BASICNUMERIC»
+                        «ref.xmlAnnotation»
+                    «ENDIF»
+                «ELSE»
+                    @XmlTransient
                 «ENDIF»
             «ENDIF»
             «i.writeIfDeprecated»
@@ -235,20 +243,28 @@ class JavaFieldsGettersSetters {
         }
     '''
 
+    // utility method to reset the flag every loop iteration
+    def private static CharSequence reset(AtomicBoolean flag) {
+        flag.set(true)
+        return null
+    }
+
     def public static writeGettersSetters(ClassDefinition d) {
         val isFreezable = d.freezable
         val doNames = d.beanNames
+        val initialGetter = new AtomicBoolean
     '''
         // auto-generated getters and setters
         «FOR i:d.fields»
-            «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
-                «i.writeOneGetter(d, "get" + i.name.toFirstUpper)»
-            «ENDIF»
+            «initialGetter.reset»
             «IF doNames == XBeanNames::ONLY_BEAN_NAMES || (doNames == XBeanNames::BEAN_AND_SIMPLE_NAMES && i.name.toFirstUpper != i.name.beanName)»
-                «i.writeOneGetter(d, "get" + i.name.beanName)»
+                «i.writeOneGetter(d, "get" + i.name.beanName, initialGetter)»
+            «ENDIF»
+            «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
+                «i.writeOneGetter(d, "get" + i.name.toFirstUpper, initialGetter)»
             «ENDIF»
             «IF i.getter !== null»
-                «i.writeOneGetter(d, i.getter)»
+                «i.writeOneGetter(d, i.getter, initialGetter)»
             «ENDIF»
             «IF !d.root.isImmutable»
                 «IF doNames != XBeanNames::ONLY_BEAN_NAMES»
