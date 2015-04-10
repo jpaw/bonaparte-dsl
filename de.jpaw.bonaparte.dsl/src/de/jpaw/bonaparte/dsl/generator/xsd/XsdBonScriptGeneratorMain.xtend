@@ -365,7 +365,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                     ''')
                 case 'number':
                     return inElement.wrap('''
-                        <xs:restriction base="xs:decimal">
+                        <xs:restriction base="xs:integer">
                             <xs:totalDigits value="«e.length»"/>
                             «IF !ref.effectiveSigned» <xs:minInclusive value="0"/>«ENDIF»
                         </xs:restriction>
