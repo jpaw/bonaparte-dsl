@@ -721,8 +721,8 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
     @Check
     def public void checkPackageDefinition(PackageDefinition p) {
-        if (p.name == "xs" || p.name == "bon")
-            error("The package IDs xs and bon are reserved", BonScriptPackage.Literals.PACKAGE_DEFINITION__NAME)
+        if (p.name == "xs" || p.name == "xsi" || p.name == "bon")
+            error("The package IDs xs, xsi and bon are reserved", BonScriptPackage.Literals.PACKAGE_DEFINITION__NAME)
             
         if (p.hazelcastFactoryId != 0) {
             val usedClassIds = new HashMap<Integer,String>(50)
