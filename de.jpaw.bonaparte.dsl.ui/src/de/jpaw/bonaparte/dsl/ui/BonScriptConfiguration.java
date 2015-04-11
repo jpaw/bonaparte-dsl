@@ -53,8 +53,8 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         validationGroup.setText("Data types and Validation");
         validationGroup.setLayout(new GridLayout(1, false));
         Composite compositeV = new Composite(validationGroup, SWT.NONE);
-        addField(new BooleanFieldEditor("WarnByte", "Warn is mutable Raw type (byte []) is used?", compositeV));
-        addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used?", compositeV));
+        addField(new BooleanFieldEditor("WarnByte", "Warn if mutable raw type (byte []) is used", compositeV));
+        addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used", compositeV));
         validationGroup.pack();
 
         // blank, to fill the second column
@@ -71,7 +71,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         outputGroup.setLayout(new GridLayout(1, false));
         Composite compositeO = new Composite(outputGroup, SWT.NONE);
         addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeO));
-        addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)?", compositeO));
+        addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
         outputGroup.pack();
 
