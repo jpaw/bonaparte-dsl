@@ -85,7 +85,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // Serialization support
         Group hazelGroup = new Group(myParent, SWT.SHADOW_IN);
         hazelGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        hazelGroup.setText("Advanced Serialization interfaces");
+        hazelGroup.setText("Advanced serialization interfaces");
         hazelGroup.setLayout(new GridLayout(1, false));
         Composite compositeH = new Composite(hazelGroup, SWT.NONE);
         addField(new BooleanFieldEditor("Externalize", "Externalizable", compositeH));
@@ -98,6 +98,23 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // blank, to fill the second column
         new Label(myParent, SWT.NONE).setText(" ");
 
+        // empty line to have some spacing (there may be a better way to do that!)
+        new Label(myParent, SWT.NONE).setText(" ");
+        new Label(myParent, SWT.NONE).setText(" ");
+
+        // Serialization support
+        Group xsdGroup = new Group(myParent, SWT.SHADOW_IN);
+        xsdGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        xsdGroup.setText("XSD creation settings");
+        xsdGroup.setLayout(new GridLayout(1, false));
+        Composite compositeXsd = new Composite(xsdGroup, SWT.NONE);
+        addField(new BooleanFieldEditor("xsdExtensions", "Add anyType element for future extensions to final classes", compositeXsd));
+        addField(new BooleanFieldEditor("xsdRootSeparateFile", "Generate separate XSD files for xml root elememts", compositeXsd));
+        addField(new BooleanFieldEditor("xsdBundleSubfolders", "Use separate folders per bundle", compositeXsd));
+        xsdGroup.pack();
+
+        // blank, to fill the second column
+        new Label(myParent, SWT.NONE).setText(" ");
     }
 
     @Override
@@ -105,27 +122,34 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // setPreferenceStore(BDDLActivator.getInstance().getPreferenceStore());
         BonScriptPreferences defaults = new BonScriptPreferences();
         IPreferenceStore store = getPreferenceStore();
-        store.setDefault("WarnByte", defaults.warnByte);
-        store.setDefault("WarnFloat", defaults.warnFloat);
-        store.setDefault("DebugOut", defaults.doDebugOut);
-        store.setDefault("DateTime", defaults.doDateTime);
-        store.setDefault("XMLOut",   defaults.noXML);
-        store.setDefault("Externalize", defaults.defaultExternalize);
-        store.setDefault("HazelcastDs", defaults.defaultHazelcastDs);
-        store.setDefault("HazelcastId", defaults.defaultHazelcastId);
-        store.setDefault("HazelcastPo", defaults.defaultHazelcastPo);
-        store.setDefault("FactoryId", defaults.defaulthazelcastFactoryId);
+        store.setDefault("WarnByte",            defaults.warnByte);
+        store.setDefault("WarnFloat",           defaults.warnFloat);
+        store.setDefault("DebugOut",            defaults.doDebugOut);
+        store.setDefault("DateTime",            defaults.doDateTime);
+        store.setDefault("XMLOut",              defaults.noXML);
+        store.setDefault("Externalize",         defaults.defaultExternalize);
+        store.setDefault("HazelcastDs",         defaults.defaultHazelcastDs);
+        store.setDefault("HazelcastId",         defaults.defaultHazelcastId);
+        store.setDefault("HazelcastPo",         defaults.defaultHazelcastPo);
+        store.setDefault("FactoryId",           defaults.defaulthazelcastFactoryId);
+        store.setDefault("xsdExtensions",       defaults.xsdExtensions);
+        store.setDefault("xsdRootSeparateFile", defaults.xsdRootSeparateFile);
+        store.setDefault("xsdBundleSubfolders", defaults.xsdBundleSubfolders);
+        
         BonScriptPreferences currentSettings = new BonScriptPreferences();
-        currentSettings.warnByte           = store.getBoolean("WarnByte");
-        currentSettings.warnFloat          = store.getBoolean("WarnFloat");
-        currentSettings.doDebugOut         = store.getBoolean("DebugOut");
-        currentSettings.doDateTime         = store.getBoolean("DateTime");
-        currentSettings.noXML              = store.getBoolean("XMLOut");
-        currentSettings.defaultExternalize = store.getBoolean("Externalize");
-        currentSettings.defaultHazelcastDs = store.getBoolean("HazelcastDs");
-        currentSettings.defaultHazelcastId = store.getBoolean("HazelcastId");
-        currentSettings.defaultHazelcastPo = store.getBoolean("HazelcastPo");
-        currentSettings.defaulthazelcastFactoryId = store.getInt("FactoryId");
+        currentSettings.warnByte                    = store.getBoolean("WarnByte");
+        currentSettings.warnFloat                   = store.getBoolean("WarnFloat");
+        currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
+        currentSettings.doDateTime                  = store.getBoolean("DateTime");
+        currentSettings.noXML                       = store.getBoolean("XMLOut");
+        currentSettings.defaultExternalize          = store.getBoolean("Externalize");
+        currentSettings.defaultHazelcastDs          = store.getBoolean("HazelcastDs");
+        currentSettings.defaultHazelcastId          = store.getBoolean("HazelcastId");
+        currentSettings.defaultHazelcastPo          = store.getBoolean("HazelcastPo");
+        currentSettings.defaulthazelcastFactoryId   = store.getInt("FactoryId");
+        currentSettings.xsdExtensions               = store.getBoolean("xsdExtensions");
+        currentSettings.xsdRootSeparateFile         = store.getBoolean("xsdRootSeparateFile");
+        currentSettings.xsdBundleSubfolders         = store.getBoolean("xsdBundleSubfolders");
         BonScriptPreferences.currentPrefs  = currentSettings;
 
         store.addPropertyChangeListener(new IPropertyChangeListener() {
@@ -133,34 +157,43 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                 public void propertyChange(PropertyChangeEvent event) {
                   switch (event.getProperty()) {
                   case "WarnByte":
-                      BonScriptPreferences.currentPrefs.warnByte = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.warnByte            = toBool(event.getNewValue());
                       break;
                   case "WarnFloat":
-                      BonScriptPreferences.currentPrefs.warnFloat = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.warnFloat           = toBool(event.getNewValue());
                       break;
                   case "DebugOut":
-                      BonScriptPreferences.currentPrefs.doDebugOut = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.doDebugOut          = toBool(event.getNewValue());
                       break;
                   case "XMLOut":
-                      BonScriptPreferences.currentPrefs.noXML = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.noXML               = toBool(event.getNewValue());
                       break;
                   case "DateTime":
-                      BonScriptPreferences.currentPrefs.doDateTime = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.doDateTime          = toBool(event.getNewValue());
                       break;
                   case "Externalize":
-                      BonScriptPreferences.currentPrefs.defaultExternalize = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.defaultExternalize  = toBool(event.getNewValue());
                       break;
                   case "HazelcastDs":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastDs = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.defaultHazelcastDs  = toBool(event.getNewValue());
                       break;
                   case "HazelcastId":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastId = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.defaultHazelcastId  = toBool(event.getNewValue());
                       break;
                   case "HazelcastPo":
-                      BonScriptPreferences.currentPrefs.defaultHazelcastPo = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.defaultHazelcastPo  = toBool(event.getNewValue());
                       break;
                   case "FactoryId":
                       BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId = toInt(event.getNewValue());
+                      break;
+                  case "xsdExtensions":
+                      BonScriptPreferences.currentPrefs.xsdExtensions       = toBool(event.getNewValue());
+                      break;
+                  case "xsdRootSeparateFile":
+                      BonScriptPreferences.currentPrefs.xsdRootSeparateFile = toBool(event.getNewValue());
+                      break;
+                  case "xsdBundleSubfolders":
+                      BonScriptPreferences.currentPrefs.xsdBundleSubfolders = toBool(event.getNewValue());
                       break;
                   }
                 }

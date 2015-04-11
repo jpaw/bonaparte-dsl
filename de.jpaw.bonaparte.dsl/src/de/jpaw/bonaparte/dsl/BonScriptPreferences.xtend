@@ -47,16 +47,24 @@ public class BonScriptPreferences {
     static private final boolean defaultHazelcastPoDefault = configReader.getProp("HazelcastPo", false);
     static private final int defaulthazelcastFactoryIdDefault = configReader.getProp("FactoryId", 26);
 
-    public boolean warnByte = warnByteDefault;
-    public boolean warnFloat = warnFloatDefault;
-    public boolean doDebugOut = doDebugOutDefault;
-    public boolean doDateTime = doDateTimeDefault;
-    public boolean noXML = noXmlDefault;
-    public boolean defaultExternalize = defaultExternalizeDefault;
-    public boolean defaultHazelcastDs = defaultHazelcastDsDefault;
-    public boolean defaultHazelcastId = defaultHazelcastIdDefault;
-    public boolean defaultHazelcastPo = defaultHazelcastPoDefault;
-    public int defaulthazelcastFactoryId = defaulthazelcastFactoryIdDefault;
+    static private final boolean defaultXsdExtensions       = configReader.getProp("xsdExtensions", false);
+    static private final boolean defaultXsdRootSeparateFile = configReader.getProp("xsdRootSeparateFile", true);
+    static private final boolean defaultXsdBundleSubfolders = configReader.getProp("xsdBundleSubfolders", false);
+
+    public boolean warnByte                 = warnByteDefault;
+    public boolean warnFloat                = warnFloatDefault;
+    public boolean doDebugOut               = doDebugOutDefault;
+    public boolean doDateTime               = doDateTimeDefault;
+    public boolean noXML                    = noXmlDefault;
+    public boolean defaultExternalize       = defaultExternalizeDefault;
+    public boolean defaultHazelcastDs       = defaultHazelcastDsDefault;
+    public boolean defaultHazelcastId       = defaultHazelcastIdDefault;
+    public boolean defaultHazelcastPo       = defaultHazelcastPoDefault;
+    public int defaulthazelcastFactoryId    = defaulthazelcastFactoryIdDefault;
+    
+    public boolean xsdExtensions            = defaultXsdExtensions;
+    public boolean xsdRootSeparateFile      = defaultXsdRootSeparateFile;
+    public boolean xsdBundleSubfolders      = defaultXsdBundleSubfolders;
 
     public static BonScriptPreferences currentPrefs = new BonScriptPreferences
 
