@@ -50,7 +50,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // Validation
         Group validationGroup = new Group(myParent, SWT.SHADOW_IN);
         validationGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        validationGroup.setText("Data types and Validation");
+        validationGroup.setText("Data types and validation");
         validationGroup.setLayout(new GridLayout(1, false));
         Composite compositeV = new Composite(validationGroup, SWT.NONE);
         addField(new BooleanFieldEditor("WarnByte", "Warn if mutable raw type (byte []) is used", compositeV));

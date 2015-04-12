@@ -87,12 +87,15 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         SUBFOLDERS_FOR_BUNDLES      = prefs.xsdBundleSubfolders
         GENERATE_EXTENSION_FIELDS   = prefs.xsdExtensions
         
-        val uniquePackageCheck = new HashSet<String>()
+        // package check commented out. For one file, it's already done by the NamesAreUnique fragment,
+        // across files, multiple invocations of the XsdBonScriptGeneratorMain are done
+        // and doing it using a static set could cause issues when creation is invoked multiple times in interactive (Eclipse UI) mode.  
+//        val uniquePackageCheck = new HashSet<String>()
         
         for (pkg : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             if (pkg.xmlAccess?.x !== XXmlAccess.NONE && (GENERATE_XSD_BY_DEFAULT || pkg.xmlAccess !== null)) {
-                if (!uniquePackageCheck.add(pkg.name))
-                    throw new Exception('''Project contains multiple packages of name «pkg.name», XSD prefix clash''')
+//                if (!uniquePackageCheck.add(pkg.name))
+//                    throw new Exception('''Project contains multiple packages of name «pkg.name», XSD prefix clash''')
                 fsa.generateFile(GENERATED_XSD_SUBFOLDER + "lib/" + pkg.computeXsdFilename, pkg.writeXsdFile)
                 
                 // also generate entry points for all the root elements
