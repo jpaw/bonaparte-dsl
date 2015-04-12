@@ -108,9 +108,10 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         xsdGroup.setText("XSD creation settings");
         xsdGroup.setLayout(new GridLayout(1, false));
         Composite compositeXsd = new Composite(xsdGroup, SWT.NONE);
-        addField(new BooleanFieldEditor("xsdExtensions", "Add anyType element for future extensions to final classes", compositeXsd));
-        addField(new BooleanFieldEditor("xsdRootSeparateFile", "Generate separate XSD files for xml root elememts", compositeXsd));
-        addField(new BooleanFieldEditor("xsdBundleSubfolders", "Use separate folders per bundle", compositeXsd));
+        addField(new BooleanFieldEditor("xsdDefault",           "Generate XSD files also if no explicit XML directive set", compositeXsd));
+        addField(new BooleanFieldEditor("xsdRootSeparateFile",  "Generate separate XSD files for xml root elememts", compositeXsd));
+        addField(new BooleanFieldEditor("xsdBundleSubfolders",  "Use separate folders per bundle", compositeXsd));
+        addField(new BooleanFieldEditor("xsdExtensions",        "Add anyType element for future extensions to final classes", compositeXsd));
         xsdGroup.pack();
 
         // blank, to fill the second column
@@ -132,9 +133,10 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("HazelcastId",         defaults.defaultHazelcastId);
         store.setDefault("HazelcastPo",         defaults.defaultHazelcastPo);
         store.setDefault("FactoryId",           defaults.defaulthazelcastFactoryId);
-        store.setDefault("xsdExtensions",       defaults.xsdExtensions);
+        store.setDefault("xsdDefault",          defaults.xsdDefault);
         store.setDefault("xsdRootSeparateFile", defaults.xsdRootSeparateFile);
         store.setDefault("xsdBundleSubfolders", defaults.xsdBundleSubfolders);
+        store.setDefault("xsdExtensions",       defaults.xsdExtensions);
         
         BonScriptPreferences currentSettings = new BonScriptPreferences();
         currentSettings.warnByte                    = store.getBoolean("WarnByte");
@@ -147,9 +149,10 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.defaultHazelcastId          = store.getBoolean("HazelcastId");
         currentSettings.defaultHazelcastPo          = store.getBoolean("HazelcastPo");
         currentSettings.defaulthazelcastFactoryId   = store.getInt("FactoryId");
-        currentSettings.xsdExtensions               = store.getBoolean("xsdExtensions");
+        currentSettings.xsdDefault                  = store.getBoolean("xsdDefault");
         currentSettings.xsdRootSeparateFile         = store.getBoolean("xsdRootSeparateFile");
         currentSettings.xsdBundleSubfolders         = store.getBoolean("xsdBundleSubfolders");
+        currentSettings.xsdExtensions               = store.getBoolean("xsdExtensions");
         BonScriptPreferences.currentPrefs  = currentSettings;
 
         store.addPropertyChangeListener(new IPropertyChangeListener() {
@@ -186,14 +189,17 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                   case "FactoryId":
                       BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId = toInt(event.getNewValue());
                       break;
-                  case "xsdExtensions":
-                      BonScriptPreferences.currentPrefs.xsdExtensions       = toBool(event.getNewValue());
+                  case "xsdDefault":
+                      BonScriptPreferences.currentPrefs.xsdDefault          = toBool(event.getNewValue());
                       break;
                   case "xsdRootSeparateFile":
                       BonScriptPreferences.currentPrefs.xsdRootSeparateFile = toBool(event.getNewValue());
                       break;
                   case "xsdBundleSubfolders":
                       BonScriptPreferences.currentPrefs.xsdBundleSubfolders = toBool(event.getNewValue());
+                      break;
+                  case "xsdExtensions":
+                      BonScriptPreferences.currentPrefs.xsdExtensions       = toBool(event.getNewValue());
                       break;
                   }
                 }

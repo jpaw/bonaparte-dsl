@@ -177,7 +177,7 @@ ClassDefinition:
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
     ('XML' xmlAccess = XmlAccess)?                      // set @XmlAccess annotation
-    (isXmlRoot?='xmlRoot' ('=' xmlListName=ID)?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
+    (isXmlRoot?='xmlRoot' ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
     (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added
     (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated

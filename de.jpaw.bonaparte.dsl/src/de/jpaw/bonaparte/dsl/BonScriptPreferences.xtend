@@ -36,20 +36,21 @@ public class ConfigReader {
 
 public class BonScriptPreferences {
     static private final ConfigReader configReader = new ConfigReader("bonaparte")
-    static private final boolean warnByteDefault = configReader.getProp("WarnByte", true);
-    static private final boolean warnFloatDefault = configReader.getProp("WarnFloat", false);
-    static private final boolean doDebugOutDefault = configReader.getProp("DebugOut", false);
-    static private final boolean doDateTimeDefault = configReader.getProp("DateTime", false);
-    static private final boolean noXmlDefault = configReader.getProp("noXML", false);
-    static private final boolean defaultExternalizeDefault = configReader.getProp("Externalize", false);
-    static private final boolean defaultHazelcastDsDefault = configReader.getProp("HazelcastDs", false);
-    static private final boolean defaultHazelcastIdDefault = configReader.getProp("HazelcastId", false);
-    static private final boolean defaultHazelcastPoDefault = configReader.getProp("HazelcastPo", false);
-    static private final int defaulthazelcastFactoryIdDefault = configReader.getProp("FactoryId", 26);
+    static private final boolean warnByteDefault                = configReader.getProp("WarnByte", true);
+    static private final boolean warnFloatDefault               = configReader.getProp("WarnFloat", false);
+    static private final boolean doDebugOutDefault              = configReader.getProp("DebugOut", false);
+    static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", false);
+    static private final boolean noXmlDefault                   = configReader.getProp("noXML", false);
+    static private final boolean defaultExternalizeDefault      = configReader.getProp("Externalize", false);
+    static private final boolean defaultHazelcastDsDefault      = configReader.getProp("HazelcastDs", false);
+    static private final boolean defaultHazelcastIdDefault      = configReader.getProp("HazelcastId", false);
+    static private final boolean defaultHazelcastPoDefault      = configReader.getProp("HazelcastPo", false);
+    static private final int defaulthazelcastFactoryIdDefault   = configReader.getProp("FactoryId", 26);
 
-    static private final boolean defaultXsdExtensions       = configReader.getProp("xsdExtensions", false);
-    static private final boolean defaultXsdRootSeparateFile = configReader.getProp("xsdRootSeparateFile", true);
-    static private final boolean defaultXsdBundleSubfolders = configReader.getProp("xsdBundleSubfolders", false);
+    static private final boolean defaultXsdDefault              = configReader.getProp("xsdDefault", true);
+    static private final boolean defaultXsdRootSeparateFile     = configReader.getProp("xsdRootSeparateFile", true);
+    static private final boolean defaultXsdBundleSubfolders     = configReader.getProp("xsdBundleSubfolders", false);
+    static private final boolean defaultXsdExtensions           = configReader.getProp("xsdExtensions", false);
 
     public boolean warnByte                 = warnByteDefault;
     public boolean warnFloat                = warnFloatDefault;
@@ -62,9 +63,10 @@ public class BonScriptPreferences {
     public boolean defaultHazelcastPo       = defaultHazelcastPoDefault;
     public int defaulthazelcastFactoryId    = defaulthazelcastFactoryIdDefault;
     
-    public boolean xsdExtensions            = defaultXsdExtensions;
+    public boolean xsdDefault               = defaultXsdDefault;
     public boolean xsdRootSeparateFile      = defaultXsdRootSeparateFile;
     public boolean xsdBundleSubfolders      = defaultXsdBundleSubfolders;
+    public boolean xsdExtensions            = defaultXsdExtensions;
 
     public static BonScriptPreferences currentPrefs = new BonScriptPreferences
 
