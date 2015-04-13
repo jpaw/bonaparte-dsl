@@ -537,7 +537,6 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             «GENERATED_COMMENT»
             <xs:schema targetNamespace="«pkg.effectiveXmlNs»"
               xmlns:xs="http://www.w3.org/2001/XMLSchema"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns:bon="http://www.jpaw.de/schema/bonaparte.xsd"
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
               «FOR imp: requiredImports»
@@ -547,7 +546,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
 
                 <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»bonaparte.xsd"/>
                 «FOR imp: requiredImports»
-                    <xs:import namespace="«imp.effectiveXmlNs»" xsi:schemaLocation="«IF inSameBundle(pkg, imp)»«imp.schemaToken».xsd«ELSE»«prefix»«imp.computeXsdFilename»«ENDIF»"/>
+                    <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«IF inSameBundle(pkg, imp)»«imp.schemaToken».xsd«ELSE»«prefix»«imp.computeXsdFilename»«ENDIF»"/>
                 «ENDFOR»
                 «IF !ROOT_ELEMENTS_SEPARATE»
                     «pkg.createTopLevelElements»
@@ -569,11 +568,10 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             <?xml version="1.0" encoding="UTF-8"?>
             «GENERATED_COMMENT»
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
-              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
               elementFormDefault="qualified">
 
-                <xs:import namespace="«pkg.effectiveXmlNs»" xsi:schemaLocation="lib/«pkg.computeXsdFilename»"/>
+                <xs:import namespace="«pkg.effectiveXmlNs»" schemaLocation="lib/«pkg.computeXsdFilename»"/>
 
                 «cls.topLevelElement(pkg)»
             </xs:schema>
