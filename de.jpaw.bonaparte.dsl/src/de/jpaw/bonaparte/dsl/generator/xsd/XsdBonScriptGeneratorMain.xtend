@@ -560,6 +560,12 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             </xs:schema>
         '''           
     }
+
+    /** Computes the full URL for the schema. */
+    def private static effectiveMainXmlNs(EObject d) {
+        val pkg = d.package
+        return '''http://«IF pkg.prefix !== null»«pkg.prefix.reverseIDs»«ELSE»www.jpaw.de«ENDIF»/schema/main.xsd'''
+    }
     
     /** Top level entry point to create the XSD file for a root element. */
     def private writeXsdFile(ClassDefinition cls) {
@@ -567,7 +573,8 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''
             <?xml version="1.0" encoding="UTF-8"?>
             «GENERATED_COMMENT»
-            <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            <xs:schema targetNamespace="«pkg.effectiveMainXmlNs»"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema"
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
               elementFormDefault="qualified">
 
