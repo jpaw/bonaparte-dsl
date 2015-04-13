@@ -101,6 +101,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
+                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.QUALIFIED,
+                        xmlns = { @XmlNs(prefix="«d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
+                    )  
+
                     @XmlJavaTypeAdapters({
                         «IF needJoda»
                             @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
@@ -115,6 +119,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     package «getBonPackageName(d)»;
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
 
+                        import javax.xml.bind.annotation.XmlSchema;
+                        import javax.xml.bind.annotation.XmlNs;
+                        import javax.xml.bind.annotation.XmlNsForm;
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                         import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
                         import de.jpaw.util.ByteArray;
@@ -310,7 +317,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
         «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
             «IF d.isIsXmlRoot»
-                @XmlRootElement(namespace="«d.effectiveXmlNs»")
+                @XmlRootElement
             «ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
             «IF d.fields.size > 1»
