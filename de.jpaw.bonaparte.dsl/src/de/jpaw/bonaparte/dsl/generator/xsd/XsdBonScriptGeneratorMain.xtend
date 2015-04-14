@@ -571,7 +571,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
               elementFormDefault="qualified">
 
-                <xs:include namespace="«pkg.effectiveXmlNs»" schemaLocation="lib/«pkg.computeXsdFilename»"/>
+                <xs:include schemaLocation="lib/«pkg.computeXsdFilename»"/>
 
                 «cls.topLevelElement(pkg)»
             </xs:schema>

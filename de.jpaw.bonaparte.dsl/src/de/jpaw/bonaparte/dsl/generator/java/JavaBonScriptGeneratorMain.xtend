@@ -321,7 +321,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
             «IF d.fields.size > 1»
-                @XmlType(propOrder={«d.fields.map['''"«name»"'''].join(', ')»})
+                @XmlType(name="«d.name»", propOrder={«d.fields.map['''"«name»"'''].join(', ')»})
+            «ELSE»
+                @XmlType(name="«d.name»")
             «ENDIF»
         «ENDIF»
         «IF myKey !== null»
