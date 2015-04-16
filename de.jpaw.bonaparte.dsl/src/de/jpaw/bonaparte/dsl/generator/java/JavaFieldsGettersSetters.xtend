@@ -41,6 +41,7 @@ class JavaFieldsGettersSetters {
         put("int", "Integer")
         put("integer", "Integer")
         put("long", "Long")
+        put("bigDecimal", "Decimal")
     ]
 
     def private static xmlAnnotation(XEnumDefinition d) '''
@@ -122,7 +123,7 @@ class JavaFieldsGettersSetters {
                 «IF ref.category == DataCategory.TEMPORAL»
                     «ref.xmlTemporalAnnotation»
                 «ENDIF»
-                «IF ref.category == DataCategory.BASICNUMERIC»
+                «IF ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC»
                     «ref.xmlAnnotation»
                 «ENDIF»
             «ENDIF»
@@ -163,7 +164,7 @@ class JavaFieldsGettersSetters {
                     «IF ref.category == DataCategory.TEMPORAL»
                         «ref.xmlTemporalAnnotation»
                     «ENDIF»
-                    «IF ref.category == DataCategory.BASICNUMERIC»
+                    «IF ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC»
                         «ref.xmlAnnotation»
                     «ENDIF»
                 «ELSE»
