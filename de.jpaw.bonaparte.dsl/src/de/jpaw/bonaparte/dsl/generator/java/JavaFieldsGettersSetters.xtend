@@ -123,7 +123,11 @@ class JavaFieldsGettersSetters {
                 «IF ref.category == DataCategory.TEMPORAL»
                     «ref.xmlTemporalAnnotation»
                 «ENDIF»
-                «IF ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC»
+
+                // TODO: for map, seems to be causing issue at the moment because of the non-matching type
+                // probably create all classes with all possibilities is good/not good option
+                // temporarily skipping in case of map since its not really used at the moment
+                «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
                     «ref.xmlAnnotation»
                 «ENDIF»
             «ENDIF»
@@ -164,7 +168,7 @@ class JavaFieldsGettersSetters {
                     «IF ref.category == DataCategory.TEMPORAL»
                         «ref.xmlTemporalAnnotation»
                     «ENDIF»
-                    «IF ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC»
+                    «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
                         «ref.xmlAnnotation»
                     «ENDIF»
                 «ELSE»
