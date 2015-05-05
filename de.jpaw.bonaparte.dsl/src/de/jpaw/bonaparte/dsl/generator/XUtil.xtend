@@ -607,4 +607,16 @@ class XUtil {
     def public static String recurseKeyW(ClassDefinition d) {
         return d.keyWFunction ?: d?.extendsClass?.classRef?.recurseKeyW
     }
+    /** returns true if the class is not abstract and itself or one of its parent classes has been declared as xmlRoot. */
+    def public static boolean effectiveXmlRoot(ClassDefinition d) {
+        var dd = d
+        if (d.isAbstract)
+            return false
+        while (dd !== null) {
+            if (dd.isIsXmlRoot)
+                return true
+            dd = dd.parent
+        }
+        return false
+    }
 }
