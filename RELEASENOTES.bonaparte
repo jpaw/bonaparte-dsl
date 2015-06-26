@@ -334,6 +334,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.5.1:
 - replace the deprecated generator fragment in bonaparte.dsl and bonaparte.jpa.dsl, genmodel is now generated to model/generated instead of somewhere beneath src-gen
 
+3.5.2:
+- some xsd creation fixes & improvements
+
+3.5.3:
+- no changes, apart from dependency updates: xtext to 2.8.3, Eclipse to Mars, introduce vertx.3
 
 
 

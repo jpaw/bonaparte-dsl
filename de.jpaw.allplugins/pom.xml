@@ -148,15 +148,17 @@
     </pluginRepositories>
 
     <repositories>
+    <!-- not required any more with xtext 2.8.3 / Eclipse Mars
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
             <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases</url>
         </repository>
+         -->
         <repository>
-            <id>p2-luna</id>
+            <id>p2-mars</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/luna</url>
+            <url>http://download.eclipse.org/releases/mars</url>
         </repository>
     </repositories>
 
