@@ -38,6 +38,7 @@ import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 
 import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOut.*
+import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOutOracle.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
@@ -78,7 +79,11 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
         // enum mapping functions
         for (e : enumsRequired) {
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), postgresEnumFuncs(e))
+            if (prefs.doPostgresOut)
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), postgresEnumFuncs(e))
+            if (prefs.doOracleOut)
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   e.name, "Function"), oracleEnumFuncs(e))
+            // TODO: HANA + MS SQL
         }
     }
 
