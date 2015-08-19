@@ -26,15 +26,16 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*;
 
 class BDDLValidator extends AbstractBDDLValidator {
-    private boolean infoDone = false
+    private boolean infoDoneTablenames = false
+    private boolean infoDoneColumnNames = false
 
     def private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
         // DEBUG, as this does not seem to work!
-        if (!infoDone) {
+        if (!infoDoneTablenames) {
             // log on the console once we do some initial check to be able to verify that the validator is active!
-            infoDone = true
-            System.out.println("Checking table name " + s + " of length " + s.length() + " against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
+            infoDoneTablenames = true
+            System.out.println("Checking table names against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
         }
         if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
             error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
@@ -42,10 +43,15 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     def private void checkFieldnameLength(String s, EStructuralFeature where) {
-        // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
-        if (s.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
-            error("The field name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength + " characters and will not work for some database brands",
-                where);
+        val sqlName = s.java2sql  // convert camelCase to sql_naming
+        if (!infoDoneColumnNames) {
+            // log on the console once we do some initial check to be able to verify that the validator is active!
+            infoDoneColumnNames = true
+            System.out.println("Checking column names against configured limit of " + BDDLPreferences.currentPrefs.maxFieldnameLength);
+        }
+        if (sqlName.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
+            error("The field name " + s + " is in SQL " + sqlName + ", which exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength
+                 + " characters and will not work for some database brands", where);
     }
 
     // check the length of all fields in the referenced class as well as classes inherited from
@@ -299,11 +305,14 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
 
         if (e.getTenantClass() !== null) {
-            checkClassForReservedColumnNames(e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
-            checkClassForColumnLengths      (e.getTenantClass(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
+            checkClassForReservedColumnNames(e.tenantClass, BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
+            checkClassForColumnLengths      (e.tenantClass, BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
         }
-        checkClassForReservedColumnNames(e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
-        checkClassForColumnLengths      (e.getPojoType(), BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
+        // check pojo type and all parents recursively
+        for (var ptp = e.pojoType; ptp !== null; ptp = ptp.extendsClass?.classRef) {
+            checkClassForReservedColumnNames(ptp, BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
+            checkClassForColumnLengths      (ptp, BDDLPackage.Literals.ENTITY_DEFINITION__POJO_TYPE);
+        }
 
         // for PK pojo, all columns must exist
         if (e.getPkPojo() !== null) {
