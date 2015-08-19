@@ -40,6 +40,7 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists
+import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 
 class XUtil {
     private static Logger logger = Logger.getLogger(XUtil)
@@ -618,5 +619,12 @@ class XUtil {
             dd = dd.parent
         }
         return false
+    }
+    
+    def public static generateAnnotation(PropertyUse it) {
+        return '''@«key.annotationReference.qualifiedName»«IF value !== null»(«IF key.withMultiArgs»«value»«ELSE»"«value.escapeString2Java»"«ENDIF»)«ENDIF»'''
+    }
+    def public static generateAllAnnotations(List<PropertyUse> it) {
+        return filter[key.annotationReference !== null].map[generateAnnotation].join('\n')
     }
 }

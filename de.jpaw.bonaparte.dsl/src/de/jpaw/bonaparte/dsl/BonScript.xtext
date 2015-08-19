@@ -148,7 +148,7 @@ PackageDefinition:
 ;
 
 PropertyDefinition:
-    name = ID ('is' annotationReference=[jvmTypes::JvmAnnotationType|QualifiedId] (withArg ?= '(' ')')? )?
+    name = ID ('is' annotationReference=[jvmTypes::JvmAnnotationType|QualifiedId] ((withArg ?= '(' ')') | (withMultiArgs ?= '[' ']'))?)?
 ;
 
 PropertyUse:

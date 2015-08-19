@@ -99,10 +99,6 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
 
-    def private static writeAnnotationProperties(FieldDefinition i, ClassDefinition d) {
-        i.properties.filter[key.annotationReference !== null].map['''@«key.annotationReference.qualifiedName»«IF value !== null»("«value.escapeString2Java»")«ENDIF»'''].join('\n')
-    }
-
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
@@ -112,7 +108,7 @@ class JavaFieldsGettersSetters {
         return '''
             «i.writeFieldComments»
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
-            «i.writeAnnotationProperties(d)»
+            «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
                 «IF i.needsXmlObjectType»
                     «xmlInterfaceAnnotation»

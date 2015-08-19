@@ -489,14 +489,12 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     def public void checkPropertyUse(PropertyUse pu) {
         if (pu.getKey().annotationReference === null)
             return; // no check for standard properties
-        if (pu.getKey().isWithArg()) {
+        if (pu.getKey().isWithArg() || pu.getKey().isWithMultiArgs()) {
             if (pu.getValue() === null)
-                error("the property " + pu.getKey().getName() + " has been defined to require a value",
-                        BonScriptPackage.Literals.PROPERTY_USE__KEY);
+                error("the property " + pu.getKey().getName() + " has been defined to require a value",    BonScriptPackage.Literals.PROPERTY_USE__KEY);
         } else {
             if (pu.getValue() !== null)
-                error("the property " + pu.getKey().getName() + " has been defined to not accept a value",
-                        BonScriptPackage.Literals.PROPERTY_USE__VALUE);
+                error("the property " + pu.getKey().getName() + " has been defined to not accept a value", BonScriptPackage.Literals.PROPERTY_USE__VALUE);
         }
     }
 
