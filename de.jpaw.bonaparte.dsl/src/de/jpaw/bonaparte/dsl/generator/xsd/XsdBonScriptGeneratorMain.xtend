@@ -532,6 +532,8 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         pkg.collectXmlImports
         requiredImports.remove(pkg) // no include for myself
         
+        val sortedImports = requiredImports.sortBy[schemaToken]     // need a reliable ordering, because XSDs generation should provide predictable results
+        
         return '''
             <?xml version="1.0" encoding="UTF-8"?>
             «GENERATED_COMMENT»
@@ -539,13 +541,13 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               xmlns:xs="http://www.w3.org/2001/XMLSchema"
               xmlns:bon="http://www.jpaw.de/schema/bonaparte.xsd"
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
-              «FOR imp: requiredImports»
+              «FOR imp: sortedImports»
                 xmlns:«imp.schemaToken»="«imp.effectiveXmlNs»"
               «ENDFOR»
               elementFormDefault="qualified">
 
                 <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»bonaparte.xsd"/>
-                «FOR imp: requiredImports»
+                «FOR imp: sortedImports»
                     <xs:import namespace="«imp.effectiveXmlNs»" schemaLocation="«IF inSameBundle(pkg, imp)»«imp.schemaToken».xsd«ELSE»«prefix»«imp.computeXsdFilename»«ENDIF»"/>
                 «ENDFOR»
                 «IF !ROOT_ELEMENTS_SEPARATE»

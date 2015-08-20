@@ -340,6 +340,11 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.5.3:
 - no changes, apart from dependency updates: xtext to 2.8.3, Eclipse to Mars, introduce vertx.3
 
+3.5.4:
+- BON: provide predictable ordering of mports / ns definition in XSDs
+- BON: allow to define properties which generate annotations with multiple parameters or non-string type parameters (using [] instead of ())
+- BDDL: generate functions enums / strings for Oracle PL/SQL
+- BDDL: bugfix: check for maximum allowed field name length was not working, fixed now
 
 
 ROADMAP / PLANS:
