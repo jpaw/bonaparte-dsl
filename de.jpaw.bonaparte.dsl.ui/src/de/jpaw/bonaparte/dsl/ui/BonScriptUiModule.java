@@ -4,12 +4,12 @@
 package de.jpaw.bonaparte.dsl.ui;
 
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.xtext.common.types.xtext.AbstractTypeScopeProvider;
-import org.eclipse.xtext.common.types.xtext.ui.JdtBasedSimpleTypeScopeProvider;
+//import org.eclipse.xtext.common.types.xtext.AbstractTypeScopeProvider;
+//import org.eclipse.xtext.common.types.xtext.ui.JdtBasedSimpleTypeScopeProvider;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper;
 import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration;
 
-import de.jpaw.bonaparte.dsl.ui.scoping.BonaparteGlobalScopeProvider;
+import de.jpaw.bonaparte.dsl.ui.scoping.BonaparteGlobalScopeProvider;   
 //import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractTokenScanner;
 
 /**
@@ -40,4 +40,11 @@ public class BonScriptUiModule extends de.jpaw.bonaparte.dsl.ui.AbstractBonScrip
     public Class<? extends org.eclipse.xtext.scoping.IGlobalScopeProvider> bindIGlobalScopeProvider() {
         return BonaparteGlobalScopeProvider.class;
     }
+    
+    // repeat it here because the src-gen code is recreated
+    // contributed by org.eclipse.xtext.ui.generator.projectWizard.SimpleProjectWizardFragment
+    public Class<? extends org.eclipse.xtext.ui.wizard.IProjectCreator> bindIProjectCreator() {
+        return de.jpaw.bonaparte.dsl.ui.wizard.BonScriptProjectCreator.class;
+    }
+
 }

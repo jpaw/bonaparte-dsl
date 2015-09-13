@@ -8,8 +8,11 @@ import org.eclipse.swt.layout.GridData
 import org.eclipse.swt.layout.GridLayout
 import org.eclipse.swt.widgets.Label
 import org.eclipse.swt.widgets.Text
+import org.eclipse.jface.viewers.IStructuredSelection
 
 class WizardNewBonScriptProjectCreationPage extends WizardNewProjectCreationPage {
+    private final IStructuredSelection selection;
+    
     public val useMaven = true
     public var String jpawParentVersion
     public var String xtendVersion
@@ -17,9 +20,11 @@ class WizardNewBonScriptProjectCreationPage extends WizardNewProjectCreationPage
     public var boolean useXtend
     public var boolean useJpawParent
     
-    new(String pageName) {
+    new(String pageName, IStructuredSelection sel) {
         super(pageName)
+        selection = sel
         setDefaults
+        println("WizardNewBonScriptProjectCreationPage constructed")
     }
     
     def private setDefaults() {
@@ -33,6 +38,7 @@ class WizardNewBonScriptProjectCreationPage extends WizardNewProjectCreationPage
     private var Text jpawVersionCtrl
     
     override public void createControl(Composite myParent) {
+        println("WizardNewBonScriptProjectCreationPage.createControl executed")
         super.createControl(myParent)
         setDefaults
         // Settings

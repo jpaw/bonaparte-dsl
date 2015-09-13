@@ -29,12 +29,17 @@ class BonScriptNewProjectWizard extends XtextNewProjectWizard {
         ]
     }
     
+    def protected BonScriptProjectInfo createProjectInfo() {
+        return new BonScriptProjectInfo();
+    }
+    
     /**
      * Use this method to add pages to the wizard.
      * The one-time generated version of this class will add a default new project page to the wizard.
      */
     override public void addPages() {
-        mainPage = new WizardNewBonScriptProjectCreationPage("basicNewProjectPage") => [
+        super.addPages
+        mainPage = new WizardNewBonScriptProjectCreationPage("basicNewProjectPage", this.selection) => [
             title       = "BonScript Project"
             description = "Create a new BonScript project."
             // specific 
