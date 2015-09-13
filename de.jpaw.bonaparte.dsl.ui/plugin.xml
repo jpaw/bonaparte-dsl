@@ -313,11 +313,22 @@
             extensions="bon" label="BonScript Compare">
      </viewer>
   </extension>
+  
   <extension point="org.eclipse.ui.editors.documentProviders">
     <provider id="de.jpaw.bonaparte.dsl.BonScript.editors.documentProviders"
             class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
             extensions="bon">
     </provider>
   </extension>
-
+  
+  <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.eclipse.xtext.projectwiz"
+            class="de.jpaw.bonaparte.dsl.ui.BonScriptExecutableExtensionFactory:de.jpaw.bonaparte.dsl.ui.wizard.BonScriptNewProjectWizard"
+            id="de.jpaw.bonaparte.dsl.ui.wizard.BonScriptNewProjectWizard"
+            name="BonScript Project"
+            project="true">
+      </wizard>
+   </extension>
 </plugin>

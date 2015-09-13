@@ -143,6 +143,10 @@ Workflow {
                  fileExtensions = file.extensions
             }
 
+            // project wizard (optional) (now created manually)
+//            fragment = projectWizard.SimpleProjectWizardFragment auto-inject {
+//                generatorProjectName = "${projectName}" 
+//            }
         }
     }
 }

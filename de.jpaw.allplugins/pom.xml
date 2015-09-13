@@ -56,21 +56,74 @@
     </properties>
 
     <build>
+        <sourceDirectory>src</sourceDirectory>      <!-- not the maven default structure -->
+
         <pluginManagement>
             <plugins>
                 <plugin>
                     <artifactId>maven-clean-plugin</artifactId>
                     <version>${clean.plugin.version}</version>
+                    <configuration>
+                        <filesets>
+                            <fileset>
+                                <directory>src-gen</directory>
+                                <includes>
+                                    <include>**</include>
+                                </includes>
+                                <excludes>
+                                    <exlude>.gitignore</exlude>
+                                </excludes>
+                            </fileset>
+                            <fileset>
+                                <directory>xtend-gen</directory>
+                                <includes>
+                                    <include>**</include>
+                                </includes>
+                                <excludes>
+                                    <exlude>.gitignore</exlude>
+                                </excludes>
+                            </fileset>
+                        </filesets>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>add-source</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <source>src-gen</source>
+                                </sources>
+                                <sources>
+                                    <source>${basedir}/xtend-gen</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.xtend</groupId>
                     <artifactId>xtend-maven-plugin</artifactId>
                     <version>${xtend.version}</version>
+                    <executions>
+                        <execution>
+                            <id>xtend</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>compile</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${basedir}/xtend-gen</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.fornax.toolsupport</groupId>
@@ -152,7 +205,7 @@
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases</url>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/2.8.4/</url>
         </repository>
          -->
         <repository>
