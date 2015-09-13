@@ -6,7 +6,7 @@ import org.eclipse.xtext.ui.wizard.XtextNewProjectWizard
 
 class BonScriptNewProjectWizard extends XtextNewProjectWizard {
     
-    private WizardNewBonScriptProjectCreationPage mainPage;
+    private WizardNewBonScriptProjectCreationPage mainPage
     
     @Inject
     new(IProjectCreator creator) {

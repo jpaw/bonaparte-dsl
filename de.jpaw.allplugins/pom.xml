@@ -44,7 +44,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho.version>0.23.0</tycho.version>
+        <tycho.version>0.23.1</tycho.version>
         <fornax.version>3.5.1</fornax.version>
         <xtend.version>2.8.3</xtend.version>
 
@@ -100,8 +100,6 @@
                             <configuration>
                                 <sources>
                                     <source>src-gen</source>
-                                </sources>
-                                <sources>
                                     <source>${basedir}/xtend-gen</source>
                                 </sources>
                             </configuration>

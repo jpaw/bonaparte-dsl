@@ -12,7 +12,6 @@
     <artifactId>de.jpaw.bonaparte.jpa.dsl.ui</artifactId>
     <packaging>eclipse-plugin</packaging>
 
-
     <build>
         <plugins>
             <plugin>

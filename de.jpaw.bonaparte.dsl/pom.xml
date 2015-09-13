@@ -26,6 +26,9 @@
         <resources>
             <resource>
                 <directory>src</directory>
+                <excludes>
+                    <exclude>**/*.xtend</exclude>
+                </excludes>
             </resource>
         </resources>
 
@@ -74,7 +77,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
-                <extensions>true</extensions>
             </plugin>
 
         </plugins>

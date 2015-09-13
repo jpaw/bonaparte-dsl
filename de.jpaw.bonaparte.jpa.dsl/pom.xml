@@ -13,9 +13,13 @@
     <packaging>eclipse-plugin</packaging>
 
     <build>
+        <!-- causes xtend sources to be copied to JAR. but required for fornax to find the mwe2 / xtext files?-->
         <resources>
             <resource>
                 <directory>src</directory>
+                <excludes>
+                    <exclude>**/*.xtend</exclude>
+                </excludes>
             </resource>
         </resources>
 
@@ -64,7 +68,6 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
-                <extensions>true</extensions>
             </plugin>
 
         </plugins>
