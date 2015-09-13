@@ -65,6 +65,7 @@
                     <version>${clean.plugin.version}</version>
                     <configuration>
                         <filesets>
+                            <!-- do not clean src-gen, as this prevents a "mvn clean install" in modules (src-gen for the ui project is created in the dsl project
                             <fileset>
                                 <directory>src-gen</directory>
                                 <includes>
@@ -74,6 +75,7 @@
                                     <exlude>.gitignore</exlude>
                                 </excludes>
                             </fileset>
+                             -->
                             <fileset>
                                 <directory>xtend-gen</directory>
                                 <includes>
@@ -186,6 +188,11 @@
                     <fail>true</fail>
                     <failFast>true</failFast>
                 </configuration>
+            </plugin>
+            
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
