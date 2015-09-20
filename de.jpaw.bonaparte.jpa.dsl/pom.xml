@@ -29,6 +29,66 @@
             </plugin>
 
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <includeProjectDependencies>false</includeProjectDependencies>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
+                    <arguments>
+                        <argument>file://${project.basedir}/src/de/jpaw/bonaparte/jpa/dsl/GenerateBDDL.mwe2</argument>
+                        <argument>
+                            -p
+                        </argument>
+                        <argument>
+                            runtimeProject=/${project.basedir}
+                        </argument>
+                    </arguments>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.xtext</groupId>
+                        <artifactId>org.eclipse.xtext.xtext</artifactId>
+                        <version>${xtend.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.xtext</groupId>
+                        <artifactId>org.eclipse.xtext.xbase</artifactId>
+                        <version>${xtend.version}</version>
+                    </dependency>
+                    <!-- 
+                    <dependency>
+                        <groupId>org.eclipse.equinox</groupId>
+                        <artifactId>common</artifactId>
+                        <version>3.6.200-v20130402-1505</version>
+                    </dependency>
+                     -->
+                    <dependency>
+                        <groupId>de.jpaw.bonaparte-dsl</groupId>
+                        <artifactId>de.jpaw.bonaparte.dsl</artifactId>
+                        <version>${project.version}</version>
+                        <exclusions>
+                            <!-- Avoid conflict between signed/unsigned variants of the same jar: see https://www.eclipse.org/forums/index.php/t/1069290/ -->
+                            <exclusion>
+                                <groupId>p2.osgi.bundle</groupId>
+                                <artifactId>org.eclipse.xtext</artifactId>
+                            </exclusion>
+                        </exclusions>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            
+            <!-- 
+            <plugin>
                 <groupId>org.fornax.toolsupport</groupId>
                 <artifactId>fornax-oaw-m2-plugin</artifactId>
                 <executions>
@@ -54,7 +114,8 @@
                     </execution>
                 </executions>
             </plugin>
-
+            -->
+ 
             <plugin>
                 <groupId>org.eclipse.xtend</groupId>
                 <artifactId>xtend-maven-plugin</artifactId>
