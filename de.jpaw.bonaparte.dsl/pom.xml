@@ -23,6 +23,7 @@
     
     <build>
         <!-- causes xtend sources to be copied to JAR. but required for fornax to find the mwe2 / xtext files?-->
+        <!-- 
         <resources>
             <resource>
                 <directory>src</directory>
@@ -31,37 +32,55 @@
                 </excludes>
             </resource>
         </resources>
-
+ -->
         <plugins>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
             </plugin>
-            
+        
             <plugin>
-                <groupId>org.fornax.toolsupport</groupId>
-                <artifactId>fornax-oaw-m2-plugin</artifactId>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
                 <executions>
                     <execution>
-                        <id>xtext</id>
                         <phase>generate-sources</phase>
                         <goals>
-                            <goal>run-workflow</goal>
+                            <goal>java</goal>
                         </goals>
-                        <configuration>
-                            <workflowDescriptor>src/de/jpaw/bonaparte/dsl/GenerateBonScript.mwe2</workflowDescriptor>
-                            <workflowEngine>mwe2</workflowEngine>
-                            <timestampFileName>xtext-generator.timestamp</timestampFileName>
-                            <jvmSettings>
-                                <fork>true</fork>
-                                <jvmArgs>
-                                    <jvmArg>-Xms100m</jvmArg>
-                                    <jvmArg>-Xmx700m</jvmArg>
-                                    <jvmArg>-XX:MaxPermSize=256m</jvmArg>
-                                </jvmArgs>
-                            </jvmSettings>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <includeProjectDependencies>false</includeProjectDependencies>
+                    <includePluginDependencies>true</includePluginDependencies>
+                    <mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
+                    <arguments>
+                        <argument>file://${project.basedir}/src/de/jpaw/bonaparte/dsl/GenerateBonScript.mwe2</argument>
+                        <argument>
+                            -p
+                        </argument>
+                        <argument>
+                            runtimeProject=/${project.basedir}
+                        </argument>
+                    </arguments>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.eclipse.xtext</groupId>
+                        <artifactId>org.eclipse.xtext.xtext</artifactId>
+                        <version>${xtend.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.xtext</groupId>
+                        <artifactId>org.eclipse.xtext.xbase</artifactId>
+                        <version>${xtend.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.eclipse.equinox</groupId>
+                        <artifactId>common</artifactId>
+                        <version>3.6.200-v20130402-1505</version>
+                    </dependency>
+                </dependencies>
             </plugin>
             
             <plugin>

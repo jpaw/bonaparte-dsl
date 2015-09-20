@@ -4,14 +4,29 @@ import org.eclipse.emf.mwe.utils.*
 import org.eclipse.xtext.generator.*
 import org.eclipse.xtext.ui.generator.*
 
-var grammarURI = "classpath:/de/jpaw/bonaparte/dsl/BonScript.xtext"
 var file.extensions = "bon"
 var projectName = "de.jpaw.bonaparte.dsl"
+
+// grammarURI has to be platform:/resource as it is not on the classpath
+var grammarURI = "platform:/resource/${projectName}/src/de/jpaw/bonaparte/dsl/BonScript.xtext"
 var runtimeProject = "../${projectName}"
+var generateXtendStub = true
+var encoding = "UTF-8"
 
 Workflow {
     bean = StandaloneSetup {
-        scanClassPath = true
+        // use an XtextResourceset throughout the process, which is able to resolve classpath:/ URIs.
+        resourceSet = org.eclipse.xtext.resource.XtextResourceSet:theResourceSet {}
+        
+        // add mappings from platform:/resource to classpath:/
+        uriMap = {
+                from = "platform:/resource/org.eclipse.xtext.xbase/"
+                to = "classpath:/"
+        }
+        uriMap = {
+                from = "platform:/resource/org.eclipse.xtext.common.types/"
+                to = "classpath:/"
+        }
         platformUri = "${runtimeProject}/.."
         // The following two lines can be removed, if Xbase (/ JvmTypes) is not used.
         registerGeneratedEPackage = "org.eclipse.xtext.xbase.XbasePackage"
@@ -40,7 +55,11 @@ Workflow {
         pathTestProject = "${runtimeProject}.tests"
         projectNameRt = projectName
         projectNameUi = "${projectName}.ui"
-        language = {
+        encoding = encoding
+        
+        language = auto-inject {
+            // make sure we use the resourceSet created during standalone setup.
+            forcedResourceSet = theResourceSet
             uri = grammarURI
             fileExtensions = file.extensions
 
@@ -48,13 +67,14 @@ Workflow {
             fragment = grammarAccess.GrammarAccessFragment {}
 
             // generates Java API for the generated EPackages
-            fragment = ecore.EMFGeneratorFragment auto-inject {}
+            fragment = ecore.EMFGeneratorFragment auto-inject {
+              javaModelDirectory = "/${projectName}/src-gen"
 //            fragment = ecore.EcoreGeneratorFragment {
 //            // referencedGenModels = "
 //            //  platform:/resource/org.eclipse.xtext.xbase/model/Xbase.genmodel,
 //            //  platform:/resource/org.eclipse.xtext.common.types/model/JavaVMTypes.genmodel
 //            // "
-//            }
+            }
 
             // Serializer 2.0
             fragment = serializer.SerializerFragment {

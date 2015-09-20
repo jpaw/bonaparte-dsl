@@ -197,6 +197,7 @@
         </plugins>
     </build>
 
+    <!-- 
     <pluginRepositories>
         <pluginRepository>
             <id>fornax.plugin.repository</id>
@@ -204,7 +205,8 @@
             <url>http://www.fornax-platform.org/m2/repository</url>
         </pluginRepository>
     </pluginRepositories>
-
+    -->
+    
     <repositories>
     <!-- not required any more with xtext 2.8.3 / Eclipse Mars -->
         <repository>
