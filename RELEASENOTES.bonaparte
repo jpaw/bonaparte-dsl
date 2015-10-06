@@ -353,6 +353,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: addititional plausi checks for key columns: cannot reference aggregates here
 
 
+3.6.0:
+- new data type "JSON"
+
 
 ROADMAP / PLANS:
 - make fields in immutable classes final, adjust constructors accordingly, omit deserializer and have empty treeWalk
