@@ -24,6 +24,9 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition;
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*;
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*;
+import org.eclipse.emf.ecore.EReference
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ListOfColumns
+import de.jpaw.bonaparte.jpa.dsl.bDDL.SingleColumn
 
 class BDDLValidator extends AbstractBDDLValidator {
     private boolean infoDoneTablenames = false
@@ -255,19 +258,20 @@ class BDDLValidator extends AbstractBDDLValidator {
             error("At most one embeddable may be defined as PK", BDDLPackage.Literals.ENTITY_DEFINITION__EMBEDDABLES);
         }
         // we need one by definition of the category
-        if (e.getPk() !== null) {
+        if (e.pk !== null) {
             numPks += 1;
             if (numPks > 1) {
                 error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK);
 
             }
         }
-        if (e.getPkPojo() !== null) {
+        if (e.pkPojo !== null) {
             numPks += 1;
             if (numPks > 1) {
                 error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
-
             }
+            // validate that the referenced class (and parents do not contain aggregates)
+            e.pkPojo.validateOnlyScalars(BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
         }
         if (numPks == 0 && e.getTableCategory().isRequiresPk()) {
             error("The table category requires specificaton of a primary key for this entity",
@@ -315,10 +319,10 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
 
         // for PK pojo, all columns must exist
-        if (e.getPkPojo() !== null) {
+        if (e.pkPojo !== null) {
             // this must be either a final class, or a superclass
-            if (e.getPkPojo().isFinal()) {
-                for (FieldDefinition f : e.getPkPojo().getFields()) {
+            if (e.pkPojo.isFinal()) {
+                for (FieldDefinition f : e.pkPojo.getFields()) {
                     if (exists(f, e.getPojoType().getFields())) {
                         // nothing
                     } else if (e.getTenantClass() !== null && exists(f, e.getTenantClass().getFields())) {
@@ -330,7 +334,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             } else {
                 // must be a superclass
                 var dd = e.getPojoType();
-                while (dd !== null && dd != e.getPkPojo()) {
+                while (dd !== null && dd != e.pkPojo) {
                     dd = dd.extendsClass?.classRef;
                 }
                 if (dd === null)
@@ -338,7 +342,36 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
     }
+    
+    def private void validateOnlyScalars(ClassDefinition c, EReference issue) {
+        var cc = c;
+        while (cc !== null) {
+            // check all fields of cc
+            cc.fields.forEach [
+                if (isAggregate)
+                    error('''Only scalar types allowed here, «name» is not''', issue)
+            ]
+            
+            cc = cc.extendsClass?.classRef;
+        }
+    }
 
+    @Check
+    def public void checkListOfColumns(ListOfColumns lc) {
+        // these are used for indexes and can be scalar only (currently) (planned extension: allow index)
+        lc.columnName.forEach [
+            if (isAggregate)
+                error('''Only scalar types allowed here, «name» is not''', BDDLPackage.Literals.LIST_OF_COLUMNS__COLUMN_NAME)
+        ]
+    }
+    
+    @Check
+    def public void checkSingleColumn(SingleColumn sc) {
+        // this is used for the tenant ID only currently and can be scalar only
+        if (sc.singleColumnName.isAggregate)
+            error('''Only scalar types allowed here, «sc.singleColumnName.name» is not''', BDDLPackage.Literals.SINGLE_COLUMN__SINGLE_COLUMN_NAME)
+    }
+    
     @Check
     def public void checkCollection(CollectionDefinition c) {
         if (c.getMap() !== null && c.getMap().getIsMap() !== null) {

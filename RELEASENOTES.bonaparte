@@ -346,6 +346,13 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: generate functions enums / strings for Oracle PL/SQL
 - BDDL: bugfix: check for maximum allowed field name length was not working, fixed now
 
+(3.5.5 and 3.5.6 have been skipped, only bonaparte-java artifacts have been released for that version)
+
+3.5.7:
+- switch to Xtext 2.8.4
+- BDDL: addititional plausi checks for key columns: cannot reference aggregates here
+
+
 
 ROADMAP / PLANS:
 - make fields in immutable classes final, adjust constructors accordingly, omit deserializer and have empty treeWalk
