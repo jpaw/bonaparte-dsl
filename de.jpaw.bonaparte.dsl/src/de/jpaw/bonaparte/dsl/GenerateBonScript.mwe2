@@ -68,7 +68,7 @@ Workflow {
 
             // generates Java API for the generated EPackages
             fragment = ecore.EMFGeneratorFragment auto-inject {
-              javaModelDirectory = "/${projectName}/src-gen"
+                javaModelDirectory = "/${projectName}/src-gen"
 //            fragment = ecore.EcoreGeneratorFragment {
 //            // referencedGenModels = "
 //            //  platform:/resource/org.eclipse.xtext.xbase/model/Xbase.genmodel,
