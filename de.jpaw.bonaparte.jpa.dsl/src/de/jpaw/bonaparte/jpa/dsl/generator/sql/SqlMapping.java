@@ -24,6 +24,7 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.bonaparte.dsl.generator.java.JavaMeta;
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship;
 import de.jpaw.bonaparte.jpa.dsl.generator.YUtil;
 
@@ -174,8 +175,8 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("decimal",   "decimal(#length,#precision)");
         dataTypeSqlSapHana.put("byte",      "tinyint");                      // ATTN: this one is unsigned (an unsigned 1 byte char)!!!!
         dataTypeSqlSapHana.put("short",     "smallint");
-        dataTypeSqlSapHana.put("char",      "nvarchar2(1)");
-        dataTypeSqlSapHana.put("character", "nvarchar2(1)");
+        dataTypeSqlSapHana.put("char",      "nvarchar(1)");
+        dataTypeSqlSapHana.put("character", "nvarchar(1)");
 
         dataTypeSqlSapHana.put("uuid",      "varbinary(16)");               // not yet supported by grammar!
         dataTypeSqlSapHana.put("binary",    "varbinary(#length)");          // only up to 2000 bytes, use BLOB if more!
@@ -257,11 +258,12 @@ public class SqlMapping {
 
         switch (databaseFlavour) {
         case ORACLE:
+            boolean extendedVarchar = BDDLPreferences.currentPrefs.oracleExtendedVarchar;
             datatype = dataTypeSqlOracle.get(datatype);
-            if (columnLength > 2000) {
+            if (columnLength > (extendedVarchar ? 32767 : 2000)) {
                 if (datatype.startsWith("raw")) {
                     datatype = "blob";
-                } else if ((columnLength > 4000) && datatype.startsWith("varchar2")) {
+                } else if ((columnLength > (extendedVarchar ? 32767 : 4000)) && datatype.startsWith("varchar2")) {
                     datatype = "clob";
                 }
             } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
@@ -388,7 +390,7 @@ public class SqlMapping {
         case MYSQL:
             return " DEFAULT CURRENT_USER";
         case SAPHANA:
-            return " DEFAULT SUBSTRING(CURRENT_USER, 1, 8)";
+            return " DEFAULT CURRENT_USER";
         }
         return "";
     }

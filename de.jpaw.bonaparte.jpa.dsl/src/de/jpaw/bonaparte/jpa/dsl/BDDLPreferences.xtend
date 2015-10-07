@@ -8,6 +8,8 @@ public class BDDLPreferences {
     // general size check options
     static private final int maxFieldnameLengthDefault              = configReader.getProp("MaxFieldLen", 30);
     static private final int maxTablenameLengthDefault              = configReader.getProp("MaxTableLen", 27);
+    // allow for increased max size for Oracle VARCHAR2 (4000 => 32767 with MAX_STRING_SIZE = EXTENDED): see http://docs.oracle.com/database/121/SQLRF/sql_elements001.htm#SQLRF0021
+    static private final boolean oracleExtendedVarcharDefault       = configReader.getProp("OracleExtendedVarchar", false);
 
     // output options
     static private final boolean doDebugOutDefault                  = configReader.getProp("DebugOut",  false);
@@ -30,6 +32,7 @@ public class BDDLPreferences {
     // general size check options
     public int maxFieldnameLength               = maxFieldnameLengthDefault
     public int maxTablenameLength               = maxTablenameLengthDefault
+    public boolean oracleExtendedVarchar        = oracleExtendedVarcharDefault
 
     // output options
     public boolean doDebugOut                   = doDebugOutDefault
