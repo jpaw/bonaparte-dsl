@@ -78,6 +78,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("DebugOut",                     "Create debug output (.info) files",    compositeH));
         addField(new BooleanFieldEditor("Postgres",                     "Create DDL for Postgres 9 databases",  compositeH));
         addField(new BooleanFieldEditor("Oracle",                       "Create DDL for Oracle 11g databases",  compositeH));
+        addField(new BooleanFieldEditor("OracleExtendedVarchar",        "   use Oracle MAX_STRING_SIZE = EXTENDED (12c and up)",  compositeH));
         addField(new BooleanFieldEditor("MSSQL",                        "Create DDL for MS SQL server 2012",    compositeH));
         addField(new BooleanFieldEditor("MySQL",                        "Create DDL for MySQL 5.6.5 up",        compositeH));
         addField(new BooleanFieldEditor("SapHana",                      "Create DDL for SAP HANA",              compositeH));
@@ -119,6 +120,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         IPreferenceStore store = getPreferenceStore();
         store.setDefault("MaxFieldLen",                 defaults.maxFieldnameLength);
         store.setDefault("MaxTableLen",                 defaults.maxTablenameLength);
+        store.setDefault("OracleExtendedVarchar",       defaults.oracleExtendedVarchar);
         store.setDefault("DebugOut",                    defaults.doDebugOut);
         store.setDefault("Postgres",                    defaults.doPostgresOut);
         store.setDefault("Oracle",                      defaults.doOracleOut);
@@ -138,6 +140,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         BDDLPreferences currentSettings = new BDDLPreferences();
         currentSettings.maxFieldnameLength          = store.getInt("MaxFieldLen");
         currentSettings.maxTablenameLength          = store.getInt("MaxTableLen");
+        currentSettings.oracleExtendedVarchar       = store.getBoolean("OracleExtendedVarchar");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doPostgresOut               = store.getBoolean("Postgres");
         currentSettings.doOracleOut                 = store.getBoolean("Oracle");
@@ -166,6 +169,9 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                   case "MaxTableLen":
                       BDDLPreferences.currentPrefs.maxTablenameLength       = toInt(event.getNewValue());
                       break;
+                  case "OracleExtendedVarchar":
+                      BDDLPreferences.currentPrefs.oracleExtendedVarchar    = toBool(event.getNewValue());
+                      break;
                   case "DebugOut":
                       BDDLPreferences.currentPrefs.doDebugOut               = toBool(event.getNewValue());
                       break;
@@ -182,7 +188,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                       BDDLPreferences.currentPrefs.doMySQLOut               = toBool(event.getNewValue());
                       break;
                   case "SapHana":
-                      BDDLPreferences.currentPrefs.doSapHanaOut            = toBool(event.getNewValue());
+                      BDDLPreferences.currentPrefs.doSapHanaOut             = toBool(event.getNewValue());
                       break;
 
                   case "UserTypeEnum":
