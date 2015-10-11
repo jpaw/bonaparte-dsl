@@ -352,12 +352,20 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - switch to Xtext 2.8.4
 - BDDL: addititional plausi checks for key columns: cannot reference aggregates here
 
+3.5.8:
+- BDDL: HANA output fixes
+- BDDL: allow VARCHAR2 for length > 4000 (if configured)
+
+
 
 3.6.0:
 - new data type "JSON"
 
 
 ROADMAP / PLANS:
+- data types of unspecified size (text, binary)
+- arrays for BDDL without UNROLL (only where DB supports it: HANA, Postgres)
+
 - make fields in immutable classes final, adjust constructors accordingly, omit deserializer and have empty treeWalk
 - general use of nullWhenEmpty
 - better plausis on field name length in case of Embeddables / loop unroll (field names are extended then)

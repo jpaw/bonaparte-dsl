@@ -114,8 +114,8 @@ class JavaMeta {
         case DataCategory::OBJECT: {
             classname = "ObjectReference"
             if (elem !== null) {
-                 // just "Object"
-                ext = ''', true, "BonaPortable", null, null, null'''
+                // just "Object" or Element or Json. All the same
+                ext = ''', true, "«ref.javaType»", null, null, null'''
             } else {
                 val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
                 val meta = if (myLowerBound === null) "null" else '''«myLowerBound.name».class$MetaData()'''

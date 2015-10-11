@@ -36,11 +36,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"
     val static Map<String,String> xmlAdapterMap = new HashMap<String,String> => [
-        put("byte", "Byte")
-        put("short", "Short")
-        put("int", "Integer")
-        put("integer", "Integer")
-        put("long", "Long")
+        put("byte",     "Byte")
+        put("short",    "Short")
+        put("int",      "Integer")
+        put("integer",  "Integer")
+        put("long",     "Long")
         put("bigDecimal", "Decimal")
     ]
 

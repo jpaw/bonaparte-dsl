@@ -103,6 +103,8 @@ public class DataTypeExtension {
         dataCategory.put("enumset",   DataCategory.ENUMSET);    // artificial entry for enum
         dataCategory.put("xenumset",  DataCategory.XENUMSET);   // artificial entry for xenum
         dataCategory.put("object",    DataCategory.OBJECT);     // which is really an object reference instead of an elementary item...
+        dataCategory.put("json",      DataCategory.OBJECT);     // JSON object
+        dataCategory.put("element",   DataCategory.OBJECT);     // JSON element (Java Object)
     }
 
     // a lookup to determine the Java data type to use for a given grammar type.
@@ -138,7 +140,9 @@ public class DataTypeExtension {
         dataTypeJava.put("xenum",     SPECIAL_DATA_TYPE_XENUM);             // artificial entry for xenum
         dataTypeJava.put("enumset",   SPECIAL_DATA_TYPE_ENUMSET);           // artificial entry for enum
         dataTypeJava.put("xenumset",  SPECIAL_DATA_TYPE_XENUMSET);          // artificial entry for xenum
-        dataTypeJava.put("object",    "BonaPortable");  // which is really an object reference instead of an elementary item...
+        dataTypeJava.put("object",    "BonaPortable");                      // which is really an object reference instead of an elementary item...
+        dataTypeJava.put("json",      "Map<String,Object>");                // JSON object
+        dataTypeJava.put("element",   "Object");                            // JSON element (Java Object)
     }
 
 

@@ -38,7 +38,7 @@ import de.jpaw.bonaparte.jpa.dsl.generator.YUtil;
 public class SqlMapping {
     // a lookup to determine the database vendor-specific data type to use for a given grammar type.
     // (LANGUAGE / DATABASE VENDOR SPECIFIC: SQL Oracle)
-    static protected Map<String,String> dataTypeSqlOracle = new HashMap<String, String>(32);
+    static protected Map<String,String> dataTypeSqlOracle = new HashMap<String, String>(40);
     static {  // see http://docs.oracle.com/cd/E11882_01/server.112/e26088/sql_elements001.htm#i45441 for reference
         // we avoid the ANSI data types for Oracle, because I think the native ones have better performance
         dataTypeSqlOracle.put("boolean",   "number(1)");                // Oracle has no boolean type
@@ -68,9 +68,11 @@ public class SqlMapping {
         dataTypeSqlOracle.put("unicode",   "varchar2(#length char)");       // only up to 4000 characters, use CLOB if more!
         dataTypeSqlOracle.put("enum",      "number(4)");                    // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlOracle.put("object",    "blob");                         // serialized form of an object
+        dataTypeSqlOracle.put("json",      "clob");                         // JSON object
+        dataTypeSqlOracle.put("element",   "varchar2(4000)");               // JSON any type, but expected to be short
         dataTypeSqlOracle.put("string",    "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
     }
-    static protected Map<String,String> dataTypeSqlPostgres = new HashMap<String, String>(32);
+    static protected Map<String,String> dataTypeSqlPostgres = new HashMap<String, String>(40);
     static { // see http://www.postgresql.org/docs/9.1/static/datatype.html for reference
         dataTypeSqlPostgres.put("boolean",   "boolean");
         dataTypeSqlPostgres.put("int",       "integer");
@@ -98,10 +100,12 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("ascii",     "varchar(#length)");
         dataTypeSqlPostgres.put("unicode",   "varchar(#length)");
         dataTypeSqlPostgres.put("enum",      "smallint");
-        dataTypeSqlPostgres.put("object",    "bytea");                      // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlPostgres.put("object",    "bytea");                       // mapping to numeric or varchar is done by entity class getter/setter
+        dataTypeSqlPostgres.put("json",      "jsonb");                       // JSON object
+        dataTypeSqlPostgres.put("element",   "varchar(4000)");               // JSON any type, but expected to be short
         dataTypeSqlPostgres.put("string",    "varchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
-    static protected Map<String,String> dataTypeSqlMsSQLServer = new HashMap<String, String>(32);
+    static protected Map<String,String> dataTypeSqlMsSQLServer = new HashMap<String, String>(40);
     static { // see http://www.w3schools.com/sql/sql_datatypes.asp for reference
         dataTypeSqlMsSQLServer.put("boolean",   "bit");
         dataTypeSqlMsSQLServer.put("int",       "int");
@@ -130,9 +134,11 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("unicode",   "nvarchar(#length)");
         dataTypeSqlMsSQLServer.put("enum",      "smallint");
         dataTypeSqlMsSQLServer.put("object",    "varbinary(MAX)");
+        dataTypeSqlMsSQLServer.put("json",      "nvarchar(MAX");                 // JSON object
+        dataTypeSqlMsSQLServer.put("element",   "nvarchar(4000)");               // JSON any type, but expected to be short
         dataTypeSqlMsSQLServer.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
-    static protected Map<String,String> dataTypeSqlMySQL = new HashMap<String, String>(32);
+    static protected Map<String,String> dataTypeSqlMySQL = new HashMap<String, String>(40);
     static { // see http://dev.mysql.com/doc/refman/5.6/en/data-types.html
         dataTypeSqlMySQL.put("boolean",   "boolean");                    // synonym for tinyint(1)
         dataTypeSqlMySQL.put("int",       "integer");
@@ -161,9 +167,11 @@ public class SqlMapping {
         dataTypeSqlMySQL.put("unicode",   "TEXT");
         dataTypeSqlMySQL.put("enum",      "smallint");
         dataTypeSqlMySQL.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
-        dataTypeSqlMySQL.put("string",    "TEXT");          // only up to 4000 characters, use CLOB if more!
+        dataTypeSqlMySQL.put("json",      "CLOB");                      // JSON object
+        dataTypeSqlMySQL.put("element",   "nvarchar(4000)");            // JSON any type, but expected to be short
+        dataTypeSqlMySQL.put("string",    "TEXT");                      // only up to 4000 characters, use CLOB if more!
     }
-    static protected Map<String,String> dataTypeSqlSapHana = new HashMap<String, String>(32);
+    static protected Map<String,String> dataTypeSqlSapHana = new HashMap<String, String>(40);
     static {  // see https://help.sap.com/saphelp_hanaplatform/helpdata/en/20/a1569875191014b507cf392724b7eb/content.htm
         dataTypeSqlSapHana.put("boolean",   "number(1)");                // Oracle has no boolean type
         dataTypeSqlSapHana.put("int",       "integer");
@@ -192,6 +200,8 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("unicode",   "nvarchar(#length)");           // only up to 5000 characters, use NCLOB if more!
         dataTypeSqlSapHana.put("enum",      "smallint");                    // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlSapHana.put("object",    "blob");                        // serialized form of an object
+        dataTypeSqlSapHana.put("json",      "nclob");                       // JSON object
+        dataTypeSqlSapHana.put("element",   "nvarchar(4000)");              // JSON any type, but expected to be short
         dataTypeSqlSapHana.put("string",    "nvarchar(#length)");           // only up to 5000 characters, use CLOB if more!
     }
 

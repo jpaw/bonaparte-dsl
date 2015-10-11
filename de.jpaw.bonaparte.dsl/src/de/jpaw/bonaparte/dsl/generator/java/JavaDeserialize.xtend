@@ -70,6 +70,8 @@ class JavaDeserialize {
 
         // objects
         case 'object':    '''_p.readObject(«metaName», BonaPortable.class)'''
+        case 'json':      '''_p.readJsont(«metaName»)'''
+        case 'element':   '''_p.readElement(«metaName»)'''
         }
     }
 

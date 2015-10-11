@@ -119,7 +119,7 @@ class JavaCompare {
                 case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
                 case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
                 case "Integer": '''«i.name»'''
-                default:         '''(int)«i.name»'''  // byte, short, char
+                default:        '''(int)«i.name»'''  // byte, short, char
                 }
             }
         } else {
