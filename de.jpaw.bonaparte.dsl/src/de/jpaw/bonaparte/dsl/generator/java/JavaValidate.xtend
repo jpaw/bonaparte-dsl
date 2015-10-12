@@ -77,6 +77,18 @@ class JavaValidate {
         «ENDIF»
     '''
 
+    def private static writeObjectValidationCode(FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype)
+        if (ref.category == DataCategory::OBJECT && ref.objectDataType?.externalType === null && !ref.isJsonField) {
+            return '''
+                «IF ref.category == DataCategory::OBJECT && ref.objectDataType?.externalType === null»
+                    «loopStart(i)»
+                    «makeValidate(i, indexedName(i))»
+                «ENDIF»
+            '''
+        }
+    }
+    
     def public static writeValidationCode(ClassDefinition d) '''
         @Override
         public void validate() throws ObjectValidationException {
@@ -108,10 +120,7 @@ class JavaValidate {
                         «i.writeSizeCheck»
                     «ENDIF»
                 «ENDIF»
-                «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT && resolveObj(i.datatype)?.externalType === null»
-                    «loopStart(i)»
-                    «makeValidate(i, indexedName(i))»
-                «ENDIF»
+                «i.writeObjectValidationCode»
             «ENDFOR»
             «FOR i:d.fields»
                 «IF DataTypeExtension::get(i.datatype).category == DataCategory::STRING || DataTypeExtension::get(i.datatype).javaType == "BigDecimal"»

@@ -627,4 +627,9 @@ class XUtil {
     def public static generateAllAnnotations(List<PropertyUse> it) {
         return filter[key.annotationReference !== null].map[generateAnnotation].join('\n')
     }
+    
+    def public static isJsonField(DataTypeExtension ref) {
+        val elemType = ref.elementaryDataType?.name?.toLowerCase
+        return elemType == "json" || elemType == "element"
+    }
 }

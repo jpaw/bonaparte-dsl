@@ -25,8 +25,9 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaFrozen {
-    def private static boolean supportsNoFreeze(DataTypeExtension ref) {
-        return ref.objectDataType !== null && (ref.objectDataType.immutable || ref.objectDataType.externalType !== null)
+    def private static boolean supportsFreeze(DataTypeExtension ref) {
+        return !ref.isJsonField &&
+          (ref.objectDataType === null || (!ref.objectDataType.immutable && ref.objectDataType.externalType === null))
     }
 
     def private static boolean noFreezeBecauseImmutable(DataTypeExtension ref) {
@@ -39,24 +40,22 @@ class JavaFrozen {
     }
 
     def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {
-        if (ref.supportsNoFreeze)
-            return null  // no .freeze() required / exists
-        else
+        if (ref.supportsFreeze)
             return '''«applyOnWhat».freeze();'''
     }
 
     def private static getFrozenClone(DataTypeExtension ref, String applyOnWhat) {
-        if (ref.supportsNoFreeze)
-            return applyOnWhat  // no .freeze() required / exists, return the identity
-        else
+        if (ref.supportsFreeze)
             return '''(«applyOnWhat» == null ? null : «applyOnWhat».ret$FrozenClone())'''
+        else
+            return applyOnWhat  // no .freeze() required / exists, return the identity
     }
 
     def private static getMutableClone(DataTypeExtension ref, String applyOnWhat) {
-        if (ref.supportsNoFreeze)
-            return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
-        else
+        if (ref.supportsFreeze)
             return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».ret$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''
+        else
+            return applyOnWhat  // no .freeze() required / exists, return the identity. The condition is irrelevant in this case
     }
 
     // write the code to freeze one field.
@@ -104,9 +103,7 @@ class JavaFrozen {
             } else {
                 // scalar object. Do nothing if it is external or immutable
                 // TODO: if this is a BonaPortable, need to distinguish if it is immutable, freezable, or unfreezable
-                if (ref.supportsNoFreeze)
-                    return null
-                else
+                if (ref.supportsFreeze)
                     return '''
                         if («i.name» != null) {
                             «i.name».freeze();
@@ -114,7 +111,6 @@ class JavaFrozen {
                     '''
             }
         }
-
     }
 
     // write the code to freeze one field into another class
@@ -205,7 +201,7 @@ class JavaFrozen {
                 «ELSE»
                     «IF i.isArray !== null»
                         _new.«i.name» = Arrays.copyOf(«i.name», «i.name».length);
-                        «IF !ref.supportsNoFreeze»
+                        «IF ref.supportsFreeze»
                             if (_deepCopy) {
                                 for (int _i = 0; _i < «i.name».length; ++_i)
                                     if (_new.«i.name»[_i] != null)

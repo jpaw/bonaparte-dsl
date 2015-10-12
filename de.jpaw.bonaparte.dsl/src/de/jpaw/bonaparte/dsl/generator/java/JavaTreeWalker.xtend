@@ -47,6 +47,8 @@ class JavaTreeWalker {
      def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
          if (ref.objectDataType?.externalType !== null) // skip external types for all tree walk methods
             return null
+         if (category == DataCategory::OBJECT && isJsonField(ref))
+            return null
          if (category === null || ref.category == category) {
              val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array
@@ -65,7 +67,7 @@ class JavaTreeWalker {
                 return '''«target»_cvt.convertMap(«IF !doAssign»(Map)«ENDIF»«i.name», meta$$«i.name»);'''
              return '''«target»_cvt.convert(«i.name», meta$$«i.name»);'''
          }
-         if (ref.category == DataCategory::OBJECT) {
+         if (ref.category == DataCategory::OBJECT && !isJsonField(ref)) {
              // subobjects. Here we run through the list or array, and invoke the method on any sub-object
              return '''
                  if (_descend) {
