@@ -74,6 +74,7 @@ class OffHeapMapGeneratorMain {
         package «e.packageName»;
 
         import java.util.Map;
+        import java.io.IOException;
         import org.slf4j.Logger;
         import org.slf4j.LoggerFactory;
 
@@ -151,6 +152,7 @@ class OffHeapMapGeneratorMain {
 
             «FOR i: e.indexes»
                 private int indexHash«i.name.name»(RequestContext ctx, int pos, «e.pojoType.name» data) {
+                    try {
                     «FOR f: i.columns.columnName»
                         «IF f.isTenant(e)»
                             myComposer.addField(«e.tenantClass.name».meta$$«f.name», ctx.getTenantRef());
@@ -158,6 +160,9 @@ class OffHeapMapGeneratorMain {
                             myComposer.addField(«e.pojoType.name».meta$$«f.name», data.get«f.name.toFirstUpper»());
                         «ENDIF»
                     «ENDFOR»
+                    } catch (IOException _e) {
+                        throw new RuntimeException(_e);  // should not happen as we work on internal memory
+                    }
                     return indexHash(pos);
                 }
             «ENDFOR»
@@ -260,28 +265,32 @@ class OffHeapMapGeneratorMain {
             @Override
             protected «pkJavaType» getUncachedKey(«refPojo.name» refObject) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
-                «FOR i: e.indexes»
-                    if (refObject instanceof «i.name.name») {
-                        // return myLookup.getKeyForIndex((«i.name.name»)refObject, index«i.name.name», «i.name.name».meta$$this);
-                        «i.name.name» data = («i.name.name»)refObject;
-                        int currentWriterPos = builder.length();
-                        «FOR f: i.columns.columnName»
-                            «IF f.isTenant(e)»
-                                myComposer.addField(«e.tenantClass.name».meta$$«f.name», ctx.getTenantRef());
-                            «ELSE»
-                                myComposer.addField(«e.pojoType.name».meta$$«f.name», data.get«f.name.toFirstUpper»());
-                            «ENDIF»
-                        «ENDFOR»
-                        int indexHash = indexHash(currentWriterPos);
-                        // LOGGER.info("LOOKUP: Index hash for «i.name.name» is " + indexHash);
-                        long key = index«i.name.name».getUniqueKeyByIndex(builder.getCurrentBuffer(), currentWriterPos, builder.length() - currentWriterPos, indexHash);
-                        builder.setLength(currentWriterPos);
-                        if (key <= 0)
-                            throw new PersistenceException(PersistenceException.NO_RECORD_FOR_INDEX, key, null, "«i.name.name»", data.toString());
-                        // restore position to previous state
-                        return key;
-                    }
-                «ENDFOR»
+                try {
+                    «FOR i: e.indexes»
+                        if (refObject instanceof «i.name.name») {
+                            // return myLookup.getKeyForIndex((«i.name.name»)refObject, index«i.name.name», «i.name.name».meta$$this);
+                            «i.name.name» data = («i.name.name»)refObject;
+                            int currentWriterPos = builder.length();
+                            «FOR f: i.columns.columnName»
+                                «IF f.isTenant(e)»
+                                    myComposer.addField(«e.tenantClass.name».meta$$«f.name», ctx.getTenantRef());
+                                «ELSE»
+                                    myComposer.addField(«e.pojoType.name».meta$$«f.name», data.get«f.name.toFirstUpper»());
+                                «ENDIF»
+                            «ENDFOR»
+                            int indexHash = indexHash(currentWriterPos);
+                            // LOGGER.info("LOOKUP: Index hash for «i.name.name» is " + indexHash);
+                            long key = index«i.name.name».getUniqueKeyByIndex(builder.getCurrentBuffer(), currentWriterPos, builder.length() - currentWriterPos, indexHash);
+                            builder.setLength(currentWriterPos);
+                            if (key <= 0)
+                                throw new PersistenceException(PersistenceException.NO_RECORD_FOR_INDEX, key, null, "«i.name.name»", data.toString());
+                            // restore position to previous state
+                            return key;
+                        }
+                    «ENDFOR»
+                } catch (IOException _e) {
+                    throw new RuntimeException(_e);  // should not happen as we work on internal memory
+                }
                 throw new PersistenceException(PersistenceException.UNKNOWN_INDEX_TYPE, 0L, ENTITY_NAME, refObject.ret$PQON(), null);
             }
 
