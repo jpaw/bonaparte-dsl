@@ -264,33 +264,35 @@ class OffHeapMapGeneratorMain {
             // read only, no tx required
             @Override
             protected «pkJavaType» getUncachedKey(«refPojo.name» refObject) throws PersistenceException {
-                RequestContext ctx = contextProvider.get();
-                try {
-                    «FOR i: e.indexes»
-                        if (refObject instanceof «i.name.name») {
-                            // return myLookup.getKeyForIndex((«i.name.name»)refObject, index«i.name.name», «i.name.name».meta$$this);
-                            «i.name.name» data = («i.name.name»)refObject;
-                            int currentWriterPos = builder.length();
-                            «FOR f: i.columns.columnName»
-                                «IF f.isTenant(e)»
-                                    myComposer.addField(«e.tenantClass.name».meta$$«f.name», ctx.getTenantRef());
-                                «ELSE»
-                                    myComposer.addField(«e.pojoType.name».meta$$«f.name», data.get«f.name.toFirstUpper»());
-                                «ENDIF»
-                            «ENDFOR»
-                            int indexHash = indexHash(currentWriterPos);
-                            // LOGGER.info("LOOKUP: Index hash for «i.name.name» is " + indexHash);
-                            long key = index«i.name.name».getUniqueKeyByIndex(builder.getCurrentBuffer(), currentWriterPos, builder.length() - currentWriterPos, indexHash);
-                            builder.setLength(currentWriterPos);
-                            if (key <= 0)
-                                throw new PersistenceException(PersistenceException.NO_RECORD_FOR_INDEX, key, null, "«i.name.name»", data.toString());
-                            // restore position to previous state
-                            return key;
-                        }
-                    «ENDFOR»
-                } catch (IOException _e) {
-                    throw new RuntimeException(_e);  // should not happen as we work on internal memory
-                }
+                «IF e.indexes.size > 0»
+                    RequestContext ctx = contextProvider.get();
+                    try {
+                        «FOR i: e.indexes»
+                            if (refObject instanceof «i.name.name») {
+                                // return myLookup.getKeyForIndex((«i.name.name»)refObject, index«i.name.name», «i.name.name».meta$$this);
+                                «i.name.name» data = («i.name.name»)refObject;
+                                int currentWriterPos = builder.length();
+                                «FOR f: i.columns.columnName»
+                                    «IF f.isTenant(e)»
+                                        myComposer.addField(«e.tenantClass.name».meta$$«f.name», ctx.getTenantRef());
+                                    «ELSE»
+                                        myComposer.addField(«e.pojoType.name».meta$$«f.name», data.get«f.name.toFirstUpper»());
+                                    «ENDIF»
+                                «ENDFOR»
+                                int indexHash = indexHash(currentWriterPos);
+                                // LOGGER.info("LOOKUP: Index hash for «i.name.name» is " + indexHash);
+                                long key = index«i.name.name».getUniqueKeyByIndex(builder.getCurrentBuffer(), currentWriterPos, builder.length() - currentWriterPos, indexHash);
+                                builder.setLength(currentWriterPos);
+                                if (key <= 0)
+                                    throw new PersistenceException(PersistenceException.NO_RECORD_FOR_INDEX, key, null, "«i.name.name»", data.toString());
+                                // restore position to previous state
+                                return key;
+                            }
+                        «ENDFOR»
+                    } catch (IOException _e) {
+                        throw new RuntimeException(_e);  // should not happen as we work on internal memory
+                    }
+                «ENDIF»
                 throw new PersistenceException(PersistenceException.UNKNOWN_INDEX_TYPE, 0L, ENTITY_NAME, refObject.ret$PQON(), null);
             }
 
