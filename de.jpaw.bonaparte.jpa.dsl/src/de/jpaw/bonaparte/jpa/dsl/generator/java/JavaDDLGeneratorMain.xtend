@@ -641,7 +641,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».StaticMeta;
         import «bonaparteInterfacesPackage».MessageParserException;
         import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
+        import «bonaparteInterfacesPackage».BonaparteJsonEscaper;
         import de.jpaw.util.ByteBuilder;
+        import de.jpaw.json.JsonException;
+        import de.jpaw.json.JsonParser;
 
         «imports.createImports»
 

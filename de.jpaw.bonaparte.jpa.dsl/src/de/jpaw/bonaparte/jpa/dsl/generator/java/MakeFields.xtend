@@ -161,6 +161,10 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
                     case "ByteArray":
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
+                    case "Object":
+                        // element
+                        writeField(c, ref, myName, false, if (c.properties.hasProperty(PROP_COMPACT)) "byte []" else "String", null, null)
+                        
                     case JAVA_OBJECT_TYPE:
                         if (prefs.doUserTypeForBonaPortable)
                             return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
@@ -229,20 +233,7 @@ class JavaFieldWriter {
         var String getter = '''return «myName»;'''
         var String setter = '''«myName» = _x;'''
 
-        if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
-            if (!prefs.doUserTypeForBonaPortable) {
-                val prefix = if (i.properties.hasProperty(PROP_COMPACT)) "Compact"
-                val expectedClass = if (ref.objectDataType !== null) i.JavaDataTypeNoName(false) else "BonaPortable"
-                getter = '''
-                    try {
-                        return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
-                    } catch (MessageParserException _e) {
-                        DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
-                        return null;
-                    }'''
-                setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
-            } // else stay with the default
-        } else if (ref.category == DataCategory.ENUM) {
+        if (ref.category == DataCategory.ENUM) {
             if (!prefs.doUserTypeForEnum) {
                 getter = '''return «ref.elementaryDataType.enumType.name».valueOf(«myName»);'''
                 setter = '''«myName» = _x == null ? null : _x.ordinal();'''
@@ -258,17 +249,62 @@ class JavaFieldWriter {
                 setter = '''«myName» = _x == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken();'''
             }
         } else if (ref.category == DataCategory.OBJECT) {
-            if (ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals) {
-                val extraArg =
-                    if (i.datatype.extraParameterString !== null)
-                        '''«i.datatype.extraParameterString», '''
-                    else if (i.datatype.extraParameter !== null)
-                        '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''
-                // check for a possible exception converter parameter
-                val exceptionConverterArg = if (ref.objectDataType.exceptionConverter) EXC_CVT_ARG
-                getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«extraArg»«myName»«exceptionConverterArg»);'''
-                setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»;'''
+            if (JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
+                // BonaPortable or Object with "serialized" property
+                if (!prefs.doUserTypeForBonaPortable) {
+                    val prefix = if (i.properties.hasProperty(PROP_COMPACT)) "Compact"
+                    val expectedClass = if (ref.objectDataType !== null) i.JavaDataTypeNoName(false) else "BonaPortable"
+                    getter = '''
+                        try {
+                            return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
+                        } catch (MessageParserException _e) {
+                            DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
+                            return null;
+                        }'''
+                    setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
+                } // else stay with the default (fall through)
+            } else if (ref.elementaryDataType !== null) {
+                // JSON or ELEMENT
+                if ("Object".equals(ref.javaType)) {
+                    // Element => store in compact serialized form by default
+                    if (i.properties.hasProperty(PROP_COMPACT)) {
+                        getter = '''
+                            try {
+                                return CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»);
+                            } catch (MessageParserException _e) {
+                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
+                                return null;
+                            }'''
+                        setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x);'''
+                    } else {
+                        // text JSON
+                        getter = '''
+                            try {
+                                return new JsonParser(«myName», false).parseObject();
+                            } catch (JsonException _e) {
+                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
+                                return null;
+                            }'''
+                        setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
+                    }
+                } else {
+                    // JSON: fall through (done via user type)
+                }
+            } else if (ref.objectDataType !== null) {
+                // anything else with object type
+                if (ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals) {
+                    val extraArg =
+                        if (i.datatype.extraParameterString !== null)
+                            '''«i.datatype.extraParameterString», '''
+                        else if (i.datatype.extraParameter !== null)
+                            '''get«i.datatype.extraParameter.name.toFirstUpper»(), '''
+                    // check for a possible exception converter parameter
+                    val exceptionConverterArg = if (ref.objectDataType.exceptionConverter) EXC_CVT_ARG
+                    getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : «ref.objectDataType.adapterClassName».unmarshal(«extraArg»«myName»«exceptionConverterArg»);'''
+                    setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : «IF ref.objectDataType.bonaparteAdapterClass === null»_x.marshal()«ELSE»«ref.objectDataType.bonaparteAdapterClass».marshal(_x)«ENDIF»;'''
+                }
             }
+            // fall through to default
         } else if (ref.category == DataCategory::XENUMSET || ref.category == DataCategory::ENUMSET || ref.category == DataCategory::ENUMSETALPHA) {
             if (!prefs.doUserTypeForEnumset) {
                 getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»);'''
