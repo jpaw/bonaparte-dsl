@@ -101,8 +101,8 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("unicode",   "varchar(#length)");
         dataTypeSqlPostgres.put("enum",      "smallint");
         dataTypeSqlPostgres.put("object",    "bytea");                       // mapping to numeric or varchar is done by entity class getter/setter
-        dataTypeSqlPostgres.put("json",      "jsonb");                       // JSON object
-        dataTypeSqlPostgres.put("element",   "varchar(4000)");               // JSON any type, but expected to be short
+        dataTypeSqlPostgres.put("json",      "jsonb");                       // JSON object (native)
+        dataTypeSqlPostgres.put("element",   "text");                        // JSON any type
         dataTypeSqlPostgres.put("string",    "varchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
     static protected Map<String,String> dataTypeSqlMsSQLServer = new HashMap<String, String>(40);
@@ -230,33 +230,51 @@ public class SqlMapping {
                 columnLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
                 columnDecimals = 0;
             }
-        } else if (ref.category == DataCategory.ENUMSET) {
-            datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
-            datatype = datatype == null ? "integer" : datatype.toLowerCase();
-            columnLength = JavaMeta.TOTAL_DIGITS.get(datatype);
-            columnDecimals = 0;
-        } else if (ref.category == DataCategory.ENUMSETALPHA) {
-            datatype = "unicode";
-            columnLength = ref.enumMaxTokenLength;
-            columnDecimals = 0;
-        } else if (ref.category == DataCategory.XENUMSET) {
-            datatype = "unicode";
-            columnLength = ref.elementaryDataType.getLength();
-            columnDecimals = 0;
-        } else {
-            datatype = ref.elementaryDataType.getName().toLowerCase();
-            columnLength = ref.elementaryDataType.getLength();
-            columnDecimals = ref.elementaryDataType.getDecimals();
-            if (columnLength == 0) {
-                // get some meaningful default for integral values
-                Integer maxLength = JavaMeta.TOTAL_DIGITS.get(datatype);
-                if (maxLength != null) {
-                    // yes, we got some default!
-                    if (maxLength == 19)
-                        maxLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
-                    columnLength = maxLength;
+        } else if (ref.elementaryDataType != null) {
+            if (ref.category == DataCategory.ENUMSET) {
+                datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
+                datatype = datatype == null ? "integer" : datatype.toLowerCase();
+                columnLength = JavaMeta.TOTAL_DIGITS.get(datatype);
+                columnDecimals = 0;
+            } else if (ref.category == DataCategory.ENUMSETALPHA) {
+                datatype = "unicode";
+                columnLength = ref.enumMaxTokenLength;
+                columnDecimals = 0;
+            } else if (ref.category == DataCategory.XENUMSET) {
+                datatype = "unicode";
+                columnLength = ref.elementaryDataType.getLength();
+                columnDecimals = 0;
+            } else {
+                datatype = ref.elementaryDataType.getName().toLowerCase();
+                columnLength = ref.elementaryDataType.getLength();
+                columnDecimals = ref.elementaryDataType.getDecimals();
+                if (datatype.equals("json") || datatype.equals("element")) {
+                    // JSON types either map to a native type (stored under the "json" entry, or compact form (shared from "object") or text (element)
+                    if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_COMPACT)) {
+                        datatype = "object";    // treat as object
+                    } else if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_NATIVE)) {
+                        datatype = "json";      // treat as native object (assignment is redundant for json type)
+                    } else {
+                        // fall back to textual form, mapping stored with "element"
+                        datatype = "element";   // assignment is redundant for type "element"
+                    }
+                }
+                if (columnLength == 0) {
+                    // get some meaningful default for integral values
+                    Integer maxLength = JavaMeta.TOTAL_DIGITS.get(datatype);
+                    if (maxLength != null) {
+                        // yes, we got some default!
+                        if (maxLength == 19)
+                            maxLength = 20;  // backwards compatibility for long!  TODO: deleteme, it's one digit too much!
+                        columnLength = maxLength;
+                    }
                 }
             }
+        } else {
+            // never reached
+            datatype = "UNDEFINED";
+            columnLength = 777;
+            columnDecimals = 0;
         }
         if (ref.enumMaxTokenLength >= 0) {
             // alphanumeric enum! use other type!
