@@ -48,11 +48,15 @@
         <fornax.version>3.5.1</fornax.version>
         <xtend.version>2.8.4</xtend.version>
 
-        <build-helper.plugin.version>1.9.1</build-helper.plugin.version>
-        <enforcer.plugin.version>1.4</enforcer.plugin.version>
-        <compiler.plugin.version>3.2</compiler.plugin.version>
+        <!-- org.apache.maven.plugins -->
+        <compiler.plugin.version>3.3</compiler.plugin.version>
         <clean.plugin.version>2.6.1</clean.plugin.version>
-        <javadoc.plugin.version>2.10.1</javadoc.plugin.version>
+        <enforcer.plugin.version>1.4.1</enforcer.plugin.version>
+        <javadoc.plugin.version>2.10.3</javadoc.plugin.version>
+
+        <!-- org.codehaus.mojo maven plugins -->
+        <exec.plugin.version>1.4.0</exec.plugin.version>
+        <build-helper.plugin.version>1.9.1</build-helper.plugin.version>
     </properties>
 
     <build>
