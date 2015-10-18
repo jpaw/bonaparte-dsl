@@ -40,6 +40,7 @@ class JavaRtti {
             public static int class$rtti() {
                 return MY_RTTI;
             }
+            @Override
             public int ret$rtti() {
                 return MY_RTTI;
             }

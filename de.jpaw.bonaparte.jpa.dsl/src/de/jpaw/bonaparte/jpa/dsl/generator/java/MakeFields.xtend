@@ -282,6 +282,7 @@ class JavaFieldWriter {
                                 return CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»);
                             } catch (MessageParserException _e) {
                                 DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
                             }'''
                         setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
@@ -295,6 +296,7 @@ class JavaFieldWriter {
                                 return new JsonParser(«myName», false).parseElement();
                             } catch (JsonException _e) {
                                 DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
                             }'''
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
@@ -306,6 +308,7 @@ class JavaFieldWriter {
                                 return CompactByteArrayParser.unmarshalJson(«myName», «dtoName».meta$$«myName»);
                             } catch (MessageParserException _e) {
                                 DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
                             }'''
                         setter = '''«myName» = CompactByteArrayComposer.marshalAsJson(«dtoName».meta$$«myName», _x);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
@@ -319,6 +322,7 @@ class JavaFieldWriter {
                                 return new JsonParser(«myName», false).parseObject();
                             } catch (JsonException _e) {
                                 DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
                             }'''
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
