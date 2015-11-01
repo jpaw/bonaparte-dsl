@@ -418,7 +418,7 @@ public class SqlMapping {
         case MYSQL:
             return " DEFAULT CURRENT_USER";
         case SAPHANA:
-            return " DEFAULT CURRENT_USER";
+            return "";   // could not get DEFAULT CURRENT_USER as well as SESSION_USER working 
         }
         return "";
     }

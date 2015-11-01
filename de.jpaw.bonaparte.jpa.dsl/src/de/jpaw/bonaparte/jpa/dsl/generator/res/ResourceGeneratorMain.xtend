@@ -31,7 +31,7 @@ class ResourceGeneratorMain implements IGenerator {
     // create a file which contains the class names of all JPA Entities defined in this package
     def dumpPackage(BDDLPackageDefinition p) '''
         «FOR e: p.entities»
-            «IF !e.isAbstract && !e.mappedSuperclass»
+            «IF !e.isAbstract»
                 «p.name».«e.name»
             «ENDIF»
         «ENDFOR»
