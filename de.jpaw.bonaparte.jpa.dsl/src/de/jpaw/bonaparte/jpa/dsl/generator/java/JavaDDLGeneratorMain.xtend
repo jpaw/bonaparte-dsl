@@ -588,7 +588,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.^extends !== null»
             import javax.persistence.DiscriminatorValue;
         «ENDIF»
-        «IF e.mappedSuperclass || e.isAbstract»
+        «IF e.isAbstract»
             import javax.persistence.MappedSuperclass;
         «ENDIF»
         «IF e.isIdGenerated»
@@ -651,7 +651,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.javadoc !== null»
             «e.javadoc»
         «ENDIF»
-        «IF e.isAbstract || e.mappedSuperclass»
+        «IF e.isAbstract»
             @MappedSuperclass
         «ELSE»
             @DataClass(«e.pojoType.name».class)
