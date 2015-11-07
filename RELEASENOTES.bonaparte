@@ -361,8 +361,16 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.6.0:
 - new data type "JSON"
 
-3.6.1:
+3.6.1: (only DSL && bonaparte-java tagged, persistence and noSQL identical to 3.6.0)
 - BDDL: removed redundant "mappedsuperclass" directive, as it was identical to the "abstract" modifier
+- BDDL: change default user assignment for HANA output
+
+3.7.0:
+- BDDL: ***change***: changed the marker interfaces generated to JPA entity classes.
+     This was required in order to allow more flexible use of mapped superclasses.
+     This may imply some adjustments to active annotations
+- BDDL: inherited entities may no longer specify "category" and "pk" - this should avoid inconsistent specifications
+     @KeyClass annotation is no longer generated for entities subclassing the entity which defines the key
 
 
 ROADMAP / PLANS:

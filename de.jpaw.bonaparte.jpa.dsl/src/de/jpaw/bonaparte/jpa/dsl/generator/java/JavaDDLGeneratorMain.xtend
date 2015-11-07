@@ -372,7 +372,6 @@ class JavaDDLGeneratorMain implements IGenerator {
     '''
 
     def private writeKeyInterfaceMethods(EntityDefinition e, String pkType) '''
-        «IF !e.noDataKeyMapper»
         public static Class<«if (pkType == "long") "?" else pkType»> class$KeyClass() {
             return «pkType».class;
         }
@@ -414,7 +413,6 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «ENDIF»
             «ENDIF»
         }
-        «ENDIF»
     '''
 
     // TODO: does not work for embeddables!  Would need dot notation for that
@@ -470,31 +468,61 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def private static noDataMapper(EntityDefinition e) {
-        !e.doMapper && (e.noMapper || (e.eContainer as BDDLPackageDefinition).isNoMapper || e.noDataKeyMapper)
+    def private static doNoDataMapper(EntityDefinition e) {
+        e.isIsAbstract || (!e.doMapper && (e.noMapper || (e.eContainer as BDDLPackageDefinition).isNoMapper))
     }
 
-    def private static noDataKeyMapper(EntityDefinition e) {
-        !e.doMapper && (e.noKeyMapper || (e.eContainer as BDDLPackageDefinition).isNoKeyMapper)
+    def private static doNoKeyMapper(EntityDefinition e) {
+        !e.doMapper && (e.noKeyMapper || (e.eContainer as BDDLPackageDefinition).noKeyMapper)
     }
 
-    def private wrImplements(EntityDefinition e, String pkType, String trackingType) {
-        if (e.noDataKeyMapper)
-            '''BonaPersistableTracking<«trackingType»>'''
-        else if (pkType == 'long') {
-            // Java generics does not work with primitive types
-            if (e.noDataMapper)
-                '''BonaPersistableNoDataLong<«trackingType»>'''
-            else
-                '''BonaPersistableLong<«e.pojoType.name», «trackingType»>'''
-        } else {
-            if (e.noDataMapper)
-                '''BonaPersistableNoData<«pkType», «trackingType»>'''
-            else
-                '''BonaPersistable<«pkType», «e.pojoType.name», «trackingType»>'''
+        // the class which defines the data mapper type is the one which is
+        // - not abstract
+        // - has not "noDataMapper specified
+        // has no parent class of these properties
+    def private static boolean isFirstNonAbstractClass(EntityDefinition e) {
+        if (e.isIsAbstract || e.doNoDataMapper)
+            return false
+        if (e.extends === null)
+            return true
+        return e.extends.firstNonAbstractBaseClass === null  // true if no superclass defines it
+    }
+    
+    def private static EntityDefinition firstNonAbstractBaseClass(EntityDefinition e) {
+        // careful not to implement exponential recursion: try bottom up!
+        val parent = e.extends?.firstNonAbstractBaseClass       // head recursion
+        if (parent === null) {
+            // try e
+            if (e.isIsAbstract || e.doNoDataMapper)
+                return null
+            return e
         }
+        return null
     }
+    
+    // define the "implements" for an Entity or MappedSuperclass.
+    // The following rules hold:
+    // Tracking is always defined in the root entity (extends == null), no matter if abstract or not
+    // BonaData is written if the class is not abstract and not noDataMappper specified
+    // BonaKey is written once the key has been defined, independent of root class or not, independent of abstract class or not
+    // deprecated interfaces BonaPersistableNoData* are written together with the key.  
+    def private wrImplements(EntityDefinition e, String pkType, String trackingType, boolean pkDefinedInThisEntity) {
+        println('''write Implements for entity «e.name»: abstract=«e.isIsAbstract», root=«e.extends === null», PK defined here=«pkDefinedInThisEntity», PK class = «pkType», first non abstract base entity=«e.firstNonAbstractBaseClass»''')
+        // val doNone = !(e.extends === null) && !(pkDefinedInThisEntity && !e.doNoKeyMapper) && !e.isFirstNonAbstractClass
+        val interfaces = new ArrayList<String>(4)
+        if (pkDefinedInThisEntity && !e.doNoKeyMapper) {
+            // first for compatibility of some existing active annotations... add a deprecated interface. trackingType is always populated, not only for the root entity
+                                                        interfaces.add(if (pkType == "long") '''BonaPersistableNoDataLong<«trackingType»>''' else '''BonaPersistableNoData<«pkType», «trackingType»>''')
+                                                        interfaces.add(if (pkType == "long") '''BonaPersistableKeyLong'''                    else '''BonaPersistableKey<«pkType»>''')
+        }  
+        if (e.isFirstNonAbstractClass)                  interfaces.add('''BonaPersistableData<«e.pojoType.name»>''')
+        if (e.extends === null)                         interfaces.add('''BonaPersistableTracking<«trackingType»>''')
 
+        if (interfaces.empty)
+            return "BonaPersistableBase"
+        else
+            return interfaces.join(", ")
+    }
 
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
@@ -556,10 +584,13 @@ class JavaDDLGeneratorMain implements IGenerator {
             pkColumns = e.pkPojo.fields
             pkType0 = e.pkPojo.name
         }
+        val pkDefinedInThisEntity = pkType0 !== null
         val String pkType = pkType0 ?: "Serializable"
         if (e.tableCategory.trackingColumns !== null) {
             trackingType = e.tableCategory.trackingColumns.name
         }
+        val dataMapperEntity = e.firstNonAbstractBaseClass
+        
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -658,7 +689,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.tableCategory.trackingColumns !== null»
                 @TrackingClass(«e.tableCategory.trackingColumns.name».class)
             «ENDIF»
-            «IF pkType0 !== null»
+            «IF pkDefinedInThisEntity»
                 @KeyClass(«pkType0».class)
             «ENDIF»
             @Entity
@@ -687,7 +718,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.discname !== null»
                 @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSE»STRING«ENDIF»)
                 @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
-            «ELSEIF e.^extends !== null»
+            «ELSEIF e.discriminatorValue !== null»
                 @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
             «ENDIF»
         «ENDIF»
@@ -695,21 +726,25 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
             @Deprecated
         «ENDIF»
-        public class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ELSE» implements «wrImplements(e, pkType, trackingType)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF»«ENDIF» {
-            «IF stopper === null && primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
+        public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {
+            «IF primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
-            «IF stopper === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»«ENDIF»
+            «IF e.extends === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»«ENDIF»
             «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
             «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
-            «IF stopper === null»«EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»«ENDIF»
+            «IF pkDefinedInThisEntity || (e.^extends === null && !e.isIsAbstract)»
+                «EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»
+            «ENDIF»
             «writeStubs(e)»
-            «IF e.^extends === null»
+            «IF pkDefinedInThisEntity»
                 «writeKeyInterfaceMethods(e, pkType)»
+            «ENDIF»
+            «IF e.^extends === null»
                 «MakeMapper::writeTrackingMapperMethods(e.tableCategory.trackingColumns, trackingType)»
             «ENDIF»
-            «IF (!e.noDataMapper)»
-                «MakeMapper::writeDataMapperMethods(e.pojoType, e.^extends === null, e.getInheritanceRoot.pojoType, e.embeddables, e.pk?.columnName)»
+            «IF dataMapperEntity !== null»
+                «MakeMapper::writeDataMapperMethods(e.pojoType, e == dataMapperEntity, dataMapperEntity.pojoType, e.embeddables, e.pk?.columnName)»
             «ENDIF»
             «writeStaticFindByMethods(e.pojoType, stopper, e)»
             «e.writeCopyOf(pkType, trackingType)»

@@ -128,14 +128,14 @@ EntityDefinition:
     (isAbstract?='abstract')?  // abstract means mappedSuperclass
     'entity' name = ID      
         // 'type' tabletype=TableType
-        'category' tableCategory=[TableCategoryDefinition|QualifiedId]
+        ('category' optTableCategory=[TableCategoryDefinition|QualifiedId])?
         'is' pojoType=[pojos::ClassDefinition|QualifiedId]
         ('tablename' tablename = ID)?  // overwrite auto-generated tablename
         ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
         (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
         ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
-         | ('inherits' (extends=[EntityDefinition|QualifiedId] 'discriminator' discriminatorValue=STRING)))?
+         | ('inherits' (extends=[EntityDefinition|QualifiedId] ('discriminator' discriminatorValue=STRING)? )))?
         (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?

@@ -38,6 +38,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.ListOfColumns;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
 import de.jpaw.bonaparte.jpa.dsl.bDDL.SingleColumn;
+import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition;
 import de.jpaw.bonaparte.jpa.dsl.generator.YUtil;
 
 /**
@@ -76,9 +77,12 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
         //ListOfColumns loc = (ListOfColumns)context;
         //System.out.println("DEBUG: Resolver invoked for ListOfColumns inside " + entity.getName());
         recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getPojoType(), ignoreCase);
+        
         // also add the fields of the entity category class (& parents)
-        if (entity.getTableCategory() != null)
-            recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getTableCategory().getTrackingColumns(), ignoreCase);
+        EntityDefinition root = YUtil.getInheritanceRoot(entity);
+        TableCategoryDefinition category = root.getOptTableCategory();
+        if (category != null)
+            recursivelyAddColumnsOfClassAndParents(preliminaryResult, category.getTrackingColumns(), ignoreCase);
         // also add the fields in a potential tenant discriminator class
         if (YUtil.getInheritanceRoot(entity).getTenantClass() != null)
             recursivelyAddColumnsOfClassAndParents(preliminaryResult, YUtil.getInheritanceRoot(entity).getTenantClass(), ignoreCase);

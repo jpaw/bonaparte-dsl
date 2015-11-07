@@ -1,32 +1,31 @@
 package de.jpaw.bonaparte.jpa.dsl.validation;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EStructuralFeature;
-import org.eclipse.xtext.validation.Check;
-
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
-import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackage;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.CollectionDefinition;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship;
-import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition;
-import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*;
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*;
-import org.eclipse.emf.ecore.EReference
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackage
+import de.jpaw.bonaparte.jpa.dsl.bDDL.CollectionDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ListOfColumns
+import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
+import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.SingleColumn
+import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
+import java.util.HashMap
+import java.util.List
+import java.util.Map
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.emf.ecore.EReference
+import org.eclipse.emf.ecore.EStructuralFeature
+import org.eclipse.xtext.validation.Check
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 
 class BDDLValidator extends AbstractBDDLValidator {
     private boolean infoDoneTablenames = false
@@ -217,6 +216,16 @@ class BDDLValidator extends AbstractBDDLValidator {
             // the prior check also implies that the history category does not request another history category (by grammar rule)
         }
     }
+    
+    def private static boolean noPkInSuperClasses(EntityDefinition e) {
+        if (e.extends === null)
+            return true
+        val p = e.extends
+        if (p.pk !== null || p.pkPojo !== null || p.countEmbeddablePks > 0) {
+            return false
+        }
+        return p.noPkInSuperClasses
+    }
 
     @Check
     def public void checkEntity(EntityDefinition e) {
@@ -226,6 +235,10 @@ class BDDLValidator extends AbstractBDDLValidator {
                 error("Entity names should start with an upper case letter",
                         BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
             }
+        }
+        if (e.extends === null && e.optTableCategory === null) {
+            error("The root entity must define a table category", BDDLPackage.Literals.ENTITY_DEFINITION__NAME)
+            return // subsequent NPEs otherwise...
         }
         if (e.extends !== null) {
             // parent must extend as well or define inheritance
@@ -243,7 +256,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         val tablename = e.mkTablename(false);
         checkTablenameLength(tablename, if (e.getTablename() !== null) BDDLPackage.Literals.ENTITY_DEFINITION__TABLENAME else BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
 
-        if (e.getTableCategory().getHistoryCategory() !== null) {
+        if (e.tableCategory.getHistoryCategory() !== null) {
             val historytablename = e.mkTablename(true);
             checkTablenameLength(historytablename, if (e.getHistorytablename() !== null) BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME else BDDLPackage.Literals.ENTITY_DEFINITION__NAME);
         } else if (e.getHistorytablename() !== null) {
@@ -252,30 +265,43 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
 
         // verify for primary key
+        val noPkInSuperClasses = e.noPkInSuperClasses
         // check for embeddable PK
         var numPks = e.countEmbeddablePks
         if (numPks > 1) {
             error("At most one embeddable may be defined as PK", BDDLPackage.Literals.ENTITY_DEFINITION__EMBEDDABLES);
+        } else if (numPks == 1 && !noPkInSuperClasses) {
+            error("Cannot redefine a primary key. A key has been defined in a superclass already", BDDLPackage.Literals.ENTITY_DEFINITION__EMBEDDABLES);
         }
         // we need one by definition of the category
         if (e.pk !== null) {
             numPks += 1;
-            if (numPks > 1) {
-                error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK);
-
-            }
+            if (numPks > 1)
+                error("Primary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK);
+            if (!noPkInSuperClasses)
+                error("Cannot redefine a primary key. A key has been defined in a superclass already",   BDDLPackage.Literals.ENTITY_DEFINITION__PK);
         }
         if (e.pkPojo !== null) {
             numPks += 1;
-            if (numPks > 1) {
-                error("Pimary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
-            }
+            if (numPks > 1)
+                error("Primary key already specified, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
+            if (!noPkInSuperClasses)
+                error("Cannot redefine a primary key. A key has been defined in a superclass already",   BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
             // validate that the referenced class (and parents do not contain aggregates)
             e.pkPojo.validateOnlyScalars(BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
         }
-        if (numPks == 0 && e.getTableCategory().isRequiresPk()) {
+        if (numPks == 0 && !e.isAbstract && e.tableCategory.isRequiresPk() && noPkInSuperClasses) {
             error("The table category requires specificaton of a primary key for this entity",
-                   BDDLPackage.Literals.ENTITY_DEFINITION__TABLE_CATEGORY);
+                   BDDLPackage.Literals.ENTITY_DEFINITION__OPT_TABLE_CATEGORY);
+        }
+        
+        if (e.extends !== null) {
+            if (!e.extends.isIsAbstract && e.discriminatorValue === null) {
+                error("an entity extending another one which is not abstract must specify a discriminator value", BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
+            }
+            if (e.optTableCategory !== null) {
+                error("an entity extending another one cannot redefine the category", BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
+            }
         }
 
         if (e.getXinheritance() !== null) {
