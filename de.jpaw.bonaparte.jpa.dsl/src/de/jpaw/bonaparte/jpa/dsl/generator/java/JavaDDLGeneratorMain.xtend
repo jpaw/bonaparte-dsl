@@ -387,7 +387,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «IF e.embeddablePk !== null»
                     return get«e.embeddablePk.field.name.toFirstUpper»();
                 «ELSEIF e.pkPojo !== null»
-                    return new «e.pkPojo.name»(«e.pkPojo.fields.map['''get«name.toFirstUpper»()'''].join(', ')»);
+                    return new «e.pkPojo.name»(«e.pkPojo.fields.map[if (hasProperty(properties, PROP_SIMPLEREF)) '''new «JavaDataTypeNoName(true)»(get«name.toFirstUpper»())''' else '''get«name.toFirstUpper»()'''].join(', ')»);
                 «ELSEIF e.pk.columnName.size > 1»
                     return key.clone(); // as our key fields are all immutable, shallow copy is sufficient
                 «ELSE»
@@ -404,7 +404,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     set«e.embeddablePk.field.name.toFirstUpper»(_k);
                 «ELSEIF e.pkPojo !== null»
                     «FOR f: e.pkPojo.fields»
-                        set«f.name.toFirstUpper»(_k.get«f.name.toFirstUpper»());
+                        set«f.name.toFirstUpper»(_k.get«f.name.toFirstUpper»()«IF hasProperty(f.properties, PROP_SIMPLEREF)».«f.properties.getProperty(PROP_SIMPLEREF)»«ENDIF»);
                     «ENDFOR»
                 «ELSEIF e.pk.columnName.size > 1»
                     key = _k.clone();   // as our key fields are all immutable, shallow copy is sufficient

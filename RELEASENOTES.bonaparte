@@ -372,6 +372,9 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BDDL: inherited entities may no longer specify "category" and "pk" - this should avoid inconsistent specifications
      @KeyClass annotation is no longer generated for entities subclassing the entity which defines the key
 
+3.7.1:
+- BDDL: allow use of simpleRef properties in keys
+
 
 ROADMAP / PLANS:
 - data types of unspecified size (text, binary)
