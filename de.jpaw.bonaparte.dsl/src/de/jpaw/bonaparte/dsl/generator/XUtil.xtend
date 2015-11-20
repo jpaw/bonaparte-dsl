@@ -630,6 +630,6 @@ class XUtil {
     
     def public static isJsonField(DataTypeExtension ref) {
         val elemType = ref.elementaryDataType?.name?.toLowerCase
-        return elemType == "json" || elemType == "element"
+        return elemType == "json" || elemType == "element" || elemType == "array"
     }
 }

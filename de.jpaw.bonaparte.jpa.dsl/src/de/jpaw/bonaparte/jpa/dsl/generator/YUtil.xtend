@@ -43,7 +43,7 @@ class YUtil {
     public static final String PROP_LIACBY      = "listActiveBy";
     public static final String PROP_SERIALIZED  = "serialized";
     public static final String PROP_COMPACT     = "compact";                // compact serialized form (addon attribute to serialized)
-    public static final String PROP_NATIVE      = "native";                 // use native database type with UserType (for JSON / Element fields)
+    public static final String PROP_NATIVE      = "native";                 // use native database type with UserType (for JSON / Array / Element fields)
     public static final String PROP_REF         = "ref";
     public static final String PROP_SIMPLEREF   = "simpleref";
     public static final String PROP_SQL_DEFAULT = "SQLdefault";

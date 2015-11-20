@@ -318,7 +318,7 @@ MapModifier:
 ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
-              | "uuid"    | "Uuid"     | "object"    | "Object" | "json" | "Json" | "element" | "Element")
+              | "uuid"    | "Uuid"     | "object"    | "Object" | "json" | "Json" | "element" | "Element" | "array" | "Array")
       | (name = ('enum'| 'Enum') enumType = [EnumDefinition|QualifiedId] (enumDefault?='default')? )  // enums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name = ('xenum'| 'XEnum') xenumType = [XEnumDefinition|QualifiedId] (enumDefault?='default')? )  // xenums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name = ('enumset'| 'Enumset') enumsetType = [EnumSetDefinition|QualifiedId] )

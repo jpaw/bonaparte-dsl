@@ -171,7 +171,9 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
                         
                     case DataTypeExtension.JAVA_JSON_TYPE:
-                        writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonObject"), null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonObject"),  null, null)
+                    case DataTypeExtension.JAVA_ARRAY_TYPE:
+                        writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonArray"),   null, null)
                     case DataTypeExtension.JAVA_ELEMENT_TYPE:
                         writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonElement"), null, null)
                     case DataTypeExtension.JAVA_OBJECT_TYPE:
@@ -273,7 +275,7 @@ class JavaFieldWriter {
                     setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
                 } // else stay with the default (fall through)
             } else if (ref.elementaryDataType !== null) {
-                // JSON or ELEMENT
+                // JSON, ARRAY or ELEMENT
                 if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
                     if (i.properties.hasProperty(PROP_COMPACT)) {
@@ -294,6 +296,32 @@ class JavaFieldWriter {
                         getter = '''
                             try {
                                 return new JsonParser(«myName», false).parseElement();
+                            } catch (JsonException _e) {
+                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
+                            }'''
+                        setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
+                    }
+                } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
+                    // Element => store in compact serialized form by default
+                    if (i.properties.hasProperty(PROP_COMPACT)) {
+                        getter = '''
+                            try {
+                                return CompactByteArrayParser.unmarshalArray(«myName», «dtoName».meta$$«myName»);
+                            } catch (MessageParserException _e) {
+                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
+                                return null; // make JAVA happy
+                            }'''
+                        setter = '''«myName» = CompactByteArrayComposer.marshalAsArray(«dtoName».meta$$«myName», _x);'''
+                    } else if (i.properties.hasProperty(PROP_NATIVE)) {
+                        // assign the wrapper object
+                        getter = '''return «myName» == null ? null : «myName».getData();'''
+                        setter = '''«myName» = _x == null ? null : new NativeJsonArray(_x);'''
+                    } else {
+                        // default: text JSON
+                        getter = '''
+                            try {
+                                return new JsonParser(«myName», false).parseArray();
                             } catch (JsonException _e) {
                                 DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
                                 return null; // make JAVA happy

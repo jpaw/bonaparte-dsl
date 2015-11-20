@@ -69,6 +69,7 @@ public class SqlMapping {
         dataTypeSqlOracle.put("enum",      "number(4)");                    // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlOracle.put("object",    "blob");                         // serialized form of an object
         dataTypeSqlOracle.put("json",      "clob");                         // JSON object
+        dataTypeSqlOracle.put("array",     "clob");                         // JSON array
         dataTypeSqlOracle.put("element",   "varchar2(4000)");               // JSON any type, but expected to be short
         dataTypeSqlOracle.put("string",    "varchar2(#length)");            // only up to 4000 characters, use CLOB if more!
     }
@@ -102,6 +103,7 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("enum",      "smallint");
         dataTypeSqlPostgres.put("object",    "bytea");                       // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlPostgres.put("json",      "jsonb");                       // JSON object (native)
+        dataTypeSqlPostgres.put("array",     "jsonb");                       // JSON array  (native)
         dataTypeSqlPostgres.put("element",   "text");                        // JSON any type
         dataTypeSqlPostgres.put("string",    "varchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
@@ -135,6 +137,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("enum",      "smallint");
         dataTypeSqlMsSQLServer.put("object",    "varbinary(MAX)");
         dataTypeSqlMsSQLServer.put("json",      "nvarchar(MAX");                 // JSON object
+        dataTypeSqlMsSQLServer.put("array",     "nvarchar(MAX");                 // JSON array
         dataTypeSqlMsSQLServer.put("element",   "nvarchar(4000)");               // JSON any type, but expected to be short
         dataTypeSqlMsSQLServer.put("string",    "nvarchar(#length)");            // only up to 4000 characters, use CLOB if more!
     }
@@ -168,6 +171,7 @@ public class SqlMapping {
         dataTypeSqlMySQL.put("enum",      "smallint");
         dataTypeSqlMySQL.put("object",    "BLOB");                      // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlMySQL.put("json",      "CLOB");                      // JSON object
+        dataTypeSqlMySQL.put("array",     "CLOB");                      // JSON array
         dataTypeSqlMySQL.put("element",   "nvarchar(4000)");            // JSON any type, but expected to be short
         dataTypeSqlMySQL.put("string",    "TEXT");                      // only up to 4000 characters, use CLOB if more!
     }
@@ -201,6 +205,7 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("enum",      "smallint");                    // mapping to numeric or varchar is done by entity class getter/setter
         dataTypeSqlSapHana.put("object",    "blob");                        // serialized form of an object
         dataTypeSqlSapHana.put("json",      "nclob");                       // JSON object
+        dataTypeSqlSapHana.put("array",     "nclob");                       // JSON array
         dataTypeSqlSapHana.put("element",   "nvarchar(4000)");              // JSON any type, but expected to be short
         dataTypeSqlSapHana.put("string",    "nvarchar(#length)");           // only up to 5000 characters, use CLOB if more!
     }
@@ -248,7 +253,7 @@ public class SqlMapping {
                 datatype = ref.elementaryDataType.getName().toLowerCase();
                 columnLength = ref.elementaryDataType.getLength();
                 columnDecimals = ref.elementaryDataType.getDecimals();
-                if (datatype.equals("json") || datatype.equals("element")) {
+                if (datatype.equals("json") || datatype.equals("element") || datatype.equals("array")) {
                     // JSON types either map to a native type (stored under the "json" entry, or compact form (shared from "object") or text (element)
                     if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_COMPACT)) {
                         datatype = "object";    // treat as object

@@ -61,6 +61,7 @@ public class DataTypeExtension {
     public static final String SPECIAL_DATA_TYPE_XENUMSET = "#S";
     public static final String JAVA_OBJECT_TYPE  = "BonaPortable";
     public static final String JAVA_JSON_TYPE    = "Map<String,Object>";
+    public static final String JAVA_ARRAY_TYPE   = "List<Object>";
     public static final String JAVA_ELEMENT_TYPE = "Object";
 
     // a lookup to determine if a data type can (should) be implemented as a Java primitive.
@@ -106,7 +107,8 @@ public class DataTypeExtension {
         dataCategory.put("enumset",   DataCategory.ENUMSET);    // artificial entry for enum
         dataCategory.put("xenumset",  DataCategory.XENUMSET);   // artificial entry for xenum
         dataCategory.put("object",    DataCategory.OBJECT);     // which is really an object reference instead of an elementary item...
-        dataCategory.put("json",      DataCategory.OBJECT);     // JSON object
+        dataCategory.put("json",      DataCategory.OBJECT);     // JSON object  (Java Map)
+        dataCategory.put("array",     DataCategory.OBJECT);     // JSON array   (Java List)
         dataCategory.put("element",   DataCategory.OBJECT);     // JSON element (Java Object)
     }
 
@@ -144,7 +146,8 @@ public class DataTypeExtension {
         dataTypeJava.put("enumset",   SPECIAL_DATA_TYPE_ENUMSET);           // artificial entry for enum
         dataTypeJava.put("xenumset",  SPECIAL_DATA_TYPE_XENUMSET);          // artificial entry for xenum
         dataTypeJava.put("object",    JAVA_OBJECT_TYPE);                    // which is really an object reference instead of an elementary item...
-        dataTypeJava.put("json",      JAVA_JSON_TYPE);                      // JSON object
+        dataTypeJava.put("json",      JAVA_JSON_TYPE);                      // JSON object  (Java Map)
+        dataTypeJava.put("array",     JAVA_ARRAY_TYPE);                     // JSON array   (Java List)
         dataTypeJava.put("element",   JAVA_ELEMENT_TYPE);                   // JSON element (Java Object)
     }
 

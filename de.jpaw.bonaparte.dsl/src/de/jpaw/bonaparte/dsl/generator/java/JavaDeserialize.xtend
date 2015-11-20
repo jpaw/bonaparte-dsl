@@ -71,6 +71,7 @@ class JavaDeserialize {
         // objects
         case 'object':    '''_p.readObject    («metaName», BonaPortable.class)'''
         case 'json':      '''_p.readJson      («metaName»)'''
+        case 'array':     '''_p.readArray     («metaName»)'''
         case 'element':   '''_p.readElement   («metaName»)'''
         }
     }
