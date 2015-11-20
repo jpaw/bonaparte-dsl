@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>3.7.1</version>
+        <version>3.7.2-SNAPSHOT</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
 
@@ -53,6 +53,7 @@
                 <configuration>
                     <includeProjectDependencies>false</includeProjectDependencies>
                     <includePluginDependencies>true</includePluginDependencies>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>  <!-- https://bugs.eclipse.org/bugs/show_bug.cgi?id=475098 -->
                     <mainClass>org.eclipse.emf.mwe2.launch.runtime.Mwe2Launcher</mainClass>
                     <arguments>
                         <argument>file://${project.basedir}/src/de/jpaw/bonaparte/dsl/GenerateBonScript.mwe2</argument>
