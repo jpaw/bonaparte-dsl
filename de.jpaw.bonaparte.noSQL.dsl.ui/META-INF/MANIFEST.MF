@@ -24,5 +24,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.noSQL.dsl.ui.contentassist,
  de.jpaw.bonaparte.noSQL.dsl.ui.quickfix,
  de.jpaw.bonaparte.noSQL.dsl.ui.contentassist.antlr,
- de.jpaw.bonaparte.noSQL.dsl.ui.internal
+ de.jpaw.bonaparte.noSQL.dsl.ui.internal,
+ de.jpaw.bonaparte.noSQL.dsl.ui.contentassist.antlr.internal
 Bundle-Activator: de.jpaw.bonaparte.noSQL.dsl.ui.internal.BDslActivator

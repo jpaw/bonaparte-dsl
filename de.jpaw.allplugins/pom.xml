@@ -46,7 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho.version>0.24.0</tycho.version>
         <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.8.4</xtend.version>
+        <xtend.version>2.9.0.rc2</xtend.version>
 
         <!-- org.apache.maven.plugins -->
         <compiler.plugin.version>3.3</compiler.plugin.version>
@@ -150,8 +150,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.plugin.version}</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
                 </plugin>
@@ -216,7 +216,12 @@
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.8.4/</url>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/milestones/</url>
+        </repository>
+        <repository>
+            <id>p2-xtext3</id>
+            <layout>p2</layout>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/</url>
         </repository>
         <repository>
             <id>p2-mars</id>

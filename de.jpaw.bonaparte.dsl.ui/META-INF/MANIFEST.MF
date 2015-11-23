@@ -29,5 +29,6 @@ Export-Package: de.jpaw.bonaparte.dsl.ui,
  de.jpaw.bonaparte.dsl.ui.contentassist.antlr,
  de.jpaw.bonaparte.dsl.ui.internal,
  de.jpaw.bonaparte.dsl.ui.wizard,
- de.jpaw.bonaparte.dsl.ui.quickfix
+ de.jpaw.bonaparte.dsl.ui.quickfix,
+ de.jpaw.bonaparte.dsl.ui.contentassist.antlr.internal
 Bundle-Activator: de.jpaw.bonaparte.dsl.ui.internal.BonScriptActivator
