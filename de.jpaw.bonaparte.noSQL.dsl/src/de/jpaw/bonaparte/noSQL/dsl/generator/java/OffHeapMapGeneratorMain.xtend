@@ -59,8 +59,10 @@ class OffHeapMapGeneratorMain {
         val keyW = e.pojoType.recurseKeyW
         val isPrimitive = (keyP !== null) || (keyW === null && pkRef.isPrimitive)
         val packageSuffix = if (isPrimitive) "p" else "w"
+        val classSuffix = if (isPrimitive) "P" else "W"
         val pkJavaType = if (isPrimitive) "long" else "Long"
-
+        val dwtClass = "DataWithTracking" + classSuffix
+        
         val refPojo = refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)
@@ -83,7 +85,7 @@ class OffHeapMapGeneratorMain {
         import de.jpaw.bonaparte.noSQL.ohm«packageSuffix».impl.BonaPortableOffHeapConverter;
         import de.jpaw.bonaparte.noSQL.ohm.impl.OffHeapBonaPortableMap;
         import de.jpaw.bonaparte.noSQL.ohm.impl.PersistenceProviderOHM;
-        import de.jpaw.bonaparte.pojos.api.DataWithTracking;
+        import de.jpaw.bonaparte.pojos.api«packageSuffix».«dwtClass»;
         import de.jpaw.bonaparte.pojos.api.AbstractRef;
         import de.jpaw.bonaparte.pojos.api.TrackingBase;
         import de.jpaw.bonaparte.pojos.meta.ClassDefinition;
@@ -168,7 +170,7 @@ class OffHeapMapGeneratorMain {
             «ENDFOR»
 
             @Override
-            public void uncachedRemove(DataWithTracking<«dt»> previous) {
+            public void uncachedRemove(«dwtClass»<«dt»> previous) {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();      // register transaction
                 long key = previous.getData().ret$RefP();
@@ -190,21 +192,24 @@ class OffHeapMapGeneratorMain {
             private boolean setDTO(long key, BonaPortable obj) {
                 int currentWriterPos = builder.length();
                 // myComposer.excludeObject(obj);  // obj is Data with tracking!
-                myComposer.addField(DataWithTracking.meta$$this, obj);
+                myComposer.addField(«dwtClass».meta$$this, obj);
                 boolean existed = db.setFromBuffer(key, builder.getCurrentBuffer(), currentWriterPos, builder.length() - currentWriterPos);
                 builder.setLength(currentWriterPos);
                 return existed;
             }
 
             @Override
-            protected DataWithTracking<«dt»> uncachedCreate(«e.pojoType.name» obj) throws PersistenceException {
+            protected «dwtClass»<«dt»> uncachedCreate(«e.pojoType.name» obj) throws PersistenceException {
                 RequestContext ctx = contextProvider.get();
                 ohmProvider.get();
                 long key = obj.ret$RefP();
-                DataWithTracking<«dt»> dwt = new DataWithTracking<>();
+                «dwtClass»<«dt»> dwt = new «dwtClass»<>();
                 dwt.setData(obj);
                 «IF tracking !== null»
                     dwt.setTracking(new «tr»());
+                «ENDIF»
+                «IF e.tenantClass !== null»
+                    dwt.setTenantRef(ctx.getTenantRef());
                 «ENDIF»
                 updater.preCreate(ctx, dwt.getTracking());
 
@@ -244,7 +249,7 @@ class OffHeapMapGeneratorMain {
             }
 
             @Override
-            protected void uncachedUpdate(DataWithTracking<«dt»> dwt, «e.pojoType.name» obj) throws PersistenceException {
+            protected void uncachedUpdate(«dwtClass»<«dt»> dwt, «e.pojoType.name» obj) throws PersistenceException {
                 ohmProvider.get();
                 // milestone 1: assumed no change of any index
                 // therefore only the obj must be updated. Here we assume no malfunction can happen.
@@ -297,8 +302,8 @@ class OffHeapMapGeneratorMain {
             }
 
             @Override
-            protected DataWithTracking<«dt»> getUncached(«pkJavaType» ref) {
-                return (DataWithTracking<«dt»>) db.get(ref);
+            protected «dwtClass»<«dt»> getUncached(«pkJavaType» ref) {
+                return («dwtClass»<«dt»>) db.get(ref);
             }
 
             «IF keyP !== null»
