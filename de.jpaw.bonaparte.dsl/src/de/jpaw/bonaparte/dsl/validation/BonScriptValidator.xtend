@@ -201,21 +201,21 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
         if (cd.extendsClass !== null) {
             // the extension must reference a specific class (plus optional generics parameters), but not a generic type itself
-            if (cd.getExtendsClass().getClassRef() === null) {
+            if (cd.extendsClass.classRef === null) {
                 error("Parent class must be an explicit class, not a generic type", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 return;
             } else {
                 // check for cyclic dependencies to avoid a stack overflow
                 try {
-                    cd.checkInheritance(90)     // 90 levels of nesting should be sufficient
+                    cd.checkInheritance(30)     // 30 levels of nesting should be sufficient
                 } catch (Exception ex) {
                     error("Cyclic inheritance", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS)
                     return
                 }
                 // check the number of generic parameters
-                val ClassDefinition parent = cd.getExtendsClass().getClassRef();
-                val EList<GenericsDef> args = parent.getGenericParameters();
-                val EList<ClassReference> argValues = cd.getExtendsClass().getClassRefGenericParms();
+                val ClassDefinition parent = cd.extendsClass.classRef
+                val EList<GenericsDef> args = parent.genericParameters
+                val EList<ClassReference> argValues = cd.extendsClass.classRefGenericParms
                 if ((args === null) && (argValues === null)) {
                      // fine
                 } else if ((args !== null) && (argValues !== null)) {

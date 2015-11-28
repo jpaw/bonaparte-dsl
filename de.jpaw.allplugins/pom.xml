@@ -212,16 +212,17 @@
     -->
     
     <repositories>
-    <!-- not required any more with xtext 2.8.3 / Eclipse Mars -->
+        <!-- not required any more with xtext 2.8.3 (/ 2.8.4 / Eclipse Mars
+        for an overview of p2 repos, see near the bottom of page https://eclipse.org/Xtext/documentation/350_continuous_integration.html
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
             <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.8.4/</url>
-        </repository>
+        </repository>  -->
         <repository>
             <id>p2-mars</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/mars/201506241002/</url>
+            <url>http://download.eclipse.org/releases/mars/201510021000/</url>  <!-- 201506241002 was Mars original release, 201510021000 is SR1 -->
         </repository>
     </repositories>
 

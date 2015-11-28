@@ -61,7 +61,7 @@ class JavaDeserialize {
         case 'day':       '''_p.readDay       («metaName»)'''
 
         // enum
-        case 'enum':      '''«getBonPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(_p.readString(«metaName»$token))«ELSE»valueOf(_p.readInteger(«metaName»$token))«ENDIF»'''
+        case 'enum':      '''«getBonPackageName(i.enumType)».«i.enumType.name».«IF (ref.enumMaxTokenLength >= 0)»factory(_p.readEnum(«metaName», «metaName»$token))«ELSE»valueOf(_p.readEnum(«metaName», «metaName»$token))«ENDIF»'''
         case 'xenum':     '''_p.readXEnum(«metaName», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
 
         // enum sets
