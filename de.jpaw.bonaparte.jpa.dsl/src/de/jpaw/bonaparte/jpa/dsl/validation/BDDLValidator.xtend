@@ -188,7 +188,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     def private void checkClassForReservedColumnNames(ClassDefinition cc, EStructuralFeature feature) {
         var c = cc
         while (c !== null) {
-            for (f : c.getFields()) {
+            for (f : c.fields) {
                 val usedWhere = RESERVED_SQL.get(java2sql(f.name).toUpperCase());
                 if (usedWhere !== null) {
                     if (usedWhere.indexOf('A') >= 0) {
@@ -225,6 +225,16 @@ class BDDLValidator extends AbstractBDDLValidator {
             return false
         }
         return p.noPkInSuperClasses
+    }
+
+    def private static boolean noTenantInSuperClasses(EntityDefinition e) {
+        if (e.extends === null)
+            return true
+        val p = e.extends
+        if (p.tenantClass !== null || p.tenantId !== null) {
+            return false
+        }
+        return p.noTenantInSuperClasses
     }
 
     @Check
@@ -264,6 +274,12 @@ class BDDLValidator extends AbstractBDDLValidator {
                   BDDLPackage.Literals.ENTITY_DEFINITION__HISTORYTABLENAME);
         }
 
+        // validate that no duplicate tenant discriminator has been specified
+        if (e.tenantClass !== null || e.tenantId !== null) {
+            if (!e.noTenantInSuperClasses)
+                warning("Redefinition of tenant discriminator", if (e.tenantClass !== null) BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS else BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_ID)
+        }
+        
         // verify for primary key
         val noPkInSuperClasses = e.noPkInSuperClasses
         // check for embeddable PK
@@ -334,7 +350,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
 
-        if (e.getTenantClass() !== null) {
+        if (e.tenantClass !== null) {
             checkClassForReservedColumnNames(e.tenantClass, BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
             checkClassForColumnLengths      (e.tenantClass, BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS);
         }
@@ -348,10 +364,10 @@ class BDDLValidator extends AbstractBDDLValidator {
         if (e.pkPojo !== null) {
             // this must be either a final class, or a superclass
             if (e.pkPojo.isFinal()) {
-                for (FieldDefinition f : e.pkPojo.getFields()) {
-                    if (exists(f, e.getPojoType().getFields())) {
+                for (FieldDefinition f : e.pkPojo.fields) {
+                    if (exists(f, e.pojoType.fields)) {
                         // nothing
-                    } else if (e.getTenantClass() !== null && exists(f, e.getTenantClass().getFields())) {
+                    } else if (e.tenantClass !== null && exists(f, e.tenantClass.fields)) {
                         // nothing
                     } else {
                         error("Field " + f.getName() + " of final PK not found in entity", BDDLPackage.Literals.ENTITY_DEFINITION__PK_POJO);
@@ -566,7 +582,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     def public void checkEmbeddableDefinition(EmbeddableDefinition e) {
         if (e.getPojoType() !== null) {
             if (!e.getPojoType().isFinal())
-                error("Embeddables must be final", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
+                warning("Embeddables should be final", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
             if (e.getPojoType().isAbstract())
                 error("Embeddables may not be abstract", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
         }

@@ -661,21 +661,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.AttributeOverrides;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
-        import java.io.Serializable;
+        «writeJpaImports»
 
         import de.jpaw.bonaparte.jpa.*;
-        import «bonaparteInterfacesPackage».BonaPortable;
-        import «bonaparteInterfacesPackage».ByteArrayComposer;
-        import «bonaparteInterfacesPackage».ByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
-        import «bonaparteInterfacesPackage».StaticMeta;
-        import «bonaparteInterfacesPackage».MessageParserException;
-        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
-        import «bonaparteInterfacesPackage».BonaparteJsonEscaper;
-        import de.jpaw.util.ByteBuilder;
-        import de.jpaw.json.JsonException;
-        import de.jpaw.json.JsonParser;
 
         «imports.createImports»
 
@@ -781,18 +769,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
-        import java.io.Serializable;
-
-        import «bonaparteInterfacesPackage».BonaPortable;
-        import «bonaparteInterfacesPackage».ByteArrayComposer;
-        import «bonaparteInterfacesPackage».ByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
-        import «bonaparteInterfacesPackage».StaticMeta;
-        import «bonaparteInterfacesPackage».MessageParserException;
-        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
-        import de.jpaw.util.ByteBuilder;
-
+        «writeJpaImports»
+        
         «imports.createImports»
 
         @SuppressWarnings("all")
@@ -836,17 +814,8 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.doBeanVal)»
         «writeDefaultImports»
-        import java.io.Serializable;
-
-        import de.jpaw.util.ByteBuilder;
-        import «bonaparteInterfacesPackage».BonaPortable;
-        import «bonaparteInterfacesPackage».ByteArrayComposer;
-        import «bonaparteInterfacesPackage».ByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayParser;
-        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
-        import «bonaparteInterfacesPackage».StaticMeta;
-        import «bonaparteInterfacesPackage».MessageParserException;
-        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
+        «writeJpaImports»
+        
         import de.jpaw.bonaparte.jpa.BonaData;
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         «imports.createImports»
@@ -865,6 +834,10 @@ class JavaDDLGeneratorMain implements IGenerator {
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
             «MakeMapper::writeDataMapperMethods(e.pojoType, true, e.pojoType, e.embeddables, null)»
+            
+            private Object ret$Key() {  // only required in case of a deserialized exception Handler
+                return null;
+            }
         }
         '''
     }
@@ -880,4 +853,20 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
     '''
 
+    def public static writeJpaImports() '''
+        import java.io.Serializable;
+
+        import «bonaparteInterfacesPackage».BonaPortable;
+        import «bonaparteInterfacesPackage».ByteArrayComposer;
+        import «bonaparteInterfacesPackage».ByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayParser;
+        import «bonaparteInterfacesPackage».CompactByteArrayComposer;
+        import «bonaparteInterfacesPackage».StaticMeta;
+        import «bonaparteInterfacesPackage».MessageParserException;
+        import «bonaparteInterfacesPackage».RuntimeExceptionConverter;
+        import «bonaparteInterfacesPackage».BonaparteJsonEscaper;
+        import de.jpaw.util.ByteBuilder;
+        import de.jpaw.json.JsonException;
+        import de.jpaw.json.JsonParser;
+    '''
 }

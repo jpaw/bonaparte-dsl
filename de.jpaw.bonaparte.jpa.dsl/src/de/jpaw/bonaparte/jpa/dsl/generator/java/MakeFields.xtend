@@ -232,6 +232,15 @@ class JavaFieldWriter {
         }
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
+    
+    def private static String writeUnmarshaller(String fieldname, String exceptionClass, CharSequence expression) '''
+        try {
+            return «expression»;
+        } catch («exceptionClass» _e) {
+            DeserializeExceptionHandler.exceptionHandler("«fieldname»", «fieldname», _e, getClass(), ret$Key());  // throws
+            return null; // make JAVA happy
+        }
+    '''
 
     def private writeGetterAndSetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val prefs = BDDLPreferences.currentPrefs
@@ -265,13 +274,7 @@ class JavaFieldWriter {
                 if (!prefs.doUserTypeForBonaPortable) {
                     val prefix = if (i.properties.hasProperty(PROP_COMPACT)) "Compact"
                     val expectedClass = if (ref.objectDataType !== null) i.JavaDataTypeNoName(false) else "BonaPortable"
-                    getter = '''
-                        try {
-                            return «prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class);
-                        } catch (MessageParserException _e) {
-                            DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());
-                            return null;
-                        }'''
+                    getter = writeUnmarshaller(myName, "MessageParserException", '''«prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class)''')
                     setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
                 } // else stay with the default (fall through)
             } else if (ref.elementaryDataType !== null) {
@@ -279,13 +282,7 @@ class JavaFieldWriter {
                 if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
                     if (i.properties.hasProperty(PROP_COMPACT)) {
-                        getter = '''
-                            try {
-                                return CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»);
-                            } catch (MessageParserException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»)''')
                         setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
@@ -293,25 +290,13 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonElement(_x);'''
                     } else {
                         // default: text JSON
-                        getter = '''
-                            try {
-                                return new JsonParser(«myName», false).parseElement();
-                            } catch (JsonException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseElement()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
                     if (i.properties.hasProperty(PROP_COMPACT)) {
-                        getter = '''
-                            try {
-                                return CompactByteArrayParser.unmarshalArray(«myName», «dtoName».meta$$«myName»);
-                            } catch (MessageParserException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalArray(«myName», «dtoName».meta$$«myName»)''')
                         setter = '''«myName» = CompactByteArrayComposer.marshalAsArray(«dtoName».meta$$«myName», _x);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
@@ -319,25 +304,13 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonArray(_x);'''
                     } else {
                         // default: text JSON
-                        getter = '''
-                            try {
-                                return new JsonParser(«myName», false).parseArray();
-                            } catch (JsonException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseArray()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
                     if (i.properties.hasProperty(PROP_COMPACT)) {
-                        getter = '''
-                            try {
-                                return CompactByteArrayParser.unmarshalJson(«myName», «dtoName».meta$$«myName»);
-                            } catch (MessageParserException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalJson(«myName», «dtoName».meta$$«myName»)''')
                         setter = '''«myName» = CompactByteArrayComposer.marshalAsJson(«dtoName».meta$$«myName», _x);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
@@ -345,13 +318,7 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonObject(_x);'''
                     } else {
                         // default: text JSON
-                        getter = '''
-                            try {
-                                return new JsonParser(«myName», false).parseObject();
-                            } catch (JsonException _e) {
-                                DeserializeExceptionHandler.exceptionHandler("«myName»", «myName», _e, getClass(), ret$Key());  // throws
-                                return null; // make JAVA happy
-                            }'''
+                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseObject()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else {
