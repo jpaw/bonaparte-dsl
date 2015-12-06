@@ -117,7 +117,7 @@ class JavaMeta {
                 // just "Object" or Element, Array or Json. All the same
                 ext = ''', true, "«ref.javaType»", null, null, null'''
             } else {
-                val myLowerBound = XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
+                val myLowerBound = ref.objectDataType ?: XUtil::getLowerBound(ref.genericsRef) // objectDataType?.extendsClass)
                 val meta = if (myLowerBound === null) "null" else '''«myLowerBound.name».class$MetaData()'''
                 val myLowerBound2 = ref.secondaryObjectDataType
                 val meta2 = if (myLowerBound2 === null) "null" else '''«myLowerBound2.name».class$MetaData()'''

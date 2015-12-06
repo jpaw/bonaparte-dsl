@@ -375,6 +375,13 @@ New features and bug fixes in Bonaparte / Persistence DSL
 3.7.1:
 - BDDL: allow use of simpleRef properties in keys
 
+3.7.2 .. 3.7.5: various fixes and improvements related to JSON
+
+
+3.8.0: (planned):
+- BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
+- BDDL: ret$Data to map oneToMany and ManyToOne child references
+
 
 ROADMAP / PLANS:
 - data types of unspecified size (text, binary)
