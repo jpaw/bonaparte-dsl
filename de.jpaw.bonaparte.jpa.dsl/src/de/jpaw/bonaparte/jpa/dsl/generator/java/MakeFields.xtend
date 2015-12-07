@@ -290,7 +290,7 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonElement(_x);'''
                     } else {
                         // default: text JSON
-                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseElement()''')
+                        getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseElement()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
@@ -304,7 +304,7 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonArray(_x);'''
                     } else {
                         // default: text JSON
-                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseArray()''')
+                        getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseArray()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) {
@@ -318,7 +318,7 @@ class JavaFieldWriter {
                         setter = '''«myName» = _x == null ? null : new NativeJsonObject(_x);'''
                     } else {
                         // default: text JSON
-                        getter = writeUnmarshaller(myName, "JsonException", '''new JsonParser(«myName», false).parseObject()''')
+                        getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseObject()''')
                         setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
                     }
                 } else {
