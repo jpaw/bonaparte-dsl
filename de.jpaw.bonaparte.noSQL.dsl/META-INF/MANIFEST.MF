@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.noSQL.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 3.7.6.qualifier
+Bundle-Version: 3.7.6
 Bundle-SymbolicName: de.jpaw.bonaparte.noSQL.dsl;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;visibility:=reexport,
