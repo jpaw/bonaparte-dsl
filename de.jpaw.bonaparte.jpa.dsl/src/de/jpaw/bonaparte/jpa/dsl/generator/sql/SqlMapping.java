@@ -194,8 +194,8 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("binary",    "varbinary(#length)");          // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlSapHana.put("raw",       "varbinary(#length)");          // only up to 2000 bytes, use BLOB if more!
         dataTypeSqlSapHana.put("day",       "date");                        // Oracle has no day without a time field
-        dataTypeSqlSapHana.put("timestamp", "timestamp(#length)");          // timestamp(0) should become seconddate
-        dataTypeSqlSapHana.put("instant",   "timestamp(#length)");          // timestamp(0) should become seconddate
+        dataTypeSqlSapHana.put("timestamp", "timestamp");                   // timestamp has 7 digits precision, for 0 use seconddate
+        dataTypeSqlSapHana.put("instant",   "timestamp");                   // timestamp has 7 digits precision, for 0 use seconddate
         dataTypeSqlSapHana.put("time",      "time");                        // only length 0 supported
 
         dataTypeSqlSapHana.put("uppercase", "varchar(#length)");            // only up to 5000 characters, use CLOB if more!
@@ -357,7 +357,7 @@ public class SqlMapping {
                 } else if (datatype.startsWith("nvarchar")) {
                     datatype = "nclob";
                 }
-            } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
+            } else if ((columnLength == 0) && datatype.equals("timestamp")) {
                 datatype = "seconddate";  // better performance, less memory consumption
             }
             if (ref.enumMaxTokenLength >= 0) {
