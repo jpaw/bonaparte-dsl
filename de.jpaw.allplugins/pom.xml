@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>3.7.8-SNAPSHOT</version>
+    <version>4.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -46,7 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho.version>0.24.0</tycho.version>
         <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.8.4</xtend.version>
+        <xtend.version>2.9.0</xtend.version>
 
         <!-- org.apache.maven.plugins -->
         <compiler.plugin.version>3.3</compiler.plugin.version>
@@ -200,25 +200,13 @@
             </plugin>
         </plugins>
     </build>
-
-    <!-- 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>fornax.plugin.repository</id>
-            <name>Fornax Plugin Repository</name>
-            <url>http://www.fornax-platform.org/m2/repository</url>
-        </pluginRepository>
-    </pluginRepositories>
-    -->
     
     <repositories>
-        <!-- not required any more with xtext 2.8.3 (/ 2.8.4 / Eclipse Mars
-        for an overview of p2 repos, see near the bottom of page https://eclipse.org/Xtext/documentation/350_continuous_integration.html
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.8.4/</url>
-        </repository>  -->
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.0/</url>  
+        </repository>
         <repository>
             <id>p2-mars</id>
             <layout>p2</layout>

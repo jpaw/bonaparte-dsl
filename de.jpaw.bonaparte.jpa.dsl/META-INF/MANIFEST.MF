@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.jpa.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 3.7.8.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.jpa.dsl;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;visibility:=reexport,
@@ -12,7 +12,7 @@ Require-Bundle: org.eclipse.xtext;visibility:=reexport,
  org.eclipse.emf.codegen.ecore;resolution:=optional,
  org.eclipse.emf.mwe.utils;resolution:=optional,
  org.eclipse.emf.mwe2.launch;resolution:=optional,
- de.jpaw.bonaparte.dsl;bundle-version="[3.5.6,4.0.0)",
+ de.jpaw.bonaparte.dsl;bundle-version="[4.0.0,5.0.0)",
  org.eclipse.xtext.util,
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
