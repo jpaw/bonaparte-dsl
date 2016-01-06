@@ -380,6 +380,13 @@ New features and bug fixes in Bonaparte / Persistence DSL
 4.0.0:
 (all) switch to xtext 2.9.0
 
+4.0.1: (only tagged for persistence-java)
+BDDL (persistence-java): persistenceProviderJPA is now an interface
+
+4.0.2:
+(all) switch to xtext 2.9.1
+BDDL (persistence-java): use autodetected SQL dialect in Hibernate instead of configured - allows to omit the dialect specification in persistence.xml
+
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
