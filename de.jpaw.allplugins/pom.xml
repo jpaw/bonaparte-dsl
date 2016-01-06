@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -46,7 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <tycho.version>0.24.0</tycho.version>
         <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.9.0</xtend.version>
+        <xtend.version>2.9.1</xtend.version>
 
         <!-- org.apache.maven.plugins -->
         <compiler.plugin.version>3.3</compiler.plugin.version>

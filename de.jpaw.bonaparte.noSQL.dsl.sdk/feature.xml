@@ -2,7 +2,7 @@
 <feature
       id="de.jpaw.bonaparte.noSQL.dsl.sdk"
       label="Bonaparte noSQL Persistence DSL SDK Feature"
-      version="4.0.1.qualifier"
+      version="4.0.2.qualifier"
       provider-name="Michael Bischoff">
 
    <copyright>
