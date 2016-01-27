@@ -387,6 +387,9 @@ BDDL (persistence-java): persistenceProviderJPA is now an interface
 (all) switch to xtext 2.9.1
 BDDL (persistence-java): use autodetected SQL dialect in Hibernate instead of configured - allows to omit the dialect specification in persistence.xml
 
+4.0.3: (only plugins)
+BDDL: HANA output: use varchar instead of nvarchar for alpha enums if only ASCII tokens. Other DBs: use nvarchar instead of varchar if required.
+BDDL: fix length of xenumset column
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

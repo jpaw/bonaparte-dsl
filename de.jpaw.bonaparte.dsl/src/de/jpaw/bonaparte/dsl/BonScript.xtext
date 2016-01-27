@@ -235,7 +235,8 @@ XEnumDefinition:
 //      (isExternalizable = Externalizable)?                // decide if implements Externalizable
 //      ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
         'is' myEnum=[EnumDefinition|QualifiedId]
-        ((':' maxlength=INT) | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
+        ((':' maxlength=INT (isAscii?='ascii' | isUnicode?='unicode')?)
+          | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
     ';'
 ;
 

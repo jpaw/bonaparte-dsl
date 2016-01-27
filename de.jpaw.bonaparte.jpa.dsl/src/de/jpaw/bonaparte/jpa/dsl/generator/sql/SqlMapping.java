@@ -19,6 +19,7 @@ package de.jpaw.bonaparte.jpa.dsl.generator.sql;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataCategory;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
@@ -236,20 +237,33 @@ public class SqlMapping {
                 columnDecimals = 0;
             }
         } else if (ref.elementaryDataType != null) {
-            if (ref.category == DataCategory.ENUMSET) {
-                datatype = ref.elementaryDataType.getEnumsetType().getIndexType();
+            switch (ref.category) {
+            case ENUMSET:
+                datatype = ref.elementaryDataType.getEnumsetType().getIndexType();  // this is the Java type! but for numeric sets it matches the BON data type
                 datatype = datatype == null ? "integer" : datatype.toLowerCase();
                 columnLength = JavaMeta.TOTAL_DIGITS.get(datatype);
                 columnDecimals = 0;
-            } else if (ref.category == DataCategory.ENUMSETALPHA) {
-                datatype = "unicode";
+                break;
+            case ENUMSETALPHA:
+                EnumSetDefinition es = ref.elementaryDataType.getEnumsetType(); 
+                datatype = ref.enumHasUnicodeTokens ? "unicode" : "ascii";
+                columnLength = ref.enumMaxTokenLength * es.getMyEnum().getAvalues().size();     // compute length = max element size * number of elements
+                columnDecimals = 0;
+                break;
+            case XENUMSET:
+                datatype = ref.enumHasUnicodeTokens ? "unicode" : "ascii";
+                columnLength = ref.elementaryDataType.getLength();                              // length cannot be computed and must be supplied externally
+                columnDecimals = 0;
+                break;
+            case ENUMALPHA:
+            case XENUM:
+                datatype = ref.enumHasUnicodeTokens ? "unicode" : "ascii";
                 columnLength = ref.enumMaxTokenLength;
+                if (columnLength == 0)
+                    columnLength = 1;       // special case: placeholder enum with just the empty token
                 columnDecimals = 0;
-            } else if (ref.category == DataCategory.XENUMSET) {
-                datatype = "unicode";
-                columnLength = ref.elementaryDataType.getLength();
-                columnDecimals = 0;
-            } else {
+                break;
+            default:
                 datatype = ref.elementaryDataType.getName().toLowerCase();
                 columnLength = ref.elementaryDataType.getLength();
                 columnDecimals = ref.elementaryDataType.getDecimals();
@@ -281,10 +295,6 @@ public class SqlMapping {
             columnLength = 777;
             columnDecimals = 0;
         }
-        if (ref.enumMaxTokenLength >= 0) {
-            // alphanumeric enum! use other type!
-            datatype = "unicode";
-        }
 
         String columnLengthString = Integer.valueOf(columnLength).toString();
         // System.out.println(databaseFlavour.toString() + ": Length of " + c.getName() + " is " + columnLengthString);
@@ -302,21 +312,12 @@ public class SqlMapping {
             } else if ((columnLength == 0) && datatype.equals("timestamp(#length)")) {
                 datatype = "date";  // better performance, less memory consumption
             }
-            if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar2(" + lengthForAlphaEnumColumn(ref) + ")";
-            }
             break;
         case POSTGRES:
             datatype = dataTypeSqlPostgres.get(datatype);
-            if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar(" + lengthForAlphaEnumColumn(ref) + ")";
-            }
             break;
         case MSSQLSERVER:
             datatype = dataTypeSqlMsSQLServer.get(datatype);
-            if (ref.enumMaxTokenLength >= 0) {
-                datatype = "nvarchar(" + lengthForAlphaEnumColumn(ref) + ")";
-            }
             if (columnLength > 8000) {
                 columnLengthString = "MAX";
                 // System.out.println("*** using MAX ***");
@@ -325,9 +326,6 @@ public class SqlMapping {
         case MYSQL:
 //            String bkp = datatype;
             datatype = dataTypeSqlMySQL.get(datatype);
-            if (ref.enumMaxTokenLength >= 0) {
-                datatype = "varchar(" + lengthForAlphaEnumColumn(ref) + ")";
-            }
 
 //            if (datatype == null)
 //                System.out.println("null for " + bkp);

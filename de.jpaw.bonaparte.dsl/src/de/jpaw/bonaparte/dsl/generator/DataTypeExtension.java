@@ -55,6 +55,7 @@ public class DataTypeExtension {
     // constants for enumMaxTokenLength field
     public static final int NO_ENUM = -2;
     public static final int ENUM_NUMERIC = -1;
+    
     public static final String SPECIAL_DATA_TYPE_ENUM = "@";
     public static final String SPECIAL_DATA_TYPE_XENUM = "#";
     public static final String SPECIAL_DATA_TYPE_ENUMSET = "@S";
@@ -176,7 +177,8 @@ public class DataTypeExtension {
     private boolean wasUpperCase = false;           // internal variable, required condition for a java type to be primitive
     public XRequired defaultRequired;               // default value for requiredness of the enclosing package or class
     public XRequired isRequired;                    // true if the variable is explicitly required / optional, or references a typedef in a packeg which has defaults
-    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums and for xenums
+    public int enumMaxTokenLength = NO_ENUM;  // -2 for non-enums, -1 for numeric, >= 0 for regular enums and for xenums. For enumsets or xenumsets it contains the max length of the underlying enum
+    public boolean enumHasUnicodeTokens = false;    // for an alpha enum: set to true if at least one of the tokens is not ASCII. Used for SQL DDL type selection (varchar / nvarchar)
     public DataCategory category = DataCategory.MISC;
 
     static public void clear() {
@@ -321,6 +323,41 @@ public class DataTypeExtension {
                                  : null;
     }
 
+    static private int getMaxEnumTokenLength(EList<EnumAlphaValueDefinition> ead) {
+        int len = ENUM_NUMERIC;
+        if (ead != null && !ead.isEmpty()) {
+            // compute the maximum length of all tokens, could be useful for derived grammars...
+            for (EnumAlphaValueDefinition enumX : ead) {
+                if (enumX.getToken() != null && enumX.getToken().length() > len) {
+                    len = enumX.getToken().length();
+                }
+            }
+        }
+        return len;
+    }
+    
+    public static boolean isAsciiPrintable(final char c) {
+        return (c >= 0x20) && (c <= 0x7e);
+    }
+    public static boolean isAsciiPrintable(final String s) {
+        if (s == null)
+            return true;
+        for (int i = 0; i < s.length(); ++i)
+            if (!isAsciiPrintable(s.charAt(i)))
+                return false;
+        return true;
+    }
+    
+    static private boolean usesUnicodeTokens(EList<EnumAlphaValueDefinition> ead) {
+        if (ead == null || ead.isEmpty())
+            return false;
+        for (EnumAlphaValueDefinition enumX : ead) {
+            if (!isAsciiPrintable(enumX.getToken()))
+                return true;
+        }
+        return false;
+    }
+
     static public DataTypeExtension get(DataType key) throws Exception {
         // retrieve the DataTypeExtension class for the given key (auto-create it if not yet existing)
         DataTypeExtension r = map.get(key);
@@ -403,23 +440,21 @@ public class DataTypeExtension {
                     r.enumMaxTokenLength = ENUM_NUMERIC;
                     if (ead != null && !ead.isEmpty()) {
                         r.category = DataCategory.ENUMALPHA;         // have a separate category for this now...
-                        // compute the maximum length of all tokens, could be useful for derived grammars...
-                        for (EnumAlphaValueDefinition enumX : ead) {
-                            if (enumX.getToken() != null && enumX.getToken().length() > r.enumMaxTokenLength) {
-                                r.enumMaxTokenLength = enumX.getToken().length();
-                            }
-                        }
+                        r.enumMaxTokenLength = getMaxEnumTokenLength(ead);
+                        r.enumHasUnicodeTokens = usesUnicodeTokens(ead);
                     }
                     break;
                 case SPECIAL_DATA_TYPE_XENUM:  // special case for xenum types: replace java type by referenced class
                     XEnumDefinition root = XUtil.getRoot(e.getXenumType());
                     r.javaType = root.getName();
                     r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root);
+                    r.enumHasUnicodeTokens = root.isIsUnicode();  // TODO: or evaluate from provided patterns
                     break;
                 case SPECIAL_DATA_TYPE_ENUMSET:
                     r.javaType = e.getEnumsetType().getName();
                     EnumDefinition myEnum = e.getEnumsetType().getMyEnum();
-                    r.enumMaxTokenLength = (myEnum.getAvalues() != null && myEnum.getAvalues().size() > 0) ? myEnum.getAvalues().size() : ENUM_NUMERIC;
+                    r.enumMaxTokenLength = getMaxEnumTokenLength(myEnum.getAvalues());
+                    r.enumHasUnicodeTokens = usesUnicodeTokens(myEnum.getAvalues());
 
                     // possibly refine the category, based on the index type.  Please note that enumMaxTokenLength should not be used as criteria if the type if alphanumeric, therefore nulling it
                     if ("String".equals(e.getEnumsetType().getIndexType())) {
@@ -429,8 +464,10 @@ public class DataTypeExtension {
                     }
                     break;
                 case SPECIAL_DATA_TYPE_XENUMSET:
+                    XEnumDefinition root2 = XUtil.getRoot(e.getXenumsetType().getMyXEnum());
                     r.javaType = e.getXenumsetType().getName();
-                    r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(XUtil.getRoot(e.getXenumsetType().getMyXEnum()));
+                    r.enumMaxTokenLength = JavaXEnum.getOverallMaxLength(root2);
+                    r.enumHasUnicodeTokens = root2.isIsUnicode();           // TODO: or evaluate from provided patterns
                     break;
                 case "String":
                     // special treatment for uppercase / lowercase shorthands
