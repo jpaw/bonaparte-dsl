@@ -212,9 +212,11 @@ class JavaFieldWriter {
             (ref.category == DataCategory::XENUMSET && !prefs.doUserTypeForEnumset))
             return ''', length=«ref.elementaryDataType.length»'''
 
-        if (ref.category == DataCategory::ENUMSETALPHA && !prefs.doUserTypeForEnumset)
-            return ''', length=«ref.enumMaxTokenLength» * es.getMyEnum().getAvalues().size()'''     // same size as in SqlMapping
-            
+        if (ref.category == DataCategory::ENUMSETALPHA && !prefs.doUserTypeForEnumset) {
+            val es = ref.elementaryDataType.enumsetType
+            return ''', length=«ref.enumMaxTokenLength * es.myEnum.avalues.size»'''     // same size as in SqlMapping
+        }
+
         if ((ref.category == DataCategory::XENUM && !prefs.doUserTypeForXEnum) ||
             (ref.category == DataCategory::ENUMALPHA && !prefs.doUserTypeForEnumAlpha))
             return ''', length=«ref.enumMaxTokenLength»'''
