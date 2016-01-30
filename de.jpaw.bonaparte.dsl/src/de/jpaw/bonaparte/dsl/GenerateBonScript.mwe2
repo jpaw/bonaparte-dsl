@@ -10,7 +10,6 @@ var projectName = "de.jpaw.bonaparte.dsl"
 // grammarURI has to be platform:/resource as it is not on the classpath
 var grammarURI = "platform:/resource/${projectName}/src/de/jpaw/bonaparte/dsl/BonScript.xtext"
 var runtimeProject = "../${projectName}"
-var generateXtendStub = true
 var encoding = "UTF-8"
 
 Workflow {

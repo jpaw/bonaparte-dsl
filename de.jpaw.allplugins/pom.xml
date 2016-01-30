@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.0.3</version>
+    <version>4.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -205,7 +205,7 @@
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.0/</url>  
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.1/</url>  
         </repository>
         <repository>
             <id>p2-mars</id>
