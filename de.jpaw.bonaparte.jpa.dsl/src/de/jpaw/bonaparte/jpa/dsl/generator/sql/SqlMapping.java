@@ -21,7 +21,6 @@ import java.util.Map;
 
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
-import de.jpaw.bonaparte.dsl.generator.DataCategory;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 import de.jpaw.bonaparte.dsl.generator.XUtil;
 import de.jpaw.bonaparte.dsl.generator.java.JavaMeta;
@@ -247,7 +246,7 @@ public class SqlMapping {
             case ENUMSETALPHA:
                 EnumSetDefinition es = ref.elementaryDataType.getEnumsetType(); 
                 datatype = ref.enumHasUnicodeTokens ? "unicode" : "ascii";
-                columnLength = ref.enumMaxTokenLength * es.getMyEnum().getAvalues().size();     // compute length = max element size * number of elements
+                columnLength = ref.enumMaxTokenLength * es.getMyEnum().getAvalues().size();     // compute length = max element size * number of elements (see also MakeFields for JPA annotation)
                 columnDecimals = 0;
                 break;
             case XENUMSET:

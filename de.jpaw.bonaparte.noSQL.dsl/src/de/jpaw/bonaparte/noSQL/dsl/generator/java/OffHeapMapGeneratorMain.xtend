@@ -51,7 +51,7 @@ class OffHeapMapGeneratorMain {
 
         val pkClass = e.pojoType.recursePkClass
         val refClass = e.pojoType.recurseRefClass
-        val trackingClass = e.pojoType.recurseTrackingClass
+        // val trackingClass = e.pojoType.recurseTrackingClass
 
         val pkField = pkClass.firstField
         val pkRef = DataTypeExtension.get(pkField.datatype)
