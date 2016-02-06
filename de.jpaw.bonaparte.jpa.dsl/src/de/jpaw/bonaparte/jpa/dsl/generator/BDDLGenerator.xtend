@@ -28,7 +28,7 @@ import org.eclipse.xtext.generator.IGenerator
 import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
 
 class BDDLGenerator implements IGenerator {
-    private static Logger logger = Logger.getLogger(BDDLGenerator)
+    private static Logger LOGGER = Logger.getLogger(BDDLGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
 
@@ -42,22 +42,22 @@ class BDDLGenerator implements IGenerator {
     }
 
     public new() {
-        logger.info("BDDLGenerator constructed. " + filterInfo)
+        LOGGER.info("BDDLGenerator constructed. " + filterInfo)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
         bonaparteGenerator.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
+        LOGGER.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
         generatorSql.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+        LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
         generatorJava.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
+        LOGGER.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
         generatorResource.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start cleanup");
+        LOGGER.info(filterInfo + "start cleanup");
     }
 }

@@ -26,7 +26,7 @@ import java.util.Map
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 
 class JavaCompare {
-    private static final Logger logger = Logger.getLogger(JavaCompare)
+    private static final Logger LOGGER = Logger.getLogger(JavaCompare)
     private static final Map<String,String> JAVA_PRIMITIVE_TO_WRAPPER = #{
         "byte" -> "Byte",
         "short" -> "Short",
@@ -41,7 +41,7 @@ class JavaCompare {
     def private static writeCompareToField(ClassDefinition d, FieldDefinition f) {
         val ref = DataTypeExtension::get(f.datatype)
         if (!f.isRequired)
-            logger.error("Field " + f.name + " of class " + d.name + " is not required, but used as a Comparable criteria")
+            LOGGER.error("Field " + f.name + " of class " + d.name + " is not required, but used as a Comparable criteria")
         if (ref.isPrimitive) {
             // must use the wrapper. use some autoboxing here
             return '''

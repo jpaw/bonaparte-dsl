@@ -18,7 +18,7 @@ import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
  * see http://www.eclipse.org/Xtext/documentation.html#TutorialCodeGeneration
  */
 class BDslGenerator implements IGenerator {
-    private static Logger logger = Logger.getLogger(BDslGenerator)
+    private static Logger LOGGER = Logger.getLogger(BDslGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
 
@@ -30,16 +30,16 @@ class BDslGenerator implements IGenerator {
     }
 
     public new() {
-        logger.info("BDslGenerator constructed. " + filterInfo)
+        LOGGER.info("BDslGenerator constructed. " + filterInfo)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
 
         bonaparteGenerator.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+        LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
         generatorJava.doGenerate(resource, fsa)
 
-        logger.info(filterInfo + "start cleanup");
+        LOGGER.info(filterInfo + "start cleanup");
     }
 }

@@ -11,15 +11,15 @@ import de.jpaw.bonaparte.dsl.generator.CommentConverter;
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class BonScriptRuntimeModule extends de.jpaw.bonaparte.dsl.AbstractBonScriptRuntimeModule {
-    private static Logger logger = Logger.getLogger(BonScriptRuntimeModule.class);
+    private static Logger LOGGER = Logger.getLogger(BonScriptRuntimeModule.class);
     public BonScriptRuntimeModule() {
-        logger.info("BON Runtime module constructed");
+        LOGGER.info("BON Runtime module constructed");
     }
 
 
     @Override
     public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
-        logger.info("BON Value converter bound");
+        LOGGER.info("BON Value converter bound");
         return CommentConverter.class;
     }
 }

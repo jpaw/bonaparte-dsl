@@ -43,7 +43,7 @@ import com.google.common.collect.Lists
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 
 class XUtil {
-    private static Logger logger = Logger.getLogger(XUtil)
+    private static Logger LOGGER = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage   = "de.jpaw.bonaparte.core"
     public static final String PROP_ACTIVE                  = "active";
     public static final String PROP_VERSION                 = "version";
@@ -83,15 +83,15 @@ class XUtil {
         var e = ee
         while (e !== null) {
             if (e.eIsProxy)
-                logger.warn("Is a proxy only: " + e.eClass.name)
+                LOGGER.warn("Is a proxy only: " + e.eClass.name)
             if (e instanceof PackageDefinition)
                 return e
             if (e.eClass.name == "PackageDefinition") {
                 if (e instanceof PackageDefinition) {
-                    logger.warn("*** RESOLVED *** ")
+                    LOGGER.warn("*** RESOLVED *** ")
                     return e
                 }
-                logger.warn("*** NOT RESOLVED *** ")
+                LOGGER.warn("*** NOT RESOLVED *** ")
                 // what now?
             }
             e = e.eContainer
@@ -197,7 +197,7 @@ class XUtil {
             }
         }
 
-        logger.error("*** FIXME: class reference with all null fields ***")
+        LOGGER.error("*** FIXME: class reference with all null fields ***")
         return "*** FIXME: class reference with all null fields ***"
     }
 
@@ -362,7 +362,7 @@ class XUtil {
                 // both are defined. Check for consistency
                 if (ref.isRequired != i.required.x) {
                     // late plausi check:
-                    logger.error("requiredness of field " + i.name + " in class " + (i.eContainer as ClassDefinition).name
+                    LOGGER.error("requiredness of field " + i.name + " in class " + (i.eContainer as ClassDefinition).name
                         + " relabeled from " + ref.isRequired + " to " + i.required.x
                         + ". This is inconsistent.")
                 }

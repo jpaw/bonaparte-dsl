@@ -14,14 +14,14 @@ import de.jpaw.bonaparte.jpa.dsl.scoping.BDDLScopeProvider;
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class BDDLRuntimeModule extends de.jpaw.bonaparte.jpa.dsl.AbstractBDDLRuntimeModule {
-    private static Logger logger = Logger.getLogger(BDDLRuntimeModule.class);
+    private static Logger LOGGER = Logger.getLogger(BDDLRuntimeModule.class);
     public BDDLRuntimeModule() {
-        logger.info("BDDL Runtime module constructed");
+        LOGGER.info("BDDL Runtime module constructed");
     }
 
     @Override
     public Class<? extends org.eclipse.xtext.conversion.IValueConverterService> bindIValueConverterService() {
-        logger.info("BON Value converter bound for BDDL");
+        LOGGER.info("BON Value converter bound for BDDL");
         return CommentConverter.class;
     }
 
@@ -29,7 +29,7 @@ public class BDDLRuntimeModule extends de.jpaw.bonaparte.jpa.dsl.AbstractBDDLRun
     // for implicit importedNamespace
     @Override
     public Class<? extends org.eclipse.xtext.scoping.IScopeProvider> bindIScopeProvider() {
-        logger.info("BDDL scope provider bound");
+        LOGGER.info("BDDL scope provider bound");
         return BDDLScopeProvider.class;
     }
 

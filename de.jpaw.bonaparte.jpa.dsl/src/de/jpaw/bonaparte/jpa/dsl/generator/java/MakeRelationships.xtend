@@ -27,7 +27,7 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 
 class MakeRelationships {
-    private static Logger logger = Logger.getLogger(MakeRelationships)
+    private static Logger LOGGER = Logger.getLogger(MakeRelationships)
 
     def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns) '''
         @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
@@ -39,7 +39,7 @@ class MakeRelationships {
             if (!XUtil::isRequired(c)) {
                 oneOptional = true
                 if (m.fetchType !== null && m.fetchType == "LAZY")
-                    logger.error("fetch type lazy not possible with optional join fields: " + e.name + "." + c.name);
+                    LOGGER.error("fetch type lazy not possible with optional join fields: " + e.name + "." + c.name);
             }
         return !oneOptional
     }
