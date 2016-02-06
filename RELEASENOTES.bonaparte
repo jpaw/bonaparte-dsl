@@ -391,6 +391,17 @@ BDDL (persistence-java): use autodetected SQL dialect in Hibernate instead of co
 BDDL: HANA output: use varchar instead of nvarchar for alpha enums if only ASCII tokens. Other DBs: use nvarchar instead of varchar if required.
 BDDL: fix length of xenumset column
 
+4.0.4:
+BDDL: fixes on generated (x)enum(set) length
+BDDL: fixes on enum DDL output for MSSQL and SAP HANA
+BDDL: enumsets use data type depending on if tokens use Unicode characters or are restricted to ASCII
+BDDL: syntax extension: allow to sepcify character set (ASCII or UNICODE) for xenums
+
+4.0.5: (only DSL and BON library)
+BON: verify that Deprecated fields are not required
+BON: setters and getters on @Deprecated fields invoke a callback for diagnosis (default: issue a warning for setters, no operation for getters)
+
+
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references

@@ -173,11 +173,17 @@ class JavaFieldsGettersSetters {
             «ENDIF»
             «i.writeIfDeprecated»
             public «JavaDataTypeNoName(i, false)» «getterName»() {
+                «IF i.isDeprecated»
+                    DeprecationWarner.warnGet(this, "«i.name»");
+                «ENDIF»
                 return «i.name»;
             }
             «IF i.isArray !== null»
                 «i.writeIfDeprecated»
                 public «JavaDataTypeNoName(i, true)» «getterName»(int _i) {
+                    «IF i.isDeprecated»
+                        DeprecationWarner.warnGet(this, "«i.name»");
+                    «ENDIF»
                     return «i.name»[_i];
                 }
             «ENDIF»
@@ -194,11 +200,17 @@ class JavaFieldsGettersSetters {
             «IF isFreezable»
                 verify$Not$Frozen();
             «ENDIF»
+            «IF i.isDeprecated»
+                DeprecationWarner.warnSet(this, "«i.name»");
+            «ENDIF»
             this.«i.name» = «i.name»;
         }
         «IF i.isArray !== null»
             «i.writeIfDeprecated»
             public void «setterName»(int _i, «JavaDataTypeNoName(i, true)» «i.name») {
+                «IF i.isDeprecated»
+                    DeprecationWarner.warnSet(this, "«i.name»");
+                «ENDIF»
                 this.«i.name»[_i] = «i.name»;
             }
         «ENDIF»
@@ -208,6 +220,9 @@ class JavaFieldsGettersSetters {
              «ELSEIF i.isArray !== null»
                 «i.writeIfDeprecated»
                 public void «setterName»(int _index, Enum<?> «i.name») {
+                    «IF i.isDeprecated»
+                        DeprecationWarner.warnSet(this, "«i.name»");
+                    «ENDIF»
                     this.«i.name»[_index] = «XUtil.xEnumFactoryName(ref)».of(_i);
                 }
             «ENDIF»
@@ -239,6 +254,9 @@ class JavaFieldsGettersSetters {
         public void «setterName»(«type» _i) {
             «IF isFreezable»
                 verify$Not$Frozen();
+            «ENDIF»
+            «IF i.isDeprecated»
+                DeprecationWarner.warnSet(this, "«i.name»");
             «ENDIF»
             this.«i.name» = «XUtil.xEnumFactoryName(ref)».of(_i);
         }

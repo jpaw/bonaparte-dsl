@@ -306,6 +306,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         import «bonaparteInterfacesPackage».DataConverter;
         import «bonaparteInterfacesPackage».StaticMeta;
         import de.jpaw.bonaparte.annotation.*;
+        import de.jpaw.bonaparte.util.DeprecationWarner;
         import «bonaparteClassDefaultPackagePrefix».meta.*;
         «imports.createImports»
 

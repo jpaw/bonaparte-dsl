@@ -87,27 +87,27 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
             switch (lowerName) {
             case "time":
-                if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
+                if ((dt.length < 0) || (dt.length > 3)) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "timestamp": // similar to default, but allow 0 decimals and max. 3 digits precision
-                if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
+                if ((dt.length < 0) || (dt.length > 3)) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "instant": // similar to default, but allow 0 decimals and max. 3 digits precision
-                if ((dt.getLength() < 0) || (dt.getLength() > 3)) {
+                if ((dt.length < 0) || (dt.length > 3)) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "number":
-                if ((dt.getLength() <= 0) || (dt.getLength() > 38)) {
+                if ((dt.length <= 0) || (dt.length > 38)) {
                     error("Mantissa must be at least 1 and cannot exceed 38 (currently)",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "decimal": {
-                if ((dt.getLength() <= 0)) {
+                if ((dt.length <= 0)) {
                     error("Mantissa must be specified and cannot be 0 for this data type",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
@@ -115,23 +115,23 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 // String types and binary data types
             case #[ "ascii", "unicode", "uppercase", "lowercase", "binary" ].contains(lowerName):
             {
-                if (dt.getMinLength() < 0) {
+                if (dt.minLength < 0) {
                     error("Field min length cannot be negative",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
                     return;
                 }
-                if (dt.getMinLength() > dt.getLength()) {
+                if (dt.minLength > dt.length) {
                     error("Field min length cannot exceed field length",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
                     return;
                 }
-                if ((dt.getLength() <= 0) || (dt.getLength() > GIGABYTE)) {
+                if ((dt.length <= 0) || (dt.length > GIGABYTE)) {
                     error("Field size must be at least 1 and at most 1 GB",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
                 }
             case "raw":
-                if ((dt.getLength() <= 0) || (dt.getLength() > GIGABYTE)) {
+                if ((dt.length <= 0) || (dt.length > GIGABYTE)) {
                     error("Field size must be at least 1 and at most 1 GB",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 } else {
@@ -187,7 +187,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
     @Check
     def public void checkClassDefinition(ClassDefinition cd) {
-        val s = cd.getName();
+        val s = cd.name;
         if (s !== null) {
             if (!Character.isUpperCase(s.charAt(0))) {
                 error("Class names should start with an upper case letter", BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
@@ -246,7 +246,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                             BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
                 }
             } else {
-                warning("Cannot determine package of " + (if (myPackage === null) cd.getName() else cd.extendsClass.classRef.name)
+                warning("Cannot determine package of " + (if (myPackage === null) cd.name else cd.extendsClass.classRef.name)
                         + " +++ " + TreeView.getClassInfo(cd) + " *** " + TreeView.getClassInfo(cd.getExtendsClass().getClassRef()),
                         BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
@@ -295,7 +295,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             while (p !== null) {
                 // parent class may not have this directive, due to recursive implementation
                 if (p.isNoAllFieldsConstructor()) {
-                    error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.getName() + " does not)",
+                    error("Has to specify noAllFieldsConstructor directive if any of the parent classes uses it! (" + p.name + " does not)",
                             BonScriptPackage.Literals.CLASS_DEFINITION__NAME);
                     return;
                 }
@@ -422,14 +422,14 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         while (parentClass !== null) {
             if (countSameName(parentClass, s) != 0) {
                 error("field occurs in inherited class "
-                        + (parentClass.eContainer as PackageDefinition).getName() + "."
-                        + parentClass.getName() + " already (shadowing not allowed in bonaparte)",
+                        + (parentClass.eContainer as PackageDefinition).name + "."
+                        + parentClass.name + " already (shadowing not allowed in bonaparte)",
                         BonScriptPackage.Literals.FIELD_DEFINITION__NAME);
             }
             parentClass = parentClass.getParent
         }
 
-        if (fd.getRequired() !== null) {
+        if (fd.required !== null) {
             /*
             // System.out.println("Checking " + s + ": getRequired() = <" + fd.getRequired().toString() + ">");
             // not allowed for typedefs right now
@@ -437,12 +437,23 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 error("required / optional attributes not allowed for type definitions: found <" + fd.getRequired().getX().toString() + "> for " + s,
                         BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
             } */
-            if ((fd.getRequired().getX() == XRequired.OPTIONAL) && (fd.getDatatype() !== null)) {
-                val dt = fd.getDatatype().getElementaryDataType();
-                if ((dt !== null) && (dt.getName() !== null) && Character.isLowerCase(dt.getName().charAt(0))) {
+            if ((fd.required.x == XRequired.OPTIONAL) && (fd.datatype !== null)) {
+                val dt = fd.datatype.elementaryDataType;
+                if ((dt !== null) && (dt.name !== null) && Character.isLowerCase(dt.name.charAt(0))) {
                     error("optional attribute conflicts implicit 'required' meaning of lower case data type",
                             BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
                 }
+            }
+        }
+        
+        // deprecated fields should not be required
+        if (fd.isDeprecated) {
+            if (fd.isAggregate) {
+                if (fd.isIsAggregateRequired)
+                    error("Required aggregates cannot be @Deprecated", BonScriptPackage.Literals.FIELD_DEFINITION__IS_DEPRECATED);
+            } else {
+                if (fd.isRequired)
+                    error("Required fields cannot be @Deprecated", BonScriptPackage.Literals.FIELD_DEFINITION__IS_DEPRECATED);
             }
         }
     }
@@ -487,14 +498,14 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
     @Check
     def public void checkPropertyUse(PropertyUse pu) {
-        if (pu.getKey().annotationReference === null)
+        if (pu.key.annotationReference === null)
             return; // no check for standard properties
-        if (pu.getKey().isWithArg() || pu.getKey().isWithMultiArgs()) {
+        if (pu.key.isWithArg() || pu.key.isWithMultiArgs()) {
             if (pu.getValue() === null)
-                error("the property " + pu.getKey().getName() + " has been defined to require a value",    BonScriptPackage.Literals.PROPERTY_USE__KEY);
+                error("the property " + pu.key.name + " has been defined to require a value",    BonScriptPackage.Literals.PROPERTY_USE__KEY);
         } else {
             if (pu.getValue() !== null)
-                error("the property " + pu.getKey().getName() + " has been defined to not accept a value", BonScriptPackage.Literals.PROPERTY_USE__VALUE);
+                error("the property " + pu.key.name + " has been defined to not accept a value", BonScriptPackage.Literals.PROPERTY_USE__VALUE);
         }
     }
 
