@@ -401,6 +401,10 @@ BDDL: syntax extension: allow to sepcify character set (ASCII or UNICODE) for xe
 BON: verify that Deprecated fields are not required
 BON: setters and getters on @Deprecated fields invoke a callback for diagnosis (default: issue a warning for setters, no operation for getters)
 
+4.0.7:
+BDDL: allow separate specification of orphanRemoval for @OneToOne and  @OneToMany. cascade is off by default
+
+
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

@@ -73,9 +73,6 @@ class MakeRelationships {
         '''
     }
 
-    // FT-1011: writeFGS should write setters.
-    // Changing last arg from false to true for first writeFGS
-    // Changing m.cascade to true for the second writeFGS
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
@@ -90,7 +87,8 @@ class MakeRelationships {
             @OneToOne«optArgs(
                 if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) 'optional=false',
-                if (m.cascade) 'cascade=CascadeType.ALL'
+                if (m.orphanRemoval) 'orphanRemoval=true',
+                if (m.cascade)       'cascade=CascadeType.ALL'
             )»
             «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
@@ -98,9 +96,9 @@ class MakeRelationships {
 
         «FOR m : e.oneToManys»
             @OneToMany«optArgs(
-                'orphanRemoval=true',
-                'cascade=CascadeType.ALL',
-                if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»'''
+                if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
+                if (m.orphanRemoval) 'orphanRemoval=true',
+                if (m.cascade)       'cascade=CascadeType.ALL'
             )»
             «m.relationship.writeJoinColumns(false, e)»
             «IF m.collectionType == 'Map'»

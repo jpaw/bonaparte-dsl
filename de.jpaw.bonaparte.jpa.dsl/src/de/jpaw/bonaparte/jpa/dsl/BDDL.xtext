@@ -171,11 +171,14 @@ OneToMany:
     (collectionType = 'Map' '<' indexType=('String' | 'Integer' | 'Long') '>' 'mapKey' mapKey = ID // (':' mapKeySize = INT)?
     ))
     relationship = Relationship
+    (cascade       ?= 'cascade')?
+    (orphanRemoval ?= 'orphanRemoval')?
 ;
 
 OneToOne:
     relationship = Relationship
-    (cascade ?= 'cascade')?    
+    (cascade       ?= 'cascade')?    
+    (orphanRemoval ?= 'orphanRemoval')?
 ;
 
 ElementCollectionRelationship:
