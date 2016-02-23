@@ -251,6 +251,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
+        val withXml = xmlAccess !== null && !BonScriptPreferences.getNoXML
+        val writeXmlAdapter = withXml && ((d.fields.size == 0 && d.isAbstract && d.extendsClass === null) || d.isXmlAdapter)
         // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
         val doExt = d.externalizable
         val doHazel = d.hazelSupport
@@ -270,7 +272,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         package «getBonPackageName(d)»;
 
         «writeDefaultImports»
-        «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
+        «IF withXml»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;
             import javax.xml.bind.annotation.XmlRootElement;
@@ -279,6 +281,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             import javax.xml.bind.annotation.XmlAnyElement;
             import javax.xml.bind.annotation.XmlSchemaType;
             import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+            import javax.xml.bind.annotation.adapters.XmlAdapter;
             import javax.xml.bind.annotation.XmlType;
         «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal)»
@@ -315,7 +318,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
            «d.javadoc»
         «ENDIF»
 
-        «IF xmlAccess !== null && !BonScriptPreferences.getNoXML»
+        «IF withXml»
             «IF d.effectiveXmlRoot»
                 @XmlRootElement(name="«d.name»")
             «ENDIF»
@@ -324,6 +327,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 @XmlType(name="«d.name»", propOrder={«d.fields.map['''"«name»"'''].join(', ')»})
             «ELSE»
                 @XmlType(name="«d.name»")
+            «ENDIF»
+            «IF writeXmlAdapter»
+                @XmlJavaTypeAdapter(«d.name».DefaultXmlAdapter.class)
             «ENDIF»
         «ENDIF»
         «IF myKey !== null»
@@ -368,7 +374,10 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «JavaHazelSupport::writeHazelIO(d, doHazel)»
             «JavaTreeWalker::writeTreeWalkerCode(d)»
             «JavaConstructor::writeConstructorCode(d)»
-
+            «IF writeXmlAdapter»
+                «Jaxb::writeDefaultAdapter(d)»
+            «ENDIF»
+            
             «d.writeRef»
 
             @Override

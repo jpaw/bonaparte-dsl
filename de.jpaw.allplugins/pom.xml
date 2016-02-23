@@ -49,7 +49,7 @@
         <xtend.version>2.9.1</xtend.version>
 
         <!-- org.apache.maven.plugins -->
-        <compiler.plugin.version>3.3</compiler.plugin.version>
+        <compiler.plugin.version>3.5.1</compiler.plugin.version>
         <clean.plugin.version>2.6.1</clean.plugin.version>
         <enforcer.plugin.version>1.4.1</enforcer.plugin.version>
         <javadoc.plugin.version>2.10.3</javadoc.plugin.version>

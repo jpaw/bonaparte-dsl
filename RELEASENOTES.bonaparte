@@ -404,6 +404,8 @@ BON: setters and getters on @Deprecated fields invoke a callback for diagnosis (
 4.0.7:
 BDDL: allow separate specification of orphanRemoval for @OneToOne and  @OneToMany. cascade is off by default
 
+4.0.8:
+BON: allow to request creation of a stub XmlAdapter, also do it by default for abstract classes with no fields which do not inherit from another class
 
 
 4.0.x: (planned):
