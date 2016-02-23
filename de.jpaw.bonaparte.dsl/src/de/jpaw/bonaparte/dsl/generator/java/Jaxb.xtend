@@ -31,7 +31,7 @@ class Jaxb {
                 }
                 @Override
                 public «d.name» unmarshal(«d.name» param) throws Exception {
-                    return effectiveAdapter == null ? param : ((XmlAdapter<? extends «d.name», «d.name»>)effectiveAdapter).unmarshal(param);
+                    return effectiveAdapter == null ? param : ((XmlAdapter<«d.name», «d.name»>)effectiveAdapter).unmarshal(param);
                 }
             }
         '''
