@@ -5,7 +5,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>4.0.8</version>
+        <version>4.0.8-SNAPSHOT</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
 
@@ -18,7 +18,7 @@
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-p2-repository-plugin</artifactId>

@@ -62,7 +62,7 @@ class OffHeapMapGeneratorMain {
         val classSuffix = if (isPrimitive) "P" else "W"
         val pkJavaType = if (isPrimitive) "long" else "Long"
         val dwtClass = "DataWithTracking" + classSuffix
-        
+
         val refPojo = refClass ?: e.pojoType.extendsClass?.classRef
         imports.addImport(refPojo)
         for (i: e.indexes)

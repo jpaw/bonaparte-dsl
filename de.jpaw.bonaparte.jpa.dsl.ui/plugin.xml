@@ -40,10 +40,10 @@
             <and>
                 <reference definitionId="isActiveEditorAnInstanceOfXtextEditor"/>
                 <with variable="activeEditor">
-                    <test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName" 
-                        value="de.jpaw.bonaparte.jpa.dsl.BDDL" 
+                    <test property="org.eclipse.xtext.ui.editor.XtextEditor.languageName"
+                        value="de.jpaw.bonaparte.jpa.dsl.BDDL"
                         forcePluginActivation="true"/>
-                </with>        
+                </with>
             </and>
         </definition>
     </extension>
@@ -109,7 +109,7 @@
                     definitionId="de.jpaw.bonaparte.jpa.dsl.BDDL.Editor.opened">
                 </reference>
             </visibleWhen>
-         </command>  
+         </command>
          </menuContribution>
     </extension>
     <extension point="org.eclipse.ui.menus">
@@ -132,7 +132,7 @@
                 </reference>
             </activeWhen>
         </handler>
-    </extension>   
+    </extension>
 
 <!-- adding resource factories -->
 
@@ -208,7 +208,7 @@
     <!-- Quick Outline -->
     <extension
         point="org.eclipse.ui.handlers">
-        <handler 
+        <handler
             class="de.jpaw.bonaparte.jpa.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.ui.editor.outline.quickoutline.ShowQuickOutlineActionHandler"
             commandId="org.eclipse.xtext.ui.editor.outline.QuickOutline">
             <activeWhen>
@@ -268,7 +268,7 @@
     </extension>
     <!-- Rename Refactoring -->
     <extension point="org.eclipse.ui.handlers">
-        <handler 
+        <handler
             class="de.jpaw.bonaparte.jpa.dsl.ui.BDDLExecutableExtensionFactory:org.eclipse.xtext.ui.refactoring.ui.IRenameElementHandler"
             commandId="org.eclipse.xtext.ui.refactoring.RenameElement">
             <activeWhen>

@@ -487,7 +487,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             return true
         return e.extends.firstNonAbstractBaseClass === null  // true if no superclass defines it
     }
-    
+
     def private static EntityDefinition firstNonAbstractBaseClass(EntityDefinition e) {
         // careful not to implement exponential recursion: try bottom up!
         val parent = e.extends?.firstNonAbstractBaseClass       // head recursion
@@ -499,13 +499,13 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         return null
     }
-    
+
     // define the "implements" for an Entity or MappedSuperclass.
     // The following rules hold:
     // Tracking is always defined in the root entity (extends == null), no matter if abstract or not
     // BonaData is written if the class is not abstract and not noDataMappper specified
     // BonaKey is written once the key has been defined, independent of root class or not, independent of abstract class or not
-    // deprecated interfaces BonaPersistableNoData* are written together with the key.  
+    // deprecated interfaces BonaPersistableNoData* are written together with the key.
     def private wrImplements(EntityDefinition e, String pkType, String trackingType, boolean pkDefinedInThisEntity) {
         println('''write Implements for entity «e.name»: abstract=«e.isIsAbstract», root=«e.extends === null», PK defined here=«pkDefinedInThisEntity», PK class = «pkType», first non abstract base entity=«e.firstNonAbstractBaseClass»''')
         // val doNone = !(e.extends === null) && !(pkDefinedInThisEntity && !e.doNoKeyMapper) && !e.isFirstNonAbstractClass
@@ -514,7 +514,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             // first for compatibility of some existing active annotations... add a deprecated interface. trackingType is always populated, not only for the root entity
                                                         interfaces.add(if (pkType == "long") '''BonaPersistableNoDataLong<«trackingType»>''' else '''BonaPersistableNoData<«pkType», «trackingType»>''')
                                                         interfaces.add(if (pkType == "long") '''BonaPersistableKeyLong'''                    else '''BonaPersistableKey<«pkType»>''')
-        }  
+        }
         if (e.isFirstNonAbstractClass)                  interfaces.add('''BonaPersistableData<«e.pojoType.name»>''')
         if (e.extends === null)                         interfaces.add('''BonaPersistableTracking<«trackingType»>''')
 
@@ -590,7 +590,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             trackingType = e.tableCategory.trackingColumns.name
         }
         val dataMapperEntity = e.firstNonAbstractBaseClass
-        
+
         return '''
         // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
         // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
@@ -770,7 +770,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         «writeJpaImports»
-        
+
         «imports.createImports»
 
         @SuppressWarnings("all")
@@ -815,7 +815,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «JavaBeanValidation::writeImports(e.doBeanVal)»
         «writeDefaultImports»
         «writeJpaImports»
-        
+
         import de.jpaw.bonaparte.jpa.BonaData;
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
         «imports.createImports»
@@ -834,7 +834,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»
             «MakeMapper::writeDataMapperMethods(e.pojoType, true, e.pojoType, e.embeddables, null)»
-            
+
             private Object ret$Key() {  // only required in case of a deserialized exception Handler
                 return null;
             }

@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.0.8</version>
+    <version>4.0.8-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -193,19 +193,19 @@
                     <failFast>true</failFast>
                 </configuration>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
-    
+
     <repositories>
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.1/</url>  
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.1/</url>
         </repository>
         <repository>
             <id>p2-mars</id>

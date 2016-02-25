@@ -6,7 +6,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>4.0.8</version>
+        <version>4.0.8-SNAPSHOT</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
 
@@ -20,10 +20,10 @@
             <version>${xtend.version}</version>
         </dependency>
     </dependencies>
-    
+
     <build>
         <!-- causes xtend sources to be copied to JAR. but required for fornax to find the mwe2 / xtext files?-->
-        <!-- 
+        <!--
         <resources>
             <resource>
                 <directory>src</directory>
@@ -37,7 +37,7 @@
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
             </plugin>
-        
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
@@ -83,7 +83,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
-            
+
             <plugin>
                 <groupId>org.eclipse.xtend</groupId>
                 <artifactId>xtend-maven-plugin</artifactId>

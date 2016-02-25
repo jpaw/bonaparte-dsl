@@ -5,15 +5,15 @@ import org.eclipse.xtext.ui.wizard.IProjectCreator
 import org.eclipse.xtext.ui.wizard.XtextNewProjectWizard
 
 class BonScriptNewProjectWizard extends XtextNewProjectWizard {
-    
+
     private WizardNewBonScriptProjectCreationPage mainPage
-    
+
     @Inject
     new(IProjectCreator creator) {
         super(creator)
         windowTitle = "New BonScript Project"
     }
-    
+
     /**
      * Use this method to read the project settings from the wizard pages and feed them into the project info class.
      */
@@ -28,11 +28,11 @@ class BonScriptNewProjectWizard extends XtextNewProjectWizard {
             useJpawParent       = mainPage.useJpawParent
         ]
     }
-    
+
     def protected BonScriptProjectInfo createProjectInfo() {
         return new BonScriptProjectInfo();
     }
-    
+
     /**
      * Use this method to add pages to the wizard.
      * The one-time generated version of this class will add a default new project page to the wizard.
@@ -42,7 +42,7 @@ class BonScriptNewProjectWizard extends XtextNewProjectWizard {
         mainPage = new WizardNewBonScriptProjectCreationPage("basicNewProjectPage", this.selection) => [
             title       = "BonScript Project"
             description = "Create a new BonScript project."
-            // specific 
+            // specific
         ]
         addPage(mainPage);
     }

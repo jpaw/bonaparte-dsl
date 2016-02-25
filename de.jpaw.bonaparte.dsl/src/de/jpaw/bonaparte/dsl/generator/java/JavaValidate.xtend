@@ -88,7 +88,7 @@ class JavaValidate {
             '''
         }
     }
-    
+
     def public static writeValidationCode(ClassDefinition d) '''
         @Override
         public void validate() throws ObjectValidationException {

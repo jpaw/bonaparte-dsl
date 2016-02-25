@@ -57,7 +57,7 @@ class JavaFieldsGettersSetters {
             default:              return null
         }
     }
-    
+
     def private static xmlAnnotation(DataTypeExtension ref) {
         val namePart = xmlAdapterMap.get(ref.javaType.toFirstLower)
         val decimals = ref.elementaryDataType.decimals
@@ -148,7 +148,7 @@ class JavaFieldsGettersSetters {
 
     // write the standard getter plus maybe some indexed one
     // if getterWritten is true, then this is a subsequent call for a field which has seen a getter already.
-    // That is used to declare the getter as XmlTransient 
+    // That is used to declare the getter as XmlTransient
     def private static writeOneGetter(FieldDefinition i, ClassDefinition d, String getterName, AtomicBoolean initialGetter) {
         val ref = DataTypeExtension::get(i.datatype)
         val initialCall = initialGetter.getAndSet(false)

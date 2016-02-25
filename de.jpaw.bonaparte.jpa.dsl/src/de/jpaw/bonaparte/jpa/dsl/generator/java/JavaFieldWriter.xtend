@@ -99,7 +99,7 @@ class JavaFieldWriter {
         else
             return "String" // default storage type
     }
-    
+
     def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal) {
         val prefs = BDDLPreferences.currentPrefs
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
@@ -169,7 +169,7 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
                     case "ByteArray":
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
-                        
+
                     case DataTypeExtension.JAVA_JSON_TYPE:
                         writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonObject"),  null, null)
                     case DataTypeExtension.JAVA_ARRAY_TYPE:
@@ -236,7 +236,7 @@ class JavaFieldWriter {
         }
         return i.JavaDataTypeNoName(i.properties.hasProperty(PROP_UNROLL))
     }
-    
+
     def private static String writeUnmarshaller(String fieldname, String exceptionClass, CharSequence expression) '''
         try {
             return «expression»;

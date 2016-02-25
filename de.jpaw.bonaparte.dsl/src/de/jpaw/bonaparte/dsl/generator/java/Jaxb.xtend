@@ -24,7 +24,7 @@ class Jaxb {
         return '''
             public static class DefaultXmlAdapter extends XmlAdapter<«d.name», «d.name»> {
                 public static XmlAdapter<? extends «d.name», «d.name»> effectiveAdapter = null;  // allow to overwrite by own implementation
-                
+
                 @Override
                 public «d.name» marshal(«d.name» param) throws Exception {
                     return effectiveAdapter == null ? param : effectiveAdapter.marshal(param);

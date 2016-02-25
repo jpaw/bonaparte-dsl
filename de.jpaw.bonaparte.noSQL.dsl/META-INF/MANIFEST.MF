@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.noSQL.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.0.8
+Bundle-Version: 4.0.8.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.noSQL.dsl;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;visibility:=reexport,
@@ -34,4 +34,3 @@ Export-Package: de.jpaw.bonaparte.noSQL.dsl.bDsl,
  de.jpaw.bonaparte.noSQL.dsl.parser.antlr.internal,
  de.jpaw.bonaparte.noSQL.dsl.serializer,
  de.jpaw.bonaparte.noSQL.dsl.services
-

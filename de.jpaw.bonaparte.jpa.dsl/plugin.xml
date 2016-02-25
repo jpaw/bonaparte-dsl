@@ -4,11 +4,11 @@
 <plugin>
 
   <extension point="org.eclipse.emf.ecore.generated_package">
-    <package 
-       uri = "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL" 
+    <package
+       uri = "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL"
        class = "de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackage"
-       genModel = "de/jpaw/bonaparte/jpa/dsl/BDDL.genmodel" /> 
-    
+       genModel = "de/jpaw/bonaparte/jpa/dsl/BDDL.genmodel" />
+
   </extension>
 
 

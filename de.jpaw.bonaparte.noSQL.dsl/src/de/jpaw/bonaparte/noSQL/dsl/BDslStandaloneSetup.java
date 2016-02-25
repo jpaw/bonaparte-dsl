@@ -15,4 +15,3 @@ public class BDslStandaloneSetup extends BDslStandaloneSetupGenerated{
         new BDslStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 }
-

@@ -11,4 +11,3 @@ public class BonScriptStandaloneSetup extends BonScriptStandaloneSetupGenerated{
         new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 }
-

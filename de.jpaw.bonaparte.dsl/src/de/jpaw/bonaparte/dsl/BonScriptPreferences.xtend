@@ -62,7 +62,7 @@ public class BonScriptPreferences {
     public boolean defaultHazelcastId       = defaultHazelcastIdDefault;
     public boolean defaultHazelcastPo       = defaultHazelcastPoDefault;
     public int defaulthazelcastFactoryId    = defaulthazelcastFactoryIdDefault;
-    
+
     public boolean xsdDefault               = defaultXsdDefault;
     public boolean xsdRootSeparateFile      = defaultXsdRootSeparateFile;
     public boolean xsdBundleSubfolders      = defaultXsdBundleSubfolders;

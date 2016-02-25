@@ -29,11 +29,11 @@ public class BonScriptProjectCreator extends org.eclipse.xtext.ui.wizard.Abstrac
     override protected BonScriptProjectInfo getProjectInfo() {
         return super.getProjectInfo as BonScriptProjectInfo
     }
-    
+
     override protected String getModelFolderName() {
         return SRC_BON;
     }
-    
+
     override protected List<String> getAllFolders() {
         return SRC_FOLDER_LIST;
     }
@@ -53,7 +53,7 @@ public class BonScriptProjectCreator extends org.eclipse.xtext.ui.wizard.Abstrac
             resourceManager.fileEncoding = "UTF-8"
             registerMetaModel(new JavaBeansMetaModel)
         ]
-        
+
         XpandFacade.create(execCtx) => [
             evaluate("de::jpaw::bonaparte::dsl::ui::wizard::BonScriptNewProject::main", getProjectInfo());
         ]

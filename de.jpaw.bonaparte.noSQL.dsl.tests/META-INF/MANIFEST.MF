@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.noSQL.dsl.tests
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.0.8
+Bundle-Version: 4.0.8.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.noSQL.dsl.tests;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.noSQL.dsl,
@@ -22,4 +22,3 @@ Import-Package: org.apache.log4j,
  org.hamcrest.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: de.jpaw.bonaparte.noSQL.dsl
-

@@ -14,4 +14,3 @@ public class BDDLStandaloneSetup extends BDDLStandaloneSetupGenerated{
         new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration();
     }
 }
-

@@ -4,11 +4,11 @@
 <plugin>
 
   <extension point="org.eclipse.emf.ecore.generated_package">
-    <package 
-       uri = "http://www.jpaw.de/bonaparte/noSQL/dsl/BDsl" 
+    <package
+       uri = "http://www.jpaw.de/bonaparte/noSQL/dsl/BDsl"
        class = "de.jpaw.bonaparte.noSQL.dsl.bDsl.BDslPackage"
-       genModel = "model/generated/BDsl.genmodel" /> 
-    
+       genModel = "model/generated/BDsl.genmodel" />
+
   </extension>
 
 

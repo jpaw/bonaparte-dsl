@@ -70,14 +70,14 @@ class XUtil {
             dd = dd.extendsXenum
         return dd
     }
-    
+
     def public static DataTypeExtension getRootDataType(FieldDefinition f) {
         f.datatype.rootDataType
-    } 
+    }
 
     def public static DataTypeExtension getRootDataType(DataType dt) {
         return DataTypeExtension::get(dt)
-    } 
+    }
 
     def public static PackageDefinition getPackageOrNull(EObject ee) {
         var e = ee
@@ -122,12 +122,12 @@ class XUtil {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
         return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
     }
-    
+
     /** Reverses the ordering of the simple components of a qualified ID, for example from com.foo.bar.mega to mega.bar.foo.com. */
     def public static reverseIDs(String s) {
-        Joiner.on(".").join(Lists.reverse(Splitter.on('.').split(s).toList))        
+        Joiner.on(".").join(Lists.reverse(Splitter.on('.').split(s).toList))
     }
-    
+
     /** Computes the schema name abbreviation. */
     def static schemaToken(PackageDefinition pkg) {
         return pkg.name.replace('.', '_')
@@ -137,7 +137,7 @@ class XUtil {
         val pkg = d.package
         return pkg.xmlNs ?: '''http://«IF pkg.prefix !== null»«pkg.prefix.reverseIDs»«ELSE»www.jpaw.de«ENDIF»/schema/«pkg.schemaToken».xsd'''
     }
-    
+
     def public static getRelevantXmlAccess(XEnumDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
         return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
@@ -620,14 +620,14 @@ class XUtil {
         }
         return false
     }
-    
+
     def public static generateAnnotation(PropertyUse it) {
         return '''@«key.annotationReference.qualifiedName»«IF value !== null»(«IF key.withMultiArgs»«value»«ELSE»"«value.escapeString2Java»"«ENDIF»)«ENDIF»'''
     }
     def public static generateAllAnnotations(List<PropertyUse> it) {
         return filter[key.annotationReference !== null].map[generateAnnotation].join('\n')
     }
-    
+
     def public static isJsonField(DataTypeExtension ref) {
         val elemType = ref.elementaryDataType?.name?.toLowerCase
         return elemType == "json" || elemType == "element" || elemType == "array"

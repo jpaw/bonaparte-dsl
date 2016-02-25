@@ -233,7 +233,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             if (cd.extendsClass.classRef.isFinal()) {
                 error("Classes max not extend a final class", BonScriptPackage.Literals.CLASS_DEFINITION__EXTENDS_CLASS);
             }
-            // this class cannot be xmlRoot as it extends another one => yes it can, see 
+            // this class cannot be xmlRoot as it extends another one => yes it can, see
 //            if (cd.isIsXmlRoot) {
 //                error("Classes which extend another one cannot be @XmlRootElement", BonScriptPackage.Literals.CLASS_DEFINITION__IS_XML_ROOT);
 //            }
@@ -445,7 +445,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                 }
             }
         }
-        
+
         // deprecated fields should not be required
         if (fd.isDeprecated) {
             if (fd.isAggregate) {
@@ -734,7 +734,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             error("The package IDs xs, xsi and bon are reserved", BonScriptPackage.Literals.PACKAGE_DEFINITION__NAME)
         if (p.name.toLowerCase.startsWith("xml"))
             warning("Package names starting with xml are discouraged due to resulting XML namespace prefix conflicts", BonScriptPackage.Literals.PACKAGE_DEFINITION__NAME)
-            
+
         if (p.hazelcastFactoryId != 0) {
             val usedClassIds = new HashMap<Integer,String>(50)
             // user makes use of numeric class identifiers, support it by some extra plausis

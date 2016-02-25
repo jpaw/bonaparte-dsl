@@ -4,11 +4,11 @@
 <plugin>
 
   <extension point="org.eclipse.emf.ecore.generated_package">
-    <package 
-       uri = "http://www.jpaw.de/bonaparte/dsl/BonScript" 
+    <package
+       uri = "http://www.jpaw.de/bonaparte/dsl/BonScript"
        class = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
-       genModel = "model/generated/BonScript.genmodel" /> 
-    
+       genModel = "model/generated/BonScript.genmodel" />
+
   </extension>
 
 

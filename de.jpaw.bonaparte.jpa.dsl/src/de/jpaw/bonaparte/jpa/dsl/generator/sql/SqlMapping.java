@@ -244,7 +244,7 @@ public class SqlMapping {
                 columnDecimals = 0;
                 break;
             case ENUMSETALPHA:
-                EnumSetDefinition es = ref.elementaryDataType.getEnumsetType(); 
+                EnumSetDefinition es = ref.elementaryDataType.getEnumsetType();
                 datatype = ref.enumHasUnicodeTokens ? "unicode" : "ascii";
                 columnLength = ref.enumMaxTokenLength * es.getMyEnum().getAvalues().size();     // compute length = max element size * number of elements (see also MakeFields for JPA annotation)
                 columnDecimals = 0;
@@ -420,7 +420,7 @@ public class SqlMapping {
         case MYSQL:
             return " DEFAULT CURRENT_USER";
         case SAPHANA:
-            return "";   // could not get DEFAULT CURRENT_USER as well as SESSION_USER working 
+            return "";   // could not get DEFAULT CURRENT_USER as well as SESSION_USER working
         }
         return "";
     }

@@ -55,7 +55,7 @@ public class DataTypeExtension {
     // constants for enumMaxTokenLength field
     public static final int NO_ENUM = -2;
     public static final int ENUM_NUMERIC = -1;
-    
+
     public static final String SPECIAL_DATA_TYPE_ENUM = "@";
     public static final String SPECIAL_DATA_TYPE_XENUM = "#";
     public static final String SPECIAL_DATA_TYPE_ENUMSET = "@S";
@@ -335,7 +335,7 @@ public class DataTypeExtension {
         }
         return len;
     }
-    
+
     public static boolean isAsciiPrintable(final char c) {
         return (c >= 0x20) && (c <= 0x7e);
     }
@@ -347,7 +347,7 @@ public class DataTypeExtension {
                 return false;
         return true;
     }
-    
+
     static private boolean usesUnicodeTokens(EList<EnumAlphaValueDefinition> ead) {
         if (ead == null || ead.isEmpty())
             return false;

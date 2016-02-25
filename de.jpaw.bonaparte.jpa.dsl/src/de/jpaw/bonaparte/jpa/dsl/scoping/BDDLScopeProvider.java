@@ -77,7 +77,7 @@ public class BDDLScopeProvider extends ImportedNamespaceAwareLocalScopeProvider 
         //ListOfColumns loc = (ListOfColumns)context;
         //System.out.println("DEBUG: Resolver invoked for ListOfColumns inside " + entity.getName());
         recursivelyAddColumnsOfClassAndParents(preliminaryResult, entity.getPojoType(), ignoreCase);
-        
+
         // also add the fields of the entity category class (& parents)
         EntityDefinition root = YUtil.getInheritanceRoot(entity);
         TableCategoryDefinition category = root.getOptTableCategory();

@@ -216,7 +216,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             // the prior check also implies that the history category does not request another history category (by grammar rule)
         }
     }
-    
+
     def private static boolean noPkInSuperClasses(EntityDefinition e) {
         if (e.extends === null)
             return true
@@ -279,7 +279,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             if (!e.noTenantInSuperClasses)
                 warning("Redefinition of tenant discriminator", if (e.tenantClass !== null) BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_CLASS else BDDLPackage.Literals.ENTITY_DEFINITION__TENANT_ID)
         }
-        
+
         // verify for primary key
         val noPkInSuperClasses = e.noPkInSuperClasses
         // check for embeddable PK
@@ -310,7 +310,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             error("The table category requires specificaton of a primary key for this entity",
                    BDDLPackage.Literals.ENTITY_DEFINITION__OPT_TABLE_CATEGORY);
         }
-        
+
         if (e.extends !== null) {
             if (!e.extends.isIsAbstract && e.discriminatorValue === null) {
                 error("an entity extending another one which is not abstract must specify a discriminator value", BDDLPackage.Literals.ENTITY_DEFINITION__EXTENDS);
@@ -384,7 +384,7 @@ class BDDLValidator extends AbstractBDDLValidator {
             }
         }
     }
-    
+
     def private void validateOnlyScalars(ClassDefinition c, EReference issue) {
         var cc = c;
         while (cc !== null) {
@@ -393,7 +393,7 @@ class BDDLValidator extends AbstractBDDLValidator {
                 if (isAggregate)
                     error('''Only scalar types allowed here, «name» is not''', issue)
             ]
-            
+
             cc = cc.extendsClass?.classRef;
         }
     }
@@ -406,14 +406,14 @@ class BDDLValidator extends AbstractBDDLValidator {
                 error('''Only scalar types allowed here, «name» is not''', BDDLPackage.Literals.LIST_OF_COLUMNS__COLUMN_NAME)
         ]
     }
-    
+
     @Check
     def public void checkSingleColumn(SingleColumn sc) {
         // this is used for the tenant ID only currently and can be scalar only
         if (sc.singleColumnName.isAggregate)
             error('''Only scalar types allowed here, «sc.singleColumnName.name» is not''', BDDLPackage.Literals.SINGLE_COLUMN__SINGLE_COLUMN_NAME)
     }
-    
+
     @Check
     def public void checkCollection(CollectionDefinition c) {
         if (c.getMap() !== null && c.getMap().getIsMap() !== null) {

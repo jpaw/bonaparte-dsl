@@ -102,7 +102,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
                     @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.QUALIFIED,
                         xmlns = { @XmlNs(prefix="«d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
-                    )  
+                    )
 
                     @XmlJavaTypeAdapters({
                         «IF needJoda»
@@ -377,7 +377,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «IF writeXmlAdapter»
                 «Jaxb::writeDefaultAdapter(d)»
             «ENDIF»
-            
+
             «d.writeRef»
 
             @Override

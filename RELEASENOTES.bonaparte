@@ -35,7 +35,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 
 1.6.0
 - BDDL: Improvement: grammar: unique keyword no longer possible where it makes no sense
-- BDDL: bugfix: fix list of columns suggested / validated for @OneToMany (must be of target object, not of current entity) 
+- BDDL: bugfix: fix list of columns suggested / validated for @OneToMany (must be of target object, not of current entity)
 - BDDL: (c) bugfix: remove plausis about sizes of PKs for @OneToMany and @ManyToOne - more flexible structre can and do occur
 - BDDL: (c) bugfix: suppress output of null if no row comment exists for DDL
 - BDDL: (d) bugfix: output for natural key entities via embeddable was incorrect, fixed now
@@ -92,7 +92,7 @@ New features and bug fixes in Bonaparte / Persistence DSL
 - BON: (b) improvement: issue errors in BON editor if enum tokens or IDs are used twice
 - BON: (b) improvement: issue errors in BON editor if enum IDs or tokens exceed the maximum length of 63 characters
 - BON: (c) improvement: meta information restructure, use Lists instead of arrays, add meta data for enums and xenums
-- BON: (d) bugfix: check XEnum for cyclic inheritance. Allow the "class MyClass<E extends MyClass<E>>" construction 
+- BON: (d) bugfix: check XEnum for cyclic inheritance. Allow the "class MyClass<E extends MyClass<E>>" construction
 
 
 - BON: (e) xenum almost working. Still Missing: serializable (uuid & test), externalizable
@@ -449,4 +449,3 @@ additional plausis:
 Known restrictions / limitations:
 When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
 to the name of the primary key of the parent entity.
-

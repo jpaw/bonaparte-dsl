@@ -137,7 +137,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("xsdRootSeparateFile", defaults.xsdRootSeparateFile);
         store.setDefault("xsdBundleSubfolders", defaults.xsdBundleSubfolders);
         store.setDefault("xsdExtensions",       defaults.xsdExtensions);
-        
+
         BonScriptPreferences currentSettings = new BonScriptPreferences();
         currentSettings.warnByte                    = store.getBoolean("WarnByte");
         currentSettings.warnFloat                   = store.getBoolean("WarnFloat");

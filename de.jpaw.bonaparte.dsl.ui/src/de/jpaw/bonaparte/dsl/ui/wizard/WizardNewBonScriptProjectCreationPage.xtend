@@ -12,31 +12,31 @@ import org.eclipse.jface.viewers.IStructuredSelection
 
 class WizardNewBonScriptProjectCreationPage extends WizardNewProjectCreationPage {
     private final IStructuredSelection selection;
-    
+
     public val useMaven = true
     public var String jpawParentVersion
     public var String xtendVersion
     public var boolean useBonscript
     public var boolean useXtend
     public var boolean useJpawParent
-    
+
     new(String pageName, IStructuredSelection sel) {
         super(pageName)
         selection = sel
         setDefaults
         println("WizardNewBonScriptProjectCreationPage constructed")
     }
-    
+
     def private setDefaults() {
         jpawParentVersion   = "1.0.6"
         xtendVersion        = "2.8.4"
         useBonscript        = true
         useXtend            = true
-        useJpawParent       = false        
+        useJpawParent       = false
     }
-    
+
     private var Text jpawVersionCtrl
-    
+
     override public void createControl(Composite myParent) {
         println("WizardNewBonScriptProjectCreationPage.createControl executed")
         super.createControl(myParent)
@@ -58,7 +58,7 @@ class WizardNewBonScriptProjectCreationPage extends WizardNewProjectCreationPage
             jpawVersionCtrl.font        = myParent.font
             jpawVersionCtrl.text        = jpawParentVersion
             jpawVersionCtrl.addListener(SWT.Modify) [ jpawParentVersion = jpawVersionCtrl.text ]
-        
+
             // finish
             pack
         ]

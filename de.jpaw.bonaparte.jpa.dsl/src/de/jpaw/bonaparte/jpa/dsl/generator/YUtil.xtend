@@ -90,7 +90,7 @@ class YUtil {
     def public static getTableCategory(EntityDefinition e) {
         return e.inheritanceRoot.optTableCategory
     }
-    
+
     def public static Model getModel(EObject someReference) {
         var EObject ref = someReference
         while (!(ref instanceof Model))
