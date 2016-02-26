@@ -206,8 +206,9 @@ class SqlDDLGeneratorMain implements IGenerator {
         return indexCount = indexCount + 1
     }
 
-    def static sqlSynonymOut(String tablename)
-        '''CREATE OR REPLACE PUBLIC SYNONYM «tablename» FOR «tablename»;'''
+    def static sqlSynonymOut(String tablename) '''
+        CREATE OR REPLACE PUBLIC SYNONYM «tablename» FOR «tablename»;
+    '''
 
     def sqlEcOut(EntityDefinition t, ElementCollectionRelationship ec, String tablename, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val EntityDefinition baseEntity = t.getInheritanceRoot() // for derived tables, the original (root) table
@@ -332,8 +333,8 @@ class SqlDDLGeneratorMain implements IGenerator {
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
-
         «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER && databaseFlavour != DatabaseFlavour.MYSQL»
+
             «IF stopAt === null»
                 «t.tableCategory.trackingColumns?.recurseComments(null, tablename, theEmbeddables)»
             «ENDIF»
