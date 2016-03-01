@@ -407,6 +407,12 @@ BDDL: allow separate specification of orphanRemoval for @OneToOne and  @OneToMan
 4.0.8:
 BON: allow to request creation of a stub XmlAdapter, also do it by default for abstract classes with no fields which do not inherit from another class
 
+4.0.9:
+BDDL: whitespace cleanup (do not generate trailing space at end of line or trailing blank lines in DDL)
+
+4.0.10:
+BON: do not create XmlAdapter by default for abstract classes with no fields which do not inherit from another class unless 'xmlAdapter' option is given at package level
+BDDL: add option 'allSerializable' at package level and 'serializable' at entity level to add serializable marker interface for generated JPA entities
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

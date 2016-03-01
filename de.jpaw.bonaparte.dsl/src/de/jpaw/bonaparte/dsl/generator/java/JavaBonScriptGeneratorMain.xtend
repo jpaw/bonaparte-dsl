@@ -42,6 +42,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
+    static private boolean AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES = false
 
     var Map<String, String> requiredImports = new HashMap<String, String>()
 
@@ -252,12 +253,14 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
         val withXml = xmlAccess !== null && !BonScriptPreferences.getNoXML
-        val writeXmlAdapter = withXml && ((d.fields.size == 0 && d.isAbstract && d.extendsClass === null) || d.isXmlAdapter)
+        val autoXmlAdapter = AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES && (d.fields.size == 0 && d.isAbstract && d.extendsClass === null)
+        val writeXmlAdapter = withXml && (d.isXmlAdapter || autoXmlAdapter)
+        
         // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
-        val doExt = d.externalizable
-        val doHazel = d.hazelSupport
-        val doBeanVal = d.beanValidation
-        val myKey = d.recursePkClass
+        val doExt       = d.externalizable
+        val doHazel     = d.hazelSupport
+        val doBeanVal   = d.beanValidation
+        val myKey       = d.recursePkClass
         imports.addImport(myKey)
         imports.addImport(d.pkClass)
         imports.addImport(d.trackingClass)

@@ -40,6 +40,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -506,7 +507,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     // BonaData is written if the class is not abstract and not noDataMappper specified
     // BonaKey is written once the key has been defined, independent of root class or not, independent of abstract class or not
     // deprecated interfaces BonaPersistableNoData* are written together with the key.
-    def private wrImplements(EntityDefinition e, String pkType, String trackingType, boolean pkDefinedInThisEntity) {
+    def private wrImplements(EntityDefinition e, String pkType, String trackingType, boolean pkDefinedInThisEntity, boolean shouldBeSerializable) {
         println('''write Implements for entity «e.name»: abstract=«e.isIsAbstract», root=«e.extends === null», PK defined here=«pkDefinedInThisEntity», PK class = «pkType», first non abstract base entity=«e.firstNonAbstractBaseClass»''')
         // val doNone = !(e.extends === null) && !(pkDefinedInThisEntity && !e.doNoKeyMapper) && !e.isFirstNonAbstractClass
         val interfaces = new ArrayList<String>(4)
@@ -517,6 +518,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         if (e.isFirstNonAbstractClass)                  interfaces.add('''BonaPersistableData<«e.pojoType.name»>''')
         if (e.extends === null)                         interfaces.add('''BonaPersistableTracking<«trackingType»>''')
+        if (shouldBeSerializable)                       interfaces.add("Serializable")
 
         if (interfaces.empty)
             return "BonaPersistableBase"
@@ -534,6 +536,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
+        val shouldBeSerializable = e.serializable || (e.eContainer as BDDLPackageDefinition).allSerializable
 
         imports.recurseImports(e.tableCategory.trackingColumns, true)
         imports.recurseImports(e.pojoType, true)
@@ -714,7 +717,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated»
             @Deprecated
         «ENDIF»
-        public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {
+        public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity, shouldBeSerializable)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {
+            «IF shouldBeSerializable»
+                private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
+            «ENDIF»
             «IF primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
@@ -776,6 +782,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         @SuppressWarnings("all")
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
+            private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «FOR col : e.pk.columnName»
                 «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null)»
             «ENDFOR»
@@ -829,6 +836,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             @Deprecated
         «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
+            private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE, false, null)»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»

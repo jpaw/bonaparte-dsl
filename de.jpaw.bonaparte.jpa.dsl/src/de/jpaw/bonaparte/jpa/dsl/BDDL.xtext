@@ -83,6 +83,7 @@ BDDLPackageDefinition:
         'owner'  schemaOwner = ID
         'prefix' dbPrefix = ID
         (noUserTypes ?= 'noUserTypes')?     // do not use JodaTime and ByteArray in entity classes directly, but convert in getters/setters
+        (allSerializable ?= 'allSerializable')?
     '{' 
         ('fields' visibility=Visibility ';')?
         (grantCategories += GrantCategoryDefinition  
@@ -140,6 +141,7 @@ EntityDefinition:
          | ('extendsJava' extendsJava=QualifiedId)
         )?
         ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
+        (serializable ?= 'serializable')?
     '{'
         ('fields' visibility=Visibility ';')?
         (cacheable ?= 'cacheable')?
