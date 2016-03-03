@@ -34,9 +34,9 @@ class JavaBeanValidation {
         «ENDIF»
     '''
 
-    def public static writeAnnotations(FieldDefinition i, DataTypeExtension ref, boolean beanValidation) '''
+    def public static writeAnnotations(FieldDefinition i, DataTypeExtension ref, boolean beanValidation, boolean additionalNullableCondition) '''
         «IF beanValidation»
-            «IF i.isRequired && !ref.isPrimitive && !i.isASpecialEnumWithEmptyStringAsNull»
+            «IF i.isRequired && !ref.isPrimitive && !i.isASpecialEnumWithEmptyStringAsNull && !additionalNullableCondition»
                 @NotNull
             «ENDIF»
             «IF ref.elementaryDataType !== null && !i.aggregate»

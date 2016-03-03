@@ -127,7 +127,7 @@ class JavaFieldWriter {
                     // manual conversion in the getters / setters. Use the converted field here. Recursive call of the same method. (Nested conversions won't work!)
                     // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won't repeat that because first fields are always nullable.
                     return '''
-                        «JavaBeanValidation::writeAnnotations(newField, newRef, doBeanVal)»
+                        «JavaBeanValidation::writeAnnotations(newField, newRef, doBeanVal, !c.isNotNullField)»
                         «writeColumnType(newField, myName, doBeanVal)»
                     '''
                 }
@@ -466,7 +466,7 @@ class JavaFieldWriter {
                 «f.properties.optionalAnnotation("version", "@Version")»
                 «f.properties.optionalAnnotation("lob", "@Lob")»
                 «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
-                «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal)»
+                «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField)»
                 «f.writeColumnType(myName, doBeanVal)»
                 «f.writeGetterAndSetter(myName, optionalClass)»
             «ENDIF»

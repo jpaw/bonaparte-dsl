@@ -107,7 +107,7 @@ class JavaFieldsGettersSetters {
 
         return '''
             «i.writeFieldComments»
-            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal)»
+            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
             «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
                 «IF i.needsXmlObjectType»

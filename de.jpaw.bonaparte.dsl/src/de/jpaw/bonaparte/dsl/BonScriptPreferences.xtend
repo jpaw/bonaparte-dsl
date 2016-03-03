@@ -47,7 +47,7 @@ public class BonScriptPreferences {
     static private final boolean defaultHazelcastPoDefault      = configReader.getProp("HazelcastPo", false);
     static private final int defaulthazelcastFactoryIdDefault   = configReader.getProp("FactoryId", 26);
 
-    static private final boolean defaultXsdDefault              = configReader.getProp("xsdDefault", true);
+    static private final boolean defaultXsdDefault              = configReader.getProp("xsdDefault", false);
     static private final boolean defaultXsdRootSeparateFile     = configReader.getProp("xsdRootSeparateFile", true);
     static private final boolean defaultXsdBundleSubfolders     = configReader.getProp("xsdBundleSubfolders", false);
     static private final boolean defaultXsdExtensions           = configReader.getProp("xsdExtensions", false);

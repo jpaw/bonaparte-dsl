@@ -414,6 +414,11 @@ BDDL: whitespace cleanup (do not generate trailing space at end of line or trail
 BON: do not create XmlAdapter by default for abstract classes with no fields which do not inherit from another class unless 'xmlAdapter' option is given at package level
 BDDL: add option 'allSerializable' at package level and 'serializable' at entity level to add serializable marker interface for generated JPA entities
 
+4.0.11:
+BON: do not generate XSDs unless instructed to do so
+BDDL: fix incorrect @NotNull in case of unrolled loops with required fields when beanval has been turned on
+
+
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references
