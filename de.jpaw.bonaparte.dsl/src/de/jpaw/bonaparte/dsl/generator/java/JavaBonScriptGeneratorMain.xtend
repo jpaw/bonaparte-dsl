@@ -255,7 +255,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val withXml = xmlAccess !== null && !BonScriptPreferences.getNoXML
         val autoXmlAdapter = AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES && (d.fields.size == 0 && d.isAbstract && d.extendsClass === null)
         val writeXmlAdapter = withXml && (d.isXmlAdapter || autoXmlAdapter)
-        
+
         // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
         val doExt       = d.externalizable
         val doHazel     = d.hazelSupport

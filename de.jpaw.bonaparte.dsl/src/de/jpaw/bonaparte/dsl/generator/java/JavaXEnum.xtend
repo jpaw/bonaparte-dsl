@@ -114,7 +114,7 @@ class JavaXEnum {
                 public static «d.name» forName(String name) {
                     return myFactory.getByName(name);
                 }
-                
+
                 /** Factory method, Enum parameter. */
                 public static «d.name» of(Enum<?> baseEnum) {
                     return myFactory.getByEnum(baseEnum);
