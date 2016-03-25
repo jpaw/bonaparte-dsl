@@ -418,6 +418,12 @@ BDDL: add option 'allSerializable' at package level and 'serializable' at entity
 BON: do not generate XSDs unless instructed to do so
 BDDL: fix incorrect @NotNull in case of unrolled loops with required fields when beanval has been turned on
 
+4.0.12:
+- no changes, just update to xtext / xtend 2.9.2
+
+4.0.13:
+BON: add additional factory methods for xenums: of(Enum), forName(enum instance name), forToken(TokenizableEnum token)
+
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

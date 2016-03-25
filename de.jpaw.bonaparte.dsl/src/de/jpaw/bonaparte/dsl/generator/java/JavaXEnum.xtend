@@ -104,6 +104,23 @@ class JavaXEnum {
                 super(enumVal, ordinal, name, token, myFactory);
             }
 
+            «IF !subClass»
+                /** Factory method, String parameter. Get xenum by enum token. */
+                public static «d.name» forToken(String token) {
+                    return myFactory.getByToken(token);
+                }
+
+                /** Factory method, String parameter. Get xenum by enum instance name. */
+                public static «d.name» forName(String name) {
+                    return myFactory.getByName(name);
+                }
+                
+                /** Factory method, Enum parameter. */
+                public static «d.name» of(Enum<?> baseEnum) {
+                    return myFactory.getByEnum(baseEnum);
+                }
+
+            «ENDIF»
             /** Inner class with the single purpose to provide a serializable substitution for the xenum. */
             private static class Serializer implements Serializable {
                 private static final long serialVersionUID = «getSerialUID(d)»L ^ 6751L;
