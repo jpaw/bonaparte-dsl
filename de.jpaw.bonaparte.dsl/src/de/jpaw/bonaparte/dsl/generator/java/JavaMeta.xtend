@@ -206,12 +206,12 @@ class JavaMeta {
             );
 
             «IF !d.abstract»
-                // myself (for Compact*Composer)
+                // myself (for Compact*Composer and CSV parsers)
                 public static final ObjectReference meta$$this = new ObjectReference(
                     Visibility.PUBLIC, false, "this",
                     Multiplicity.SCALAR, IndexType.NONE, 0, 0,
                     DataCategory.OBJECT, "«d.name»", false, false,
-                    true, "«d.name»", my$MetaData, null, null
+                    «!d.final», "«d.name»", my$MetaData, null, null
                 );
             «ENDIF»
 
