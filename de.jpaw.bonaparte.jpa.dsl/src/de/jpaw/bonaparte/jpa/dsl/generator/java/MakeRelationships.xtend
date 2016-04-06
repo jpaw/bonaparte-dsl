@@ -21,10 +21,11 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship
 import org.apache.log4j.Logger
 
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.dsl.generator.XUtil
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
 import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class MakeRelationships {
     private static Logger LOGGER = Logger.getLogger(MakeRelationships)
@@ -36,7 +37,7 @@ class MakeRelationships {
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
         var oneOptional = false
         for (c : m.referencedFields.columnName)
-            if (!XUtil::isRequired(c)) {
+            if (!c.isRequired) {
                 oneOptional = true
                 if (m.fetchType !== null && m.fetchType == "LAZY")
                     LOGGER.error("fetch type lazy not possible with optional join fields: " + e.name + "." + c.name);
@@ -72,15 +73,23 @@ class MakeRelationships {
             «ENDIF»
         '''
     }
+    
+    // make the join column not updateable if a "properties ref" has been specified, i.e. a separate Long field will be generated in the entity.
+    // in this case, it is assumed that the Long field is used for updates.
+    def private static isReadOnly(Relationship m) {
+        val f = m.referencedFields.columnName.get(0)
+        val ref = DataTypeExtension::get(f.datatype)
+        return ref.elementaryDataType !== null || f.properties.hasProperty(PROP_REF)  // either we decleared to want that "Long" field, or it is defined as a long anyway
+    }
 
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
-                if (m.fetchType !== null) '''fetch=FetchType.«m.fetchType»''',
-                if (m.nonOptional(e)) '''optional=false'''
+                if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
+                if (m.relationship.nonOptional(e)) '''optional=false'''
             )»
-            «m.writeJoinColumns(true, m.childObject)»
-            «m.writeFGS(fieldVisibility, m.childObject.name, "", true, true)»
+            «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", !m.relationship.isReadOnly, true)»
         «ENDFOR»
 
         «FOR m : e.oneToOnes»

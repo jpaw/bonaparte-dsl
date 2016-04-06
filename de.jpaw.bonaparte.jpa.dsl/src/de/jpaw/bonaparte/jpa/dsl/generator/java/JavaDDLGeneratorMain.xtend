@@ -286,7 +286,9 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF cl != stopAt»
             «cl.extendsClass?.classRef?.recurseForCopyOf(stopAt, excludes, fieldOutput, e)»
             «FOR c : cl.fields»
-                «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL) || c.isInElementCollection(e)) && (excludes === null || !excludes.contains(c)) && !c.properties.hasProperty(PROP_NOJAVA))»
+                «IF ((!c.isAggregate || c.properties.hasProperty(PROP_UNROLL) || c.isInElementCollection(e)) && (excludes === null || !excludes.contains(c))
+                    && !c.properties.hasProperty(PROP_NOJAVA) && (JavaFieldWriter.shouldWriteColumn(c) || MakeMapper.isAnEmbeddable(c, e.embeddables))
+                )»
                     «c.writeFieldWithEmbeddedAndList(null, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
@@ -555,7 +557,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         }
         // imports for ManyToOne
         for (r : e.manyToOnes)
-            imports.addImport(r.childObject.getBddlPackageName, r.childObject.name)
+            imports.addImport(r.relationship.childObject.getBddlPackageName, r.relationship.childObject.name)
         // for OneToMany
         for (r : e.oneToManys)
             imports.addImport(r.relationship.childObject.getBddlPackageName, r.relationship.childObject.name)

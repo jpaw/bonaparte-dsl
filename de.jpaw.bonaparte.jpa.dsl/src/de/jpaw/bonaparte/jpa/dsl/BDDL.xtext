@@ -153,12 +153,18 @@ EntityDefinition:
         ('pk'     ('is' pkPojo = [pojos::ClassDefinition|QualifiedId])? (pk = ListOfColumns (isIdGenerated?='generated' ('=' generatedIdDetails=STRING)?)?)? )?
         ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???
-        (('@ManyToOne' manyToOnes += Relationship ) |
-        ('@OneToOne' oneToOnes += OneToOne ) |
-        ('@OneToMany' oneToManys += OneToMany ) |
-        ('@Embeddable' embeddables += EmbeddableUse) |
-        ('@ElementCollection' elementCollections += ElementCollectionRelationship ))* 
+        (('@ManyToOne'  manyToOnes  += ManyToOne ) |
+         ('@OneToOne'   oneToOnes   += OneToOne  ) |
+         ('@OneToMany'  oneToManys  += OneToMany ) |
+         ('@Embeddable' embeddables += EmbeddableUse) |
+         ('@ElementCollection' elementCollections += ElementCollectionRelationship )
+        )* 
     '}'       
+;
+
+ManyToOne:
+    relationship = Relationship
+//    (rorw = ('ro' | 'rw'))?    // ro = not updateable, rw = updateable, none of the above: not updateable, but separate key field will be defined which is
 ;
 
 Relationship:

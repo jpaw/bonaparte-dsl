@@ -116,6 +116,7 @@ class JavaFieldWriter {
 
                 // plain old Long as an artificial key / referencing is done by application
                 // can optionally have a ManyToOne object mapping in a Java superclass, with insertable=false, updatable=false
+                // FIXME: The type is not always a Long, it is defined by the target entity
                 return '''«fieldVisibility»Long «myName»;'''
             } else if (ref.objectDataType.isSingleField) {         // depending on settings, either convert a usertype directly or use a JPA 2.1 Converter and insert the field 1:1 here
                 if (BDDLPreferences.currentPrefs.doUserTypeForSFExternals) {
@@ -131,17 +132,17 @@ class JavaFieldWriter {
                         «writeColumnType(newField, myName, doBeanVal)»
                     '''
                 }
-            } else if (c.properties.hasProperty("ManyToOne")) {     // TODO: undocumented and also unused feature. Remove it?
-                // child object, create single-sided many to one annotations as well
-                val params = c.properties.getProperty("ManyToOne")
-                return '''
-                @ManyToOne«IF params !== null»(«params»)«ENDIF»
-                «IF c.properties.getProperty("JoinColumn") !== null»
-                    @JoinColumn(«c.properties.getProperty("JoinColumn")»)
-                «ELSEIF c.properties.getProperty("JoinColumnRO") !== null»
-                    @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
-                «ENDIF»
-                «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
+//            } else if (c.properties.hasProperty("ManyToOne")) {     // TODO: undocumented and also unused feature. Remove it?
+//                // child object, create single-sided many to one annotations as well
+//                val params = c.properties.getProperty("ManyToOne")
+//                return '''
+//                @ManyToOne«IF params !== null»(«params»)«ENDIF»
+//                «IF c.properties.getProperty("JoinColumn") !== null»
+//                    @JoinColumn(«c.properties.getProperty("JoinColumn")»)
+//                «ELSEIF c.properties.getProperty("JoinColumnRO") !== null»
+//                    @JoinColumn(«c.properties.getProperty("JoinColumnRO")», insertable=false, updatable=false)  // have a separate Long property field for updates
+//                «ENDIF»
+//                «fieldVisibility»«c.JavaDataTypeNoName(false)» «myName»;'''
             }
         }
         return switch (ref.category) {
@@ -461,15 +462,27 @@ class JavaFieldWriter {
                     }
                 «ENDIF»
             «ELSE»
-                @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
-                "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
-                «f.properties.optionalAnnotation("version", "@Version")»
-                «f.properties.optionalAnnotation("lob", "@Lob")»
-                «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
-                «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField)»
-                «f.writeColumnType(myName, doBeanVal)»
-                «f.writeGetterAndSetter(myName, optionalClass)»
+                «IF f.shouldWriteColumn»
+                    @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
+                    "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
+                    «f.properties.optionalAnnotation("version", "@Version")»
+                    «f.properties.optionalAnnotation("lob", "@Lob")»
+                    «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
+                    «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField)»
+                    «f.writeColumnType(myName, doBeanVal)»
+                    «f.writeGetterAndSetter(myName, optionalClass)»
+                «ENDIF»
             «ENDIF»
         '''
+    }
+    
+    def public static boolean shouldWriteColumn(FieldDefinition c) {
+        val ref = DataTypeExtension::get(c.datatype)
+        if (ref.objectDataType === null)
+            return true;  // any elementary data type filters already applied before
+        // is an object reference: here we only do fields if they are ref or serialized 
+        if (c.properties.hasProperty(PROP_REF) || c.properties.hasProperty(PROP_SIMPLEREF) || c.properties.hasProperty(PROP_SERIALIZED))
+            return true
+        return false
     }
 }
