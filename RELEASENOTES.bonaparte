@@ -470,5 +470,6 @@ additional plausis:
 
 
 Known restrictions / limitations:
-When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical
-to the name of the primary key of the parent entity.
+- BDDL: When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical to the name of the primary key of the parent entity.
+- BDDL: When DTOs reference objects which are declared as embeddables in BDDL, but are not referenced as embeddable in the entity definition, no error is raised, but the generated code contains invalid references in equals() and hashCode() 
+        (examples.pk/NoPkEntity)

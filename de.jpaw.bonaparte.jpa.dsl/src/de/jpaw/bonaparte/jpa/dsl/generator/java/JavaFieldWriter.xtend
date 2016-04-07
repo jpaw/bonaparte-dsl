@@ -462,7 +462,7 @@ class JavaFieldWriter {
                     }
                 «ENDIF»
             «ELSE»
-                «IF f.shouldWriteColumn»
+                «IF f.shouldWriteColumn || relevantEmbeddable !== null»
                     @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
                     "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
                     «f.properties.optionalAnnotation("version", "@Version")»
@@ -482,6 +482,9 @@ class JavaFieldWriter {
             return true;  // any elementary data type filters already applied before
         // is an object reference: here we only do fields if they are ref or serialized 
         if (c.properties.hasProperty(PROP_REF) || c.properties.hasProperty(PROP_SIMPLEREF) || c.properties.hasProperty(PROP_SERIALIZED))
+            return true
+        // if the referenced object is a single-field adapter, then as well
+        if (ref.objectDataType.isSingleField)
             return true
         return false
     }
