@@ -44,9 +44,9 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho.version>0.24.0</tycho.version>
+        <tycho.version>0.25.0</tycho.version>
         <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.9.2</xtend.version>
+        <xtend.version>2.10.0</xtend.version>
 
         <!-- org.apache.maven.plugins -->
         <compiler.plugin.version>3.5.1</compiler.plugin.version>
@@ -205,12 +205,12 @@
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.9.2/</url>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.10.0/</url>
         </repository>
         <repository>
             <id>p2-mars</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/mars/201602261000/</url>  <!-- 201506241002 was Mars original release, 201510021000 is SR1, 201602261000 is SR2 -->
+            <url>http://download.eclipse.org/releases/neon/</url>  <!-- 201506241002 was Mars original release, 201510021000 is SR1, 201602261000 is SR2 -->
         </repository>
     </repositories>
 
