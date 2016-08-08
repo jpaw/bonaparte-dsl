@@ -28,22 +28,22 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 class SqlViewOut {
 
-    def private static createColumn(FieldDefinition i, String prefix, String myName) {
+    def private static createColumn(FieldDefinition i, String prefix, String myName, DatabaseFlavour databaseFlavour) {
         val ref = DataTypeExtension::get(i.datatype)
         val cn = myName.java2sql
         if (ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA)
-            '''«ref.elementaryDataType.enumType.name»2s(«prefix».«cn») AS «cn»'''
+            '''«ref.elementaryDataType.enumType.name.javaEnum2sql(databaseFlavour, 2)»2s(«prefix».«cn») AS «cn»'''
         else
             '''«prefix».«cn» AS «cn»'''
     }
 
-    def public static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d, EntityDefinition e) {
+    def private static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d, EntityDefinition e, DatabaseFlavour databaseFlavour) {
         recurse(cl, null, false,
             [ !properties.hasProperty(PROP_NODDL) ],
             e.embeddables,
             [ '''-- columns of java class «name»
               '''],
-            [ fld, myName, req | '''«d.get»«fld.createColumn(prefix, myName)»
+            [ fld, myName, req | '''«d.get»«fld.createColumn(prefix, myName, databaseFlavour)»
               ''']
         )
     }
@@ -52,15 +52,15 @@ class SqlViewOut {
     def private static CharSequence recurseInheritance(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, int level, Delimiter d) '''
         «IF e.extends === null || !e.usesJoinInheritance»
             «IF includeTracking»
-                «createColumns(e.tableCategory.trackingColumns, "t" + level, d, e)»
+                «createColumns(e.tableCategory.trackingColumns, "t" + level, d, e, databaseFlavour)»
             «ENDIF»
-            «createColumns(e.tenantClass, "t" + level, d, e)»
-            «createColumns(e.pojoType, "t" + level, d, e)»
+            «createColumns(e.tenantClass, "t" + level, d, e, databaseFlavour)»
+            «createColumns(e.pojoType, "t" + level, d, e, databaseFlavour)»
         «ELSE»
             «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level+1, d)»
             -- columns of joined java class «e.pojoType.name»
             «FOR i: e.pojoType.fields»
-                «d.get»«i.createColumn("t"+level, i.name)»
+                «d.get»«i.createColumn("t"+level, i.name, databaseFlavour)»
             «ENDFOR»
         «ENDIF»
     '''

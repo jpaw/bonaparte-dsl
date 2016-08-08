@@ -21,9 +21,13 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 class SqlEnumOutOracle {
+    def private static limit28(String name) {
+        return name.javaEnum2sql(DatabaseFlavour.ORACLE, 2)
+    }
+    
     def private static oracleEnumFuncsNumeric(EnumDefinition e) '''
         -- convert a token (as stored in DB tables) of enum «(e.eContainer as PackageDefinition).name».«e.name» into the more readable symbolic constant string
-        CREATE OR REPLACE FUNCTION «e.name»2s(token INTEGER) RETURN VARCHAR2 IS
+        CREATE OR REPLACE FUNCTION «e.name.limit28»2s(token INTEGER) RETURN VARCHAR2 IS
         BEGIN
             «FOR i : 0 .. e.values.size - 1»
                 IF token = «i» THEN
@@ -35,7 +39,7 @@ class SqlEnumOutOracle {
         /
 
         -- convert a constant string of enum «(e.eContainer as PackageDefinition).name».«e.name» into the token used for DB table storage (which matches the Java enum ordinal())
-        CREATE OR REPLACE FUNCTION «e.name»2t(token VARCHAR2) RETURN NUMBER IS
+        CREATE OR REPLACE FUNCTION «e.name.limit28»2t(token VARCHAR2) RETURN NUMBER IS
         BEGIN
             «FOR i : 0 .. e.values.size - 1»
                 IF token = '«quoteSQL(e.values.get(i))»' THEN
@@ -49,7 +53,7 @@ class SqlEnumOutOracle {
 
     def private static oracleEnumFuncsAlpha(EnumDefinition e) '''
         -- convert a token (as stored in DB tables) of enum «(e.eContainer as PackageDefinition).name».«e.name» into the more readable symbolic constant string
-        CREATE OR REPLACE FUNCTION «e.name»2s(token VARCHAR2) RETURN VARCHAR2 IS
+        CREATE OR REPLACE FUNCTION «e.name.limit28»2s(token VARCHAR2) RETURN VARCHAR2 IS
         BEGIN
             «FOR a : e.avalues»
                 IF token = '«quoteSQL(a.token)»' THEN
@@ -61,7 +65,7 @@ class SqlEnumOutOracle {
         /
 
         -- convert a constant string of enum «(e.eContainer as PackageDefinition).name».«e.name» into the token used for DB table storage
-        CREATE OR REPLACE FUNCTION «e.name»2t(token VARCHAR2) RETURN VARCHAR2 IS
+        CREATE OR REPLACE FUNCTION «e.name.limit28»2t(token VARCHAR2) RETURN VARCHAR2 IS
         BEGIN
             «FOR a : e.avalues»
                 IF token = '«quoteSQL(a.name)»' THEN

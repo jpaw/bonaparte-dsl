@@ -32,6 +32,7 @@ import org.eclipse.emf.ecore.EObject
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.jpa.dsl.generator.sql.DatabaseFlavour
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -77,6 +78,15 @@ class YUtil {
 
     def public static java2sql(String javaname) {
         CaseFormat::LOWER_CAMEL.to(CaseFormat::LOWER_UNDERSCORE, javaname);
+    }
+
+    def public static javaEnum2sql(String javaname, DatabaseFlavour databaseFlavour, int suffixLen) {
+        val len = javaname.length + suffixLen
+        if (databaseFlavour == DatabaseFlavour.ORACLE && len > 30) {
+            // Oracle is limited to only 30 characters, must truncate
+            return javaname.substring(0, javaname.length - (len - 30))
+        }
+        return javaname
     }
 
 
