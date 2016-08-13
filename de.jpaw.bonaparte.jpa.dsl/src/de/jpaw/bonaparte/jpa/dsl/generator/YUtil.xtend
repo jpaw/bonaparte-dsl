@@ -37,6 +37,7 @@ import de.jpaw.bonaparte.jpa.dsl.generator.sql.DatabaseFlavour
 class YUtil {
     // bonaparte properties which are used for bddl code generators
     public static final String PROP_UNROLL      = "unroll";     // List<> => 01...0n
+    public static final String PROP_LENGTH      = "length";     // explizit size for serialized object
     public static final String PROP_NOJAVA      = "noJava";
     public static final String PROP_NODDL       = "noDDL";
     public static final String PROP_FINDBY      = "findBy";

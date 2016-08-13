@@ -433,6 +433,10 @@ BDDL: skip generation of extra key fields for ManyToOne unless properties ref ha
 4.1.0:
 significant dependency updates - work with Eclipse NEON, vert.x 3.3, netty 4.1 (http/2), (planned: Hibernate 5.2, once jadira has been updated)
 
+4.1.1:
+BDDL: Bugfix: generated annotation for @Basic(LAZY)
+BDDL: allow property length to specify length for serialized objects if lob is not desired (for automatically generated tables, for example H2 based tests)
+
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

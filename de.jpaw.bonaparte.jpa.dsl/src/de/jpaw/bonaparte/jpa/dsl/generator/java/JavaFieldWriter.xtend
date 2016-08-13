@@ -226,6 +226,10 @@ class JavaFieldWriter {
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         if (ref.category == DataCategory::BASICNUMERIC && ref.elementaryDataType !== null && ref.elementaryDataType.length > 0)
             return ''', precision=«ref.elementaryDataType.length»'''  // stored fixed point numbers as integral numbers on the DB, but refer to their max number of digits
+
+        // use manual specification as a last resort (for example for serialized fields if lob is not desired)
+        if (c.properties.hasProperty(PROP_LENGTH))
+            return ''', length=«c.properties.getProperty(PROP_LENGTH)»'''
         return ''''''
     }
 
@@ -467,7 +471,7 @@ class JavaFieldWriter {
                     "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
                     «f.properties.optionalAnnotation("version", "@Version")»
                     «f.properties.optionalAnnotation("lob", "@Lob")»
-                    «f.properties.optionalAnnotation("lazy", "@Basic(fetch=LAZY)")»
+                    «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField)»
                     «f.writeColumnType(myName, doBeanVal)»
                     «f.writeGetterAndSetter(myName, optionalClass)»
