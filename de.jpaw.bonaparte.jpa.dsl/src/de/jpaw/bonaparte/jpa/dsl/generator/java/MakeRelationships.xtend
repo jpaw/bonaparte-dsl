@@ -26,6 +26,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
 import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 
 class MakeRelationships {
     private static Logger LOGGER = Logger.getLogger(MakeRelationships)
@@ -82,14 +83,16 @@ class MakeRelationships {
         return ref.elementaryDataType !== null || f.properties.hasProperty(PROP_REF)  // either we decleared to want that "Long" field, or it is defined as a long anyway
     }
 
-    def public static writeRelationships(EntityDefinition e, String fieldVisibility) '''
+    def public static writeRelationships(EntityDefinition e, String fieldVisibility) {
+        val forceSetters = e.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters
+        return '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
                 if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) '''optional=false'''
             )»
             «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", !m.relationship.isReadOnly, true)»
+            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", forceSetters || m.forceSetters || !m.relationship.isReadOnly, true)»
         «ENDFOR»
 
         «FOR m : e.oneToOnes»
@@ -116,6 +119,7 @@ class MakeRelationships {
             «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true, false)»
         «ENDFOR»
     '''
+    }
 
     def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter, boolean doThis) '''
         «fieldVisibility»«type» «m.name»«initializer»;

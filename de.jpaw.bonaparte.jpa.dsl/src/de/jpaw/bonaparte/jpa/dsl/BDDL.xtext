@@ -84,6 +84,7 @@ BDDLPackageDefinition:
         'prefix' dbPrefix = ID
         (noUserTypes ?= 'noUserTypes')?     // do not use JodaTime and ByteArray in entity classes directly, but convert in getters/setters
         (allSerializable ?= 'allSerializable')?
+       (forceSetters ?= 'forceSetters')?    // force setters for all ManyToOnes of all entities
     '{' 
         ('fields' visibility=Visibility ';')?
         (grantCategories += GrantCategoryDefinition  
@@ -144,6 +145,7 @@ EntityDefinition:
         (serializable ?= 'serializable')?
     '{'
         ('fields' visibility=Visibility ';')?
+        (forceSetters ?= 'forceSetters')?  // enforce setters for all ManyToOne relationships
         (cacheable ?= 'cacheable')?
         // EclipseLink specific caching: do not use
         ('cache'  cacheSize=INT 'objects' 'for' cacheExpiry=INT cacheExpiryScale = ('second'|'seconds' | 'minute'|'minutes' | 'hour'|'hours' | 'day'|'days'))?
@@ -165,6 +167,7 @@ EntityDefinition:
 ManyToOne:
     relationship = Relationship
 //    (rorw = ('ro' | 'rw'))?    // ro = not updateable, rw = updateable, none of the above: not updateable, but separate key field will be defined which is
+    (forceSetters ?= 'forceSetters')?
 ;
 
 Relationship:

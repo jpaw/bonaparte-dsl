@@ -437,6 +437,8 @@ significant dependency updates - work with Eclipse NEON, vert.x 3.3, netty 4.1 (
 BDDL: Bugfix: generated annotation for @Basic(LAZY)
 BDDL: allow property length to specify length for serialized objects if lob is not desired (for automatically generated tables, for example H2 based tests)
 
+4.1.2:
+BDDL: compatibility to 4.0.14 via forceSetter directive on ManyToOne, entity or package
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
