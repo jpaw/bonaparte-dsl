@@ -23,7 +23,6 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class JavaEnum {
-    val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
 
     def static public boolean hasNullToken(EnumDefinition ed) {
         ed.avalues !== null && ed.avalues.exists[token == ""]
@@ -47,7 +46,7 @@ class JavaEnum {
         package «getBonPackageName(d)»;
 
         import com.google.common.collect.ImmutableList;
-        import «BonScriptPreferences.getDateTimePackage».Instant;
+        import java.time.Instant;
 
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         import de.jpaw.bonaparte.enums.«myInterface»;
@@ -75,23 +74,16 @@ class JavaEnum {
                     return _token;
                 }
 
-                /** static factory method«IF codegenJava7» (requires Java 7)«ENDIF».
+                /** static factory method (requires Java 7).
                   * Null is passed through, a non-null parameter will return a non-null response. */
                 public static «d.name» factory(String _token) {
                     if (_token != null) {
-                        «IF codegenJava7»
-                            switch (_token) {
-                            «FOR v:d.avalues»
-                                case "«v.token»": return «v.name»;
-                            «ENDFOR»
-                            default: throw new IllegalArgumentException("Enum «d.name» has no token " + _token + "!");
-                            }
-                        «ELSE»
-                            «FOR v:d.avalues»
-                                if (_token.equals("«v.token»")) return «v.name»;
-                            «ENDFOR»
-                            throw new IllegalArgumentException("Enum «d.name» has no token " + _token + "!");
-                        «ENDIF»
+                        switch (_token) {
+                        «FOR v:d.avalues»
+                            case "«v.token»": return «v.name»;
+                        «ENDFOR»
+                        default: throw new IllegalArgumentException("Enum «d.name» has no token " + _token + "!");
+                        }
                     }
                     return null;
                 }

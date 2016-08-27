@@ -483,10 +483,10 @@ class XUtil {
         import de.jpaw.bonaparte.util.ToStringHelper;
         import de.jpaw.bonaparte.util.DayTime;
         import de.jpaw.bonaparte.util.BigDecimalTools;
-        import «BonScriptPreferences.getDateTimePackage».Instant;
-        import «BonScriptPreferences.getDateTimePackage».LocalTime;
-        import «BonScriptPreferences.getDateTimePackage».LocalDate;
-        import «BonScriptPreferences.getDateTimePackage».LocalDateTime;
+        import java.time.Instant;
+        import java.time.LocalTime;
+        import java.time.LocalDate;
+        import java.time.LocalDateTime;
     '''
 
     // returns an enum if any indirection of the type references it

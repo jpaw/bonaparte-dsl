@@ -71,7 +71,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         outputGroup.setLayout(new GridLayout(1, false));
         Composite compositeO = new Composite(outputGroup, SWT.NONE);
         addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeO));
-        addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
         outputGroup.pack();
 
@@ -126,7 +125,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("WarnByte",            defaults.warnByte);
         store.setDefault("WarnFloat",           defaults.warnFloat);
         store.setDefault("DebugOut",            defaults.doDebugOut);
-        store.setDefault("DateTime",            defaults.doDateTime);
         store.setDefault("XMLOut",              defaults.noXML);
         store.setDefault("Externalize",         defaults.defaultExternalize);
         store.setDefault("HazelcastDs",         defaults.defaultHazelcastDs);
@@ -142,7 +140,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.warnByte                    = store.getBoolean("WarnByte");
         currentSettings.warnFloat                   = store.getBoolean("WarnFloat");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
-        currentSettings.doDateTime                  = store.getBoolean("DateTime");
         currentSettings.noXML                       = store.getBoolean("XMLOut");
         currentSettings.defaultExternalize          = store.getBoolean("Externalize");
         currentSettings.defaultHazelcastDs          = store.getBoolean("HazelcastDs");
@@ -170,9 +167,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "XMLOut":
                       BonScriptPreferences.currentPrefs.noXML               = toBool(event.getNewValue());
-                      break;
-                  case "DateTime":
-                      BonScriptPreferences.currentPrefs.doDateTime          = toBool(event.getNewValue());
                       break;
                   case "Externalize":
                       BonScriptPreferences.currentPrefs.defaultExternalize  = toBool(event.getNewValue());

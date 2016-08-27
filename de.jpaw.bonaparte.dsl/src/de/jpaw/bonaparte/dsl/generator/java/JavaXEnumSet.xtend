@@ -34,7 +34,7 @@ class JavaXEnumSet {
         package «getBonPackageName(d)»;
 
         import java.util.Iterator;
-        import org.joda.time.Instant;
+        import java.time.Instant;
 
         import de.jpaw.enums.AbstractStringXEnumSet;
         import de.jpaw.bonaparte.enums.BonaStringEnumSet;

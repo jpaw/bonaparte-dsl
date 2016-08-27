@@ -39,7 +39,6 @@ public class BonScriptPreferences {
     static private final boolean warnByteDefault                = configReader.getProp("WarnByte", true);
     static private final boolean warnFloatDefault               = configReader.getProp("WarnFloat", false);
     static private final boolean doDebugOutDefault              = configReader.getProp("DebugOut", false);
-    static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", false);
     static private final boolean noXmlDefault                   = configReader.getProp("noXML", false);
     static private final boolean defaultExternalizeDefault      = configReader.getProp("Externalize", false);
     static private final boolean defaultHazelcastDsDefault      = configReader.getProp("HazelcastDs", false);
@@ -55,7 +54,6 @@ public class BonScriptPreferences {
     public boolean warnByte                 = warnByteDefault;
     public boolean warnFloat                = warnFloatDefault;
     public boolean doDebugOut               = doDebugOutDefault;
-    public boolean doDateTime               = doDateTimeDefault;
     public boolean noXML                    = noXmlDefault;
     public boolean defaultExternalize       = defaultExternalizeDefault;
     public boolean defaultHazelcastDs       = defaultHazelcastDsDefault;
@@ -70,9 +68,6 @@ public class BonScriptPreferences {
 
     public static BonScriptPreferences currentPrefs = new BonScriptPreferences
 
-    def public static String getDateTimePackage() {
-        return if (currentPrefs.doDateTime) "java.time" else "org.joda.time"
-    }
     def public static getHazelSupport() {
         if (currentPrefs.defaultHazelcastPo) {
             if (currentPrefs.defaultHazelcastId || currentPrefs.defaultHazelcastDs)

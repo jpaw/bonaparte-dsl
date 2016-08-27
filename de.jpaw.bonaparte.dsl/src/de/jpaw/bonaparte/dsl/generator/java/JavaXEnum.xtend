@@ -53,7 +53,7 @@ class JavaXEnum {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getBonPackageName(d)»;
 
-        import org.joda.time.Instant;
+        import java.time.Instant;
         import java.io.Serializable;
 
         import de.jpaw.enums.XEnumFactory;
