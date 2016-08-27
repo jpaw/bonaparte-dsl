@@ -445,6 +445,12 @@ BDDL: compatibility to 4.0.14 via forceSetter directive on ManyToOne, entity or 
 - BDDL: ret$Data to map oneToMany and ManyToOne child references
 
 
+RELEASE OVERVIEW:
+- 4.0.x:  xtend / xtext 2.9.x
+- 4.1.x:  xtend / xtext 2.10.x, JodaTime (as before)
+- 5.0.x:  xtend / xtext 2.10.x, Java 8 only
+
+
 ROADMAP / PLANS:
 - data types of unspecified size (text, binary)
 - arrays for BDDL without UNROLL (only where DB supports it: HANA, Postgres)

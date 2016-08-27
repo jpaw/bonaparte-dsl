@@ -213,6 +213,16 @@ public class SqlMapping {
     static private int lengthForAlphaEnumColumn(DataTypeExtension ref) {
         return ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength;
     }
+    
+    static int getLength(FieldDefinition c, String serialized) {
+        String l = XUtil.getProperty(c.getProperties(), YUtil.PROP_LENGTH);
+        if (l != null)
+            return Integer.valueOf(l);
+        
+        if (serialized != null && serialized.length() > 0)
+            return Integer.valueOf(serialized);
+        return 2000;  // last resort fallback
+    }
 
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
@@ -227,8 +237,8 @@ public class SqlMapping {
         if (ref.objectDataType != null) {
             if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_SERIALIZED)) {
                 String value = XUtil.getProperty(c.getProperties(), YUtil.PROP_SERIALIZED);
-                datatype = "raw";  // assume artificial ID
-                columnLength = value == null ? 2000 : Integer.valueOf(value);
+                datatype = "object";  // assume artificial ID
+                columnLength = getLength(c, value);
                 columnDecimals = 0;
             } else {
                 datatype = "long";  // assume artificial ID
