@@ -481,7 +481,6 @@ class XUtil {
         import de.jpaw.util.ByteUtil;
         import de.jpaw.util.IntegralLimits;
         import de.jpaw.bonaparte.util.ToStringHelper;
-        import de.jpaw.bonaparte.util.DayTime;
         import de.jpaw.bonaparte.util.BigDecimalTools;
         import java.time.Instant;
         import java.time.LocalTime;

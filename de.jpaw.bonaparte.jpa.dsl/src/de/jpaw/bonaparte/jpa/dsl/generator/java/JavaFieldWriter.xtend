@@ -36,8 +36,6 @@ import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
 
 class JavaFieldWriter {
     val static final String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
-    val static final String JDBC4TYPE = "Date";  // choose Calendar or Date
-    final boolean useUserTypes;
     final String fieldVisibility;
 
     def private static String makeVisibility(Visibility v) {
@@ -56,12 +54,10 @@ class JavaFieldWriter {
     }
 
     new(EntityDefinition e) {
-        this.useUserTypes = !(e.eContainer as BDDLPackageDefinition).isNoUserTypes;
         this.fieldVisibility = defineVisibility(e);
     }
 
     new(EmbeddableDefinition e) {
-        this.useUserTypes = !(e.eContainer as BDDLPackageDefinition).isNoUserTypes;
         this.fieldVisibility = makeVisibility((e.eContainer as BDDLPackageDefinition).getVisibility);
     }
 
@@ -161,15 +157,15 @@ class JavaFieldWriter {
             default: {
                 switch (ref.javaType) {
                     case "LocalTime":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIME")
+                        writeField(c, ref, myName, true, null, null, "TIME")
                     case "LocalDateTime":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
+                        writeField(c, ref, myName, true, null, null, "TIMESTAMP")
                     case "LocalDate":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "DATE")
+                        writeField(c, ref, myName, true, null, null, "DATE")
                     case "Instant":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
+                        writeField(c, ref, myName, true, null, null, "TIMESTAMP")
                     case "ByteArray":
-                        writeField(c, ref, myName, useUserTypes, "byte []", null, null)
+                        writeField(c, ref, myName, true, null, null, null)
 
                     case DataTypeExtension.JAVA_JSON_TYPE:
                         writeField(c, ref, myName, false, c.jsonJavaType("NativeJsonObject"),  null, null)
@@ -354,20 +350,11 @@ class JavaFieldWriter {
                 setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap();'''
             }
         } else if (ref.javaType.equals("LocalTime") || ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")) {
-            if (!useUserTypes) {
-                getter = '''return «myName» == null ? null : «ref.javaType».from«JDBC4TYPE»Fields(«myName»);'''
-                setter = '''«myName» = DayTime.to«JDBC4TYPE»(_x);'''
-            }
+            // nothing because user types are used
         } else if (ref.javaType.equals("Instant")) {
-            if (!useUserTypes) {
-                getter = '''return «myName» == null ? null : new Instant(«myName»);'''
-                setter = '''«myName» = _x == null ? null ? _x.to«JDBC4TYPE»();'''
-            }
+            // nothing because user types are used
         } else if (ref.javaType.equals("ByteArray")) {
-            if (!useUserTypes) {
-                getter = '''return «myName» == null ? null : new ByteArray(«myName», 0, -1);'''
-                setter = '''«myName» = _x == null ? null : _x.getBytes();'''
-            }
+            // nothing because user types are used
         } else if (ref.javaType.equals("byte []")) {
             // no second condition here? Adding a user type for byte arrays does not make sense.
             getter = '''return ByteUtil.deepCopy(«myName»);       // deep copy'''
