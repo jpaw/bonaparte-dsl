@@ -75,7 +75,7 @@ class JavaMeta {
             // separate item for the token
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "enum", "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
             '''
         }
         case DataCategory::ENUM: {
@@ -83,7 +83,7 @@ class JavaMeta {
             ext = ''', «elem.enumType.name».enum$MetaData()'''
             extraItem = '''
                 public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                    "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
+                    "enum", "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
             '''
         }
         case DataCategory::XENUM: {
@@ -91,7 +91,7 @@ class JavaMeta {
             // separate item for the token. TODO: Do I need this here?
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "xenum", "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
@@ -131,10 +131,11 @@ class JavaMeta {
         default:
             classname = "MiscElementaryDataItem"
         }
+        val bonaparteType = if (ref.elementaryDataType !== null) ref.elementaryDataType.name.toLowerCase else "ref"
         return '''
             «extraItem»
             public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
-                "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
+                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
             '''
     }
 
@@ -210,7 +211,7 @@ class JavaMeta {
                 public static final ObjectReference meta$$this = new ObjectReference(
                     Visibility.PUBLIC, false, "this",
                     Multiplicity.SCALAR, IndexType.NONE, 0, 0,
-                    DataCategory.OBJECT, "«d.name»", false, false,
+                    DataCategory.OBJECT, "ref", "«d.name»", false, false,
                     «!d.final», "«d.name»", my$MetaData, null, null
                 );
             «ENDIF»
