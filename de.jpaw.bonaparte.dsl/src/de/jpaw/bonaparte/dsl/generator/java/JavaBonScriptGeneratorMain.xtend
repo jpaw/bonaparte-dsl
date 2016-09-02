@@ -339,7 +339,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @RelatedKey(«JavaPackages::getBonPackageName(myKey)».«myKey.name».class)
         «ENDIF»
         @SuppressWarnings("all")
-        «IF d.isDeprecated»
+        «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
             @Deprecated
         «ENDIF»
         «IF d.isIsRefClass»

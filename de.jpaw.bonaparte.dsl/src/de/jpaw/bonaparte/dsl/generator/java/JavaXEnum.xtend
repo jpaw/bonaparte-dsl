@@ -16,10 +16,12 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
+import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaXEnum {
@@ -76,8 +78,8 @@ class JavaXEnum {
         «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
-        «IF d.isDeprecated»
-        @Deprecated
+        «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
+            @Deprecated
         «ENDIF»
         public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name» extends «IF !subClass»AbstractXEnumBase<«d.name»>«ELSE»«d.extendsXenum.name»«ENDIF» implements BonaMeta {
             private static final long serialVersionUID = «getSerialUID(d)»L;

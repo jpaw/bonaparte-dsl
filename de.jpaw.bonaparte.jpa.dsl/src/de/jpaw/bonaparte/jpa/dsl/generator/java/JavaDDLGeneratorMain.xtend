@@ -41,6 +41,7 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -716,7 +717,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «ENDIF»
         «ENDIF»
         @SuppressWarnings("all")
-        «IF e.isDeprecated || e.pojoType.isDeprecated»
+        «IF e.isDeprecated || e.pojoType.isDeprecated || (e.pojoType.eContainer as PackageDefinition).isDeprecated || (e.eContainer as BDDLPackageDefinition).isIsDeprecated»
             @Deprecated
         «ENDIF»
         public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity, shouldBeSerializable)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {

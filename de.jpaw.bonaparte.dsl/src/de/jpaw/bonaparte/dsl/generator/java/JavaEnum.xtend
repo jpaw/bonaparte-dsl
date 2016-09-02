@@ -17,10 +17,11 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class JavaEnum {
     val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
@@ -53,7 +54,7 @@ class JavaEnum {
         import de.jpaw.bonaparte.enums.«myInterface»;
 
         «d.javadoc»
-        «IF d.isDeprecated»
+        «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
             @Deprecated
         «ENDIF»
         public enum «d.name» implements «myInterface» {
