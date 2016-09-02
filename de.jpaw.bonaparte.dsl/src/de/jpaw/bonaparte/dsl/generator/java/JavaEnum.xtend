@@ -18,6 +18,7 @@ package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
