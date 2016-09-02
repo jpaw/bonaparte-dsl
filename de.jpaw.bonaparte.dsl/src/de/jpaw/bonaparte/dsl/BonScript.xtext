@@ -126,6 +126,7 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (isDeprecated?='@Deprecated')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable

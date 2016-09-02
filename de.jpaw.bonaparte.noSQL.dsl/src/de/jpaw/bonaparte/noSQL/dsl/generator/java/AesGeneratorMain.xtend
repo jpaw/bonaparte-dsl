@@ -9,7 +9,7 @@ import static extension de.jpaw.bonaparte.noSQL.dsl.generator.java.ZUtil.*
 class AesGeneratorMain {
 
     def private static writeObjectRef(ClassDefinition c, String name) '''
-        new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, IndexType.NONE, 0, 0, DataCategory.OBJECT, "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
+        new ObjectReference(Visibility.PUBLIC, false, "«name»", Multiplicity.SCALAR, IndexType.NONE, 0, 0, DataCategory.OBJECT, "ref", "«c.name»", false, false, true, "«c.name»", «c.name».class$MetaData(), null, null)'''
 
     def public static javaSetOut(EntityDefinition e) {
         val String myPackageName = e.packageName
