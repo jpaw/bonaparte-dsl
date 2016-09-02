@@ -17,6 +17,7 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
@@ -54,8 +55,8 @@ class JavaEnumSet {
         «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
-        «IF d.isDeprecated»
-        @Deprecated
+        «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
+            @Deprecated
         «ENDIF»
         public final class «d.name» extends Abstract«nameComponent»EnumSet<«eName»> implements Bona«nameComponent»EnumSet<«eName»> {
             private static final long serialVersionUID = «getSerialUID(d.myEnum) * 37L»L;

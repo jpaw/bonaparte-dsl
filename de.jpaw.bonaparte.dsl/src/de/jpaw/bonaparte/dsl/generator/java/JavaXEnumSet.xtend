@@ -16,6 +16,7 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
@@ -48,8 +49,8 @@ class JavaXEnumSet {
         «IF d.javadoc !== null»
             «d.javadoc»
         «ENDIF»
-        «IF d.isDeprecated»
-        @Deprecated
+        «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
+            @Deprecated
         «ENDIF»
         public final class «d.name» extends AbstractStringXEnumSet<«eName»> implements BonaStringEnumSet<«eName»> {
             private static final long serialVersionUID = «getSerialUID(d.myXEnum) * 37L»L;
