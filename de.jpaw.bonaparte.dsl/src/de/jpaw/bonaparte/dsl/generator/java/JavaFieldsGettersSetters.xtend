@@ -47,6 +47,9 @@ class JavaFieldsGettersSetters {
     def private static xmlAnnotation(XEnumDefinition d) '''
         @XmlJavaTypeAdapter(«d.root.bonPackageName».«d.root.name»XmlAdapter.class)
     '''
+    def private static xmlJsonAnnotation(FieldDefinition i, DataTypeExtension ref) '''
+        @XmlJavaTypeAdapter(de.jpaw.bonaparte.xml.XmlJsonAdapter.class)
+    '''
 
     def private static xmlTemporalAnnotation(DataTypeExtension ref) {
         switch (ref.javaType) {
@@ -99,6 +102,30 @@ class JavaFieldsGettersSetters {
         «ENDIF»
     '''
 
+                // TODO: for map, the last one seems to be causing issue at the moment because of the non-matching type
+                // probably create all classes with all possibilities is good/not good option
+                // temporarily skipping in case of map since its not really used at the moment
+    def private static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref) {
+        val datatype = ref.elementaryDataType?.name?.toLowerCase
+        return '''
+            «IF i.needsXmlObjectType»
+                «xmlInterfaceAnnotation»
+            «ENDIF»
+            «IF ref.category == DataCategory.XENUM»
+                «ref.elementaryDataType.xenumType.xmlAnnotation»
+            «ENDIF»
+            «IF ref.category == DataCategory.TEMPORAL»
+                «ref.xmlTemporalAnnotation»
+            «ENDIF»
+            «IF "json" == datatype»
+                «xmlJsonAnnotation(i, ref)»
+            «ENDIF»
+            «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
+                «ref.xmlAnnotation»
+            «ENDIF»
+        '''        
+    }
+
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
@@ -110,22 +137,7 @@ class JavaFieldsGettersSetters {
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
             «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
-                «IF i.needsXmlObjectType»
-                    «xmlInterfaceAnnotation»
-                «ENDIF»
-                «IF ref.category == DataCategory.XENUM»
-                    «ref.elementaryDataType.xenumType.xmlAnnotation»
-                «ENDIF»
-                «IF ref.category == DataCategory.TEMPORAL»
-                    «ref.xmlTemporalAnnotation»
-                «ENDIF»
-
-                // TODO: for map, seems to be causing issue at the moment because of the non-matching type
-                // probably create all classes with all possibilities is good/not good option
-                // temporarily skipping in case of map since its not really used at the moment
-                «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
-                    «ref.xmlAnnotation»
-                «ENDIF»
+                «allXmlAnnotations(i, ref)»
             «ENDIF»
             «i.writeIfDeprecated»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
@@ -155,18 +167,7 @@ class JavaFieldsGettersSetters {
         return '''
             «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
                 «IF initialCall»
-                    «IF i.needsXmlObjectType»
-                        «xmlInterfaceAnnotation»
-                    «ENDIF»
-                    «IF ref.category == DataCategory.XENUM»
-                        «ref.elementaryDataType.xenumType.xmlAnnotation»
-                    «ENDIF»
-                    «IF ref.category == DataCategory.TEMPORAL»
-                        «ref.xmlTemporalAnnotation»
-                    «ENDIF»
-                    «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
-                        «ref.xmlAnnotation»
-                    «ENDIF»
+                    «allXmlAnnotations(i, ref)»
                 «ELSE»
                     @XmlTransient
                 «ENDIF»

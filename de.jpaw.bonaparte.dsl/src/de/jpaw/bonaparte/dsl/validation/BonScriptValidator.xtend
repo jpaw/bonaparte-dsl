@@ -446,6 +446,27 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
         }
 
+        val elemDataType = fd.datatype?.elementaryDataType?.name?.toLowerCase
+        if ("array" == elemDataType) {
+            // do not allow aggregates for this (XML would fail)
+            if (fd.isMap !== null) {
+                error("array is an implicit aggregate and cannot be combined with a Map modifier",
+                        BonScriptPackage.Literals.FIELD_DEFINITION__IS_MAP);
+            }
+            if (fd.isSet !== null) {
+                error("array is an implicit aggregate and cannot be combined with a Set modifier",
+                        BonScriptPackage.Literals.FIELD_DEFINITION__IS_SET);
+            }
+            if (fd.isList !== null) {
+                error("array is an implicit aggregate and cannot be combined with a List modifier",
+                        BonScriptPackage.Literals.FIELD_DEFINITION__IS_LIST);
+            }
+            if (fd.isArray !== null) {
+                error("array is an implicit aggregate and cannot be combined with an Array modifier",
+                        BonScriptPackage.Literals.FIELD_DEFINITION__IS_ARRAY);
+            }
+        }
+
         // deprecated fields should not be required
         if (fd.isDeprecated) {
             if (fd.isAggregate) {

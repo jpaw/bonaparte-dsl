@@ -35,6 +35,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaXEnum.*
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 /** Generator which produces xsds.
  * It is only called if XML has not been suppressed in the preferences.
@@ -267,16 +268,28 @@ class XsdBonScriptGeneratorMain implements IGenerator {
 
     // nillable = true allows to send empty tags for nulls, minOccurs allows omitting the tag
     def public obtainOccurs(FieldDefinition f) {
+        // for aggregates
+        val nillable = if (!f.isRequired) ' nillable="true"'  // for aggregates (List) nillable is important to indicate blank entries
         if (f.isArray !== null)
-            return '''«f.isArray.mincount.howManyMin»«f.isArray.maxcount.howManyMax»'''
+            return '''«f.isArray.mincount.howManyMin»«f.isArray.maxcount.howManyMax»«nillable»'''
         else if (f.isList !== null)
-            return '''«f.isList.mincount.howManyMin»«f.isList.maxcount.howManyMax»'''
+            return '''«f.isList.mincount.howManyMin»«f.isList.maxcount.howManyMax»«nillable»'''
         else if (f.isSet !== null)
-            return '''«f.isSet.mincount.howManyMin»«f.isSet.maxcount.howManyMax»'''
+            return '''«f.isSet.mincount.howManyMin»«f.isSet.maxcount.howManyMax»«nillable»'''
         else if (f.isMap !== null)
-            return '''«f.isMap.mincount.howManyMin»«f.isMap.maxcount.howManyMax»'''
-        else if (!f.isRequired)
-            return ''' minOccurs="0" nillable="true"'''
+            return '''«f.isMap.mincount.howManyMin»«f.isMap.maxcount.howManyMax»«nillable»'''
+        else {
+            // scalar field: if json or array, set maxOccurs to unbounded
+            val ref = DataTypeExtension.get(f.datatype)
+            val typename = ref.elementaryDataType?.name?.toLowerCase
+
+//            if (typename == "json")
+//                return ''' minOccurs="0" maxOccurs="unbounded"'''
+            if (typename == "array")
+                return ''' minOccurs="0" maxOccurs="unbounded" nillable="true"'''
+            if (!f.isRequired)
+                return ''' minOccurs="0" nillable="true"'''
+        }
     }
 
     def wrap(boolean inElement, CharSequence content) {
@@ -415,6 +428,10 @@ class XsdBonScriptGeneratorMain implements IGenerator {
                 case 'xenum':       return inElement.typeWrap(e.xenumType.name.xsdQualifiedName(e.xenumType.package))
                 case 'enumset':     return inElement.typeWrap(e.enumsetType.name.xsdQualifiedName(e.enumsetType.package))
                 case 'xenumset':    return inElement.typeWrap(e.xenumsetType.name.xsdQualifiedName(e.xenumsetType.package))
+                // JSON types
+                case 'element':     return inElement.typeWrap("xs:anyType")
+                case 'array':       return inElement.typeWrap("xs:anyType")  // same but force unlimited recurrence
+                case 'json':        return inElement.typeWrap("bon:JSON")    // key/value pair type
             }
         } else if (ref.objectDataType !== null) {
             // check for explicit reference (no subtypes)
