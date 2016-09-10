@@ -142,11 +142,19 @@ public class ImportCollector {
                 requiredImports.put(objectName, "-")  // this will cause am intentional compile error of the generated code
     }
 
+    def private writeSingleImportLine(String simpleName) {
+        val packageName = requiredImports.get(simpleName)
+        if (myPackageName != packageName) {
+            if (packageName != "-")
+                '''import «packageName».«simpleName»;'''
+            else
+                '''// FIXME: multiple classes of same simple name «simpleName» used, this may cause problems!'''
+        } // else skip (same package as me)
+    }
+
     def createImports() '''
         «FOR o : requiredImports.keySet»
-            «IF !requiredImports.get(o).equals(myPackageName)»
-                import «requiredImports.get(o)».«o»;
-            «ENDIF»
+            «writeSingleImportLine(o)»
         «ENDFOR»
     '''
 }

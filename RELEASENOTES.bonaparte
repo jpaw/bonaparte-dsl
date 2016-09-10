@@ -454,6 +454,8 @@ BDDL: allow @Deprecated at package level
 4.1.6:
 BON: emulate JSON for JAXB (needs same version of bonaparte-java and bonaparte-xml dependency)
 
+4.1.7:
+BON: allow to use the same simpleName for the current class as for the parent or root classes (only for not persisted classes, and not recommended) 
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

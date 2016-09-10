@@ -31,7 +31,7 @@ import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess
 import org.eclipse.xtext.generator.IGenerator
 
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
@@ -352,7 +352,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             @TrackingClass(«d.trackingClass.name».class)
         «ENDIF»
         «d.properties.generateAllAnnotations»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.bonPackageName».«d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements «d.refExtension»«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 

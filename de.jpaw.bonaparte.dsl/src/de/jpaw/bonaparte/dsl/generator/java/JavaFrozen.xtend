@@ -22,6 +22,7 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 
 import static extension de.jpaw.bonaparte.dsl.generator.DataTypeExtension.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 class JavaFrozen {
@@ -290,7 +291,7 @@ class JavaFrozen {
         «IF !cd.root.immutable && cd.isFreezable»
             «IF cd.parent !== null»
                 @Override
-                protected void frozenCloneSub(«cd.root.name» __new) throws ObjectValidationException {
+                protected void frozenCloneSub(«cd.root.bonPackageName».«cd.root.name» __new) throws ObjectValidationException {
                     «cd.name» _new = («cd.name»)__new;
             «ELSE»
                 protected void frozenCloneSub(«cd.name» _new) throws ObjectValidationException {
@@ -322,7 +323,7 @@ class JavaFrozen {
         «IF !cd.root.immutable»
             «IF cd.parent !== null»
                 @Override
-                protected void mutableCloneSub(«cd.root.name» __new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
+                protected void mutableCloneSub(«cd.root.bonPackageName».«cd.root.name» __new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {
                     «cd.name» _new = («cd.name»)__new;
             «ELSE»
                 protected void mutableCloneSub(«cd.name» _new, boolean _deepCopy, boolean _unfreezeCollections) throws ObjectValidationException {

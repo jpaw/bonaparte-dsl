@@ -141,6 +141,7 @@ class JavaMeta {
 
     def public static writeMetaData(ClassDefinition d) {
         val myPackage = getPackage(d)
+        val fqParentName = d.parent.bonPackageName + "." + d.parent.name
         val propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
         val externalPrefix = if (d.externalType !== null) 'External'
         return '''
@@ -298,7 +299,7 @@ class JavaMeta {
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getParent() {
                     «IF (d.extendsClass !== null)»
-                        return «d.parent.name».BClass.getInstance();
+                        return «fqParentName».BClass.getInstance();
                     «ELSE»
                         return null;
                     «ENDIF»
@@ -308,7 +309,7 @@ class JavaMeta {
                     «IF (d.returnsClassRef !== null)»
                         return «XUtil::getLowerBound(d.returnsClassRef).name».BClass.getInstance();
                     «ELSE»
-                        return «IF d.parent !== null»«d.parent.name».BClass.getInstance().getReturns()«ELSE»null«ENDIF»;
+                        return «IF d.parent !== null»«fqParentName».BClass.getInstance().getReturns()«ELSE»null«ENDIF»;
                     «ENDIF»
                 }
                 @Override
@@ -326,7 +327,7 @@ class JavaMeta {
                 @Override
                 public String getProperty(String id) {
                     «IF propertiesInherited»
-                        return property$Map.containsKey(id) ? property$Map.get(id) : «d.parent.name».BClass.getInstance().getProperty(id);
+                        return property$Map.containsKey(id) ? property$Map.get(id) : «fqParentName».BClass.getInstance().getProperty(id);
                     «ELSE»
                         return property$Map.get(id);
                     «ENDIF»
