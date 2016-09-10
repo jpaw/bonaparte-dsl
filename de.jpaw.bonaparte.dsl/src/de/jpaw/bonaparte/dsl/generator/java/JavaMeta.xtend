@@ -141,7 +141,7 @@ class JavaMeta {
 
     def public static writeMetaData(ClassDefinition d) {
         val myPackage = getPackage(d)
-        val fqParentName = d.parent.bonPackageName + "." + d.parent.name
+        val fqParentName = if (d.parent !== null) d.parent.bonPackageName + "." + d.parent.name
         val propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
         val externalPrefix = if (d.externalType !== null) 'External'
         return '''
@@ -298,7 +298,7 @@ class JavaMeta {
                 }
                 @Override
                 public BonaPortableClass<? extends BonaPortable> getParent() {
-                    «IF (d.extendsClass !== null)»
+                    «IF (d.parent !== null)»
                         return «fqParentName».BClass.getInstance();
                     «ELSE»
                         return null;
