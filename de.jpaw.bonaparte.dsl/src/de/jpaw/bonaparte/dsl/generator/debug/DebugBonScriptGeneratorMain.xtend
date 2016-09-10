@@ -43,7 +43,7 @@ class DebugBonScriptGeneratorMain implements IGenerator {
     def dumpPackage(PackageDefinition p) '''
        === PACKAGE «p.name» («IF p.bundle !== null»BUNDLE «p.bundle»«ELSE»ROOT«ENDIF») ===
        «FOR c:p.classes»
-           CLASS «c.name»: «IF c.getParent !== null»EXTENDS «c.getParent.name»«ENDIF» abstract=«c.isAbstract» final=«c.isFinal»
+           CLASS «c.name»: «IF c.getParent !== null»EXTENDS «c.parent.name»«ENDIF» abstract=«c.isAbstract» final=«c.isFinal»
                //
                «FOR i:c.fields»
                    FIELD «i.name»: «IF i.required !== null»local required = «i.required.x», «ENDIF»«IF i.visibility !== null»local visibility = «i.visibility.x», «ENDIF»«writeDefaults(i)»

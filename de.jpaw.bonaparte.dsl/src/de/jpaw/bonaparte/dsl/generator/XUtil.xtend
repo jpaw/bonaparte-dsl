@@ -52,7 +52,7 @@ class XUtil {
     public static final String PROP_NOUPDATE                = "noupdate";              // do not update existing fields (create user / timestamp)
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
-        ref.elementaryDataType.xenumType.getRoot.name + ".myFactory"
+        ref.elementaryDataType.xenumType.root.name + ".myFactory"
     }
     def public static ClassDefinition getParent(ClassDefinition d) {
         d?.getExtendsClass?.getClassRef
@@ -109,7 +109,7 @@ class XUtil {
     }
 
     def public static boolean isRootImmutable(ClassDefinition d) {
-        return d.getRoot.immutable
+        return d.root.immutable
     }
 
     def public static boolean parentCacheHash(ClassDefinition d) {
@@ -551,7 +551,7 @@ class XUtil {
     }
 
     def public static int getEffectiveFactoryId(ClassDefinition cd) {
-        val pkg = cd.getPackage
+        val pkg = cd.package
         if (pkg.hazelcastFactoryId == 0)
             return BonScriptPreferences.currentPrefs.defaulthazelcastFactoryId
         else

@@ -86,7 +86,7 @@ class JavaXEnum {
             «writeXEnumMetaData(d)»
             public static final int NUM_VALUES_TOTAL = «IF subClass»«d.extendsXenum.name».NUM_VALUES_TOTAL + «ENDIF»«d.myEnum.name».values().length;
             «IF !subClass»
-                public static final int MAX_TOKEN_LENGTH = «d.getOverallMaxLength»;
+                public static final int MAX_TOKEN_LENGTH = «d.overallMaxLength»;
                 // root class builds the factory
                 public static final XEnumFactory<«d.name»> myFactory = new XEnumFactory<«d.name»>(MAX_TOKEN_LENGTH, «d.name».class, _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»

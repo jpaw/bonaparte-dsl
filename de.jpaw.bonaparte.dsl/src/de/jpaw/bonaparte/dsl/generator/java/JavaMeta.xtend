@@ -182,8 +182,8 @@ class JavaMeta {
                 _PARENT,
                 _BUNDLE,
                 Instant.now(),
-                «IF (d.extendsClass !== null)»
-                    «d.getParent.name».class$MetaData(),
+                «IF (d.parent !== null)»
+                    «fqParentName».class$MetaData(),
                 «ELSE»
                     null,
                 «ENDIF»
