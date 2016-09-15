@@ -33,6 +33,24 @@ class JavaMeta {
     public static final Map<String,Integer> TOTAL_DIGITS = #{ 'byte' -> 3, 'short' -> 5, 'int' -> 10, 'long' -> 19, 'float' -> 9, 'double' -> 15, 'integer' -> 10, 'biginteger' -> 4000 }
     public static final Map<String,Integer> DECIMAL_DIGITS = #{ 'byte' -> 0, 'short' -> 0, 'int' -> 0, 'long' -> 0, 'float' -> 9, 'double' -> 15, 'integer' -> 0, 'biginteger' -> 0 }
 
+    def private static writeFieldPropertyMapName(FieldDefinition f) {
+        if (!f.properties.empty)
+            return '''field$property$«f.name»'''
+        else
+            return "null"
+    }
+
+    def private static writeFieldPropertyMap(FieldDefinition f) {
+        if (!f.properties.empty)
+            return '''
+                private static final ImmutableMap<String,String> field$property$«f.name» = new ImmutableMap.Builder<String,String>()
+                    «FOR p : f.properties»
+                        .put("«f.name».«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
+                    «ENDFOR»
+                    .build();
+            '''
+    }
+
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
@@ -75,7 +93,7 @@ class JavaMeta {
             // separate item for the token
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "enum", "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "enum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
             '''
         }
         case DataCategory::ENUM: {
@@ -83,7 +101,7 @@ class JavaMeta {
             ext = ''', «elem.enumType.name».enum$MetaData()'''
             extraItem = '''
                 public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                    "enum", "int", true, «i.isAggregateRequired», false, 4, 0, false);  // assume 4 digits
+                    "enum", "int", true, «i.isAggregateRequired», «i.writeFieldPropertyMapName», false, 4, 0, false);  // assume 4 digits
             '''
         }
         case DataCategory::XENUM: {
@@ -91,7 +109,7 @@ class JavaMeta {
             // separate item for the token. TODO: Do I need this here?
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "xenum", "String", false, «i.isAggregateRequired», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "xenum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
@@ -135,7 +153,7 @@ class JavaMeta {
         return '''
             «extraItem»
             public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
-                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext»);
+                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext», «i.writeFieldPropertyMapName»);
             '''
     }
 
@@ -156,6 +174,10 @@ class JavaMeta {
                     «ENDFOR»
                 «ENDFOR»
                 .build();
+
+            «FOR f : d.fields»
+                «f.writeFieldPropertyMap»
+            «ENDFOR»
 
             // my name and revision
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
