@@ -45,7 +45,7 @@ class JavaMeta {
             return '''
                 private static final ImmutableMap<String,String> field$property$«f.name» = new ImmutableMap.Builder<String,String>()
                     «FOR p : f.properties»
-                        .put("«f.name».«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
+                        .put("«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
                     «ENDFOR»
                     .build();
             '''
@@ -153,7 +153,7 @@ class JavaMeta {
         return '''
             «extraItem»
             public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
-                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired»«ext», «i.writeFieldPropertyMapName»);
+                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired», «i.writeFieldPropertyMapName»«ext»);
             '''
     }
 
@@ -174,6 +174,14 @@ class JavaMeta {
                     «ENDFOR»
                 «ENDFOR»
                 .build();
+
+            «IF !d.properties.empty»
+                private static final ImmutableMap<String,String> field$property$this = new ImmutableMap.Builder<String,String>()
+                «FOR p : d.properties»
+                    .put("«p.key.name»", "«IF p.value !== null»«Util::escapeString2Java(p.value)»«ENDIF»")
+                «ENDFOR»
+                    .build();
+            «ENDIF»
 
             «FOR f : d.fields»
                 «f.writeFieldPropertyMap»
@@ -234,7 +242,7 @@ class JavaMeta {
                 public static final ObjectReference meta$$this = new ObjectReference(
                     Visibility.PUBLIC, false, "this",
                     Multiplicity.SCALAR, IndexType.NONE, 0, 0,
-                    DataCategory.OBJECT, "ref", "«d.name»", false, false,
+                    DataCategory.OBJECT, "ref", "«d.name»", false, false, «IF !d.properties.empty»field$property$this«ELSE»null«ENDIF»,
                     «!d.final», "«d.name»", my$MetaData, null, null
                 );
             «ENDIF»
