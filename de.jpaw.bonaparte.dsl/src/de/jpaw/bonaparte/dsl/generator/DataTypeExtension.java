@@ -539,4 +539,74 @@ public class DataTypeExtension {
             return " TYPE " + ((ClassDefinition)(parent.eContainer())).getName() + "." + ((TypeDefinition)parent).getName();
         return "UNKNOWN";
     }
+    
+    public String intJavaDoc(FieldDefinition f, String what) {
+        return "/**\n * " + what + " " + visualize(f) + "\n */";
+    }
+
+    public String visualize(FieldDefinition f) {
+        StringBuilder b = new StringBuilder(100);
+        b.append(XUtil.isRequired(f) ? "required " : "optional ");
+        if (elementaryDataType != null) {
+            b.append(elementaryDataType.getName());
+            switch (category) {
+            case BASICNUMERIC:
+                break;
+            case BINARY:
+                b.append(String.format("(%d)", elementaryDataType.getLength()));
+                break;
+            case ENUM:
+                b.append(" ");
+                b.append(elementaryDataType.getEnumType().getName());
+                b.append(" by ordinal");
+                break;
+            case ENUMALPHA:
+                b.append(" ");
+                b.append(elementaryDataType.getEnumType().getName());
+                b.append(" by token");
+                break;
+            case ENUMSET:
+                b.append(" ");
+                b.append(elementaryDataType.getEnumsetType().getName());
+                b.append(" as bitmap");
+                break;
+            case ENUMSETALPHA:
+                b.append(" ");
+                b.append(elementaryDataType.getEnumsetType().getName());
+                b.append(" as String");
+                break;
+            case MISC:
+                break;
+            case NUMERIC:
+                if (elementaryDataType.getDecimals() > 0) {
+                    b.append(String.format(" (%d decimals)", elementaryDataType.getDecimals()));
+                }
+                break;
+            case OBJECT:
+                break;
+            case STRING:
+                b.append(String.format("(%d)", elementaryDataType.getLength()));
+                break;
+            case TEMPORAL:
+                break;
+            case XENUM:
+                b.append(" ");
+                b.append(elementaryDataType.getXenumType().getName());
+                break;
+            case XENUMSET:
+                b.append(" ");
+                b.append(elementaryDataType.getXenumsetType().getName());
+                break;
+            default:
+                break;
+            
+            }
+        } else {
+            b.append(objectDataType != null ? objectDataType.getName() : "BonaPortable");
+        }
+        if (XUtil.isAggregate(f))
+            return (f.isIsAggregateRequired() ? "required " : "optional ") + XUtil.aggregateOf(f, b.toString());
+        else
+            return b.toString();
+    }
 }

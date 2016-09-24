@@ -465,6 +465,7 @@ BON: also store field properties in meta data
 
 4.2.2:
 (needs jpaw-1.5.9):  freezing of JSON type fields
+BON: generate javadoc with type information for getters and setters
 
 
 4.0.x: (planned):

@@ -165,6 +165,7 @@ class JavaFieldsGettersSetters {
         val ref = DataTypeExtension::get(i.datatype)
         val initialCall = initialGetter.getAndSet(false)
         return '''
+            «ref.intJavaDoc(i, "@return")»
             «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
                 «IF initialCall»
                     «allXmlAnnotations(i, ref)»
@@ -196,6 +197,7 @@ class JavaFieldsGettersSetters {
         val ref = DataTypeExtension::get(i.datatype)
         return
      '''
+        «ref.intJavaDoc(i, "@param " + i.name)»
         «i.writeIfDeprecated»
         public void «setterName»(«JavaDataTypeNoName(i, false)» «i.name») {
             «IF isFreezable»
