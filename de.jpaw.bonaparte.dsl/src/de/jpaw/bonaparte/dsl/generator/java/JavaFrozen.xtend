@@ -41,11 +41,15 @@ class JavaFrozen {
     }
 
     def private static invokeFreezeMethod(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.isJsonField)
+            return '''FreezeTools.freeze(«applyOnWhat»);'''
         if (ref.supportsFreeze)
             return '''«applyOnWhat».freeze();'''
     }
 
     def private static getFrozenClone(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.isJsonField)
+            return '''FrozenCloneTools.frozenClone(«applyOnWhat»)'''
         if (ref.supportsFreeze)
             return '''(«applyOnWhat» == null ? null : «applyOnWhat».ret$FrozenClone())'''
         else
@@ -53,6 +57,8 @@ class JavaFrozen {
     }
 
     def private static getMutableClone(DataTypeExtension ref, String applyOnWhat) {
+        if (ref.isJsonField)
+            return '''_deepCopy ? MutableCloneTools.mutableClone(«applyOnWhat», _unfreezeCollections) : «applyOnWhat»'''
         if (ref.supportsFreeze)
             return '''_deepCopy && «applyOnWhat» != null ? «applyOnWhat».ret$MutableClone(_deepCopy, _unfreezeCollections) : «applyOnWhat»'''
         else

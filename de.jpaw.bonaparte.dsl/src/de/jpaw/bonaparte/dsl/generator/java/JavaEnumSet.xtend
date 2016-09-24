@@ -97,10 +97,12 @@ class JavaEnumSet {
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
 
+            @Override
             public «d.name» ret$MutableClone(boolean deepCopy, boolean unfreezeCollections) {
                 return new «d.name»(getBitmap());
             }
 
+            @Override
             public «d.name» ret$FrozenClone() {
                 if (was$Frozen()) {
                     return this;

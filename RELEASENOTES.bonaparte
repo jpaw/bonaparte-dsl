@@ -460,6 +460,12 @@ BON: allow to use the same simpleName for the current class as for the parent or
 4.2.0:
 BON: also store field properties in meta data
 
+4.2.1:
+(only Java lib): fix of severe bug in JsonComposer
+
+4.2.2:
+(needs jpaw-1.5.9):  freezing of JSON type fields
+
 
 4.0.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

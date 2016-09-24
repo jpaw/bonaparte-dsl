@@ -482,6 +482,9 @@ class XUtil {
         import de.jpaw.util.IntegralLimits;
         import de.jpaw.bonaparte.util.ToStringHelper;
         import de.jpaw.bonaparte.util.DayTime;
+        import de.jpaw.bonaparte.util.FreezeTools;
+        import de.jpaw.bonaparte.util.FrozenCloneTools;
+        import de.jpaw.bonaparte.util.MutableCloneTools;
         import de.jpaw.bonaparte.util.BigDecimalTools;
         import «BonScriptPreferences.getDateTimePackage».Instant;
         import «BonScriptPreferences.getDateTimePackage».LocalTime;
