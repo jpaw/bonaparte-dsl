@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.2.2</version>
+    <version>4.2.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -33,6 +33,9 @@
         <module>../de.jpaw.bonaparte.dsl</module>
         <module>../de.jpaw.bonaparte.dsl.ui</module>
         <module>../de.jpaw.bonaparte.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.dts.dsl</module>
+        <module>../de.jpaw.bonaparte.dts.dsl.ui</module>
+        <module>../de.jpaw.bonaparte.dts.dsl.sdk</module>
         <module>../de.jpaw.bonaparte.jpa.dsl</module>
         <module>../de.jpaw.bonaparte.jpa.dsl.ui</module>
         <module>../de.jpaw.bonaparte.jpa.dsl.sdk</module>

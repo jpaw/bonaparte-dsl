@@ -1,0 +1,67 @@
+grammar de.jpaw.bonaparte.dts.dsl.BDts with de.jpaw.bonaparte.dsl.BonScript
+
+generate bDts "http://www.jpaw.de/bonaparte/dts/dsl/Dts"
+ /*
+  * Copyright 2016 Michael Bischoff
+  *
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+  *
+  *   http://www.apache.org/licenses/LICENSE-2.0
+  *
+  * Unless required by applicable law or agreed to in writing, software
+  * distributed under the License is distributed on an "AS IS" BASIS,
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+  
+import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes    // to allow checking of referenced imports
+
+Model:
+//    includes        += IncludeDefinition*
+    imports         += ImportDefinition*
+//    (defaults        = DefaultsDefinition)?
+    (bdtsPackages   += DTSPackageDefinition)*
+;
+
+//IncludeDefinition:
+//    'include' importURI=STRING
+//;
+//
+//DefaultsDefinition:
+//    'default' {DefaultsDefinition}
+//    // tbd
+//    ';'
+//;
+
+
+DTSPackageDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    'package' name=QualifiedId // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
+//        ('module' module = QualifiedId)?  // modules are coarser structures than packages
+    '{' (
+        interfaces += TsInterfaceDefinition
+        | classes += TsClassDefinition
+        )*
+    '}'
+;
+
+TsInterfaceDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    'interface' name = ID
+       'is' pojoType=[pojos::ClassDefinition|QualifiedId]
+        (('extends' (extends=[TsInterfaceDefinition|QualifiedId])))?
+    ';'
+;
+
+TsClassDefinition:
+    (javadoc = JAVADOC_COMMENT)?
+    'class' name = ID
+       'is' pojoType=[pojos::ClassDefinition|QualifiedId]
+        (('extends' (extends=[TsClassDefinition|QualifiedId])))?
+        ('implements' implementsInterface = [TsInterfaceDefinition|QualifiedId] )?
+    ';'
+;
