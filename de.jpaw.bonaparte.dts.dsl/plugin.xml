@@ -4,11 +4,11 @@
 <plugin>
 
   <extension point="org.eclipse.emf.ecore.generated_package">
-    <package
-       uri = "http://www.jpaw.de/bonaparte/dts/dsl/BDts"
+    <package 
+       uri = "http://www.jpaw.de/bonaparte/dts/dsl/Dts" 
        class = "de.jpaw.bonaparte.dts.dsl.bDts.BDtsPackage"
-       genModel = "model/generated/BDts.genmodel" />
-
+       genModel = "model/generated/BDts.genmodel" /> 
+	
   </extension>
 
 
