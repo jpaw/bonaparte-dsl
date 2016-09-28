@@ -9,7 +9,7 @@
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.editor.XtextEditor"
             contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
             default="true"
-            extensions="ned"
+            extensions="dts"
             id="de.jpaw.bonaparte.dts.BDts"
             name="BDts Editor">
         </editor>
@@ -219,28 +219,28 @@
     <extension point="org.eclipse.xtext.extension_resourceServiceProvider">
         <resourceServiceProvider
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.resource.IResourceUIServiceProvider"
-            uriExtension="ned">
+            uriExtension="dts">
         </resourceServiceProvider>
     </extension>
 
 
     <!-- marker definitions for de.jpaw.bonaparte.dts.BDts -->
     <extension
-            id="bdsl.check.fast"
+            id="bdts.check.fast"
             name="BDts Problem"
             point="org.eclipse.core.resources.markers">
         <super type="org.eclipse.xtext.ui.check.fast"/>
         <persistent value="true"/>
     </extension>
     <extension
-            id="bdsl.check.normal"
+            id="bdts.check.normal"
             name="BDts Problem"
             point="org.eclipse.core.resources.markers">
         <super type="org.eclipse.xtext.ui.check.normal"/>
         <persistent value="true"/>
     </extension>
     <extension
-            id="bdsl.check.expensive"
+            id="bdts.check.expensive"
             name="BDts Problem"
             point="org.eclipse.core.resources.markers">
         <super type="org.eclipse.xtext.ui.check.expensive"/>
@@ -251,7 +251,7 @@
          point="org.eclipse.xtext.builder.participant">
       <participant
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.builder.IXtextBuilderParticipant"
-            fileExtensions="ned"
+            fileExtensions="dts"
             >
       </participant>
    </extension>
@@ -318,7 +318,7 @@
             point="org.eclipse.ui.ide.markerResolution">
         <markerResolutionGenerator
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdsl.check.fast">
+            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdts.check.fast">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
@@ -326,7 +326,7 @@
         </markerResolutionGenerator>
         <markerResolutionGenerator
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdsl.check.normal">
+            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdts.check.normal">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
@@ -334,7 +334,7 @@
         </markerResolutionGenerator>
         <markerResolutionGenerator
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.editor.quickfix.MarkerResolutionGenerator"
-            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdsl.check.expensive">
+            markerType="de.jpaw.bonaparte.dts.dsl.ui.bdts.check.expensive">
             <attribute
                 name="FIXABLE_KEY"
                 value="true">
@@ -379,19 +379,19 @@
   <extension point="org.eclipse.compare.contentViewers">
     <viewer id="de.jpaw.bonaparte.dts.BDts.compare.contentViewers"
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-            extensions="ned">
+            extensions="dts">
     </viewer>
   </extension>
   <extension point="org.eclipse.compare.contentMergeViewers">
     <viewer id="de.jpaw.bonaparte.dts.BDts.compare.contentMergeViewers"
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.compare.InjectableViewerCreator"
-            extensions="ned" label="BDts Compare">
+            extensions="dts" label="BDts Compare">
      </viewer>
   </extension>
   <extension point="org.eclipse.ui.editors.documentProviders">
     <provider id="de.jpaw.bonaparte.dts.BDts.editors.documentProviders"
             class="de.jpaw.bonaparte.dts.dsl.ui.BDtsExecutableExtensionFactory:org.eclipse.xtext.ui.editor.model.XtextDocumentProvider"
-            extensions="ned">
+            extensions="dts">
     </provider>
   </extension>
 

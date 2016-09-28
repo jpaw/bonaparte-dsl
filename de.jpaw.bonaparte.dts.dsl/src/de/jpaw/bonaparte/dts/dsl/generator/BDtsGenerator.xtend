@@ -30,7 +30,7 @@ class BDtsGenerator implements IGenerator {
     }
 
     public new() {
-        LOGGER.info("BDslGenerator constructed. " + filterInfo)
+        LOGGER.info("BDtsGenerator constructed. " + filterInfo)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {

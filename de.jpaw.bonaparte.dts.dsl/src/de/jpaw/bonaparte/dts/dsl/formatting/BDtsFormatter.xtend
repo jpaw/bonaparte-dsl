@@ -13,7 +13,6 @@ import org.eclipse.xtext.formatting.impl.FormattingConfig
  */
 class BDtsFormatter extends AbstractDeclarativeFormatter {
 
-//  @Inject extension BDslGrammarAccess
 
     override protected void configureFormatting(FormattingConfig c) {
 // It's usually a good idea to activate the following three statements.

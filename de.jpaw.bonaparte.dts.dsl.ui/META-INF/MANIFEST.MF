@@ -26,4 +26,4 @@ Export-Package: de.jpaw.bonaparte.dts.dsl.ui.contentassist,
  de.jpaw.bonaparte.dts.dsl.ui.contentassist.antlr,
  de.jpaw.bonaparte.dts.dsl.ui.internal,
  de.jpaw.bonaparte.dts.dsl.ui.contentassist.antlr.internal
-Bundle-Activator: de.jpaw.bonaparte.dts.dsl.ui.internal.BDslActivator
+Bundle-Activator: de.jpaw.bonaparte.dts.dsl.ui.internal.BDtsActivator
