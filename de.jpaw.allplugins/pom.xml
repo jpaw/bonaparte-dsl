@@ -211,9 +211,11 @@
             <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.10.0/</url>
         </repository>
         <repository>
-            <id>p2-mars</id>
+            <id>p2-neon</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/releases/neon/</url>  <!-- 201506241002 was Mars original release, 201510021000 is SR1, 201602261000 is SR2 -->
+            <!-- 201506241002 was Mars original release, 201510021000 is SR1, 201602261000 is SR2 -->
+            <!-- 201606221000 was Neon original release, 201609281000 is SR1 -->
+            <url>http://download.eclipse.org/releases/neon/201610111000/</url>
         </repository>
     </repositories>
 
