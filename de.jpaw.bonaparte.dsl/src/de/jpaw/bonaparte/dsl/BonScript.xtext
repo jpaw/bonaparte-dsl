@@ -128,7 +128,7 @@ PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
-        ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
+        ('XML' xmlAccess = XmlAccess (xmlUppercase?='uppercase')? ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable
         (doHazelcast = Hazelcast)?								// decide if hazelcast support is added
         (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
@@ -177,7 +177,7 @@ ClassDefinition:
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
-    ('XML' xmlAccess = XmlAccess)?                      // set @XmlAccess annotation
+    ('XML' xmlAccess = XmlAccess (xmlUppercase?='uppercase')?)?                      // set @XmlAccess annotation
     (isXmlRoot?='xmlRoot' ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
     (isXmlAdapter ?= 'xmlAdapter')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable

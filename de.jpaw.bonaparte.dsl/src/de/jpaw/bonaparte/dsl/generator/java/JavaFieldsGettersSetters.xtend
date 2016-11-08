@@ -105,7 +105,7 @@ class JavaFieldsGettersSetters {
                 // TODO: for map, the last one seems to be causing issue at the moment because of the non-matching type
                 // probably create all classes with all possibilities is good/not good option
                 // temporarily skipping in case of map since its not really used at the moment
-    def private static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref) {
+    def private static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper) {
         val datatype = ref.elementaryDataType?.name?.toLowerCase
         return '''
             «IF i.needsXmlObjectType»
@@ -123,6 +123,9 @@ class JavaFieldsGettersSetters {
             «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
                 «ref.xmlAnnotation»
             «ENDIF»
+            «IF xmlUpper»
+                @XmlType(name=«i.name.toFirstUpper»)
+            «ENDIF»
         '''        
     }
 
@@ -137,7 +140,7 @@ class JavaFieldsGettersSetters {
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
             «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
-                «allXmlAnnotations(i, ref)»
+                «allXmlAnnotations(i, ref, d.isXmlUpper)»
             «ENDIF»
             «i.writeIfDeprecated»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
@@ -168,7 +171,7 @@ class JavaFieldsGettersSetters {
             «ref.intJavaDoc(i, "@return")»
             «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
                 «IF initialCall»
-                    «allXmlAnnotations(i, ref)»
+                    «allXmlAnnotations(i, ref, d.isXmlUpper)»
                 «ELSE»
                     @XmlTransient
                 «ENDIF»

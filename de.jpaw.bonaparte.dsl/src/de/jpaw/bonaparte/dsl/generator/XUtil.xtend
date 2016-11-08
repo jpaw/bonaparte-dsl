@@ -635,4 +635,8 @@ class XUtil {
         val elemType = ref.elementaryDataType?.name?.toLowerCase
         return elemType == "json" || elemType == "element" || elemType == "array"
     }
+    
+    def public static isXmlUpper(ClassDefinition cls) {
+        return cls.isXmlUppercase || cls.package.isXmlUppercase
+    }
 }

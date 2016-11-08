@@ -442,11 +442,16 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
 
+    def protected xmlName(String javaName, boolean toUpper) {
+        return if (toUpper) javaName.toFirstUpper else javaName
+    }
+    
     def public listDeclaredFields(ClassDefinition cls, PackageDefinition pkg) {
+        val xmlUpper = cls.isXmlUpper
         return '''
             <xs:sequence>
                 «FOR f: cls.fields»
-                    <xs:element name="«f.name»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
+                    <xs:element name="«xmlName(f.name, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
                 «ENDFOR»
                 «IF GENERATE_EXTENSION_FIELDS && cls.final»
                     <!-- allow for upwards compatible type extensions -->
