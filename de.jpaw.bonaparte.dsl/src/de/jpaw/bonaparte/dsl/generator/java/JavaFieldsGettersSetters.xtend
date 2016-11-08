@@ -124,7 +124,7 @@ class JavaFieldsGettersSetters {
                 «ref.xmlAnnotation»
             «ENDIF»
             «IF xmlUpper»
-                @XmlType(name=«i.name.toFirstUpper»)
+                @XmlElement(name="«i.name.toFirstUpper»")
             «ENDIF»
         '''        
     }
