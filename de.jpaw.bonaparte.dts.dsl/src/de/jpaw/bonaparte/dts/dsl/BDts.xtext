@@ -1,6 +1,6 @@
 grammar de.jpaw.bonaparte.dts.dsl.BDts with de.jpaw.bonaparte.dsl.BonScript
 
-generate bDts "http://www.jpaw.de/bonaparte/dts/dsl/Dts"
+generate bDts "http://www.jpaw.de/bonaparte/dts/dsl/BDts"
  /*
   * Copyright 2016 Michael Bischoff
   *
