@@ -473,6 +473,11 @@ BON: generate javadoc with type information for getters and setters
 - BDDL: ret$Data to map oneToMany and ManyToOne child references
 
 
+TODO:
+- plausi check: primitives cannot be used with Sets or Lists or Maps
+- remove warning that Json is not freezable
+
+
 RELEASE OVERVIEW:
 - 4.0.x:  xtend / xtext 2.9.x
 - 4.1.x:  xtend / xtext 2.10.x, JodaTime (as before)
