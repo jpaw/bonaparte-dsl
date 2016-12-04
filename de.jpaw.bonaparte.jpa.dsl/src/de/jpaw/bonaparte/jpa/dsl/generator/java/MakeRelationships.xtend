@@ -35,6 +35,14 @@ class MakeRelationships {
         @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
     '''
 
+    // new method, taking attributes from referenced column
+    def static private makeJoin(Relationship m, int i, List<FieldDefinition> childPkColumns) {
+        val refcol = childPkColumns.get(i)
+        '''
+            @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«refcol.name.java2sql»"«refcol.fieldAnnotations»)
+        '''
+    }
+    
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
         var oneOptional = false
         for (c : m.referencedFields.columnName)
@@ -50,18 +58,6 @@ class MakeRelationships {
         args.filterNull.join('(',', ', ')', [it])
     }
 
-    /*
-    def public static optArgs(String arg1, String arg2) {
-        if (arg1 == null && arg2 == null)
-            return ''''''
-        if (arg1 !== null && arg2 !== null)
-            return '''(«arg1», «arg2»)'''
-        if (arg1 !== null)
-            return '''(«arg1»)'''
-        else
-            return '''(«arg2»)'''
-    }  */
-
     def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject) {
         val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
         '''
@@ -70,6 +66,20 @@ class MakeRelationships {
             «ELSE»
                 @JoinColumns({
                    «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns)].join(', ')»
+                })
+            «ENDIF»
+        '''
+    }
+    
+    // new method, taking attributes from referenced column
+    def private static writeJoinColumns(Relationship m, EntityDefinition childObject) {
+        val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
+        '''
+            «IF m.referencedFields.columnName.size == 1»
+                «m.makeJoin(0, childPkColumns)»
+            «ELSE»
+                @JoinColumns({
+                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, childPkColumns)].join(', ')»
                 })
             «ENDIF»
         '''
@@ -112,7 +122,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(false, e)»
+            «m.relationship.writeJoinColumns(e)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»

@@ -467,8 +467,7 @@ class JavaFieldWriter {
                 «ENDIF»
             «ELSE»
                 «IF f.shouldWriteColumn || relevantEmbeddable !== null»
-                    @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»«f.sizeSpec»«IF hasProperty(f.properties,
-                    "noinsert")», insertable=false«ENDIF»«IF hasProperty(f.properties, "noupdate")», updatable=false«ENDIF»)
+                    @Column(name="«myName.java2sql»"«f.sizeSpec»«f.fieldAnnotations»)
                     «f.properties.optionalAnnotation("version", "@Version")»
                     «f.properties.optionalAnnotation("lob", "@Lob")»
                     «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»

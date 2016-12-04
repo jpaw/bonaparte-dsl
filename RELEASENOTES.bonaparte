@@ -467,8 +467,18 @@ BON: also store field properties in meta data
 (needs jpaw-1.5.9):  freezing of JSON type fields
 BON: generate javadoc with type information for getters and setters
 
+4.2.3:
+BON: new feature: allow emission of JAXB tags with uppercase field names
 
-4.0.x: (planned):
+4.2.4:
+BDDL: allow to explicitly add the tenant discriminator column(s) to the PK.
+
+4.2.5:
+BDDL: for @OneToMany, use referenced column for parameters of @JoinColumn (nullable, insertable, updatable)
+
+
+
+4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references
 

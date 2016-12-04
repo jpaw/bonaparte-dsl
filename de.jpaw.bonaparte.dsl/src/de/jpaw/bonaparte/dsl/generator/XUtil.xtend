@@ -46,10 +46,6 @@ class XUtil {
     private static Logger LOGGER = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage   = "de.jpaw.bonaparte.core"
     public static final String PROP_ACTIVE                  = "active";
-    public static final String PROP_VERSION                 = "version";
-    public static final String PROP_CURRENT_USER            = "currentUser";
-    public static final String PROP_CURRENT_TIMESTAMP       = "currentTimestamp";
-    public static final String PROP_NOUPDATE                = "noupdate";              // do not update existing fields (create user / timestamp)
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
         ref.elementaryDataType.xenumType.root.name + ".myFactory"
