@@ -122,7 +122,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(e)»
+            «m.relationship.writeJoinColumns(false, e)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»
