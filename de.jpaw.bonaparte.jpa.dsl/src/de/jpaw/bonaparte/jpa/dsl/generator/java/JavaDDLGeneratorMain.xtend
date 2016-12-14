@@ -574,20 +574,17 @@ class JavaDDLGeneratorMain implements IGenerator {
         imports.addImport(e.pkPojo)
 
 
-        var List<FieldDefinition> pkColumns = null
+        val pkColumns = e.primaryKeyColumns
         var String pkType0 = null
         var String trackingType = "BonaPortable"
         if (e.countEmbeddablePks > 0) {
             pkType0 = e.embeddablePk.name.pojoType.name
-            pkColumns = e.embeddablePk.name.pojoType.fields
         } else if (e.pk !== null) {
-            pkColumns = e.pk.columnName
             if (pkColumns.size > 1)
                 pkType0 = e.name + "Key"
             else
                 pkType0 = pkColumns.get(0).JavaDataTypeNoName(true)
         } else if (e.pkPojo !== null) {
-            pkColumns = e.pkPojo.fields
             pkType0 = e.pkPojo.name
         }
         val pkDefinedInThisEntity = pkType0 !== null
@@ -754,6 +751,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val String myPackageName = e.bddlPackageName
         val String myName = e.name + "Key"
         val ImportCollector imports = new ImportCollector(myPackageName)
+        val keyColumns = e.primaryKeyColumns
         imports.recurseImports(e.pojoType, true)
 
         imports.addImport(myPackageName, myName)  // add myself as well
@@ -786,11 +784,11 @@ class JavaDDLGeneratorMain implements IGenerator {
         @Embeddable
         public class «myName» implements Serializable, Cloneable {
             private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
-            «FOR col : e.pk.columnName»
+            «FOR col : keyColumns»
                 «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null)»
             «ENDFOR»
-            «EqualsHash::writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
-            «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
+            «EqualsHash::writeHashMethodForClassPlusExtraFields(null, keyColumns)»
+            «EqualsHash::writeKeyEquals(myName, keyColumns)»
             «writeCloneable(myName)»
         }
         '''

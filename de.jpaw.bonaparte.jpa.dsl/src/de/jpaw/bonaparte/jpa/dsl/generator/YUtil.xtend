@@ -401,6 +401,13 @@ class YUtil {
         return false
     }
 
+    def public static List<FieldDefinition> tenantFields(EntityDefinition e) {
+        if (e.tenantId !== null)
+            return #[ e.tenantId.singleColumnName ]
+        else if (e.tenantClass !== null)
+            return e.tenantClass.fields
+    }
+    
     /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
      * The fields not included are:
      * element collection map key,
@@ -409,13 +416,20 @@ class YUtil {
      */
     def public static primaryKeyColumns(EntityDefinition e) {
         val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
-        return if (baseEntity.embeddablePk !== null)
+        val baseFields = if (baseEntity.embeddablePk !== null)
                 baseEntity.embeddablePk.name.pojoType.fields
             else if (baseEntity.pk !== null)
                 baseEntity.pk.columnName
             else if (baseEntity.pkPojo !== null)
                 baseEntity.pkPojo.fields
-            else null
+            else null;
+        if (!e.addTenant)
+            return baseFields
+        if (baseFields === null)
+            return e.tenantFields
+        val concat = new ArrayList<FieldDefinition>(baseFields)
+        concat.addAll(e.tenantFields)
+        return concat
     }
 
     /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.

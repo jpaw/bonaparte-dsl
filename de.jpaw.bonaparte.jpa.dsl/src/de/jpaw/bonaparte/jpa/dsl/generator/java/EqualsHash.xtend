@@ -221,12 +221,12 @@ class EqualsHash {
         case PrimaryKeyType::EXPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
             writeEqualsAndHashCodeForEmbeddable(e, e.embeddablePk.field.name)
         case PrimaryKeyType::SINGLE_COLUMN: '''
-                «writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
-                «e.writeEqualsDelegator(e.pk.columnName.writeEqualsConditionForListOfFields)»
+                «writeHashMethodForClassPlusExtraFields(null, e.primaryKeyColumns)»
+                «e.writeEqualsDelegator(e.primaryKeyColumns.writeEqualsConditionForListOfFields)»
             '''
         case PrimaryKeyType::ID_CLASS: '''
-                «writeHashMethodForClassPlusExtraFields(e.pkPojo, null)»
-                «e.writeEqualsDelegator(e.pkPojo.fields.writeEqualsConditionForListOfFields)»
+                «writeHashMethodForClassPlusExtraFields(null, e.primaryKeyColumns)»
+                «e.writeEqualsDelegator(e.primaryKeyColumns.writeEqualsConditionForListOfFields)»
             '''
         default: '''
                 «writeHashMethodForClassPlusExtraFields(e.pojoType, null)»

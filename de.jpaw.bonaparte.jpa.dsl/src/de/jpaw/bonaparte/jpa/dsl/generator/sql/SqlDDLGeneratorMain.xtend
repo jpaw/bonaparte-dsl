@@ -261,17 +261,6 @@ class SqlDDLGeneratorMain implements IGenerator {
         )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
-    
-    def optionalTenantKeyPart(EntityDefinition t) {
-        if (t.isAddTenant) {
-            if (t.tenantClass !== null) {
-                return ', ' + t.tenantClass.fields.map[name.java2sql].join()
-            } else if (t.tenantId !== null) {
-                return ', ' + t.tenantId.singleColumnName.name.java2sql
-            }
-        }
-        return null
-    }
 
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
@@ -327,7 +316,7 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         «IF myPrimaryKeyColumns !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : myPrimaryKeyColumns SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«t.optionalTenantKeyPart»«optionalHistoryKeyPart»
+                «FOR c : myPrimaryKeyColumns SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
             )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»

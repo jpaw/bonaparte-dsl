@@ -59,7 +59,7 @@ class MakeRelationships {
     }
 
     def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject) {
-        val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
+        val childPkColumns = childObject.primaryKeyColumns
         '''
             «IF m.referencedFields.columnName.size == 1»
                 «m.makeJoin(0, readOnly, childPkColumns)»
@@ -73,7 +73,7 @@ class MakeRelationships {
     
     // new method, taking attributes from referenced column
     def private static writeJoinColumns(Relationship m, EntityDefinition childObject) {
-        val childPkColumns = childObject.pk?.columnName ?: childObject.pkPojo?.fields ?: childObject.embeddablePk.name.pojoType.fields
+        val childPkColumns = childObject.primaryKeyColumns
         '''
             «IF m.referencedFields.columnName.size == 1»
                 «m.makeJoin(0, childPkColumns)»
