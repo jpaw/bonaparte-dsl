@@ -44,6 +44,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
@@ -140,11 +141,20 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
-
+    // collect enums for an embeddable, these can be nested
+    def private void collectEnums(EmbeddableDefinition e) {
+        recurseEnumCollection(e.pojoType)
+        for (emb : e.embeddables)
+            collectEnums(emb.name)
+    }
+    
     def private void collectEnums(EntityDefinition e) {
         recurseEnumCollection(e.tableCategory.trackingColumns)
         recurseEnumCollection(e.pojoType)
         recurseEnumCollection(e.tenantClass)
+        // if e contains embeddables, then output enums for these as well
+        for (emb : e.embeddables)
+            collectEnums(emb.name)
     }
 
     def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {

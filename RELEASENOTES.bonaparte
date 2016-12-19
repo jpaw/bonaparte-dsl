@@ -476,6 +476,12 @@ BDDL: allow to explicitly add the tenant discriminator column(s) to the PK.
 4.2.5:
 BDDL: for @OneToMany, use referenced column for parameters of @JoinColumn (nullable, insertable, updatable)
 
+4.2.6:
+BDDL: disable 4.2.5 changes, extensions for tenant PK extensions
+
+4.2.7:
+BDDL: bugfix join column name for CREATE VIEW in case of join inheritance
+BDDL: also create functions for enums for used embeddables
 
 
 4.x: (planned):

@@ -80,7 +80,7 @@ class SqlViewOut {
     def private static CharSequence joinConditions(EntityDefinition e, int level) {
         if (e.extends === null || !e.usesJoinInheritance)
             return ''''''
-        return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.objectRef = t«level+1».objectRef«joinConditions(e.extends, level+1)»'''
+        return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.object_ref = t«level+1».object_ref«joinConditions(e.extends, level+1)»'''
     }
 
     def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
