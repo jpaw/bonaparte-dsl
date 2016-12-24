@@ -483,6 +483,10 @@ BDDL: disable 4.2.5 changes, extensions for tenant PK extensions
 BDDL: bugfix join column name for CREATE VIEW in case of join inheritance
 BDDL: also create functions for enums for used embeddables
 
+4.2.8:
+BON: put$active no longer throws an Exception if the object does not contain an active field
+BDDL: allow manual specification of JoinColumn directives (join "updatable=false" after @OneToOne or @OneToMany)
+ 
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

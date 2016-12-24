@@ -185,12 +185,14 @@ OneToMany:
     relationship = Relationship
     (cascade       ?= 'cascade')?
     (orphanRemoval ?= 'orphanRemoval')?
+    ('join'  joinColumnDirective = STRING)?
 ;
 
 OneToOne:
     relationship = Relationship
     (cascade       ?= 'cascade')?    
     (orphanRemoval ?= 'orphanRemoval')?
+    ('join'  joinColumnDirective = STRING)?
 ;
 
 ElementCollectionRelationship:

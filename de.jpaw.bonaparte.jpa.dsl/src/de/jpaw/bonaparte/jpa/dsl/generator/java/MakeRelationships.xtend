@@ -31,8 +31,8 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 class MakeRelationships {
     private static Logger LOGGER = Logger.getLogger(MakeRelationships)
 
-    def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns) '''
-        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»)
+    def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns, String joinColumnDirective) '''
+        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»«IF joinColumnDirective !== null», «joinColumnDirective»«ENDIF»)
     '''
 
     // new method, taking attributes from referenced column
@@ -58,14 +58,14 @@ class MakeRelationships {
         args.filterNull.join('(',', ', ')', [it])
     }
 
-    def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject) {
+    def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject, String joinColumnDirective) {
         val childPkColumns = childObject.primaryKeyColumns
         '''
             «IF m.referencedFields.columnName.size == 1»
-                «m.makeJoin(0, readOnly, childPkColumns)»
+                «m.makeJoin(0, readOnly, childPkColumns, joinColumnDirective)»
             «ELSE»
                 @JoinColumns({
-                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns)].join(', ')»
+                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns, joinColumnDirective)].join(', ')»
                 })
             «ENDIF»
         '''
@@ -101,7 +101,7 @@ class MakeRelationships {
                 if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) '''optional=false'''
             )»
-            «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject)»
+            «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject, null)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", forceSetters || m.forceSetters || !m.relationship.isReadOnly, true)»
         «ENDFOR»
 
@@ -112,7 +112,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject)»
+            «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject, m.joinColumnDirective)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
         «ENDFOR»
 
@@ -122,7 +122,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(false, e)»
+            «m.relationship.writeJoinColumns(false, e, m.joinColumnDirective)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»

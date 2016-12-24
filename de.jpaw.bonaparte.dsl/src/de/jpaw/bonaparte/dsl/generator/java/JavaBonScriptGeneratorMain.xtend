@@ -400,7 +400,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
             «ELSEIF d.parent === null»
                 @Override
                 public void put$Active(boolean _a) throws ObjectValidationException {
-                    throw new ObjectValidationException(ObjectValidationException.NO_ACTIVE_FIELD, null, _PARTIALLY_QUALIFIED_CLASS_NAME);
+                    // throw new ObjectValidationException(ObjectValidationException.NO_ACTIVE_FIELD, null, _PARTIALLY_QUALIFIED_CLASS_NAME);  // no exception, ignore this because it may be called in generic code
                 }
                 @Override
                 public boolean ret$Active() {
