@@ -46,6 +46,8 @@ class XUtil {
     private static Logger LOGGER = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage   = "de.jpaw.bonaparte.core"
     public static final String PROP_ACTIVE                  = "active";
+    public static final String PROP_ATTRIBUTE               = "xmlAttribute";
+    public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
         ref.elementaryDataType.xenumType.root.name + ".myFactory"
@@ -634,5 +636,9 @@ class XUtil {
     
     def public static isXmlUpper(ClassDefinition cls) {
         return cls.isXmlUppercase || cls.package.isXmlUppercase
+    }
+
+    def public static xmlName(FieldDefinition f, boolean toUpper) {
+        return if (toUpper || f.properties.hasProperty(PROP_UPPERCASE)) f.name.toFirstUpper else f.name
     }
 }

@@ -107,6 +107,11 @@ class JavaFieldsGettersSetters {
                 // temporarily skipping in case of map since its not really used at the moment
     def private static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper) {
         val datatype = ref.elementaryDataType?.name?.toLowerCase
+        if (i.properties.hasProperty(PROP_ATTRIBUTE)) {
+            return '''
+                @XmlAttribute(name="«xmlName(i, xmlUpper)»"«IF i.isRequired», required=true«ENDIF»)
+            '''
+        }
         return '''
             «IF i.needsXmlObjectType»
                 «xmlInterfaceAnnotation»
@@ -123,7 +128,7 @@ class JavaFieldsGettersSetters {
             «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
                 «ref.xmlAnnotation»
             «ENDIF»
-            «IF xmlUpper»
+            «IF xmlUpper || i.properties.hasProperty(PROP_UPPERCASE)»
                 @XmlElement(name="«i.name.toFirstUpper»")
             «ENDIF»
         '''        

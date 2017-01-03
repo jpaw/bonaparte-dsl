@@ -442,16 +442,21 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
 
-    def protected xmlName(String javaName, boolean toUpper) {
-        return if (toUpper) javaName.toFirstUpper else javaName
+    def public listAttributes(ClassDefinition cls, PackageDefinition pkg) {
+        val xmlUpper = cls.isXmlUpper
+        return '''
+            «FOR f: cls.fields.filter[properties.hasProperty(PROP_ATTRIBUTE)]»
+                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired», use="required"«ENDIF»«describeField(pkg, f.datatype, true)»
+            «ENDFOR»
+        '''
     }
-    
+
     def public listDeclaredFields(ClassDefinition cls, PackageDefinition pkg) {
         val xmlUpper = cls.isXmlUpper
         return '''
             <xs:sequence>
-                «FOR f: cls.fields»
-                    <xs:element name="«xmlName(f.name, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
+                «FOR f: cls.fields.filter[!properties.hasProperty(PROP_ATTRIBUTE)]»
+                    <xs:element name="«xmlName(f, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
                 «ENDFOR»
                 «IF GENERATE_EXTENSION_FIELDS && cls.final»
                     <!-- allow for upwards compatible type extensions -->
@@ -491,6 +496,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''
             «FOR cls: pkg.classes»
                 <xs:complexType name="«cls.name»"«IF cls.abstract» abstract="true"«ENDIF»«if (cls.final) ' block="#all" final="#all"'»«cls.printSubstGroup»>
+                    «cls.listAttributes(pkg)»
                     <xs:complexContent>
                         <xs:extension base="«cls.extendsClass?.classRef?.xsdQualifiedName(pkg) ?: "bon:BONAPORTABLE"»">
                             «cls.listDeclaredFields(pkg)»

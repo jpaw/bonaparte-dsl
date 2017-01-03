@@ -255,6 +255,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         val withXml = xmlAccess !== null && !BonScriptPreferences.getNoXML
         val autoXmlAdapter = AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES && (d.fields.size == 0 && d.isAbstract && d.extendsClass === null)
         val writeXmlAdapter = withXml && (d.isXmlAdapter || autoXmlAdapter)
+        val xmlNonAttributeFields = if (withXml) d.fields.filter[!properties.hasProperty(PROP_ATTRIBUTE)].toList
 
         // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
         val doExt       = d.externalizable
@@ -278,6 +279,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         «IF withXml»
             import javax.xml.bind.annotation.XmlAccessorType;
             import javax.xml.bind.annotation.XmlAccessType;
+            import javax.xml.bind.annotation.XmlAttribute;
             import javax.xml.bind.annotation.XmlRootElement;
             import javax.xml.bind.annotation.XmlElement;
             import javax.xml.bind.annotation.XmlTransient;
@@ -326,8 +328,8 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                 @XmlRootElement(name="«d.name»")
             «ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
-            «IF d.fields.size > 1»
-                @XmlType(name="«d.name»", propOrder={«d.fields.map['''"«name»"'''].join(', ')»})
+            «IF xmlNonAttributeFields.size > 1»
+                @XmlType(name="«d.name»", propOrder={«xmlNonAttributeFields.map['''"«name»"'''].join(', ')»})
             «ELSE»
                 @XmlType(name="«d.name»")
             «ENDIF»

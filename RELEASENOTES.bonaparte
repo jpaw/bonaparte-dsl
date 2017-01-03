@@ -486,7 +486,12 @@ BDDL: also create functions for enums for used embeddables
 4.2.8:
 BON: put$active no longer throws an Exception if the object does not contain an active field
 BDDL: allow manual specification of JoinColumn directives (join "updatable=false" after @OneToOne or @OneToMany)
- 
+
+4.2.9:
+BON: Support to have uppercase names for individual fields only (property xmlUppercase) 
+BON: Support for XML attributes (property xmlAttribute)
+
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
