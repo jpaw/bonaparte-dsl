@@ -446,7 +446,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         val xmlUpper = cls.isXmlUpper
         return '''
             «FOR f: cls.fields.filter[properties.hasProperty(PROP_ATTRIBUTE)]»
-                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired», use="required"«ENDIF»«describeField(pkg, f.datatype, true)»
+                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired» use="required"«ENDIF»«describeField(pkg, f.datatype, true)»
             «ENDFOR»
         '''
     }
