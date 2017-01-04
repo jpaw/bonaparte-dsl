@@ -104,7 +104,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
-                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»,«IF xmlAttributeFormDefault !== null»attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»,«ENDIF»
+                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»,«IF xmlAttributeFormDefault !== null» attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»,«ENDIF»
                         xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
                     )
 
