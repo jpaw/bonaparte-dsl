@@ -39,6 +39,7 @@ import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XXmlFormDefault
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain implements IGenerator {
@@ -95,14 +96,16 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
             // also, write a package-info.java file, if javadoc on package level exists or if XML bindings are used
             if (d.javadoc !== null || !(d.xmlAccess?.x == XXmlAccess::NONE || d.xmlAccess?.x == XXmlAccess::NOXML)) {
+                val xmlElementFormDefault = d.xmlElementFormDefault.x ?: XXmlFormDefault.QUALIFIED  // no null possible, due to backwards compatibility unspecified means QUALIFIED
+                val xmlAttributeFormDefault = d.xmlAttributeFormDefault.x
                 fsa.generateFile(getJavaFilename(getBonPackageName(d), "package-info"), '''
                     // This source has been automatically created by the bonaparte DSL. Do not modify, changes will be lost.
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
-                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.QUALIFIED,
-                        xmlns = { @XmlNs(prefix="«d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
+                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»,«IF xmlAttributeFormDefault !== null»attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»,«ENDIF»
+                        xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
                     )
 
                     @XmlJavaTypeAdapters({

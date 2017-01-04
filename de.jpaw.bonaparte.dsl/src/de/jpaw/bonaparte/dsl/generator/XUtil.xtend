@@ -128,7 +128,9 @@ class XUtil {
 
     /** Computes the schema name abbreviation. */
     def static schemaToken(PackageDefinition pkg) {
-        return pkg.name.replace('.', '_')
+        if (pkg.xmlNsPrefix.nullOrEmpty)   // the case empty is used in the JAVA generated package info file, but not for xsd file creation
+            return pkg.name.replace('.', '_')
+        return pkg.xmlNsPrefix
     }
     /** Computes the full URL for the schema. */
     def public static effectiveXmlNs(EObject d) {

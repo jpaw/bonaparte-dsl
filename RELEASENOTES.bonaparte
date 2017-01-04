@@ -493,6 +493,8 @@ BON: Support for XML attributes (property xmlAttribute)
 
 4.3.0:
 BON: bugfix xsd creation (closing tag for attributes)
+BON: renamed uppercase to UPPERCASE for XML, because all other XML directives were capitalized as well
+BON: allow to specify elementFormDefault and attributeFormDefault for package-info
 
 
 4.x: (planned):

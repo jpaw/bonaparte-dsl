@@ -77,6 +77,8 @@ enum XUsePrimitives:
 // enums for class level settings
 enum XXmlAccess:
     NOXML = 'noXML' | NONE = 'NONE' | FIELD = 'FIELD' | PROPERTY = 'PROPERTY' | PUBLIC_MEMBER = 'PUBLIC_MEMBER'; // last two should be equivalent due to generated code
+enum XXmlFormDefault:
+    UNSET = 'UNSET' | QUALIFIED = 'QUALIFIED' | UNQUALIFIED = 'UNQUALIFIED';
 enum XExternalizable:
     NOEXT = 'noExt' | EXT = 'Ext';
 enum XHazelcast:
@@ -101,6 +103,7 @@ Rounding:            x = XRounding;
 AutoScale:           x = XAutoScale;
 
 XmlAccess:           x = XXmlAccess;
+XmlFormDefault:      x = XXmlFormDefault;
 Externalizable:      x = XExternalizable;
 Hazelcast:           x = XHazelcast;
 BeanValidation:      x = XBeanValidation;
@@ -128,7 +131,14 @@ PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
-        ('XML' xmlAccess = XmlAccess (xmlUppercase?='uppercase')? ('NAMESPACE' xmlNs = STRING)?)?        // set @XmlAccess annotation
+        ('XML' xmlAccess = XmlAccess
+             (xmlUppercase?='UPPERCASE')?
+             ( ('NAMESPACE'            xmlNs       = STRING)?
+             & ('NAMESPACEPREFIX'      xmlNsPrefix = STRING)?
+             & ('ELEMENTFORMDEFAULT'   xmlElementFormDefault   = XmlFormDefault)?
+             & ('ATTRIBUTEFORMDEFAULT' xmlAttributeFormDefault = XmlFormDefault)?
+             )
+        )?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable
         (doHazelcast = Hazelcast)?								// decide if hazelcast support is added
         (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
@@ -177,7 +187,7 @@ ClassDefinition:
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
-    ('XML' xmlAccess = XmlAccess (xmlUppercase?='uppercase')?)?                      // set @XmlAccess annotation
+    ('XML' xmlAccess = XmlAccess (xmlUppercase?='UPPERCASE')?)?                      // set @XmlAccess annotation
     (isXmlRoot?='xmlRoot' ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
     (isXmlAdapter ?= 'xmlAdapter')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
