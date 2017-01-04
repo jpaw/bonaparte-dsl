@@ -247,7 +247,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
     def public createTypeDefs(PackageDefinition pkg) {
         return '''
             «FOR td: pkg.types»
-                <xs:simpleType name="«td.name»"«describeField(pkg, td.datatype, false)»
+                <xs:simpleType name="«td.name»"«describeField(pkg, td.datatype, null)»
             «ENDFOR»
         '''
     }
@@ -292,15 +292,15 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
 
-    def wrap(boolean inElement, CharSequence content) {
-        if (inElement) {
+    def wrap(CharSequence content, String terminator) {
+        if (terminator !== null) {
             // inside element: must open a new simpleType element
             return '''
                 >
                     <xs:simpleType>
                         «content»
                     </xs:simpleType>
-                </xs:element>
+                </«terminator»>
             '''
         } else {
             return '''
@@ -311,8 +311,8 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
 
-    def typeWrap(boolean inElement, CharSequence content) {
-        if (inElement) {
+    def typeWrap(CharSequence content, String terminator) {
+        if (terminator !== null) {
             return ''' type="«content»"/>'''
         } else {
             // not inside element: in simpleType, must use an artifical restiction (with no restrictions)
@@ -324,14 +324,14 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         }
     }
 
-    def public defIntegral(ElementaryDataType e, boolean signed, String name, String unsignedLimit, boolean inElement) {
+    def public defIntegral(ElementaryDataType e, boolean signed, String name, String unsignedLimit, String terminator) {
         val finalName = '''xs:«IF signed»«name»«ELSE»unsigned«name.toFirstUpper»«ENDIF»'''
         var String minLimit = null
         var String maxLimit = null
         if (e.length <= 0) {
             // unbounded type: specify min/max if unsigned, as Java has no unsigned numbers
             if (signed)
-                return inElement.typeWrap(finalName)
+                return finalName.typeWrap(terminator)
             else
                 maxLimit = '''<xs:maxInclusive value="«unsignedLimit»"/>'''
         } else {
@@ -344,101 +344,101 @@ class XsdBonScriptGeneratorMain implements IGenerator {
 
             maxLimit = '''<xs:maxInclusive value="«limit»"/>'''
         }
-        return inElement.wrap('''
+        return '''
             <xs:restriction base="«finalName»">
                 «minLimit»
                 «maxLimit»
             </xs:restriction>
-        ''')
+        '''.wrap(terminator)
     }
 
-    def public defString(ElementaryDataType e, boolean trim, String pattern, boolean inElement) {
-        return inElement.wrap('''
+    def public defString(ElementaryDataType e, boolean trim, String pattern, String terminator) {
+        return '''
             <xs:restriction base="xs:«IF trim»normalizedString«ELSE»string«ENDIF»">
                 «IF e.minLength > 0»<xs:minLength value="«e.minLength»"/>«ENDIF»
                 <xs:maxLength value="«e.length»"/>
                 «IF pattern !== null»<xs:pattern value="«pattern»"/>«ENDIF»
             </xs:restriction>
-        ''')
+        '''.wrap(terminator)
     }
 
-    def private defBinary(ElementaryDataType e, boolean inElement) {
+    def private defBinary(ElementaryDataType e, String terminator) {
         if (e.length <= 0 || e.length == Integer.MAX_VALUE)
-            return inElement.typeWrap("xs:base64Binary")   // unbounded
+            return "xs:base64Binary".typeWrap(terminator)   // unbounded
         else
-            return inElement.wrap('''
+            return '''
                 <xs:restriction base="xs:base64Binary">
                     <xs:maxLength value="«e.length»"/>
                 </xs:restriction>
-            ''')
+            '''.wrap(terminator)
     }
 
     // method is called with inElement = false for type defs and with inElement = true for fields of complex types
-    def public CharSequence describeField(PackageDefinition pkg, DataType dt, boolean inElement) {
+    def public CharSequence describeField(PackageDefinition pkg, DataType dt, String terminator) {
         if (dt.referenceDataType !== null) {
             val typeDef = dt.referenceDataType
-            return inElement.typeWrap(typeDef.name.xsdQualifiedName(typeDef.package))
+            return typeDef.name.xsdQualifiedName(typeDef.package).typeWrap(terminator)
         }
         // no type definition, embedded tpe is used
         val ref = dt.rootDataType
         if (ref.elementaryDataType !== null) {
             val e = ref.elementaryDataType
             switch (e.name.toLowerCase) {
-                case 'float':       return inElement.typeWrap("xs:float")
-                case 'double':      return inElement.typeWrap("xs:double")
+                case 'float':       return "xs:float".typeWrap(terminator)
+                case 'double':      return "xs:double".typeWrap(terminator)
                 case 'decimal':
-                    return inElement.wrap('''
+                    return '''
                         <xs:restriction base="xs:decimal">
                             <xs:totalDigits value="«e.length»"/>
                             <xs:fractionDigits value="«e.decimals»"/>
                             «IF !ref.effectiveSigned» <xs:minInclusive value="0"/>«ENDIF»
                         </xs:restriction>
-                    ''')
+                    '''.wrap(terminator)
                 case 'number':
-                    return inElement.wrap('''
+                    return '''
                         <xs:restriction base="xs:integer">
                             <xs:totalDigits value="«e.length»"/>
                             «IF !ref.effectiveSigned» <xs:minInclusive value="0"/>«ENDIF»
                         </xs:restriction>
-                    ''')
-                case 'integer':     return e.defIntegral(ref.effectiveSigned, "int",   Integer.MAX_VALUE.toString, inElement)
-                case 'int':         return e.defIntegral(ref.effectiveSigned, "int",   Integer.MAX_VALUE.toString, inElement)
-                case 'long':        return e.defIntegral(ref.effectiveSigned, "long",  Long.MAX_VALUE.toString, inElement)
-                case 'byte':        return e.defIntegral(ref.effectiveSigned, "byte",  "127", inElement)
-                case 'short':       return e.defIntegral(ref.effectiveSigned, "short", "32767", inElement)
-                case 'unicode':     return e.defString(ref.effectiveTrim, null, inElement)
-                case 'uppercase':   return e.defString(ref.effectiveTrim, "([A-Z])*", inElement)
-                case 'lowercase':   return e.defString(ref.effectiveTrim, "([a-z])*", inElement)
-                case 'ascii':       return e.defString(ref.effectiveTrim, "\\p{IsBasicLatin}*", inElement)
-                case 'object':      return inElement.typeWrap("bon:BONAPORTABLE"  /* "xs:anyType" */)
+                    '''.wrap(terminator)
+                case 'integer':     return e.defIntegral(ref.effectiveSigned, "int",   Integer.MAX_VALUE.toString, terminator)
+                case 'int':         return e.defIntegral(ref.effectiveSigned, "int",   Integer.MAX_VALUE.toString, terminator)
+                case 'long':        return e.defIntegral(ref.effectiveSigned, "long",  Long.MAX_VALUE.toString, terminator)
+                case 'byte':        return e.defIntegral(ref.effectiveSigned, "byte",  "127", terminator)
+                case 'short':       return e.defIntegral(ref.effectiveSigned, "short", "32767", terminator)
+                case 'unicode':     return e.defString(ref.effectiveTrim, null, terminator)
+                case 'uppercase':   return e.defString(ref.effectiveTrim, "([A-Z])*", terminator)
+                case 'lowercase':   return e.defString(ref.effectiveTrim, "([a-z])*", terminator)
+                case 'ascii':       return e.defString(ref.effectiveTrim, "\\p{IsBasicLatin}*", terminator)
+                case 'object':      return "bon:BONAPORTABLE"  /* "xs:anyType" */.typeWrap(terminator)
                 // temporal types
-                case 'day':         return inElement.typeWrap("xs:date")
-                case 'time':        return inElement.typeWrap("xs:time")
-                case 'timestamp':   return inElement.typeWrap("xs:dateTime")
-                case 'instant':     return inElement.typeWrap("xs:long")
+                case 'day':         return "xs:date"    .typeWrap(terminator)
+                case 'time':        return "xs:time"    .typeWrap(terminator)
+                case 'timestamp':   return "xs:dateTime".typeWrap(terminator)
+                case 'instant':     return "xs:long"    .typeWrap(terminator)
                 // misc
-                case 'boolean':     return inElement.typeWrap("xs:boolean")
-                case 'character':   return inElement.typeWrap("bon:CHAR")
-                case 'char':        return inElement.typeWrap("bon:CHAR")
-                case 'uuid':        return inElement.typeWrap("bon:UUID")
-                case 'raw':         return e.defBinary(inElement)
-                case 'binary':      return e.defBinary(inElement)
+                case 'boolean':     return "xs:boolean" .typeWrap(terminator)
+                case 'character':   return "bon:CHAR"   .typeWrap(terminator)
+                case 'char':        return "bon:CHAR"   .typeWrap(terminator)
+                case 'uuid':        return "bon:UUID"   .typeWrap(terminator)
+                case 'raw':         return e.defBinary(terminator)
+                case 'binary':      return e.defBinary(terminator)
                 // enum stuff
-                case 'enum':        return inElement.typeWrap(e.enumType.name.xsdQualifiedName(e.enumType.package))
-                case 'xenum':       return inElement.typeWrap(e.xenumType.name.xsdQualifiedName(e.xenumType.package))
-                case 'enumset':     return inElement.typeWrap(e.enumsetType.name.xsdQualifiedName(e.enumsetType.package))
-                case 'xenumset':    return inElement.typeWrap(e.xenumsetType.name.xsdQualifiedName(e.xenumsetType.package))
+                case 'enum':        return e.enumType    .name.xsdQualifiedName(e.enumType    .package).typeWrap(terminator)
+                case 'xenum':       return e.xenumType   .name.xsdQualifiedName(e.xenumType   .package).typeWrap(terminator)
+                case 'enumset':     return e.enumsetType .name.xsdQualifiedName(e.enumsetType .package).typeWrap(terminator)
+                case 'xenumset':    return e.xenumsetType.name.xsdQualifiedName(e.xenumsetType.package).typeWrap(terminator)
                 // JSON types
-                case 'element':     return inElement.typeWrap("xs:anyType")
-                case 'array':       return inElement.typeWrap("xs:anyType")  // same but force unlimited recurrence
-                case 'json':        return inElement.typeWrap("bon:JSON")    // key/value pair type
+                case 'element':     return "xs:anyType".typeWrap(terminator)
+                case 'array':       return "xs:anyType".typeWrap(terminator)    // same but force unlimited recurrence
+                case 'json':        return "bon:JSON"  .typeWrap(terminator)    // key/value pair type
             }
         } else if (ref.objectDataType !== null) {
             // check for explicit reference (no subtypes)
-            return inElement.typeWrap(ref.objectDataType.xsdQualifiedName(pkg))
+            return ref.objectDataType.xsdQualifiedName(pkg).typeWrap(terminator)
         } else {
             // plain object (i.e. any bonaportable)
-            return inElement.typeWrap("bon:BONAPORTABLE"  /* "xs:anyType" */)
+            return "bon:BONAPORTABLE".typeWrap(terminator)  /* "xs:anyType" */
         }
     }
 
@@ -446,7 +446,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         val xmlUpper = cls.isXmlUpper
         return '''
             «FOR f: cls.fields.filter[properties.hasProperty(PROP_ATTRIBUTE)]»
-                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired» use="required"«ENDIF»«describeField(pkg, f.datatype, true)»
+                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired» use="required"«ENDIF»«describeField(pkg, f.datatype, "xs:attribute")»
             «ENDFOR»
         '''
     }
@@ -456,7 +456,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         return '''
             <xs:sequence>
                 «FOR f: cls.fields.filter[!properties.hasProperty(PROP_ATTRIBUTE)]»
-                    <xs:element name="«xmlName(f, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, true)»
+                    <xs:element name="«xmlName(f, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, "xs:element")»
                 «ENDFOR»
                 «IF GENERATE_EXTENSION_FIELDS && cls.final»
                     <!-- allow for upwards compatible type extensions -->

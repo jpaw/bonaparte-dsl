@@ -491,6 +491,8 @@ BDDL: allow manual specification of JoinColumn directives (join "updatable=false
 BON: Support to have uppercase names for individual fields only (property xmlUppercase) 
 BON: Support for XML attributes (property xmlAttribute)
 
+4.3.0:
+BON: bugfix xsd creation (closing tag for attributes)
 
 
 4.x: (planned):
