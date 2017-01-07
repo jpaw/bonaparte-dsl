@@ -36,6 +36,7 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.XXmlFormDefault
 
 /** Generator which produces xsds.
  * It is only called if XML has not been suppressed in the preferences.
@@ -551,6 +552,16 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         else
             return p1.bundle == p2.bundle
     }
+    
+    def private static writeFormDefaults(PackageDefinition d) {
+        // use different defaults for elements and attributes for backwards compatibility
+        val xmlElementFormDefault = d.xmlElementFormDefault?.x     ?: XXmlFormDefault.QUALIFIED
+        val xmlAttributeFormDefault = d.xmlAttributeFormDefault?.x ?: XXmlFormDefault.UNSET
+        return '''
+            «IF xmlElementFormDefault != XXmlFormDefault.UNSET»elementFormDefault="«xmlElementFormDefault.toString.toLowerCase»"«ENDIF»
+            «IF xmlAttributeFormDefault != XXmlFormDefault.UNSET»attributeFormDefault="«xmlAttributeFormDefault.toString.toLowerCase»"«ENDIF»
+        '''
+    }
 
     /** Top level entry point to create the XSD file for a whole package. */
     def private writeXsdFile(PackageDefinition pkg) {
@@ -572,7 +583,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
               «FOR imp: sortedImports»
                 xmlns:«imp.schemaToken»="«imp.effectiveXmlNs»"
               «ENDFOR»
-              elementFormDefault="qualified">
+              «pkg.writeFormDefaults»>
 
                 <xs:import namespace="http://www.jpaw.de/schema/bonaparte.xsd" schemaLocation="«prefix»bonaparte.xsd"/>
                 «FOR imp: sortedImports»
@@ -599,7 +610,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
             «GENERATED_COMMENT»
             <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="«pkg.effectiveXmlNs»"
               xmlns:«pkg.schemaToken»="«pkg.effectiveXmlNs»"
-              elementFormDefault="qualified">
+              «cls.package.writeFormDefaults»>
 
                 <xs:include schemaLocation="lib/«pkg.computeXsdFilename»"/>
 

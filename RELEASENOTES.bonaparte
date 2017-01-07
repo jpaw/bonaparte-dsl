@@ -496,6 +496,9 @@ BON: bugfix xsd creation (closing tag for attributes)
 BON: renamed uppercase to UPPERCASE for XML, because all other XML directives were capitalized as well
 BON: allow to specify elementFormDefault and attributeFormDefault for package-info
 
+4.3.1:
+BON: generate element/attributeFormDefault also to xsd file
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
