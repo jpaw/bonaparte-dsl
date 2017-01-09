@@ -46,6 +46,7 @@ class YUtil {
     public static final String PROP_LIACBY              = "listActiveBy";
     public static final String PROP_SERIALIZED          = "serialized";
     public static final String PROP_COMPACT             = "compact";        // compact serialized form (addon attribute to serialized)
+    public static final String PROP_COMPACT2            = "compact2";       // compact serialized form (addon attribute to serialized), Maps also compact
     public static final String PROP_NATIVE              = "native";         // use native database type with UserType (for JSON / Array / Element fields)
     public static final String PROP_REF                 = "ref";
     public static final String PROP_SIMPLEREF           = "simpleref";

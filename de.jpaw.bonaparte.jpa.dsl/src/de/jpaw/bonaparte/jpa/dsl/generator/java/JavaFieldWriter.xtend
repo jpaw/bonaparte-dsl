@@ -278,21 +278,24 @@ class JavaFieldWriter {
                 setter = '''«myName» = _x == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken();'''
             }
         } else if (ref.category == DataCategory.OBJECT) {
+            val isCompact2 = i.properties.hasProperty(PROP_COMPACT2)
+            val isCompact = isCompact2 || i.properties.hasProperty(PROP_COMPACT)
+            val compactExtra = if (isCompact2) ", false"
             if (DataTypeExtension.JAVA_OBJECT_TYPE.equals(ref.javaType) || (ref.objectDataType !== null && hasProperty(i.properties, PROP_SERIALIZED))) {
                 // BonaPortable or Object with "serialized" property
                 if (!prefs.doUserTypeForBonaPortable) {
-                    val prefix = if (i.properties.hasProperty(PROP_COMPACT)) "Compact"
+                    val prefix = if (isCompact) "Compact"
                     val expectedClass = if (ref.objectDataType !== null) i.JavaDataTypeNoName(false) else "BonaPortable"
                     getter = writeUnmarshaller(myName, "MessageParserException", '''«prefix»ByteArrayParser.unmarshal(«myName», «dtoName».meta$$«myName», «expectedClass».class)''')
-                    setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x);'''
+                    setter = '''«myName» = «prefix»ByteArrayComposer.marshal(«dtoName».meta$$«myName», _x«compactExtra»);'''
                 } // else stay with the default (fall through)
             } else if (ref.elementaryDataType !== null) {
                 // JSON, ARRAY or ELEMENT
                 if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
-                    if (i.properties.hasProperty(PROP_COMPACT)) {
+                    if (isCompact) {
                         getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»)''')
-                        setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x);'''
+                        setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x«compactExtra»);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
                         getter = '''return «myName» == null ? null : «myName».getData();'''
@@ -304,9 +307,9 @@ class JavaFieldWriter {
                     }
                 } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
-                    if (i.properties.hasProperty(PROP_COMPACT)) {
+                    if (isCompact) {
                         getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalArray(«myName», «dtoName».meta$$«myName»)''')
-                        setter = '''«myName» = CompactByteArrayComposer.marshalAsArray(«dtoName».meta$$«myName», _x);'''
+                        setter = '''«myName» = CompactByteArrayComposer.marshalAsArray(«dtoName».meta$$«myName», _x«compactExtra»);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
                         getter = '''return «myName» == null ? null : «myName».getData();'''
@@ -318,9 +321,9 @@ class JavaFieldWriter {
                     }
                 } else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) {
                     // Element => store in compact serialized form by default
-                    if (i.properties.hasProperty(PROP_COMPACT)) {
+                    if (isCompact) {
                         getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalJson(«myName», «dtoName».meta$$«myName»)''')
-                        setter = '''«myName» = CompactByteArrayComposer.marshalAsJson(«dtoName».meta$$«myName», _x);'''
+                        setter = '''«myName» = CompactByteArrayComposer.marshalAsJson(«dtoName».meta$$«myName», _x«compactExtra»);'''
                     } else if (i.properties.hasProperty(PROP_NATIVE)) {
                         // assign the wrapper object
                         getter = '''return «myName» == null ? null : «myName».getData();'''

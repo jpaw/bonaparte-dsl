@@ -579,7 +579,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         var String trackingType = "BonaPortable"
         if (e.countEmbeddablePks > 0) {
             pkType0 = e.embeddablePk.name.pojoType.name
-        } else if (e.pk !== null) {
+        } else if (e.pk !== null && pkColumns !== null) {
             if (pkColumns.size > 1)
                 pkType0 = e.name + "Key"
             else

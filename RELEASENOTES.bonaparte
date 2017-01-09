@@ -499,6 +499,10 @@ BON: allow to specify elementFormDefault and attributeFormDefault for package-in
 4.3.1:
 BON: generate element/attributeFormDefault also to xsd file
 
+4.3.3:
+BDDL: add compact2 serialization
+
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
