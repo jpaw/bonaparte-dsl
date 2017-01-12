@@ -33,6 +33,7 @@ import org.eclipse.emf.ecore.EObject
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.jpa.dsl.generator.sql.DatabaseFlavour
+import java.util.Collections
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -408,7 +409,7 @@ class YUtil {
         else if (e.tenantClass !== null)
             return e.tenantClass.fields
     }
-    
+
     /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
      * The fields not included are:
      * element collection map key,
@@ -416,21 +417,19 @@ class YUtil {
      *
      */
     def public static primaryKeyColumns(EntityDefinition e) {
-        val baseEntity = e.inheritanceRoot // for derived tables, the original (root) table
-        val baseFields = if (baseEntity.embeddablePk !== null)
+        return primaryKeyColumns0(e, e.inheritanceRoot) // for derived tables, the original (root) table
+    }
+    def public static primaryKeyColumns0(EntityDefinition e) {
+        return primaryKeyColumns0(e, e) // for derived tables, the original (root) table
+    }
+    def public static primaryKeyColumns0(EntityDefinition e, EntityDefinition baseEntity) {
+        return if (baseEntity.embeddablePk !== null)
                 baseEntity.embeddablePk.name.pojoType.fields
             else if (baseEntity.pk !== null)
                 baseEntity.pk.columnName
             else if (baseEntity.pkPojo !== null)
                 baseEntity.pkPojo.fields
-            else null;
-        if (!e.addTenant)
-            return baseFields
-        if (baseFields === null)
-            return e.tenantFields
-        val concat = new ArrayList<FieldDefinition>(baseFields)
-        concat.addAll(e.tenantFields)
-        return concat
+            else null
     }
 
     /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.

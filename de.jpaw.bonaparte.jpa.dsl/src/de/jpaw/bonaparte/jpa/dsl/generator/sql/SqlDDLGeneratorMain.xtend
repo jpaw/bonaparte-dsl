@@ -147,7 +147,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         for (emb : e.embeddables)
             collectEnums(emb.name)
     }
-    
+
     def private void collectEnums(EntityDefinition e) {
         recurseEnumCollection(e.tableCategory.trackingColumns)
         recurseEnumCollection(e.pojoType)

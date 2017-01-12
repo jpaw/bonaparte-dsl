@@ -57,7 +57,7 @@ class MakeMapper {
     def public static isAnEmbeddable(FieldDefinition f, List<EmbeddableUse> embeddables) {
         embeddables !== null && embeddables.exists[field == f]
     }
-    
+
     // map DTO to Entity, skip fields with PROP_REF because the data type does not match (SIMPLEREF is OK)
     def private static simpleSetter(String variable, ClassDefinition pojo, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
         «FOR i:pojo.fields»
@@ -70,7 +70,7 @@ class MakeMapper {
             «ENDIF»
         «ENDFOR»
     '''
-    
+
     def private static CharSequence recurseDataSetter(ClassDefinition cl, List<FieldDefinition> fieldsToIgnore, List<EmbeddableUse> embeddables) '''
         «IF cl.extendsClass?.classRef !== null»
             «recurseDataSetter(cl.extendsClass?.classRef, fieldsToIgnore, embeddables)»

@@ -42,7 +42,7 @@ class MakeRelationships {
             @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«refcol.name.java2sql»"«refcol.fieldAnnotations»)
         '''
     }
-    
+
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
         var oneOptional = false
         for (c : m.referencedFields.columnName)
@@ -59,7 +59,7 @@ class MakeRelationships {
     }
 
     def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject, String joinColumnDirective) {
-        val childPkColumns = childObject.primaryKeyColumns
+        val childPkColumns = childObject.primaryKeyColumns0
         '''
             «IF m.referencedFields.columnName.size == 1»
                 «m.makeJoin(0, readOnly, childPkColumns, joinColumnDirective)»
@@ -70,10 +70,10 @@ class MakeRelationships {
             «ENDIF»
         '''
     }
-    
+
     // new method, taking attributes from referenced column
     def private static writeJoinColumns(Relationship m, EntityDefinition childObject) {
-        val childPkColumns = childObject.primaryKeyColumns
+        val childPkColumns = childObject.primaryKeyColumns0
         '''
             «IF m.referencedFields.columnName.size == 1»
                 «m.makeJoin(0, childPkColumns)»
@@ -84,7 +84,7 @@ class MakeRelationships {
             «ENDIF»
         '''
     }
-    
+
     // make the join column not updateable if a "properties ref" has been specified, i.e. a separate Long field will be generated in the entity.
     // in this case, it is assumed that the Long field is used for updates.
     def private static isReadOnly(Relationship m) {

@@ -481,12 +481,12 @@ class JavaFieldWriter {
             «ENDIF»
         '''
     }
-    
+
     def public static boolean shouldWriteColumn(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType === null)
             return true;  // any elementary data type filters already applied before
-        // is an object reference: here we only do fields if they are ref or serialized 
+        // is an object reference: here we only do fields if they are ref or serialized
         if (c.properties.hasProperty(PROP_REF) || c.properties.hasProperty(PROP_SIMPLEREF) || c.properties.hasProperty(PROP_SERIALIZED))
             return true
         // if the referenced object is a single-field adapter, then as well

@@ -213,12 +213,12 @@ public class SqlMapping {
     static private int lengthForAlphaEnumColumn(DataTypeExtension ref) {
         return ref.enumMaxTokenLength == 0 ? 1 : ref.enumMaxTokenLength;
     }
-    
+
     static int getLength(FieldDefinition c, String serialized) {
         String l = XUtil.getProperty(c.getProperties(), YUtil.PROP_LENGTH);
         if (l != null)
             return Integer.valueOf(l);
-        
+
         if (serialized != null && serialized.length() > 0)
             return Integer.valueOf(serialized);
         return 2000;  // last resort fallback

@@ -24,7 +24,7 @@ class SqlEnumOutOracle {
     def private static limit28(String name) {
         return name.javaEnum2sql(DatabaseFlavour.ORACLE, 2)
     }
-    
+
     def private static oracleEnumFuncsNumeric(EnumDefinition e) '''
         -- convert a token (as stored in DB tables) of enum «(e.eContainer as PackageDefinition).name».«e.name» into the more readable symbolic constant string
         CREATE OR REPLACE FUNCTION «e.name.limit28»2s(token INTEGER) RETURN VARCHAR2 IS
