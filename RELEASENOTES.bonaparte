@@ -502,6 +502,8 @@ BON: generate element/attributeFormDefault also to xsd file
 4.3.3:
 BDDL: add compact2 serialization
 
+4.3.4:
+BON: if the Xml namespace prefix is "" and elementFormDefault is unqualified, then do not create @XmlNs in package-info
 
 
 4.x: (planned):

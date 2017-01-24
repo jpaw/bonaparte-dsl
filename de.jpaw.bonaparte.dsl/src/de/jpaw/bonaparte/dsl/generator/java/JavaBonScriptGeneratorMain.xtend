@@ -105,7 +105,9 @@ class JavaBonScriptGeneratorMain implements IGenerator {
 
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
                     @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»,«IF xmlAttributeFormDefault !== null» attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»,«ENDIF»
-                        xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
+                        «IF !(XXmlFormDefault.UNQUALIFIED == xmlElementFormDefault && "" == d.xmlNsPrefix)»
+                            xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
+                        «ENDIF»
                     )
 
                     @XmlJavaTypeAdapters({
