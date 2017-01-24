@@ -55,6 +55,15 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getJaxbResourceFilename(String pkg) {
         return "resources/" + pkg.replaceAll("\\.", "/") + "/jaxb.index"
     }
+    
+    def private static writeAttributeFormDefault(XXmlFormDefault xmlAttributeFormDefault) {
+        if (xmlAttributeFormDefault !== null)
+            return ''', attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»'''
+    }
+    def private static writeXmlNs(PackageDefinition d, XXmlFormDefault xmlElementFormDefault) {
+        if (!(XXmlFormDefault.UNQUALIFIED == xmlElementFormDefault && "" == d.xmlNsPrefix))
+            return ''', xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }'''
+    }
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
@@ -104,11 +113,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
-                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»,«IF xmlAttributeFormDefault !== null» attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»,«ENDIF»
-                        «IF !(XXmlFormDefault.UNQUALIFIED == xmlElementFormDefault && "" == d.xmlNsPrefix)»
-                            xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }
-                        «ENDIF»
-                    )
+                    @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»«writeAttributeFormDefault(xmlAttributeFormDefault)»«d.writeXmlNs(xmlElementFormDefault)»)
 
                     @XmlJavaTypeAdapters({
                         «IF needJoda»
