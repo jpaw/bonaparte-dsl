@@ -64,6 +64,9 @@ class JavaSerialize {
             return makeWrite(i, index, ref.objectDataType, ref)
     }
 
+    def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i)  {
+        return "_w.writeNull(meta$$«i.name»);"
+    }
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index)  {
         val ref = DataTypeExtension::get(i.datatype)
         if (ref.elementaryDataType !== null)
@@ -152,6 +155,8 @@ class JavaSerialize {
                                     if (_pfc.index < «i.name».length) {
                                         // output single element
                                         «makeFoldedWrite2(d, i, i.name + "[_pfc.index]")»
+                                    } else {
+                                        «makeFoldedWrite2(d, i)»
                                     }
                                 }
                             «ELSEIF i.isList !== null»
@@ -165,6 +170,8 @@ class JavaSerialize {
                                     if (_pfc.index < «i.name».size()) {
                                         // output single element
                                         «makeFoldedWrite2(d, i, i.name + ".get(_pfc.index)")»
+                                    } else {
+                                        «makeFoldedWrite2(d, i)»
                                     }
                                 }
                             «ELSEIF i.isSet !== null»
