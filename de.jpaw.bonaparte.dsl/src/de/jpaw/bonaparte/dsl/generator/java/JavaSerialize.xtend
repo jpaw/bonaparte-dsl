@@ -65,7 +65,7 @@ class JavaSerialize {
     }
 
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i)  {
-        return "_w.writeNull(meta$$«i.name»);"
+        return '''_w.writeNull(meta$$«i.name»);'''
     }
     def private static makeFoldedWrite2(ClassDefinition d, FieldDefinition i, String index)  {
         val ref = DataTypeExtension::get(i.datatype)
