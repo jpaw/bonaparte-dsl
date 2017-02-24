@@ -511,6 +511,8 @@ BON: bugfix for 4.3.4
 4.3.6:
 BON: folded output now generates nulls for array indexes out of bounds
 
+4.3.7:
+BON: bugfix for 4.3.6
 
 
 
