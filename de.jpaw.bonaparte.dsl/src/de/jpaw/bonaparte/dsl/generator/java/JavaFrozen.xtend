@@ -71,7 +71,7 @@ class JavaFrozen {
         if (ref.noFreezeBecauseImmutable) {
             // Lists which contain optional fields (nulls) must use something else
             if (i.isList !== null && !i.isRequired) {
-                return '''«i.name» = Collections.unmodifiableList(new ArrayList(«i.name»));'''
+                return '''«i.name» = «i.name» == null ? null : Collections.unmodifiableList(new ArrayList(«i.name»));'''
             }
             if (i.aggregate) {  // Set, Map, List are possible here, classes which contain arrays are not freezable!
                 val token = i.aggregateToken
