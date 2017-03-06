@@ -505,17 +505,11 @@ BDDL: add compact2 serialization
 4.3.4:
 BON: if the Xml namespace prefix is "" and elementFormDefault is unqualified, then do not create @XmlNs in package-info
 
-4.3.5:
-BON: bugfix for 4.3.4
+4.3.8 / 4.3.9:
+BON: use unmodifiableList instead of ImmutableList in case of Lists which can contain null elements
 
-4.3.6:
-BON: folded output now generates nulls for array indexes out of bounds
-
-4.3.7:
-BON: bugfix for 4.3.6
-
-
-
+4.4.0:
+BBDDL: allow property nullWhenzero for String type and basic numeric types.
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
