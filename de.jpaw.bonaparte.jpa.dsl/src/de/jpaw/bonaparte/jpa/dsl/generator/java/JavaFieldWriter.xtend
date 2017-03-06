@@ -251,6 +251,11 @@ class JavaFieldWriter {
         }
     '''
 
+// written inline, only single caller
+//    def private static nullCheckUnlessPrimitive(DataTypeExtension ref) {
+//        return if (ref.isPrimitive) "" else "_x == null || "
+//    }
+
     def private writeGetterAndSetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val prefs = BDDLPreferences.currentPrefs
         val ref = DataTypeExtension::get(i.datatype);
@@ -277,6 +282,12 @@ class JavaFieldWriter {
                 getter = '''return «ref.xEnumFactoryName».getByTokenWithNull(«myName»);'''
                 setter = '''«myName» = _x == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken();'''
             }
+        } else if (ref.category == DataCategory.STRING) {
+            if (nwz)
+                setter = '''«myName» = (_x == null || _x.length() == 0) ? null : _x;'''
+        } else if (ref.category == DataCategory.BASICNUMERIC) {
+            if (nwz)
+                setter = '''«myName» = («IF !ref.isPrimitive»_x == null || «ENDIF»_x == 0) ? null : _x;'''
         } else if (ref.category == DataCategory.OBJECT) {
             val isCompact2 = i.properties.hasProperty(PROP_COMPACT2)
             val isCompact = isCompact2 || i.properties.hasProperty(PROP_COMPACT)
