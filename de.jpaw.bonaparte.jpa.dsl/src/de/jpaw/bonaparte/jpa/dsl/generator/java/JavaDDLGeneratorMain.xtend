@@ -42,6 +42,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import org.eclipse.xtext.common.types.JvmGenericType
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -528,6 +529,24 @@ class JavaDDLGeneratorMain implements IGenerator {
         else
             return interfaces.join(", ")
     }
+    
+    // output 0 to 4 elements */
+    def private writeEntityListeners(String a, String b, JvmGenericType c, JvmGenericType d) {
+        val mylist = new ArrayList<String>(4)
+        if (a !== null)
+            mylist.add(a)
+        if (b !== null)
+            mylist.add(b)
+        if (c !== null)
+            mylist.add(c.qualifiedName)
+        if (d !== null)
+            mylist.add(d.qualifiedName)
+        if (mylist.size == 0)
+            return null
+        return '''
+            @EntityListeners({«mylist.map[it + ".class"].join(', ')»})
+        '''
+    }
 
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
@@ -687,12 +706,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @KeyClass(«pkType0».class)
             «ENDIF»
             @Entity
-            «IF e.tableCategory.autoSetter !== null || e.autoSetter !== null»
-                @EntityListeners({«e.autoSetter ?: e.tableCategory.autoSetter».class})
-            «ENDIF»
-            «IF e.tableCategory.entityListener !== null || e.entityListener !== null»
-                @EntityListeners({«(e.entityListener ?: e.tableCategory.entityListener).qualifiedName».class})
-            «ENDIF»
+            «writeEntityListeners(e.tableCategory.autoSetter, e.autoSetter, e.tableCategory.entityListener, e.entityListener)»
             «IF e.cacheable»
                 @Cacheable(true)
             «ENDIF»
