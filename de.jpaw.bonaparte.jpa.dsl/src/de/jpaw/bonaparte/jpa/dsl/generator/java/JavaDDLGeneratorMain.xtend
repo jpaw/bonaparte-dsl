@@ -653,6 +653,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             import javax.persistence.GeneratedValue;
             import javax.persistence.GenerationType;
         «ENDIF»
+        «IF e.generator !== null»
+            import javax.persistence.«e.generator.substring(1)»;
+        «ENDIF»
         import javax.persistence.EntityManager;
         import javax.persistence.Entity;
         import javax.persistence.Table;
@@ -730,6 +733,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
             «ELSEIF e.discriminatorValue !== null»
                 @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
+            «ENDIF»
+            «IF e.generator !== null»
+                «e.generator»(name="«e.generatorName»"«IF e.generatorValue !== null», «e.generatorValue»«ENDIF»)
             «ENDIF»
         «ENDIF»
         @SuppressWarnings("all")

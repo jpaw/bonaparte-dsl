@@ -142,6 +142,7 @@ EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
     ('@Generator' '(' (doMapper?= 'doMapper' | noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper') ')')?
+    (generator = ('@SequenceGenerator' | '@TableGenerator') generatorName = ID ('(' generatorValue = STRING ')')?)?
     (isAbstract?='abstract')?  // abstract means mappedSuperclass
     'entity' name = ID      
         // 'type' tabletype=TableType
