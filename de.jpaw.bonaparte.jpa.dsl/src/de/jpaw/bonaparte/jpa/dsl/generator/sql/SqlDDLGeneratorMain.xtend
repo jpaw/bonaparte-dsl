@@ -45,6 +45,7 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class SqlDDLGeneratorMain implements IGenerator {
     private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
@@ -89,7 +90,7 @@ class SqlDDLGeneratorMain implements IGenerator {
     }
 
     def private static CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, DatabaseFlavour databaseFlavour, Delimiter d,
-        List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables) {
+        List<FieldDefinition> pkCols, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
         val pkColumnNames = pkCols?.map[name]  // cannot compare fields, because they might sit in parallel objects
         recurse(cl, stopAt, false,
             [ !properties.hasProperty(PROP_NODDL) ],
@@ -97,7 +98,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             [ '''-- table columns of java class «name»
               '''],
             [ fld, myName, reqType |
-            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkColumnNames.contains(fld.name)) RequiredType::FORCE_NOT_NULL else reqType, d, myName)»
+            '''«SqlColumns::doDdlColumn(fld, databaseFlavour, if (pkCols !== null && pkColumnNames.contains(fld.name)) RequiredType::FORCE_NOT_NULL else reqType, d, myName, nmd)»
               ''']
         )
     }
@@ -188,8 +189,8 @@ class SqlDDLGeneratorMain implements IGenerator {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::SAPHANA, doHistory))
     }
 
-    def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables) {
-        writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | SqlColumns.doDdlColumn(fld, databaseFlavour, reqType2, d, myName) ])
+    def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
+        writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | SqlColumns.doDdlColumn(fld, databaseFlavour, reqType2, d, myName, nmd) ])
     }
 
     def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
@@ -231,15 +232,16 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceData  = mkTablespaceName(t, false, myCategory)
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
+        val nmd = t.nameMapping
         val d = new Delimiter("  ", ", ")
         val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
         val startOfPk =
             if (ec.keyColumns !== null)
                 ec.keyColumns.join(', ')
             else if (baseEntity.embeddablePk !== null)
-                baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql].join(',')
+                baseEntity.embeddablePk.name.pojoType.fields.map[name.java2sql(nmd)].join(',')
             else if(baseEntity.pk !== null)
-                baseEntity.pk.columnName.map[name.java2sql].join(',')
+                baseEntity.pk.columnName.map[name.java2sql(nmd)].join(',')
             else
                 '???'
 
@@ -252,22 +254,22 @@ class SqlDDLGeneratorMain implements IGenerator {
             -- base table PK
             «IF baseEntity.pk !== null»
                 «FOR c : baseEntity.pk.columnName»
-                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables)»
+                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, t.embeddables, nmd)»
                 «ENDFOR»
             «ENDIF»
             «IF ec.mapKey !== null»
                 -- element collection key
-                , «ec.mapKey.java2sql» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
+                , «ec.mapKey.java2sql(nmd)» «SqlMapping::sqlType(ec, databaseFlavour)» NOT NULL
             «ENDIF»
             «IF doHistory»
                 , «SqlMapping.getFieldForJavaType(databaseFlavour, "long", "20")»    «myCategory.historySequenceColumn» NOT NULL
             «ENDIF»
             -- contents field
-            «ec.name.writeFieldSQLdoColumn(databaseFlavour, RequiredType::DEFAULT, d, t.embeddables)»
+            «ec.name.writeFieldSQLdoColumn(databaseFlavour, RequiredType::DEFAULT, d, t.embeddables, nmd)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
         ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-            «startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey !== null», «ec.mapKey.java2sql»«ENDIF»«optionalHistoryKeyPart»
+            «startOfPk»«FOR ekc : ec.extraKeyColumns», «ekc»«ENDFOR»«IF ec.mapKey !== null», «ec.mapKey.java2sql(nmd)»«ENDIF»«optionalHistoryKeyPart»
         )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         '''
     }
@@ -287,6 +289,7 @@ class SqlDDLGeneratorMain implements IGenerator {
             tablespaceIndex = mkTablespaceName(t, true,  myCategory)
         }
         val theEmbeddables = t.theEmbeddables
+        val nmd = t.nameMapping
         // System::out.println("      tablename is " + tablename);
         // System::out.println('''ENTITY «t.name» (history? «doHistory», DB = «databaseFlavour»): embeddables used are «theEmbeddables.map[name.name + ':' + field.name].join(', ')»''');
         val optionalHistoryKeyPart = if (doHistory) ''', «myCategory.historySequenceColumn»'''
@@ -306,33 +309,33 @@ class SqlDDLGeneratorMain implements IGenerator {
 
         CREATE TABLE «tablename» (
             «IF stopAt === null»
-                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
+                «t.tableCategory.trackingColumns?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables, nmd)»
             «ENDIF»
-            «tenantClass?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
+            «tenantClass?.recurseColumns(null, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables, nmd)»
             «IF t.discname !== null»
                 «d.get»«doDiscriminator(t, databaseFlavour)»
             «ENDIF»
             «IF myPrimaryKeyColumns !== null && stopAt !== null»
                 «FOR c : myPrimaryKeyColumns»
-                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables)»
+                    «c.writeFieldSQLdoColumn(databaseFlavour, RequiredType::FORCE_NOT_NULL, d, theEmbeddables, nmd)»
                 «ENDFOR»
             «ENDIF»
             «IF doHistory»
                 «d.get»«myCategory.historySequenceColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "long", "20")» NOT NULL
                 «d.get»«myCategory.historyChangeTypeColumn»   «SqlMapping.getFieldForJavaType(databaseFlavour, "char", "1")» NOT NULL
             «ENDIF»
-            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables)»
+            «t.pojoType.recurseColumns(stopAt, databaseFlavour, d, myPrimaryKeyColumns, theEmbeddables, nmd)»
         )«IF tablespaceData !== null» TABLESPACE «tablespaceData»«ENDIF»;
 
         «IF myPrimaryKeyColumns !== null»
             ALTER TABLE «tablename» ADD CONSTRAINT «tablename»_pk PRIMARY KEY (
-                «FOR c : myPrimaryKeyColumns SEPARATOR ', '»«c.name.java2sql»«ENDFOR»«optionalHistoryKeyPart»
+                «FOR c : myPrimaryKeyColumns SEPARATOR ', '»«c.name.java2sql(nmd)»«ENDFOR»«optionalHistoryKeyPart»
             )«IF tablespaceIndex !== null» USING INDEX TABLESPACE «tablespaceIndex»«ENDIF»;
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» ON «tablename»(
-                    «FOR c : i.columns.columnName SEPARATOR ', '»«c.name.java2sql»«ENDFOR»
+                    «FOR c : i.columns.columnName SEPARATOR ', '»«c.name.java2sql(nmd)»«ENDFOR»
                 )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
@@ -346,9 +349,9 @@ class SqlDDLGeneratorMain implements IGenerator {
         «IF databaseFlavour != DatabaseFlavour.MSSQLSERVER && databaseFlavour != DatabaseFlavour.MYSQL»
 
             «IF stopAt === null»
-                «t.tableCategory.trackingColumns?.recurseComments(null, tablename, theEmbeddables)»
+                «t.tableCategory.trackingColumns?.recurseComments(null, tablename, theEmbeddables, nmd)»
             «ENDIF»
-            «tenantClass?.recurseComments(null, tablename, theEmbeddables)»
+            «tenantClass?.recurseComments(null, tablename, theEmbeddables, nmd)»
             «IF t.discname !== null»
                 COMMENT ON COLUMN «tablename».«t.discname» IS 'autogenerated JPA discriminator column';
             «ENDIF»
@@ -356,7 +359,7 @@ class SqlDDLGeneratorMain implements IGenerator {
                 COMMENT ON COLUMN «tablename».«myCategory.historySequenceColumn» IS 'current sequence number of history entry';
                 COMMENT ON COLUMN «tablename».«myCategory.historyChangeTypeColumn» IS 'type of change (C=create/insert, U=update, D=delete)';
             «ENDIF»
-            «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables)»
+            «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables, nmd)»
         «ENDIF»
     '''
     }

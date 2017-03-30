@@ -27,19 +27,21 @@ import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class MakeRelationships {
     private static Logger LOGGER = Logger.getLogger(MakeRelationships)
 
-    def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns, String joinColumnDirective) '''
-        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«childPkColumns.get(i).name.java2sql»"«IF readonly», insertable=false, updatable=false«ENDIF»«IF joinColumnDirective !== null», «joinColumnDirective»«ENDIF»)
+    // nmd2 is own entity, nmd1 is for child entity
+    def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns, String joinColumnDirective, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) '''
+        @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql(nmd1)»", referencedColumnName="«childPkColumns.get(i).name.java2sql(nmd2)»"«IF readonly», insertable=false, updatable=false«ENDIF»«IF joinColumnDirective !== null», «joinColumnDirective»«ENDIF»)
     '''
 
     // new method, taking attributes from referenced column
-    def static private makeJoin(Relationship m, int i, List<FieldDefinition> childPkColumns) {
+    def static private makeJoin(Relationship m, int i, List<FieldDefinition> childPkColumns, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) {
         val refcol = childPkColumns.get(i)
         '''
-            @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql»", referencedColumnName="«refcol.name.java2sql»"«refcol.fieldAnnotations»)
+            @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql(nmd1)»", referencedColumnName="«refcol.name.java2sql(nmd2)»"«refcol.fieldAnnotations»)
         '''
     }
 
@@ -58,28 +60,30 @@ class MakeRelationships {
         args.filterNull.join('(',', ', ')', [it])
     }
 
-    def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject, String joinColumnDirective) {
+    def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject, String joinColumnDirective, ColumnNameMappingDefinition myNmd) {
         val childPkColumns = childObject.primaryKeyColumns0
+        val otherNmd = childObject.nameMapping
         '''
             «IF m.referencedFields.columnName.size == 1»
-                «m.makeJoin(0, readOnly, childPkColumns, joinColumnDirective)»
+                «m.makeJoin(0, readOnly, childPkColumns, joinColumnDirective, otherNmd, myNmd)»
             «ELSE»
                 @JoinColumns({
-                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns, joinColumnDirective)].join(', ')»
+                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, readOnly, childPkColumns, joinColumnDirective, otherNmd, myNmd)].join(', ')»
                 })
             «ENDIF»
         '''
     }
 
     // new method, taking attributes from referenced column
-    def private static writeJoinColumns(Relationship m, EntityDefinition childObject) {
+    def private static writeJoinColumns(Relationship m, EntityDefinition childObject, ColumnNameMappingDefinition myNmd) {
         val childPkColumns = childObject.primaryKeyColumns0
+        val otherNmd = childObject.nameMapping
         '''
             «IF m.referencedFields.columnName.size == 1»
-                «m.makeJoin(0, childPkColumns)»
+                «m.makeJoin(0, childPkColumns, otherNmd, myNmd)»
             «ELSE»
                 @JoinColumns({
-                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, childPkColumns)].join(', ')»
+                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, childPkColumns, otherNmd, myNmd)].join(', ')»
                 })
             «ENDIF»
         '''
@@ -95,13 +99,14 @@ class MakeRelationships {
 
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) {
         val forceSetters = e.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters
+        val myNmd = e.nameMapping
         return '''
         «FOR m : e.manyToOnes»
             @ManyToOne«optArgs(
                 if (m.relationship.fetchType !== null) '''fetch=FetchType.«m.relationship.fetchType»''',
                 if (m.relationship.nonOptional(e)) '''optional=false'''
             )»
-            «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject, null)»
+            «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject, null, myNmd)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", forceSetters || m.forceSetters || !m.relationship.isReadOnly, true)»
         «ENDFOR»
 
@@ -112,7 +117,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject, m.joinColumnDirective)»
+            «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject, m.joinColumnDirective, myNmd)»
             «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
         «ENDFOR»
 
@@ -122,7 +127,7 @@ class MakeRelationships {
                 if (m.orphanRemoval) 'orphanRemoval=true',
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
-            «m.relationship.writeJoinColumns(false, e, m.joinColumnDirective)»
+            «m.relationship.writeJoinColumns(false, e, m.joinColumnDirective, myNmd)»
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»

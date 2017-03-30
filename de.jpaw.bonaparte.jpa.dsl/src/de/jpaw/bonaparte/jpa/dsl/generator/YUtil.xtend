@@ -20,20 +20,21 @@ import com.google.common.base.CaseFormat
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Model
 import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
+import de.jpaw.bonaparte.jpa.dsl.generator.sql.DatabaseFlavour
 import java.util.ArrayList
 import java.util.Arrays
 import java.util.List
 import org.eclipse.emf.ecore.EObject
 
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.jpa.dsl.generator.sql.DatabaseFlavour
-import java.util.Collections
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -88,8 +89,17 @@ class YUtil {
         return text.replace("'", "''").replace("\\", "\\\\");
     }
 
-    def public static java2sql(String javaname) {
+    def public static java2sql(String javaname, ColumnNameMappingDefinition nmdIn) {
+        for (var nmd = nmdIn; nmd !== null; nmd = nmd.extendsMapping) {
+            for (nm : nmd.mappings)
+                if (javaname == nm.javaName)
+                    return nm.sqlName
+        }
         CaseFormat::LOWER_CAMEL.to(CaseFormat::LOWER_UNDERSCORE, javaname);
+    }
+
+    def public static ColumnNameMappingDefinition getNameMapping(EntityDefinition t) {
+        return t.nameMappingGroup ?: t.tableCategory.nameMappingGroup
     }
 
     def public static javaEnum2sql(String javaname, DatabaseFlavour databaseFlavour, int suffixLen) {
@@ -186,7 +196,7 @@ class YUtil {
             }
             // 2. have the pattern, apply substitution rules
             tablename = myPattern.replace("(category)", myCategory.name)
-                                 .replace("(entity)",   java2sql(t.name))
+                                 .replace("(entity)",   java2sql(t.name, null))
                                  .replace("(prefix)",   myPackage.getDbPrefix)
                                  .replace("(owner)",    myPackage.getSchemaOwner)
                                  .replace("(package)",  myPackage.name.replace('.', '_'))
@@ -243,7 +253,7 @@ class YUtil {
             }
             // 2. have the pattern, apply substitution rules
             return myPattern.replace("(category)", myCategory.name)
-                            .replace("(entity)",   java2sql(t.name))
+                            .replace("(entity)",   java2sql(t.name, null))
                             .replace("(prefix)",   myPackage.getDbPrefix)
                             .replace("(owner)",    myPackage.getSchemaOwner)
                             .replace("(package)",  myPackage.name.replace('.', '_'))
@@ -285,7 +295,7 @@ class YUtil {
         recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
     }
 
-    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables) {
+    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
         recurse(cl, stopAt, false,
                 [ comment !== null && !properties.hasProperty(PROP_NODDL) ],
                 embeddables,
@@ -293,7 +303,7 @@ class YUtil {
                   '''],
                 [ fld, myName, req | '''
                     «IF fld.comment !== null»
-                        COMMENT ON COLUMN «tablename».«myName.java2sql» IS '«fld.comment.quoteSQL»';
+                        COMMENT ON COLUMN «tablename».«myName.java2sql(nmd)» IS '«fld.comment.quoteSQL»';
                     «ENDIF»
                   ''']
         )

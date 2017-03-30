@@ -514,6 +514,9 @@ BDDL: allow property nullWhenzero for String type and basic numeric types.
 4.4.1:
 BDDL: allow multiple entityListeners
 
+4.4.2:
+BDDL: add column name mapping feature (java name to non standard SQL name for columns)
+
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references

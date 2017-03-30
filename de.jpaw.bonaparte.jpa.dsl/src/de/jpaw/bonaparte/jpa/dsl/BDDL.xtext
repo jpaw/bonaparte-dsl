@@ -22,6 +22,7 @@ generate bDDL "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL"
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
 import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
 
+@Override
 Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
@@ -58,6 +59,17 @@ GrantCategoryDefinition:
     '}'
 ;
 
+ColumnNameMapping: 
+    javaName = ID ':' sqlName = ID ';'
+;
+
+ColumnNameMappingDefinition: 
+    'nameMappings' name=ID
+    ('extends' extendsMapping = [ColumnNameMappingDefinition|QualifiedId])?
+    '{'
+        mappings += ColumnNameMapping*
+    '}'
+;
 
 TableCategoryDefinition:
     'category' name=ID '{'
@@ -72,6 +84,7 @@ TableCategoryDefinition:
         (requiresPk ?= 'requiresPK')?
         (doBeanVal ?= 'beanVal')?
         ('grants' grantGroup = [GrantCategoryDefinition|QualifiedId])?
+        ('nameMappings' nameMappingGroup = [ColumnNameMappingDefinition|QualifiedId])?
     '}'
 ;
 
@@ -89,6 +102,7 @@ BDDLPackageDefinition:
     '{' 
         ('fields' visibility=Visibility ';')?
         (grantCategories += GrantCategoryDefinition  
+        | nameMappings += ColumnNameMappingDefinition
         | tableCategories += TableCategoryDefinition
         | entities += EntityDefinition
         | embeddables += EmbeddableDefinition
@@ -106,6 +120,7 @@ EmbeddableDefinition:
     'embeddable' name = ID 'is' pojoType=[pojos::ClassDefinition|QualifiedId]
     (doBeanVal ?= 'beanVal')?
     '{'
+        ('nameMappings' nameMappingGroup = [ColumnNameMappingDefinition|QualifiedId])?        
         ('@Embeddable' embeddables += EmbeddableUse)*
     '}'
 ;
@@ -153,6 +168,7 @@ EntityDefinition:
         ('tenantClass' tenantClass = [pojos::ClassDefinition|QualifiedId] (tenantInJoinedTables?='join')?)?
         ('tenant' tenantId = SingleColumn)?
         // ('foreign' 'keys' '{' foreignKeys += ForeignKeyDefinition* '}')?
+        ('nameMappings' nameMappingGroup = [ColumnNameMappingDefinition|QualifiedId])?        
         ('pk'     ('is' pkPojo = [pojos::ClassDefinition|QualifiedId])? (pk = ListOfColumns (isIdGenerated?='generated' ('=' generatedIdDetails=STRING)?)?)? )?
         ('index'  index   += IndexDefinition)*
         ('collections' '{' collections += CollectionDefinition* '}')?               // unused???

@@ -25,12 +25,13 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class SqlViewOut {
 
-    def private static createColumn(FieldDefinition i, String prefix, String myName, DatabaseFlavour databaseFlavour) {
+    def private static createColumn(FieldDefinition i, String prefix, String myName, DatabaseFlavour databaseFlavour, ColumnNameMappingDefinition nmd) {
         val ref = DataTypeExtension::get(i.datatype)
-        val cn = myName.java2sql
+        val cn = myName.java2sql(nmd)
         if (ref.category == DataCategory.ENUM || ref.category == DataCategory.ENUMALPHA)
             '''«ref.elementaryDataType.enumType.name.javaEnum2sql(databaseFlavour, 2)»2s(«prefix».«cn») AS «cn»'''
         else
@@ -38,12 +39,13 @@ class SqlViewOut {
     }
 
     def private static CharSequence createColumns(ClassDefinition cl, String prefix, Delimiter d, EntityDefinition e, DatabaseFlavour databaseFlavour) {
+        val nmd = e.nameMapping
         recurse(cl, null, false,
             [ !properties.hasProperty(PROP_NODDL) ],
             e.embeddables,
             [ '''-- columns of java class «name»
               '''],
-            [ fld, myName, req | '''«d.get»«fld.createColumn(prefix, myName, databaseFlavour)»
+            [ fld, myName, req | '''«d.get»«fld.createColumn(prefix, myName, databaseFlavour, nmd)»
               ''']
         )
     }
@@ -60,7 +62,7 @@ class SqlViewOut {
             «recurseInheritance(e.^extends, databaseFlavour, includeTracking, level+1, d)»
             -- columns of joined java class «e.pojoType.name»
             «FOR i: e.pojoType.fields»
-                «d.get»«i.createColumn("t"+level, i.name, databaseFlavour)»
+                «d.get»«i.createColumn("t"+level, i.name, databaseFlavour, e.nameMapping)»
             «ENDFOR»
         «ENDIF»
     '''

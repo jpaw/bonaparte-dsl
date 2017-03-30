@@ -33,6 +33,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class JavaFieldWriter {
     val static final String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
@@ -429,7 +430,7 @@ class JavaFieldWriter {
 
     // write the definition of a single column (entities or Embeddables)
     def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
-        List<EmbeddableUse> embeddables, ClassDefinition optionalClass) {
+        List<EmbeddableUse> embeddables, ClassDefinition optionalClass, ColumnNameMappingDefinition nmd) {
         val relevantElementCollection = el?.findFirst[name == f]
         val relevantEmbeddable = embeddables?.findFirst[field == f]
         // val emb = relevantEmbeddable?.name?.pojoType
@@ -440,7 +441,7 @@ class JavaFieldWriter {
             «IF relevantElementCollection !== null && f.aggregate»
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
                 «IF relevantEmbeddable === null»
-                    @Column(name="«myName.java2sql»"«IF f.isNotNullField», nullable=false«ENDIF»)
+                    @Column(name="«myName.java2sql(nmd)»"«IF f.isNotNullField», nullable=false«ENDIF»)
                     «f.writeColumnType(myName, false)»
                     «f.writeGetterAndSetter(myName, optionalClass)»
                 «ELSE»
@@ -481,7 +482,7 @@ class JavaFieldWriter {
                 «ENDIF»
             «ELSE»
                 «IF f.shouldWriteColumn || relevantEmbeddable !== null»
-                    @Column(name="«myName.java2sql»"«f.sizeSpec»«f.fieldAnnotations»)
+                    @Column(name="«myName.java2sql(nmd)»"«f.sizeSpec»«f.fieldAnnotations»)
                     «f.properties.optionalAnnotation("version", "@Version")»
                     «f.properties.optionalAnnotation("lob", "@Lob")»
                     «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»

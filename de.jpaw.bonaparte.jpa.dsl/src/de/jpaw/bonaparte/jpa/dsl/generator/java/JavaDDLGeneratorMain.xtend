@@ -43,6 +43,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import org.eclipse.xtext.common.types.JvmGenericType
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -108,7 +109,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
-    def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables,
+    def private static CharSequence writeFieldWithEmbeddedAndListJ(FieldDefinition f, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd,
             String prefix, String suffix, String currentIndex,
             boolean noListAtThisPoint, boolean noList2, String separator, (FieldDefinition, String, String) => CharSequence func) {
         // expand Lists first
@@ -119,7 +120,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             val notNullElements = f.isRequired
             // val ref = DataTypeExtension::get(f.datatype);
             return '''
-                «myIndexList.map[f.writeFieldWithEmbeddedAndListJ(embeddables, prefix, '''«suffix»«it»''', it, true, false, separator, func)].join(separator)»
+                «myIndexList.map[f.writeFieldWithEmbeddedAndListJ(embeddables, nmd, prefix, '''«suffix»«it»''', it, true, false, separator, func)].join(separator)»
                 «IF noList2 == false»
                     public «f.JavaDataTypeNoName(false)» get«myName.toFirstUpper()»() {
                         «f.JavaDataTypeNoName(false)» _a = new Array«f.JavaDataTypeNoName(false)»(«myIndexList.size»);
@@ -170,8 +171,8 @@ class JavaDDLGeneratorMain implements IGenerator {
                 return '''
                     «IF newPrefix != "" || newSuffix != ""»
                         @AttributeOverrides({
-                        «pojo.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, newPrefix, newSuffix, null, false, true, ',\n',
-                            [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql»"))'''])].join(',\n')»
+                        «pojo.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, nmd, newPrefix, newSuffix, null, false, true, ',\n',
+                            [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql(nmd)»"))'''])].join(',\n')»
                         })
                     «ENDIF»
                     «IF emb.isPk !== null»
@@ -221,15 +222,15 @@ class JavaDDLGeneratorMain implements IGenerator {
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
     // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
     def private static CharSequence recurseJ(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
-        List<EmbeddableUse> embeddables,
+        List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd,
         (ClassDefinition)=> CharSequence groupSeparator,
         (FieldDefinition, String, String) => CharSequence fieldOutput) '''
         «IF cl != stopAt»
-            «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
+            «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, nmd, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
                 «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
-                    «c.writeFieldWithEmbeddedAndListJ(embeddables, null, null, null, false, false, "", fieldOutput)»
+                    «c.writeFieldWithEmbeddedAndListJ(embeddables, nmd, null, null, null, false, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
@@ -238,18 +239,18 @@ class JavaDDLGeneratorMain implements IGenerator {
     // shorthand call for entities
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails) {
-        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails);
+        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.nameMapping, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails);
     }
 
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
-        List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, boolean doBeanVal,
+        List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd, boolean doBeanVal,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails
     ) {
         // include aggregates if there is an @ElementCollection defined for them
         //        «IF embeddables?.filter[isPk !== null].head?.field == fld»
         //            @EmbeddedId
         //        «ENDIF»
-        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables,
+        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables, nmd,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName, ind | '''
                 «IF (primaryKeyType == PrimaryKeyType::SINGLE_COLUMN || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
@@ -259,7 +260,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                     «ENDIF»
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl)»
+                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl, nmd)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
@@ -551,7 +552,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     def private static createUniqueConstraints(EntityDefinition e) '''
         «IF !e.index.filter[isUnique].empty»
             , uniqueConstraints={
-            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columns.columnName.map['''"«name.java2sql»"'''].join(', ')»})'''].join(',\n')»
+            «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columns.columnName.map['''"«name.java2sql(e.nameMapping)»"'''].join(', ')»})'''].join(',\n')»
             }«ENDIF»'''
 
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
@@ -559,6 +560,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
         val shouldBeSerializable = e.serializable || (e.eContainer as BDDLPackageDefinition).allSerializable
+//        val nmd = e.nameMapping
 
         imports.recurseImports(e.tableCategory.trackingColumns, true)
         imports.recurseImports(e.pojoType, true)
@@ -801,7 +803,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         public class «myName» implements Serializable, Cloneable {
             private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «FOR col : e.pk.columnName»
-                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null)»
+                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null, e.nameMapping)»
             «ENDFOR»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
@@ -854,7 +856,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
             private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
-            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.doBeanVal, null, PrimaryKeyType::NONE, false, null)»
+            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.nameMappingGroup, e.doBeanVal, null, PrimaryKeyType::NONE, false, null)»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»

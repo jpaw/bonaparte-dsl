@@ -27,6 +27,7 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class SqlTriggerOut {
 
@@ -46,8 +47,8 @@ class SqlTriggerOut {
         '''
     }
 
-    def private static buildNvl(FieldDefinition f) {
-        val colname = f.name.java2sql
+    def private static buildNvl(FieldDefinition f, ColumnNameMappingDefinition nmd) {
+        val colname = f.name.java2sql(nmd)
         val ref = DataTypeExtension::get(f.datatype)
         var nullReplacement = "' '"
         // find out the cases when we need a different default
@@ -95,6 +96,7 @@ class SqlTriggerOut {
         val historyCategory = e.tableCategory.historyCategory
         val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
+        val nmd = e.nameMapping
         println('''Creating trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         // create an additional list to provide an ordered collection of both lists, but without repeated field names,
         // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
@@ -122,7 +124,7 @@ class SqlTriggerOut {
                     change_type_ := 'U';
                     «IF myPrimaryKeyColumns.size > 0»
                         -- deny attempts to change a primary key column
-                        IF «FOR c : myPrimaryKeyColumns SEPARATOR ' OR '»«c.buildNvl»«ENDFOR» THEN
+                        IF «FOR c : myPrimaryKeyColumns SEPARATOR ' OR '»«c.buildNvl(nmd)»«ENDFOR» THEN
                             RAISE DUP_VAL_ON_INDEX;
                         END IF;
                     «ENDIF»
@@ -132,22 +134,22 @@ class SqlTriggerOut {
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql(nmd)»'''])»
                     ) VALUES (
                         next_seq_
                         , change_type_
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :NEW.«myName.java2sql»''') ])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :NEW.«myName.java2sql(nmd)»''') ])»
                     );
                 END IF;
                 IF DELETING THEN
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
                         , «historyCategory.historyChangeTypeColumn»
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql»'''])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql(nmd)»'''])»
                     ) VALUES (
                         next_seq_
                         , 'D'
-                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :OLD.«myName.java2sql»''') ])»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', :OLD.«myName.java2sql(nmd)»''') ])»
                     );
                 END IF;
             END;
