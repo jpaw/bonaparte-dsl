@@ -22,7 +22,6 @@ generate bDDL "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL"
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
 import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
 
-@Override
 Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
