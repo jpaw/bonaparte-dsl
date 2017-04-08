@@ -642,6 +642,6 @@ class XUtil {
     }
 
     def public static xmlName(FieldDefinition f, boolean toUpper) {
-        return if (toUpper || f.properties.hasProperty(PROP_UPPERCASE)) f.name.toFirstUpper else f.name
+        return f.metaName ?: if (toUpper || f.properties.hasProperty(PROP_UPPERCASE)) f.name.toFirstUpper else f.name
     }
 }

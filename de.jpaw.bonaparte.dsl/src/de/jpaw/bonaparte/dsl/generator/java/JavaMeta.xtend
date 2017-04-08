@@ -152,7 +152,7 @@ class JavaMeta {
         val bonaparteType = if (ref.elementaryDataType !== null) ref.elementaryDataType.name.toLowerCase else "ref"
         return '''
             «extraItem»
-            public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»", «multi», DataCategory.«ref.category.name»,
+            public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.metaName ?: i.name»", «multi», DataCategory.«ref.category.name»,
                 "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired», «i.writeFieldPropertyMapName»«ext»);
             '''
     }

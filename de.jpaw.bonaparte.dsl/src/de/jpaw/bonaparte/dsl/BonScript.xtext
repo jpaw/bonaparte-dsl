@@ -296,6 +296,7 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     datatype    = DataType
     ((isAggregateRequired ?='required')? (isArray = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier))?
     name        = ID ('altGetter' getter = ID)? ('altSetter' setter = ID)?  // specify alternate getter / setters, for cornercases like mTimestamp
+    ('is' metaName = STRING)?                         // specify a name of the meta data, to allow for unusual JSON I/O
     ('default'    defaultString = STRING)?          
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
     ';'

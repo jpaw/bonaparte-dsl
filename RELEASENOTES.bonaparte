@@ -520,6 +520,8 @@ BDDL: add column name mapping feature (java name to non standard SQL name for co
 4.4.3:
 BDDL: allow to specify @TableGenerator or @SequenceGenerator
 
+4.4.4:
+BON: allow arbitrary external names for JSON and XML
 
 
 
