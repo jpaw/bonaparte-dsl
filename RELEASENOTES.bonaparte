@@ -523,6 +523,8 @@ BDDL: allow to specify @TableGenerator or @SequenceGenerator
 4.4.4:
 BON: allow arbitrary external names for JSON and XML
 
+4.4.5:
+BON: add a required type cast if collections of generic parameters are used
 
 
 
