@@ -143,6 +143,9 @@ class JavaFrozen {
                 '''
             }
         } else {
+            // collection of something. We need a cast if type type is a generic one.
+            val genericsRef = i.datatype.objectDataType?.genericsParameterRef
+            val optionalCast = if (genericsRef !== null) '''(«genericsRef.name»)'''
             if (i.isList !== null || i.isSet !== null) {
                 val token = i.aggregateToken
                 '''
@@ -150,7 +153,7 @@ class JavaFrozen {
                     Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
                     for («ref.javaType» _i: «i.name»)
                         if (_i != null) {
-                            _b.add(«ref.getFrozenClone("_i")»);
+                            _b.add(«optionalCast»«ref.getFrozenClone("_i")»);
                         }
                     _new.«i.name» = _b.build();
                 } else {
@@ -163,7 +166,7 @@ class JavaFrozen {
                 if («i.name» != null) {
                     ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
-                        _b.put(_i.getKey(), «ref.getFrozenClone("_i.getValue()")»);
+                        _b.put(_i.getKey(), «optionalCast»«ref.getFrozenClone("_i.getValue()")»);
                     _new.«i.name» = _b.build();
                 } else {
                     _new.«i.name» = null;
@@ -190,9 +193,7 @@ class JavaFrozen {
                 '''
             }
         } else {
-            // collection of something. We need a cast if type type is a generic one.
-            val genericsRef = i.datatype.objectDataType?.genericsParameterRef
-            val optionalCast = if (genericsRef !== null) '''(«genericsRef.name»)'''
+            // collection of something.
             '''
             if («i.name» == null || !_unfreezeCollections) {
                 _new.«i.name» = «i.name»;
@@ -224,15 +225,15 @@ class JavaFrozen {
                     «ELSEIF i.isList !== null»
                         _new.«i.name» = new ArrayList<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
-                            _new.«i.name».add(«optionalCast»«ref.getMutableClone("_e")»);
+                            _new.«i.name».add(«ref.getMutableClone("_e")»);
                     «ELSEIF i.isSet !== null»
                         _new.«i.name» = new HashSet<«i.JavaDataTypeNoName(true)»>(«i.name».size());
                         for («i.JavaDataTypeNoName(true)» _e : «i.name»)
-                            _new.«i.name».add(«optionalCast»«ref.getMutableClone("_e")»);
+                            _new.«i.name».add(«ref.getMutableClone("_e")»);
                     «ELSEIF i.isMap !== null»
                         _new.«i.name» = new Hash«i.JavaDataTypeNoName(false)»(«i.name».size());
                         for (Map.Entry<«i.isMap.indexType», «ref.javaType»> _e : «i.name».entrySet())
-                            _new.«i.name».put(_e.getKey(), «optionalCast»«ref.getMutableClone("_e.getValue()")»);
+                            _new.«i.name».put(_e.getKey(), «ref.getMutableClone("_e.getValue()")»);
                     «ENDIF»
                 «ENDIF»
             }

@@ -526,7 +526,8 @@ BON: allow arbitrary external names for JSON and XML
 4.4.5:
 BON: add a required type cast if collections of generic parameters are used
 
-
+4.4.6:
+BON: 4.4.5 bugfix
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
