@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.4.6</version>
+    <version>4.5.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>Bonaparte DSL - Parent for all plugin projects</name>
@@ -31,8 +31,10 @@
 
     <modules>
         <module>../de.jpaw.bonaparte.dsl</module>
+        <module>../de.jpaw.bonaparte.dsl.ide</module>
         <module>../de.jpaw.bonaparte.dsl.ui</module>
-        <module>../de.jpaw.bonaparte.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.dsl.target</module>
+        <!-- 
         <module>../de.jpaw.bonaparte.dts.dsl</module>
         <module>../de.jpaw.bonaparte.dts.dsl.ui</module>
         <module>../de.jpaw.bonaparte.dts.dsl.sdk</module>
@@ -43,23 +45,24 @@
         <module>../de.jpaw.bonaparte.noSQL.dsl.ui</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl.sdk</module>
         <module>../de.jpaw.updatesite</module>
+         -->
     </modules>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho.version>0.26.0</tycho.version>
+        <tycho.version>1.0.0</tycho.version>
         <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.10.0</xtend.version>
+        <xtend.version>2.12.0</xtend.version>
 
         <!-- org.apache.maven.plugins -->
-        <compiler.plugin.version>3.5.1</compiler.plugin.version>
-        <clean.plugin.version>2.6.1</clean.plugin.version>
+        <compiler.plugin.version>3.6.1</compiler.plugin.version>
+        <clean.plugin.version>3.0.0</clean.plugin.version>
         <enforcer.plugin.version>1.4.1</enforcer.plugin.version>
-        <javadoc.plugin.version>2.10.3</javadoc.plugin.version>
+        <javadoc.plugin.version>2.10.4</javadoc.plugin.version>
 
         <!-- org.codehaus.mojo maven plugins -->
         <exec.plugin.version>1.4.0</exec.plugin.version>
-        <build-helper.plugin.version>1.9.1</build-helper.plugin.version>
+        <build-helper.plugin.version>3.0.0</build-helper.plugin.version>
     </properties>
 
     <build>
@@ -145,6 +148,37 @@
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>target-platform-configuration</artifactId>
+                    <version>${tycho.version}</version>
+                    <configuration>
+                        <target>
+                            <artifact>
+                                <groupId>de.jpaw.bonaparte.dsl</groupId>
+                                <artifactId>de.jpaw.bonaparte.dsl.target</artifactId>
+                                <version>${project.version}</version>
+                            </artifact>
+                        </target>
+                        <environments>
+                            <environment>
+                                <os>macosx</os>
+                                <ws>cocoa</ws>
+                                <arch>x86_64</arch>
+                            </environment>
+                            <environment>
+                                <os>win32</os>
+                                <ws>win32</ws>
+                                <arch>x86_64</arch>
+                            </environment>
+                            <environment>
+                                <os>linux</os>
+                                <ws>gtk</ws>
+                                <arch>x86_64</arch>
+                            </environment>
+                        </environments>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-p2-repository-plugin</artifactId>
                     <version>${tycho.version}</version>
                 </plugin>
@@ -153,8 +187,8 @@
                     <artifactId>maven-compiler-plugin</artifactId>
                     <version>${compiler.plugin.version}</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>1.8</source>
+                        <target>1.8</target>
                         <encoding>${project.build.sourceEncoding}</encoding>
                     </configuration>
                 </plugin>
@@ -208,7 +242,7 @@
         <repository>
             <id>p2-xtext</id>
             <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.10.0/</url>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.12.0/</url>
         </repository>
         <repository>
             <id>p2-neon</id>
@@ -217,7 +251,31 @@
             <!-- 201606221000 was Neon original release, 201609281000 is SR1 -->
             <url>http://download.eclipse.org/releases/neon/201610111000/</url>
         </repository>
+        <repository>
+            <id>codehaus-snapshots</id>
+            <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
+            <url>http://nexus.codehaus.org/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>codehaus-snapshots</id>
+            <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
+            <url>http://nexus.codehaus.org/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <snapshotRepository>

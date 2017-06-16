@@ -38,6 +38,7 @@ Model:
     
 
 
+@Override
 terminal ML_COMMENT: '/*' !'*'-> '*/' ;     // overwrite ML_COMMENT to derive the non-Terminal JAVADOC comment
 terminal JAVADOC_COMMENT: '/**' -> '*/';    // and provide a separate JavaDoc multiline comment
 

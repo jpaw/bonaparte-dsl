@@ -2,39 +2,29 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.4.6
+Bundle-Version: 4.5.0.qualifier
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl; singleton:=true
 Bundle-ActivationPolicy: lazy
-Require-Bundle: org.eclipse.xtext;bundle-version="2.9.2";visibility:=reexport,
- org.eclipse.xtext.xbase;bundle-version="2.9.2";resolution:=optional;visibility:=reexport,
- org.eclipse.xtext.generator;bundle-version="2.9.2";resolution:=optional,
- org.apache.commons.logging;bundle-version="1.0.4";resolution:=optional,
- org.eclipse.emf.codegen.ecore;resolution:=optional,
- org.eclipse.emf.mwe.utils;resolution:=optional,
- org.eclipse.emf.mwe2.launch;resolution:=optional,
- org.eclipse.xtext.util;bundle-version="2.9.2",
+Require-Bundle: org.eclipse.xtext,
+ org.eclipse.xtext.xbase,
+ org.eclipse.equinox.common;bundle-version="3.5.0",
  org.eclipse.emf.ecore,
- org.eclipse.emf.common,
+ org.eclipse.xtext.xbase.lib,
  org.antlr.runtime,
- org.eclipse.xtext.xbase.lib;bundle-version="2.9.2",
- org.eclipse.xtext.common.types;bundle-version="2.9.2",
- org.objectweb.asm;bundle-version="[5.0.1,6.0.0)";resolution:=optional,
- org.eclipse.equinox.common
-Import-Package: org.apache.commons.lang;version="2.1.0",
- org.apache.log4j,
- org.eclipse.xtend2.lib,
- org.eclipse.xtext.xbase.lib
-Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Export-Package: de.jpaw.bonaparte.dsl,
- de.jpaw.bonaparte.dsl.bonScript,
- de.jpaw.bonaparte.dsl.bonScript.impl,
- de.jpaw.bonaparte.dsl.bonScript.util,
- de.jpaw.bonaparte.dsl.formatting,
+ org.eclipse.xtext.util,
+ org.eclipse.xtend.lib,
+ org.eclipse.emf.common
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: de.jpaw.bonaparte.dsl.scoping,
  de.jpaw.bonaparte.dsl.generator,
- de.jpaw.bonaparte.dsl.generator.java,
- de.jpaw.bonaparte.dsl.parser.antlr,
  de.jpaw.bonaparte.dsl.parser.antlr.internal,
- de.jpaw.bonaparte.dsl.scoping,
- de.jpaw.bonaparte.dsl.serializer,
  de.jpaw.bonaparte.dsl.services,
+ de.jpaw.bonaparte.dsl.bonScript.util,
+ de.jpaw.bonaparte.dsl,
+ de.jpaw.bonaparte.dsl.parser.antlr,
+ de.jpaw.bonaparte.dsl.bonScript,
+ de.jpaw.bonaparte.dsl.serializer,
+ de.jpaw.bonaparte.dsl.bonScript.impl,
  de.jpaw.bonaparte.dsl.validation
+Import-Package: org.apache.commons.lang,
+ org.apache.log4j

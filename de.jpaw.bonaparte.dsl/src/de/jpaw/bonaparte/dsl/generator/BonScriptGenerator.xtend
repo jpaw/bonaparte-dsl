@@ -17,8 +17,6 @@
 package de.jpaw.bonaparte.dsl.generator
 
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IGenerator
-import org.eclipse.xtext.generator.IFileSystemAccess
 
 import org.apache.log4j.Logger
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
@@ -27,8 +25,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.generator.xsd.XsdBonScriptGeneratorMain
+import org.eclipse.xtext.generator.AbstractGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess2
+import org.eclipse.xtext.generator.IGeneratorContext
 
-class BonScriptGenerator implements IGenerator {
+class BonScriptGenerator extends AbstractGenerator {
     private static final Logger LOGGER = Logger.getLogger(BonScriptGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
@@ -45,7 +46,7 @@ class BonScriptGenerator implements IGenerator {
         LOGGER.info("BonScriptGenerator constructed. " + filterInfo)
     }
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext context) {
 
         if (BonScriptPreferences.currentPrefs.doDebugOut) {
             LOGGER.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
