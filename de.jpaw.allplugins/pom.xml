@@ -153,7 +153,7 @@
                     <configuration>
                         <target>
                             <artifact>
-                                <groupId>de.jpaw.bonaparte.dsl</groupId>
+                                <groupId>de.jpaw.bonaparte-dsl</groupId>
                                 <artifactId>de.jpaw.bonaparte.dsl.target</artifactId>
                                 <version>${project.version}</version>
                             </artifact>
