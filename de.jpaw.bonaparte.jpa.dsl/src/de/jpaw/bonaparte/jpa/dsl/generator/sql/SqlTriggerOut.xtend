@@ -97,7 +97,7 @@ class SqlTriggerOut {
         val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
         val nmd = e.nameMapping
-        println('''Creating trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
+        println('''Creating ORACLE trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         // create an additional list to provide an ordered collection of both lists, but without repeated field names,
         // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
         val keyFieldNames = myPrimaryKeyColumns.map[name]
@@ -155,5 +155,72 @@ class SqlTriggerOut {
             END;
             /
         '''
+    }
+
+    def private static buildNe(FieldDefinition f, ColumnNameMappingDefinition nmd) {
+        val colname = f.name.java2sql(nmd)
+        return '''OLD.«colname» <> NEW.«colname»'''
+    }
+
+    def public static triggerOutPostgres(EntityDefinition e) {
+        val baseTablename = mkTablename(e, false)
+        val tablename = mkTablename(e, true)
+        val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
+        val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
+        val nmd = e.nameMapping
+        println('''Creating POSTGRES trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
+        // create an additional list to provide an ordered collection of both lists, but without repeated field names,
+        // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
+        val keyFieldNames = myPrimaryKeyColumns.map[name]
+        val allColumns = new ArrayList<FieldDefinition>(myPrimaryKeyColumns)
+        nonPrimaryKeyColumns.filter[!keyFieldNames.contains(it.name)].forEach[allColumns.add(it)]
+
+        // in postgres, there is no CREATE OR REPLACE TRIGGER.
+        // We need 3 statements instead:
+        // 1) a function
+        // 2) a DROP TRIGGER IF EXISTS (see https://www.postgresql.org/docs/9.4/static/sql-droptrigger.html)
+        // 3) a CREATE TRIGGER
+        return '''
+            -- This source has been automatically created by the bonaparte DSL (bonaparte.jpa addon). Do not modify, changes will be lost.
+            -- The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
+            -- The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
+
+            CREATE OR REPLACE FUNCTION «baseTablename»_tp() RETURNS TRIGGER AS $«baseTablename»_td$
+            DECLARE
+                next_seq_ BIGINT;
+            BEGIN
+                SELECT NEXTVAL('«e.tableCategory.historySequenceName»') INTO next_seq_;
+                IF (TG_OP = 'INSERT') THEN
+                    INSERT INTO «tablename» SELECT next_seq_, 'I', NEW.*;
+                    RETURN NEW;
+                END IF;
+                IF (TG_OP = 'UPDATE') THEN
+                    «IF myPrimaryKeyColumns.size > 0»
+                        -- deny attempts to change a primary key column
+                        IF «FOR c : myPrimaryKeyColumns SEPARATOR ' OR '»«c.buildNe(nmd)»«ENDFOR» THEN
+                            RAISE EXCEPTION 'Cannot change primary key column to different value';
+                        END IF;
+                    «ENDIF»
+                    INSERT INTO «tablename» SELECT next_seq_, 'U', NEW.*;
+                    RETURN NEW;
+                END IF;
+                IF (TG_OP = 'DELETE') THEN
+                    INSERT INTO «tablename» SELECT next_seq_, 'D', OLD.*;
+                    RETURN OLD;
+                END IF;
+                RETURN NULL;
+            END;
+            $«baseTablename»_td$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS «baseTablename»_tr ON «baseTablename»;
+
+            CREATE OR REPLACE TRIGGER «baseTablename»_tr
+                AFTER INSERT OR DELETE OR UPDATE ON «baseTablename»
+                FOR EACH ROW EXECUTE PROCEDURE «baseTablename»_tp();
+        '''
+        // TODO: check if we should use SECURITY DEFINER, as recommended in https://www.postgresql.org/docs/9.5/static/sql-createfunction.html
+        // SECURITY DEFINER
+        // -- Set a secure search_path: trusted schema(s), then 'pg_temp'.
+        // SET search_path = admin, pg_temp;
     }
 }

@@ -170,6 +170,8 @@ class SqlDDLGeneratorMain implements IGenerator {
         val tablename = mkTablename(e, false)
         if (prefs.doOracleOut)
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename + "_tr", "Trigger"), SqlTriggerOut.triggerOutOracle(e))
+        if (prefs.doPostgresOut)
+            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename + "_tr", "Trigger"), SqlTriggerOut.triggerOutPostgres(e))
     }
 
     def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
