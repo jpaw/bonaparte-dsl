@@ -31,6 +31,9 @@ class MakeMapper {
             var getMe = '''get«i.name.toFirstUpper»()'''
             if (hasProperty(i.properties, PROP_SIMPLEREF)) {
                 getMe = '''new «i.JavaDataTypeNoName(true)»(«getMe»)'''
+                if (setter)
+                    getMe = '''_r.set«i.name.toFirstUpper»(«getMe»);'''
+                return getMe
             } else if (!hasProperty(i.properties, PROP_REF) && (JavaFieldWriter.shouldWriteColumn(i) || i.isAnEmbeddable(embeddables))) {
                 if (setter)
                     getMe = '''_r.set«i.name.toFirstUpper»(«getMe»);'''
