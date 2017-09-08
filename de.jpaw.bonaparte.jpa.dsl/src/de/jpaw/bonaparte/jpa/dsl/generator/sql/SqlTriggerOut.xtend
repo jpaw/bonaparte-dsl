@@ -165,6 +165,7 @@ class SqlTriggerOut {
     def public static triggerOutPostgres(EntityDefinition e) {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
+        val historyCategory = e.tableCategory.historyCategory
         val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
         val nmd = e.nameMapping
@@ -191,7 +192,14 @@ class SqlTriggerOut {
             BEGIN
                 SELECT NEXTVAL('«e.tableCategory.historySequenceName»') INTO next_seq_;
                 IF (TG_OP = 'INSERT') THEN
-                    INSERT INTO «tablename» SELECT next_seq_, 'I', NEW.*;
+                    INSERT INTO «tablename» (
+                        «historyCategory.historySequenceColumn»
+                        , «historyCategory.historyChangeTypeColumn»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql(nmd)»'''])»
+                    ) VALUES (
+                        next_seq_, 'I'
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', NEW.«myName.java2sql(nmd)»''') ])»
+                    );
                     RETURN NEW;
                 END IF;
                 IF (TG_OP = 'UPDATE') THEN
@@ -201,11 +209,25 @@ class SqlTriggerOut {
                             RAISE EXCEPTION 'Cannot change primary key column to different value';
                         END IF;
                     «ENDIF»
-                    INSERT INTO «tablename» SELECT next_seq_, 'U', NEW.*;
+                    INSERT INTO «tablename» (
+                        «historyCategory.historySequenceColumn»
+                        , «historyCategory.historyChangeTypeColumn»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql(nmd)»'''])»
+                    ) VALUES (
+                        next_seq_, 'U'
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', NEW.«myName.java2sql(nmd)»''') ])»
+                    );
                     RETURN NEW;
                 END IF;
                 IF (TG_OP = 'DELETE') THEN
-                    INSERT INTO «tablename» SELECT next_seq_, 'D', OLD.*;
+                    INSERT INTO «tablename» (
+                        «historyCategory.historySequenceColumn»
+                        , «historyCategory.historyChangeTypeColumn»
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | ''', «myName.java2sql(nmd)»'''])»
+                    ) VALUES (
+                        next_seq_, 'D'
+                        «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', OLD.«myName.java2sql(nmd)»''') ])»
+                    );
                     RETURN OLD;
                 END IF;
                 RETURN NULL;
@@ -214,7 +236,7 @@ class SqlTriggerOut {
 
             DROP TRIGGER IF EXISTS «baseTablename»_tr ON «baseTablename»;
 
-            CREATE OR REPLACE TRIGGER «baseTablename»_tr
+            CREATE TRIGGER «baseTablename»_tr
                 AFTER INSERT OR DELETE OR UPDATE ON «baseTablename»
                 FOR EACH ROW EXECUTE PROCEDURE «baseTablename»_tp();
         '''
