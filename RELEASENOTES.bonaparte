@@ -532,6 +532,10 @@ BON: 4.4.5 bugfix
 4.4.7:
 BON: bugfix: use ByteArray.equals instead of contentEquals
 
+4.4.8:
+BDDL: generate database audit triggers also for Postgres databases
+BDDL: fix suspected bug for internal mappers for simpleRefs
+
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references
