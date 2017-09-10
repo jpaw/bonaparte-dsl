@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.jpa.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.4.8
+Bundle-Version: 4.4.9
 Bundle-SymbolicName: de.jpaw.bonaparte.jpa.dsl;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;visibility:=reexport,
