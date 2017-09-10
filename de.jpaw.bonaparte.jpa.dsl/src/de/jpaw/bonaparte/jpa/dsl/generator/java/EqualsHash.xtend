@@ -25,6 +25,7 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import java.util.List
 import de.jpaw.bonaparte.jpa.dsl.generator.PrimaryKeyType
+import de.jpaw.bonaparte.dsl.generator.java.JavaCompare
 
 class EqualsHash {
     /////////////////////////////////////////////////////////////////////
@@ -139,48 +140,49 @@ class EqualsHash {
         }
     '''
 
-
-    // only caller in next method
-    def private static writeCompareStuffSub(FieldDefinition i, String index) {
+    /** Creates a comparison of two scalar fields. The first is known not to be null. Note this is different from the BON comparison due to serialized fields. */
+    def private static writeBasicCompare(FieldDefinition i, String index) {
         switch (getJavaDataType(i.datatype)) {
-        case "BonaPortable":        '''Arrays.equals(«index», __that.«index»)'''  // mapped to byte []
+        case "BonaPortable":        '''Arrays.equals(«index», __that.«index»)'''  // mapped to byte [] (support for serialized storage)
         case "byte []":             '''Arrays.equals(«index», __that.«index»)'''
-        case "BigDecimal":          '''«index».compareTo(__that.«index») == 0'''  // we want the comparison to be "true" if the values are the same on the database
+        case "BigDecimal":          '''«index».compareTo(__that.«index») == 0'''  // we want the comparison to be "true" if the values are the same on the database, which ignores the actual presentation and corresponds to compareTo
 //        case "Instant":             '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
 //        case "LocalTime":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
 //        case "LocalDate":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
 //        case "LocalDateTime":       '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
+        // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
+        // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         default:                    '''«index».equals(__that.«index»)'''
         }
     }
 
+
     // only caller in next method
-    def private static writeCompareStuff(FieldDefinition i, String index, String end) '''
-        «IF DataTypeExtension::get(i.datatype).category == DataCategory::OBJECT»
-            ((«index» == null && __that.«index» == null) || «index».equals(__that.«index»))«end»
-        «ELSE»
-            «IF DataTypeExtension::get(i.datatype).isPrimitive»
-                «index» == __that.«index»«end»
-            «ELSE»
-                ((«index» == null && __that.«index» == null) || «writeCompareStuffSub(i, index)»)«end»
-            «ENDIF»
-        «ENDIF»
-    '''
+    def private static writeCompareStuff(FieldDefinition i, String a) {
+        val ref = DataTypeExtension::get(i.datatype) 
+        val b = "__that." + a
+        if (ref.category == DataCategory::OBJECT)
+            return JavaCompare.doCompareWithNull(a, b, a + ".equals(" + b + ")")
+        else if (ref.isPrimitive)
+            return '''«a» == «b»'''
+        else
+            return JavaCompare.doCompareWithNull(a, b, writeBasicCompare(i, a))
+    }
 
     // main entry to write the code - multiple different callers.
     // __that holds an object of the same type and is not null
     def private static writeEqualsSubForListOfFields(List<FieldDefinition> l) '''
         «FOR i: l»
             «IF i.isArray !== null»
-                && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && __that.«i.name» != null && arrayCompareSub$«i.name»(__that)))
+                && «JavaCompare.doCompareWithNull(i.name, "__that." + i.name, '''(__that.«i.name» != null && arrayCompareSub$«i.name»(__that))''')»
             «ELSEIF i.aggregate»
                 «IF i.indexList !== null»
-                    «i.indexList.map[i.name + it].map['''&& ((«it» == null && __that.«it» == null) || («it» != null && «it».equals(__that)))'''].join('\n')»
+                    «i.indexList.map[i.name + it].map['''&& «JavaCompare.doCompareWithNull(it, "__that." + it, writeBasicCompare(i, it))»'''].join('\n')»
                 «ELSE»
-                    && ((«i.name» == null && __that.«i.name» == null) || («i.name» != null && «i.name».equals(__that)))
+                    && «JavaCompare.doCompareWithNull(i.name, "__that." + i.name, writeBasicCompare(i, i.name))»
                 «ENDIF»
             «ELSE»
-                && «writeCompareStuff(i, i.name, "")»
+                && «writeCompareStuff(i, i.name)»
             «ENDIF»
         «ENDFOR»
     '''

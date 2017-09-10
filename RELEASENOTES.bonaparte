@@ -536,6 +536,9 @@ BON: bugfix: use ByteArray.equals instead of contentEquals
 BDDL: generate database audit triggers also for Postgres databases
 BDDL: fix suspected bug for internal mappers for simpleRefs
 
+4.4.9:
+BON, BDDL: use ? : construct instead of && || && for equals method. Unify BON and BDDL equals generators. Bugfix for BDDL embeddables with unrolled loops
+
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references

@@ -70,12 +70,13 @@ class JavaCompare {
         }
     '''
 
-    // FIXME: there is an issue here, as elements of Lists will always be compared using equals(), also for types where we want to use compareTo()!
+    /** Creates a comparison of two fields (same members of different class instances) when the first is known not to be null. */
     def private static writeCompareSub(FieldDefinition i, DataTypeExtension ref, String index, String tindex) {
         if (ref.category == DataCategory::OBJECT) {
             if (ref.objectDataType?.externalType !== null) {
                 // external type. use equals() or compareTo()
                 if (ref.objectDataType.useCompareToInsteadOfEquals)
+                    // FIXME: there is an issue here, as elements of Lists will always be compared using equals(), also for types where we want to use compareTo()!
                     return '''«index».compareTo(«tindex») == 0'''
                 else
                     return '''«index».equals(«tindex»)'''
@@ -87,21 +88,27 @@ class JavaCompare {
         // not object. treat elementary data types next
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
-        // case "ByteArray":   '''«index».contentEquals(«tindex»)'''  // fall through to default (equals) because contentEquals assumes that != null
-        case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''  // do not use equals!!!
+        case "BigDecimal":  '''«index».compareTo(«tindex») == 0'''
+        // case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''
         // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         default:            '''«index».equals(«tindex»)'''
         }
     }
 
+    /** Creates a comparison of two fields (same members of different class instances) when both can be null. */
+    def public static doCompareWithNull(String a, String b, CharSequence complex) {
+        return '''(«a» == null ? «b» == null : «complex»)'''
+    }
+
+    /** Creates a comparison of two fields (same members of different class instances) when both can be null, for a specific instance (array index / Map/List/Set member). */
     def private static writeCompareStuff(FieldDefinition i, String index, String tindex, String end) {
         val ref = DataTypeExtension::get(i.datatype)
         return '''
             «IF ref.isPrimitive»
                 «index» == «tindex»«end»
             «ELSE»
-                ((«index» == null && «tindex» == null) || («index» != null && «writeCompareSub(i, ref, index, tindex)»))«end»
+                «doCompareWithNull(index, tindex, writeCompareSub(i, ref, index, tindex))»«end»
             «ENDIF»
         '''
     }
