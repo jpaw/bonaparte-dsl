@@ -313,7 +313,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             if (_b instanceof «e.name») {
                 «e.name» _x = («e.name»)_b;
                 «IF e.extends === null && e.pk?.columnName !== null»
-                    «FOR f: e.pk?.columnName»
+                    «FOR f: e.pk.columnName»
                         set«f.name.toFirstUpper»(_x.get«f.name.toFirstUpper»());
                     «ENDFOR»
                 «ENDIF»

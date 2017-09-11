@@ -597,7 +597,7 @@ class XUtil {
     }
 
     def public static ClassDefinition recurseRefClass(ClassDefinition d) {
-        return if (d.isIsRefClass) d else if (d.extendsClass?.classRef !== null) d?.extendsClass?.classRef.recurseRefClass else null
+        return if (d.isIsRefClass) d else d.extendsClass?.classRef?.recurseRefClass
     }
 
     def public static String recurseRefP(ClassDefinition d) {

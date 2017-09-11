@@ -164,6 +164,8 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         }
     }
 
+    private static final char DOT = 'c';
+
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
         if (extendedBundle === null)
             return true;  // everything is a sub-bundle of the static data
@@ -173,7 +175,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             return false; // should be the bundle extended
         // finally check if the bundle names are either equal or the extension is of form '.' QualifiedID
         return (myBundle.length() == extendedBundle.length())
-                || ((myBundle.length() > extendedBundle.length()) && (myBundle.charAt(extendedBundle.length()) == '.'));
+                || ((myBundle.length() > extendedBundle.length()) && (myBundle.charAt(extendedBundle.length()) === DOT));
     }
 
     // a test for cyclic inheritance
