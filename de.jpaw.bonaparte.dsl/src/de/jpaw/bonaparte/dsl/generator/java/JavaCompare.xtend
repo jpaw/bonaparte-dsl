@@ -113,6 +113,31 @@ class JavaCompare {
         '''
     }
 
+    /** Write a hashcode expression for a single primitive field. */
+    def public static writePrimitiveSimpleHash(FieldDefinition i, DataTypeExtension ref) {
+        switch (ref.javaType) {
+        case "Float":   '''(new Float(«i.name»).hashCode())'''
+        case "Double":  '''(new Double(«i.name»).hashCode())'''
+        case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
+        case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
+        case "Integer": '''«i.name»'''
+        default:        '''(int)«i.name»'''  // byte, short, char
+        }
+    }
+
+    /** Write a hashcode expression for a single non primitive field. (Needs null check, and special treatment for BigDecimal, for compatibility with our equals() implementation). */
+    def public static writeNonPrimitiveSimpleHash(FieldDefinition i, DataTypeExtension ref) {
+        switch (ref.javaType) {
+        case "byte []":
+            // special treatment required, again!
+            return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''     // straightforward recursion
+        case "BigDecimal":
+            return '''BigDecimalTools.hashCode(«i.name», «ref.elementaryDataType.decimals»)'''   // specific implementation with scaling
+        default:
+            return '''(«i.name» == null ? 0 : «i.name».hashCode())'''           // standard implementation
+        }
+    }
+
     def public static writeHash(FieldDefinition i, DataTypeExtension ref) {
         if (ref.isPrimitive) {
             if (i.isArray !== null)
@@ -120,14 +145,7 @@ class JavaCompare {
             else {
                 // isMap, isSet and isList cannot be true, they don't work with primitives...
                 // a single primitive type....
-                switch (ref.javaType) {
-                case "Float":   '''(new Float(«i.name»).hashCode())'''
-                case "Double":  '''(new Double(«i.name»).hashCode())'''
-                case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
-                case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
-                case "Integer": '''«i.name»'''
-                default:        '''(int)«i.name»'''  // byte, short, char
-                }
+                return writePrimitiveSimpleHash(i, ref)
             }
         } else {
             if (i.isArray !== null)
@@ -136,13 +154,7 @@ class JavaCompare {
                 return '''(«i.name» == null ? 0 : «i.name».hashCode())'''  // List, Map and Set have a usable implementation
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType !== null && ref.javaType.equals("byte []"))
-                    // special treatment required, again!
-                    return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''     // straightforward recursion
-                else if ("BigDecimal".equals(ref.javaType))
-                    return '''BigDecimalTools.hashCode(«i.name», «ref.elementaryDataType.decimals»)'''   // specific implementation with scaling
-                else
-                    return '''(«i.name» == null ? 0 : «i.name».hashCode())'''           // standard implementation
+                return writeNonPrimitiveSimpleHash(i, ref)
             }
         }
     }

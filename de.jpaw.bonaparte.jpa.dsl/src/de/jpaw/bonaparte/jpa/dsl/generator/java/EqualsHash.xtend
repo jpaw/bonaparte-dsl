@@ -51,14 +51,7 @@ class EqualsHash {
                 return i.hashSub33
             else {
                 // a single primitive type....
-                switch (ref.javaType) {
-                case "Float":   '''(new Float(«i.name»).hashCode())'''
-                case "Double":  '''(new Double(«i.name»).hashCode())'''
-                case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
-                case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
-                case "Integer": '''«i.name»'''
-                default:         '''(int)«i.name»'''  // byte, short, char
-                }
+                return JavaCompare.writePrimitiveSimpleHash(i, ref)
             }
         } else {
             if (i.isArray !== null)
@@ -67,11 +60,11 @@ class EqualsHash {
                 return i.hashSub33
             else {
                 // a single non-primitive type (Boxed or Joda or Date?)....
-                if (ref.javaType !== null && (ref.javaType.equals("byte []") || ref.javaType.equals("BonaPortable")))
+                if (ref.javaType == "BonaPortable")
                     // special treatment required, again! (but not for ByteArray, we do this with usertypes now as well...)
                     return '''(«i.name» == null ? 0 : Arrays.hashCode(«i.name»))'''   // straightforward recursion
                 else
-                    return '''(«i.name» == null ? 0 : «i.name».hashCode())'''   // straightforward recursion
+                    return JavaCompare.writeNonPrimitiveSimpleHash(i, ref)
             }
         }
     }
