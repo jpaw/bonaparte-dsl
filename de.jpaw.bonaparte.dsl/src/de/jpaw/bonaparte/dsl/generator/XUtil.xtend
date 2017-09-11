@@ -589,28 +589,28 @@ class XUtil {
     }
 
     def public static ClassDefinition recursePkClass(ClassDefinition d) {
-        return d.pkClass ?: if (d.isPkClass) d else d?.extendsClass?.classRef?.recursePkClass
+        return d.pkClass ?: if (d.isPkClass) d else d.extendsClass?.classRef?.recursePkClass
     }
 
     def public static ClassDefinition recurseTrackingClass(ClassDefinition d) {
-        return d.trackingClass ?: d?.extendsClass?.classRef?.recurseTrackingClass
+        return d.trackingClass ?: d.extendsClass?.classRef?.recurseTrackingClass
     }
 
     def public static ClassDefinition recurseRefClass(ClassDefinition d) {
-        return if (d.isIsRefClass) d else if (d?.extendsClass?.classRef !== null) d?.extendsClass?.classRef.recurseRefClass else null
+        return if (d.isIsRefClass) d else if (d.extendsClass?.classRef !== null) d?.extendsClass?.classRef.recurseRefClass else null
     }
 
     def public static String recurseRefP(ClassDefinition d) {
-        return d.refPFunction ?: d?.extendsClass?.classRef?.recurseRefP
+        return d.refPFunction ?: d.extendsClass?.classRef?.recurseRefP
     }
     def public static String recurseRefW(ClassDefinition d) {
-        return d.refWFunction ?: d?.extendsClass?.classRef?.recurseRefW
+        return d.refWFunction ?: d.extendsClass?.classRef?.recurseRefW
     }
     def public static String recurseKeyP(ClassDefinition d) {
-        return d.keyPFunction ?: d?.extendsClass?.classRef?.recurseKeyP
+        return d.keyPFunction ?: d.extendsClass?.classRef?.recurseKeyP
     }
     def public static String recurseKeyW(ClassDefinition d) {
-        return d.keyWFunction ?: d?.extendsClass?.classRef?.recurseKeyW
+        return d.keyWFunction ?: d.extendsClass?.classRef?.recurseKeyW
     }
     /** returns true if the class is not abstract and itself or one of its parent classes has been declared as xmlRoot. */
     def public static boolean effectiveXmlRoot(ClassDefinition d) {
