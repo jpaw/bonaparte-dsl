@@ -644,4 +644,12 @@ class XUtil {
     def public static xmlName(FieldDefinition f, boolean toUpper) {
         return f.metaName ?: if (toUpper || f.properties.hasProperty(PROP_UPPERCASE)) f.name.toFirstUpper else f.name
     }
+
+    def public static typeOfAggregate(String aggregate) {
+        switch (aggregate) {
+            case "List": return "Array"
+            case "Set": return "Hash"
+            case "Map": return "Hash"
+        }
+    }
 }

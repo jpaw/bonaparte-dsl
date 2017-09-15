@@ -76,44 +76,54 @@ class JavaFrozen {
             if (i.aggregate) {  // Set, Map, List are possible here, classes which contain arrays are not freezable!
                 val token = i.aggregateToken
                 '''
-                // copy unless the «token» is immutable already (or null)
-                if («i.name» != null && !(«i.name» instanceof Immutable«token»))
-                    «i.name» = Immutable«token».copyOf(«i.name»);
+                // copy unless the «token» is null
+                if («i.name» != null)
+                    «i.name» = Collections.unmodifiable«token»(«i.name»);
                 '''
             } else {
                 // nothing to do
                 return null
             }
         } else {
-            if (i.isList !== null || i.isSet !== null) {
-                val token = i.aggregateToken
+            if (i.isList !== null) {
                 '''
                 if («i.name» != null) {
-                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
-                    for («ref.javaType» _i: «i.name»)
-                        if (_i != null) {
+                    final List<«ref.javaType»> _b = new ArrayList(«i.name».size());
+                    for («ref.javaType» _i: «i.name») {
+                        if (_i != null)
                             «ref.invokeFreezeMethod("_i")»
-                            _b.add(_i);
-                        }
-                    «i.name» = _b.build();
+                        _b.add(_i);
+                    }
+                    «i.name» = Collections.unmodifiableList(_b);
+                }
+                '''
+            } else if (i.isSet !== null) {
+                '''
+                if («i.name» != null) {
+                    final Set<«ref.javaType»> _b = new HashSet(«i.name».size() * 2);
+                    for («ref.javaType» _i: «i.name») {
+                        if (_i != null)
+                            «ref.invokeFreezeMethod("_i")»
+                        _b.add(_i);
+                    }
+                    «i.name» = Collections.unmodifiableSet(_b);
                 }
                 '''
             } else if (i.isMap !== null) {
                 val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
-                    ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
-                    for (Map.Entry«genericsArg» _i: «i.name».entrySet())
-                        if (_i.getValue() != null) {
+                    final Map«genericsArg» _b = new HashMap(«i.name».size() * 2);
+                    for (Map.Entry«genericsArg» _i: «i.name».entrySet()) {
+                        if (_i.getValue() != null)
                             «ref.invokeFreezeMethod("_i.getValue()")»
-                            _b.put(_i);
-                        }
-                    «i.name» = _b.build();
+                        _b.put(_i.getKey(), _i.getValue());
+                    }
+                    «i.name» = Collections.unmodifiableMap(_b);
                 }
                 '''
             } else {
                 // scalar object. Do nothing if it is external or immutable
-                // TODO: if this is a BonaPortable, need to distinguish if it is immutable, freezable, or unfreezable
                 if (ref.supportsFreeze)
                     return '''
                         if («i.name» != null) {
@@ -131,9 +141,9 @@ class JavaFrozen {
             if (i.aggregate) {
                 val token = i.aggregateToken
                 '''
-                // copy unless the «token» is immutable already (or null)
-                if («i.name» != null && !(«i.name» instanceof Immutable«token»))
-                    _new.«i.name» = Immutable«token».copyOf(«i.name»);
+                // copy unless the «token» is null
+                if («i.name» != null)
+                    _new.«i.name» = Collections.unmodifiable«token»(new «token.typeOfAggregate»«token»(«i.name»));
                 else
                     _new.«i.name» = «i.name»;
                 '''
@@ -146,16 +156,26 @@ class JavaFrozen {
             // collection of something. We need a cast if type type is a generic one.
             val genericsRef = i.datatype.objectDataType?.genericsParameterRef
             val optionalCast = if (genericsRef !== null) '''(«genericsRef.name»)'''
-            if (i.isList !== null || i.isSet !== null) {
-                val token = i.aggregateToken
+            if (i.isList !== null) {
                 '''
                 if («i.name» != null) {
-                    Immutable«token».Builder<«ref.javaType»> _b = Immutable«token».builder();
-                    for («ref.javaType» _i: «i.name»)
-                        if (_i != null) {
-                            _b.add(«optionalCast»«ref.getFrozenClone("_i")»);
-                        }
-                    _new.«i.name» = _b.build();
+                    final List<«ref.javaType»> _b = new ArrayList(«i.name».size());
+                    for («ref.javaType» _i: «i.name») {
+                        _b.add(«optionalCast»«ref.getFrozenClone("_i")»);
+                    }
+                    _new.«i.name» = Collections.unmodifiableList(_b);
+                } else {
+                    _new.«i.name» = null;
+                }
+                '''
+            } else if (i.isSet !== null) {
+                '''
+                if («i.name» != null) {
+                    final Set<«ref.javaType»> _b = new HashSet(«i.name».size() * 2);
+                    for («ref.javaType» _i: «i.name») {
+                        _b.add(«optionalCast»«ref.getFrozenClone("_i")»);
+                    }
+                    _new.«i.name» = Collections.unmodifiableSet(_b);
                 } else {
                     _new.«i.name» = null;
                 }
@@ -164,10 +184,10 @@ class JavaFrozen {
                 val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
-                    ImmutableMap.Builder«genericsArg» _b = ImmutableMap.builder();
+                    final Map«genericsArg» _b = new HashMap(«i.name».size() * 2);
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
                         _b.put(_i.getKey(), «optionalCast»«ref.getFrozenClone("_i.getValue()")»);
-                    _new.«i.name» = _b.build();
+                    _new.«i.name» = Collections.unmodifiableMap(_b);
                 } else {
                     _new.«i.name» = null;
                 }
