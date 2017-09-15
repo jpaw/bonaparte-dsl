@@ -2,7 +2,7 @@
 <feature
       id="de.jpaw.bonaparte.dts.dsl.sdk"
       label="Bonaparte dts Typescript Generator DSL SDK Feature"
-      version="4.4.20"
+      version="4.4.21.qualifier"
       provider-name="Michael Bischoff">
 
    <copyright>
