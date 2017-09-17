@@ -270,18 +270,16 @@ class XUtil {
         return 0  // should not happen
     }
 
-    def public static loopStart(FieldDefinition i) '''
-        «IF i.isArray !== null»
-            if («i.name» != null)
-                for (int _i = 0; _i < «i.name».length; ++_i)
-        «ELSEIF i.isList !== null || i.isSet !== null»
-            if («i.name» != null)
-                for («JavaDataTypeNoName(i, true)» _i : «i.name»)
-        «ELSEIF i.isMap !== null»
-            if («i.name» != null)
-                for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet())
-        «ENDIF»
-        '''
+    def public static loopStart(FieldDefinition i, boolean withNullCheck) {
+        val check = if (withNullCheck) '''if («i.name» != null) ''';
+        if (i.isArray !== null)
+            return '''«check»for (int _i = 0; _i < «i.name».length; ++_i) '''
+        if (i.isList !== null || i.isSet !== null)
+            return '''«check»for («JavaDataTypeNoName(i, true)» _i : «i.name») '''
+        if (i.isMap !== null)
+            return '''«check»for (Map.Entry<«i.isMap.indexType»,«JavaDataTypeNoName(i, true)»> _i : «i.name».entrySet()) '''
+        return null
+    }
 
     def public static loopMaxCount(FieldDefinition i) {
         if (i.isArray !== null)

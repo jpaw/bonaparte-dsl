@@ -71,9 +71,8 @@ class JavaTreeWalker {
              // subobjects. Here we run through the list or array, and invoke the method on any sub-object
              return '''
                  if (_descend) {
-                    «loopStart(i)»
-                    if («indexedName(i)» != null)
-                        «indexedName(i)».treeWalk«javaType»(_cvt, _descend);
+                     «loopStart(i, true)»if («indexedName(i)» != null)
+                         «indexedName(i)».treeWalk«javaType»(_cvt, _descend);
                  }
              '''
          }

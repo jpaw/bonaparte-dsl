@@ -35,58 +35,104 @@ class JavaValidate {
         «ENDFOR»
     '''
 
-    def private static makeLengthCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
-        «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
-            «IF ref.javaType.equals("String")»
-                if («index».length() > «ref.elementaryDataType.length»)
-                    throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
-                                                        "«i.name».length=" + «index».length() + " > «ref.elementaryDataType.length»",
+    def private static makeLengthCheck(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
+        «IF ref.javaType.equals("String")»
+            if («fieldname».length() > «ref.elementaryDataType.length»)
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "«i.name».length=" + «fieldname».length() + " > «ref.elementaryDataType.length»",
+                                                    _PARTIALLY_QUALIFIED_CLASS_NAME);
+            «IF ref.elementaryDataType.minLength > 0»
+                if («fieldname».length() < «ref.elementaryDataType.minLength»)
+                    throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
+                                                        "«i.name».length=" + «fieldname».length() + " < «ref.elementaryDataType.minLength»",
                                                         _PARTIALLY_QUALIFIED_CLASS_NAME);
-                «IF ref.elementaryDataType.minLength > 0»
-                    if («index».length() < «ref.elementaryDataType.minLength»)
-                        throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
-                                                            "«i.name».length=" + «index».length() + " < «ref.elementaryDataType.minLength»",
-                                                            _PARTIALLY_QUALIFIED_CLASS_NAME);
-                «ENDIF»
-            «ELSEIF ref.javaType.equals("BigDecimal")»
-                BigDecimalTools.validate(«index», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
             «ENDIF»
-        }
-    '''
-
-    def private static makePatternCheck(FieldDefinition i, String index, DataTypeExtension ref) '''
-        «IF !ref.isPrimitive»if («index» != null) «ENDIF»{
-            «IF ref.elementaryDataType.regexp !== null»
-                Matcher _m =  regexp$«i.name».matcher(«index»);
-                if (!_m.find())
-                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
-            «ENDIF»
-            «IF ref.isUpperCaseOrLowerCaseSpecialType»
-                if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«index»))
-                    throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
-            «ENDIF»
-        }
-    '''
-
-    def private static makeValidate(FieldDefinition i, String index) '''
-        «IF i.isRequired»
-            «index».validate();      // check object (!= null checked before)
-        «ELSE»
-            if («index» != null)
-                «index».validate();  // check object
+        «ELSEIF ref.javaType.equals("BigDecimal")»
+            BigDecimalTools.validate(«fieldname», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
         «ENDIF»
     '''
 
-    def private static writeObjectValidationCode(FieldDefinition i) {
-        val ref = DataTypeExtension::get(i.datatype)
+    def private static makePatternCheck(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
+        «IF ref.elementaryDataType.regexp !== null»
+            Matcher _m =  regexp$«i.name».matcher(«fieldname»);
+            if (!_m.find())
+                throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+        «ENDIF»
+        «IF ref.isUpperCaseOrLowerCaseSpecialType»
+            if (!CharTestsASCII.is«IF ref.elementaryDataType.name.toLowerCase.equals("uppercase")»UpperCase«ELSE»LowerCase«ENDIF»(«fieldname»))
+                throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+        «ENDIF»
+    '''
+
+    def private static writeObjectValidationCode(FieldDefinition i, String fieldname, DataTypeExtension ref) {
         if (ref.category == DataCategory::OBJECT && ref.objectDataType?.externalType === null && !ref.isJsonField) {
             return '''
-                «IF ref.category == DataCategory::OBJECT && ref.objectDataType?.externalType === null»
-                    «loopStart(i)»
-                    «makeValidate(i, indexedName(i))»
-                «ENDIF»
+                «fieldname».validate();
             '''
         }
+    }
+
+    /** Writes a condition, but only if it contains actual code to perform. */
+    def private static CharSequence nestBlocks(CharSequence optionalCondition, CharSequence optionalWorkToDo) {
+        if (optionalWorkToDo === null || optionalWorkToDo.length == 0)
+            return null
+        else if (optionalCondition !== null)
+            return '''
+                «optionalCondition»{
+                    «optionalWorkToDo»
+                }
+            '''
+        else
+            return optionalWorkToDo
+    }
+
+    /** Generates a check for the aggregate, if the aggregate is required, and a condition wrapper in case the aggregate is optional. */
+    def private static CharSequence writeValidationCodeForSingleField(FieldDefinition i) {
+        val isAggregate = i.aggregate
+        val isOptionalAggregate = isAggregate && !i.isAggregateRequired
+        return '''
+            «IF isAggregate && !isOptionalAggregate»
+                if («i.name» == null) // initial check for aggregate type itself, it may not be null
+                    throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+            «nestBlocks(if (isOptionalAggregate) '''if («i.name» != null) ''', i.writeValidationCodeForSingleField2)»
+        '''
+    }
+
+    /** Writes validation code for a whole aggregate, where the aggregate itself is known not to be null. Invokes field level checks. */
+    def private static CharSequence writeValidationCodeForSingleField2(FieldDefinition i) {
+        return '''
+            «IF i.aggregateMaxSize > 0»
+                «i.writeSizeCheck»
+            «ENDIF»
+            «nestBlocks(loopStart(i, false), i.writeValidationCodeForSingleField3)»
+        '''
+    }
+
+    /** Writes validation code for a single instance within an aggregate or for a scalar field. */
+    def private static CharSequence writeValidationCodeForSingleField3(FieldDefinition i) {
+        val ref = DataTypeExtension::get(i.datatype)
+        return '''
+            «IF i.isRequired && !ref.isPrimitive»
+                if («indexedName(i)» == null)
+                    throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
+            «ENDIF»
+            «nestBlocks(if (!i.isRequired && !ref.isPrimitive) '''if («indexedName(i)» != null) ''', i.writeValidationCodeForSingleField4(ref))»
+        '''
+    }
+
+    /** Writes validation code for a single instance within an aggregate or for a scalar field, where the field is known to be not null. */
+    def private static CharSequence writeValidationCodeForSingleField4(FieldDefinition i, DataTypeExtension ref) {
+        val fieldname = indexedName(i)
+        return '''
+            «writeObjectValidationCode(i, fieldname, ref)»
+            «IF ref.category == DataCategory::STRING || ref.javaType == "BigDecimal"»
+                «makeLengthCheck(i, fieldname, ref)»
+            «ENDIF»
+            «IF resolveElem(i.datatype) !== null && (resolveElem(i.datatype).regexp !== null || ref.isUpperCaseOrLowerCaseSpecialType)»
+                «makePatternCheck(i, fieldname, ref)»
+            «ENDIF»
+        '''
     }
 
     def public static writeValidationCode(ClassDefinition d) '''
@@ -100,37 +146,7 @@ class JavaValidate {
                 super.validate();
             «ENDIF»
             «FOR i:d.fields»
-                «IF i.aggregate && i.isAggregateRequired»
-                    if («i.name» == null)   // initial check for aggregate type itself, it may not be NULL
-                        throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                    "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
-                «ENDIF»
-                «IF i.isRequired && !DataTypeExtension::get(i.datatype).isPrimitive»
-                    «loopStart(i)»
-                    if («indexedName(i)» == null)
-                        throw new ObjectValidationException(ObjectValidationException.MAY_NOT_BE_BLANK,
-                                                    "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
-                «ENDIF»
-                «IF i.aggregateMaxSize > 0»
-                    «IF !i.isAggregateRequired»
-                        if («i.name» != null) {
-                            «i.writeSizeCheck»
-                        }
-                    «ELSE»
-                        «i.writeSizeCheck»
-                    «ENDIF»
-                «ENDIF»
-                «i.writeObjectValidationCode»
-            «ENDFOR»
-            «FOR i:d.fields»
-                «IF DataTypeExtension::get(i.datatype).category == DataCategory::STRING || DataTypeExtension::get(i.datatype).javaType == "BigDecimal"»
-                    «loopStart(i)»
-                    «makeLengthCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
-                «ENDIF»
-                «IF resolveElem(i.datatype) !== null && (resolveElem(i.datatype).regexp !== null || DataTypeExtension::get(i.datatype).isUpperCaseOrLowerCaseSpecialType)»
-                    «loopStart(i)»
-                    «makePatternCheck(i, indexedName(i), DataTypeExtension::get(i.datatype))»
-                «ENDIF»
+                «i.writeValidationCodeForSingleField»
             «ENDFOR»
             «IF d.haveCustomAddons»
                 «d.name»Addons.validate(this);
