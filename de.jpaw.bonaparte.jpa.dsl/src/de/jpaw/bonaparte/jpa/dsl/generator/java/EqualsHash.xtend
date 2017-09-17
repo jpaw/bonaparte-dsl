@@ -152,7 +152,7 @@ class EqualsHash {
 
     // only caller in next method
     def private static writeCompareStuff(FieldDefinition i, String a) {
-        val ref = DataTypeExtension::get(i.datatype) 
+        val ref = DataTypeExtension::get(i.datatype)
         val b = "__that." + a
         if (ref.category == DataCategory::OBJECT)
             return JavaCompare.doCompareWithNull(a, b, a + ".equals(" + b + ")")
@@ -180,6 +180,34 @@ class EqualsHash {
         «ENDFOR»
     '''
 
+    // only caller in next method
+    def private static writeCompareStuffNotNull(FieldDefinition i, String a) {
+        val ref = DataTypeExtension::get(i.datatype)
+        val b = "__that." + a
+        if (ref.category == DataCategory::OBJECT)
+            return '''«a».equals(«b»)'''
+        else if (ref.isPrimitive)
+            return '''«a» == «b»'''
+        else
+            return writeBasicCompare(i, a)
+    }
+
+    def private static writeEqualsSubForListOfFieldsNotNull(List<FieldDefinition> l) '''
+        «FOR i: l»
+            «IF i.isArray !== null»
+                && (__that.«i.name» != null && arrayCompareSub$«i.name»(__that))
+            «ELSEIF i.aggregate»
+                «IF i.indexList !== null»
+                    «i.indexList.map[i.name + it].map['''&& «JavaCompare.doCompareWithNull(it, "__that." + it, writeBasicCompare(i, it))»'''].join('\n')»
+                «ELSE»
+                    && «writeBasicCompare(i, i.name)»
+                «ENDIF»
+            «ELSE»
+                && «writeCompareStuffNotNull(i, i.name)»
+            «ENDIF»
+        «ENDFOR»
+    '''
+
     def private static notNullForNonPrimitives(FieldDefinition f) {
         val ref = DataTypeExtension::get(f.datatype)
         if (!ref.isPrimitive)
@@ -188,12 +216,13 @@ class EqualsHash {
             '''
     }
 
+    /** Equals method for fields of a primary key. The condition is that the result is never true if any of the key fields is null. */
     def private static writeEqualsConditionForListOfFields(List<FieldDefinition> fields) '''
         return true
         «FOR f : fields»
              «f.notNullForNonPrimitives»
         «ENDFOR»
-        «fields.writeEqualsSubForListOfFields»
+        «fields.writeEqualsSubForListOfFieldsNotNull»
             ;
     '''
 

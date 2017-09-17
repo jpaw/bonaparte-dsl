@@ -550,7 +550,8 @@ BON: freeze does not use guava immutable collections any more, in order to prese
 4.4.22:
 BON: improve generated validation code. Avoid multiple loop iterations. Avoid redundant != null checks.
 
-
+4.4.23:
+BDDL: improve generated code for entity equals, avoid redundant != null checks.
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
