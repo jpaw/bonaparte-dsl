@@ -552,7 +552,7 @@ class XsdBonScriptGeneratorMain implements IGenerator {
         else
             return p1.bundle == p2.bundle
     }
-    
+
     def private static writeFormDefaults(PackageDefinition d) {
         // use different defaults for elements and attributes for backwards compatibility
         val xmlElementFormDefault = d.xmlElementFormDefault?.x     ?: XXmlFormDefault.QUALIFIED

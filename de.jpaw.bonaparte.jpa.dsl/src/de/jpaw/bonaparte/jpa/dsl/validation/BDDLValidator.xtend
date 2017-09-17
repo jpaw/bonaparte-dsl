@@ -350,7 +350,7 @@ class BDDLValidator extends AbstractBDDLValidator {
                 return;
             }
         }
-        
+
         val nmd = e.nameMapping
 
         if (e.tenantClass !== null) {

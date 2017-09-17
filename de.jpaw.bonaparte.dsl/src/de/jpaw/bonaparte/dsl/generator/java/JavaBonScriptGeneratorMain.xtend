@@ -55,7 +55,7 @@ class JavaBonScriptGeneratorMain implements IGenerator {
     def private static getJaxbResourceFilename(String pkg) {
         return "resources/" + pkg.replaceAll("\\.", "/") + "/jaxb.index"
     }
-    
+
     def private static writeAttributeFormDefault(XXmlFormDefault xmlAttributeFormDefault) {
         if (xmlAttributeFormDefault !== null)
             return ''', attributeFormDefault = XmlNsForm.«xmlAttributeFormDefault»'''

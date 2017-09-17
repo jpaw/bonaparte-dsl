@@ -530,7 +530,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         else
             return interfaces.join(", ")
     }
-    
+
     // output 0 to 4 elements */
     def private writeEntityListeners(String a, String b, JvmGenericType c, JvmGenericType d) {
         val mylist = new ArrayList<String>(4)

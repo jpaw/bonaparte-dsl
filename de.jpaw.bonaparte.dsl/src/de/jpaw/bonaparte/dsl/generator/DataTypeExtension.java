@@ -539,7 +539,7 @@ public class DataTypeExtension {
             return " TYPE " + ((ClassDefinition)(parent.eContainer())).getName() + "." + ((TypeDefinition)parent).getName();
         return "UNKNOWN";
     }
-    
+
     public String intJavaDoc(FieldDefinition f, String what) {
         return "/**\n * " + what + " " + visualize(f) + "\n */";
     }
@@ -599,7 +599,7 @@ public class DataTypeExtension {
                 break;
             default:
                 break;
-            
+
             }
         } else {
             b.append(objectDataType != null ? objectDataType.getName() : "BonaPortable");

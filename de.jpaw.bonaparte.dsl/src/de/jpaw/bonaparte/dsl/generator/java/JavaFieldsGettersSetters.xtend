@@ -131,7 +131,7 @@ class JavaFieldsGettersSetters {
             «IF xmlUpper || i.properties.hasProperty(PROP_UPPERCASE)»
                 @XmlElement(name="«i.name.toFirstUpper»")
             «ENDIF»
-        '''        
+        '''
     }
 
     def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
