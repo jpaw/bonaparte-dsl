@@ -27,7 +27,8 @@ public class BDDLPreferences {
 //    static private final boolean doUserTypeForEnumsetAlphaDefault   = configReader.getProp("UserTypeEnumsetAlpha", false);
 //    static private final boolean doUserTypeForXEnumsetDefault       = configReader.getProp("UserTypeXEnumset", false);
     static private final boolean doUserTypeForSFExternalsDefault    = configReader.getProp("UserTypeSingleFieldExternals", false);
-    static private final boolean doUserTypeForBonaPortableDefault   = configReader.getProp("UserTypeBonaPortable", false);
+    static private final boolean doUserTypeForBonaPortableDefault   = configReader.getProp("UserTypeBonaPortable", true);
+    static private final boolean doUserTypeForJsonDefault           = configReader.getProp("UserTypeJson", true);
 
     // general size check options
     public int maxFieldnameLength               = maxFieldnameLengthDefault
@@ -51,6 +52,7 @@ public class BDDLPreferences {
 //    public boolean doUserTypeForXEnumset        = doUserTypeForXEnumsetDefault
     public boolean doUserTypeForSFExternals     = doUserTypeForSFExternalsDefault
     public boolean doUserTypeForBonaPortable    = doUserTypeForBonaPortableDefault
+    public boolean doUserTypeForJson            = doUserTypeForJsonDefault
 
     public static BDDLPreferences currentPrefs = new BDDLPreferences
 }

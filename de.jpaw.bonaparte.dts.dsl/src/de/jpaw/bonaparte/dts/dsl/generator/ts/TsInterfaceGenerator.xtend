@@ -11,7 +11,7 @@ import de.jpaw.bonaparte.dts.dsl.bDts.TsInterfaceDefinition
 import static extension de.jpaw.bonaparte.dts.dsl.generator.ts.TsClassGenerator.*
 
 class TsInterfaceGenerator {
-    
+
     def static collectFields(ImportCollector imp, TsInterfaceDefinition d) {
         imp.collectFields(d.pojoType)
     }
@@ -24,14 +24,14 @@ class TsInterfaceGenerator {
         val imports = new ImportCollector
         imports.addImport(d.extends)
         imports.collectFields(d)
-        
+
         return '''
             «imports.writeImports(d)»
-            
+
             export interface «d.name»«IF d.extends !== null» extends «d.extends.name»«ENDIF» {
                 "@PQON": string = "«d.pqon»";
                 «d.writeFields»
-            
+
                 constructor() {
                 }
             }

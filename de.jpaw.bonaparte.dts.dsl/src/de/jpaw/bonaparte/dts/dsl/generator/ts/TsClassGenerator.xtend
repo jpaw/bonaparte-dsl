@@ -29,7 +29,7 @@ class TsClassGenerator {
     }
 
     def static String writeFields(ClassDefinition d, boolean withSuperclasses) {
-        val b = new StringBuilder(1000) 
+        val b = new StringBuilder(1000)
         if (withSuperclasses && d.extendsClass?.classRef !== null)
             b.append(d.extendsClass?.classRef.writeFields(true))
         for (f : d.fields) {
@@ -58,14 +58,14 @@ class TsClassGenerator {
         imports.addImport(d.extends)
         imports.addImport(d.implementsInterface)
         imports.collectFields(d)
-        
+
         return '''
             «imports.writeImports(d)»
-            
+
             export class «d.name»«IF d.implementsInterface !== null» implements «d.implementsInterface.name»«ENDIF» {
                 "@PQON": string = "«d.pqon»";
                 «d.writeFields»
-            
+
                 constructor() {
                 }
             }

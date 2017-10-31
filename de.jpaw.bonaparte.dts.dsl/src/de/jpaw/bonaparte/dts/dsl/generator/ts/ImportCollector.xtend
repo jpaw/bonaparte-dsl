@@ -10,7 +10,7 @@ import static extension de.jpaw.bonaparte.dts.dsl.generator.ZUtil.*
 
 class ImportCollector {
     val m = new HashMap<String, String>()
-    
+
     def void addImport(ClassDefinition c) {
         if (c !== null)
             m.put(c.name, c.package.name)
@@ -23,7 +23,7 @@ class ImportCollector {
         if (d !== null)
             m.put(d.name, d.pqon)
     }
-    
+
     def writeImports(String ownPackage, String ownName) {
         val reference = ownPackage + "."
         val StringBuilder b = new StringBuilder(400)

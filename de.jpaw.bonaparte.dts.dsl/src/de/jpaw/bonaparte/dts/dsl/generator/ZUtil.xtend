@@ -13,7 +13,7 @@ class ZUtil {
             ee = ee.^extends
         return ee
     }
-    
+
     def public static getDtsPackage(TsClassDefinition d) {
         return d.eContainer as DTSPackageDefinition
     }
@@ -26,7 +26,7 @@ class ZUtil {
     def public static getPqon(TsInterfaceDefinition i) {
         return i.dtsPackage.name + "." + i.name
     }
-    
+
     // reference is the package prefix of the reference element, we know it ends with "."
     def public static String asRelativePathTo(String what, String reference) {
         // a common prefix of both strings can be skipped, if that prefix ends with a dot or equals the full reference
@@ -52,7 +52,7 @@ class ZUtil {
             return "null"
         // val e = ref.elementaryDataType
         val javaType = ref.javaType.toLowerCase
-        
+
         switch (ref.category) {
             case BASICNUMERIC:  return "number"
             case BINARY:        return "string"     // base64 encoded?

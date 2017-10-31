@@ -7,18 +7,18 @@ package de.jpaw.bonaparte.dts.dsl.ui.labeling
 
 /**
  * Provides labels for IEObjectDescriptions and IResourceDescriptions.
- * 
+ *
  * See https://www.eclipse.org/Xtext/documentation/304_ide_concepts.html#label-provider
  */
 class BDtsDescriptionLabelProvider extends org.eclipse.xtext.ui.label.DefaultDescriptionLabelProvider {
 
-	// Labels and icons can be computed like this:
-	
-//	override text(IEObjectDescription ele) {
-//		ele.name.toString
-//	}
-//	 
-//	override image(IEObjectDescription ele) {
-//		ele.EClass.name + '.gif'
-//	}	 
+    // Labels and icons can be computed like this:
+
+//  override text(IEObjectDescription ele) {
+//      ele.name.toString
+//  }
+//
+//  override image(IEObjectDescription ele) {
+//      ele.EClass.name + '.gif'
+//  }
 }

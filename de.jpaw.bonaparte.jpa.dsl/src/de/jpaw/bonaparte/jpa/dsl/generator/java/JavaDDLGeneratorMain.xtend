@@ -694,6 +694,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «writeJpaImports»
 
         import de.jpaw.bonaparte.jpa.*;
+        import de.jpaw.bonaparte.jpa.json.*;
 
         «imports.createImports»
 

@@ -108,6 +108,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        addField(new BooleanFieldEditor("UserTypeXEnumset",             "xenumsets", jpa21group));
         addField(new BooleanFieldEditor("UserTypeSingleFieldExternals", "singleField external types", jpa21group));
         addField(new BooleanFieldEditor("UserTypeBonaPortable",         "BonaPortables",        jpa21group));
+        addField(new BooleanFieldEditor("UserTypeJson",                 "Jsons",                jpa21group));
         jpa21Group.pack();
 
         // blank, to fill the second column
@@ -136,6 +137,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        store.setDefault("UserTypeXEnumset",            defaults.doUserTypeForXEnumset);
         store.setDefault("UserTypeSingleFieldExternals",defaults.doUserTypeForSFExternals);
         store.setDefault("UserTypeBonaPortable",        defaults.doUserTypeForBonaPortable);
+        store.setDefault("UserTypeJson",                defaults.doUserTypeForJson);
 
         BDDLPreferences currentSettings = new BDDLPreferences();
         currentSettings.maxFieldnameLength          = store.getInt("MaxFieldLen");
@@ -156,12 +158,13 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
 //        currentSettings.doUserTypeForXEnumset       = store.getBoolean("UserTypeXEnumset");
         currentSettings.doUserTypeForSFExternals    = store.getBoolean("UserTypeSingleFieldExternals");
         currentSettings.doUserTypeForBonaPortable   = store.getBoolean("UserTypeBonaPortable");
+        currentSettings.doUserTypeForJson           = store.getBoolean("UserTypeJson");
 
         BDDLPreferences.currentPrefs = currentSettings;
 
         store.addPropertyChangeListener(new IPropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent event) {
+            @Override
+            public void propertyChange(PropertyChangeEvent event) {
                   switch (event.getProperty()) {
                   case "MaxFieldLen":
                       BDDLPreferences.currentPrefs.maxFieldnameLength       = toInt(event.getNewValue());
@@ -215,8 +218,11 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                   case "UserTypeBonaPortable":
                       BDDLPreferences.currentPrefs.doUserTypeForBonaPortable = toBool(event.getNewValue());
                       break;
+                  case "UserTypeJson":
+                      BDDLPreferences.currentPrefs.doUserTypeForJson        = toBool(event.getNewValue());
+                      break;
                   }
-                }
-              });
+            }
+        });
     }
 }
