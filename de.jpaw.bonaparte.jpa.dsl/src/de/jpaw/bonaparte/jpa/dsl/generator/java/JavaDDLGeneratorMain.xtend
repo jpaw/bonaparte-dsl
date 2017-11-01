@@ -851,6 +851,7 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         import de.jpaw.bonaparte.jpa.BonaData;
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
+        import de.jpaw.bonaparte.jpa.json.*;
         «imports.createImports»
 
         «IF e.javadoc !== null»
