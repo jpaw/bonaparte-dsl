@@ -174,11 +174,11 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
 
                     case DataTypeExtension.JAVA_JSON_TYPE:
-                        writeField(c, ref, myName, prefs.doUserTypeForJson, c.jsonJavaType("JsonObject", prefs.doUserTypeForJson),  null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonObject", prefs.doUserTypeForJson),  null, null)
                     case DataTypeExtension.JAVA_ARRAY_TYPE:
-                        writeField(c, ref, myName, prefs.doUserTypeForJson, c.jsonJavaType("JsonArray", prefs.doUserTypeForJson),   null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonArray", prefs.doUserTypeForJson),   null, null)
                     case DataTypeExtension.JAVA_ELEMENT_TYPE:
-                        writeField(c, ref, myName, prefs.doUserTypeForJson, c.jsonJavaType("JsonElement", prefs.doUserTypeForJson), null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonElement", prefs.doUserTypeForJson), null, null)
                     case DataTypeExtension.JAVA_OBJECT_TYPE:
                         if (prefs.doUserTypeForBonaPortable)
                             return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
