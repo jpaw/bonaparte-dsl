@@ -16,21 +16,19 @@
 
 package de.jpaw.bonaparte.jpa.dsl.generator.java
 
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship
-import org.apache.log4j.Logger
-
-import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
-import java.util.List
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
+import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship
+import java.util.List
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 
 class MakeRelationships {
-    private static Logger LOGGER = Logger.getLogger(MakeRelationships)
 
     // nmd2 is own entity, nmd1 is for child entity
     def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns, String joinColumnDirective, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) '''
@@ -50,8 +48,6 @@ class MakeRelationships {
         for (c : m.referencedFields.columnName)
             if (!c.isRequired) {
                 oneOptional = true
-                if (m.fetchType !== null && m.fetchType == "LAZY")
-                    LOGGER.error("fetch type lazy not possible with optional join fields: " + e.name + "." + c.name);
             }
         return !oneOptional
     }

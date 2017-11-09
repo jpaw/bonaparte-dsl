@@ -543,9 +543,10 @@ class XUtil {
     def private static boolean isFreezable(ClassDefinition cd, int remainingDepth) {
         if (remainingDepth <= 0)
             return true
-        !cd.unfreezable && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1)) &&
-            !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && #[ "raw", "object", "bonaportable" ].contains(datatype.elementaryDataType.name.toLowerCase))] &&
-            !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
+        return !cd.unfreezable
+          && (cd.parent === null || cd.parent.isFreezable(remainingDepth-1))
+          && !cd.fields.exists[isArray !== null || (datatype.elementaryDataType !== null && datatype.elementaryDataType.name.toLowerCase == "raw")]
+          && !cd.genericParameters.exists[extends !== null && !extends.isFreezable(remainingDepth-1)]
     }
 
     def public static boolean isFreezable(ClassDefinition cd) {

@@ -710,7 +710,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF prefs.doIndexes»
             import javax.persistence.Index;
         «ENDIF»
-        
+
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         «writeJpaImports»
