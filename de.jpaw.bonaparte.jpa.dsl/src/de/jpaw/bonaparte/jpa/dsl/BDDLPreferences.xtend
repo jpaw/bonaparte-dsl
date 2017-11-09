@@ -12,6 +12,7 @@ public class BDDLPreferences {
     static private final boolean oracleExtendedVarcharDefault       = configReader.getProp("OracleExtendedVarchar", false);
 
     // output options
+    static private final boolean doIndexesDefault                   = configReader.getProp("IndexCreation", false);
     static private final boolean doDebugOutDefault                  = configReader.getProp("DebugOut",  false);
     static private final boolean doPostgresOutDefault               = configReader.getProp("Postgres",  true);
     static private final boolean doOracleOutDefault                 = configReader.getProp("Oracle",    true);
@@ -27,8 +28,8 @@ public class BDDLPreferences {
 //    static private final boolean doUserTypeForEnumsetAlphaDefault   = configReader.getProp("UserTypeEnumsetAlpha", false);
 //    static private final boolean doUserTypeForXEnumsetDefault       = configReader.getProp("UserTypeXEnumset", false);
     static private final boolean doUserTypeForSFExternalsDefault    = configReader.getProp("UserTypeSingleFieldExternals", false);
-    static private final boolean doUserTypeForBonaPortableDefault   = configReader.getProp("UserTypeBonaPortable", true);
-    static private final boolean doUserTypeForJsonDefault           = configReader.getProp("UserTypeJson", true);
+    static private final boolean doUserTypeForBonaPortableDefault   = configReader.getProp("UserTypeBonaPortable",         false);
+    static private final boolean doUserTypeForJsonDefault           = configReader.getProp("UserTypeJson",                 false);
 
     // general size check options
     public int maxFieldnameLength               = maxFieldnameLengthDefault
@@ -36,6 +37,7 @@ public class BDDLPreferences {
     public boolean oracleExtendedVarchar        = oracleExtendedVarcharDefault
 
     // output options
+    public boolean doIndexes                    = doIndexesDefault
     public boolean doDebugOut                   = doDebugOutDefault
     public boolean doPostgresOut                = doPostgresOutDefault
     public boolean doOracleOut                  = doOracleOutDefault

@@ -553,6 +553,10 @@ BON: improve generated validation code. Avoid multiple loop iterations. Avoid re
 4.4.23:
 BDDL: improve generated code for entity equals, avoid redundant != null checks.
 
+4.5.0:
+BDDL: can create JPA 2.1 indexes definition
+BDDL: can use Json user types (required persistence-core 4.5.0 or later)
+
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
 - BDDL: ret$Data to map oneToMany and ManyToOne child references

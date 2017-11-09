@@ -35,6 +35,7 @@ import org.eclipse.emf.ecore.EObject
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -158,6 +159,9 @@ class YUtil {
         throw new RuntimeException("could not find category <" + category + "> for Entity " + t.name)
 
     } */
+    def public static String indexname(String tablename, IndexDefinition i, int indexCounter) {
+        return '''«tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter»'''
+    }
 
     def public static String mkTablename(EntityDefinition t, boolean forHistory) {
         if (!forHistory && t.tablename !== null)

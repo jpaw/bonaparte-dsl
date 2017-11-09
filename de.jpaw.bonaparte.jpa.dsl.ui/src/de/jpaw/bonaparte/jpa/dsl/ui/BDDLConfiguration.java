@@ -75,6 +75,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         outputGroup.setText("Generated Code Output");
         outputGroup.setLayout(new GridLayout(1, false));
         Composite compositeH = new Composite(outputGroup, SWT.NONE);
+        addField(new BooleanFieldEditor("IndexCreation",                "Create JPA 2.1 @Index annotations",    compositeH));
         addField(new BooleanFieldEditor("DebugOut",                     "Create debug output (.info) files",    compositeH));
         addField(new BooleanFieldEditor("Postgres",                     "Create DDL for Postgres 9 databases",  compositeH));
         addField(new BooleanFieldEditor("Oracle",                       "Create DDL for Oracle 11g databases",  compositeH));
@@ -122,6 +123,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         store.setDefault("MaxFieldLen",                 defaults.maxFieldnameLength);
         store.setDefault("MaxTableLen",                 defaults.maxTablenameLength);
         store.setDefault("OracleExtendedVarchar",       defaults.oracleExtendedVarchar);
+        store.setDefault("IndexCreation",               defaults.doIndexes);
         store.setDefault("DebugOut",                    defaults.doDebugOut);
         store.setDefault("Postgres",                    defaults.doPostgresOut);
         store.setDefault("Oracle",                      defaults.doOracleOut);
@@ -143,6 +145,7 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
         currentSettings.maxFieldnameLength          = store.getInt("MaxFieldLen");
         currentSettings.maxTablenameLength          = store.getInt("MaxTableLen");
         currentSettings.oracleExtendedVarchar       = store.getBoolean("OracleExtendedVarchar");
+        currentSettings.doIndexes                   = store.getBoolean("IndexCreation");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doPostgresOut               = store.getBoolean("Postgres");
         currentSettings.doOracleOut                 = store.getBoolean("Oracle");
@@ -174,6 +177,9 @@ public class BDDLConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "OracleExtendedVarchar":
                       BDDLPreferences.currentPrefs.oracleExtendedVarchar    = toBool(event.getNewValue());
+                      break;
+                  case "IndexCreation":
+                      BDDLPreferences.currentPrefs.doIndexes                = toBool(event.getNewValue());
                       break;
                   case "DebugOut":
                       BDDLPreferences.currentPrefs.doDebugOut               = toBool(event.getNewValue());

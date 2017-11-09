@@ -336,7 +336,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
-                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter» ON «tablename»(
+                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
                     «FOR c : i.columns.columnName SEPARATOR ', '»«c.name.java2sql(nmd)»«ENDFOR»
                 )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»

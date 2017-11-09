@@ -44,6 +44,9 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import org.eclipse.xtext.common.types.JvmGenericType
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
+import java.util.concurrent.atomic.AtomicInteger
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -555,7 +558,22 @@ class JavaDDLGeneratorMain implements IGenerator {
             «e.index.filter[isUnique].map['''    @UniqueConstraint(columnNames={«columns.columnName.map['''"«name.java2sql(e.nameMapping)»"'''].join(', ')»})'''].join(',\n')»
             }«ENDIF»'''
 
+    def private declareIndex(IndexDefinition i, EntityDefinition e, String tablename, AtomicInteger indexCounter, ColumnNameMappingDefinition nmd) {
+        val no = indexCounter.incrementAndGet
+        return '''@Index(name="«tablename.indexname(i, no)»", columnList="«i.columns.columnName.map[name.java2sql(nmd)].join(", ")»"«IF i.isIsUnique», unique=true«ENDIF»)'''
+    }
+
+    def private addIndexes(EntityDefinition e, BDDLPreferences prefs) {
+        if (!prefs.doIndexes)
+            return null
+        val tablename = e.mkTablename(false)
+        val nmd = e.nameMapping
+        val indexCounter = new AtomicInteger
+        return ''', indexes = { «e.index.map[declareIndex(e, tablename, indexCounter, nmd)].join(", ")»}'''
+    }
+
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
+        val prefs = BDDLPreferences.currentPrefs
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var ClassDefinition stopper = null
@@ -689,12 +707,18 @@ class JavaDDLGeneratorMain implements IGenerator {
         import javax.persistence.UniqueConstraint;
         import javax.persistence.AttributeOverride;
         import javax.persistence.AttributeOverrides;
+        «IF prefs.doIndexes»
+            import javax.persistence.Index;
+        «ENDIF»
+        
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
         «writeJpaImports»
 
         import de.jpaw.bonaparte.jpa.*;
-        import de.jpaw.bonaparte.jpa.json.*;
+        «IF prefs.doUserTypeForJson»
+            import de.jpaw.bonaparte.jpa.json.*;
+        «ENDIF»
 
         «imports.createImports»
 
@@ -719,7 +743,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.cacheSize != 0»
                 @Cache(size=«e.cacheSize», expiry=«scaledExpiry(e.cacheExpiry, e.cacheExpiryScale)»000)
             «ENDIF»
-            @Table(name="«mkTablename(e, false)»"«e.createUniqueConstraints»)
+            @Table(name="«mkTablename(e, false)»"«e.createUniqueConstraints»«e.addIndexes(prefs)»)
             «IF primaryKeyType == PrimaryKeyType::ID_CLASS»
                 @IdClass(«e.pkPojo.name».class)
             «ENDIF»
@@ -820,6 +844,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private javaEmbeddableOut(EmbeddableDefinition e) {
+        val prefs = BDDLPreferences.currentPrefs
         val String myPackageName = e.bddlPackageName
         val String myName = e.name
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -851,7 +876,9 @@ class JavaDDLGeneratorMain implements IGenerator {
 
         import de.jpaw.bonaparte.jpa.BonaData;
         import de.jpaw.bonaparte.jpa.DeserializeExceptionHandler;
-        import de.jpaw.bonaparte.jpa.json.*;
+        «IF prefs.doUserTypeForJson»
+            import de.jpaw.bonaparte.jpa.json.*;
+        «ENDIF»
         «imports.createImports»
 
         «IF e.javadoc !== null»
