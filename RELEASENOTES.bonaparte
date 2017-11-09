@@ -553,7 +553,7 @@ BON: improve generated validation code. Avoid multiple loop iterations. Avoid re
 4.4.23:
 BDDL: improve generated code for entity equals, avoid redundant != null checks.
 
-4.4.24:
+4.5.0:
 BDDL: can create JPA 2.1 indexes definition
 BDDL: can use Json user types (required persistence-core 4.5.0 or later)
 
