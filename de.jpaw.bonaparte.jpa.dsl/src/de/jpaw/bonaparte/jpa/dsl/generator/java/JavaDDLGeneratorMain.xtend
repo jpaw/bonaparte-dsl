@@ -47,6 +47,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
 import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 import java.util.concurrent.atomic.AtomicInteger
+import de.jpaw.bonaparte.jpa.dsl.bDDL.NamedEntityGraph
 
 class JavaDDLGeneratorMain implements IGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
@@ -572,6 +573,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ''', indexes = { «e.index.map[declareIndex(e, tablename, indexCounter, nmd)].join(", ")»}'''
     }
 
+    def private String entityGraph(NamedEntityGraph negs) {
+        return '''@NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.columns !== null», attributeNodes={«negs.columns.columnName.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)'''
+    }
+
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         val prefs = BDDLPreferences.currentPrefs
         val String myPackageName = e.bddlPackageName
@@ -712,6 +717,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         «ENDIF»
         «IF !e.neg.nullOrEmpty»
             import javax.persistence.NamedEntityGraph;
+            import javax.persistence.NamedEntityGraphs;
             import javax.persistence.NamedAttributeNode;
         «ENDIF»
 
@@ -767,9 +773,15 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «e.generator»(name="«e.generatorName»"«IF e.generatorValue !== null», «e.generatorValue»«ENDIF»)
             «ENDIF»
         «ENDIF»
-        «FOR negs : e.neg»
-            @NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.columns !== null», attributeNodes={«negs.columns.columnName.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)
-        «ENDFOR»
+        «IF e.neg.size > 0»
+            «IF e.neg.size == 1»
+                «e.neg.get(0).entityGraph»
+            «ELSE»
+                @NamedEntityGraphs(
+                  «e.neg.map[entityGraph].join(",\n")»
+                )
+            «ENDIF»
+        «ENDIF»
         @SuppressWarnings("all")
         «IF e.isDeprecated || e.pojoType.isDeprecated || (e.pojoType.eContainer as PackageDefinition).isDeprecated || (e.eContainer as BDDLPackageDefinition).isIsDeprecated»
             @Deprecated
