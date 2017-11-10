@@ -556,7 +556,12 @@ BDDL: improve generated code for entity equals, avoid redundant != null checks.
 4.5.0:
 BDDL: can create JPA 2.1 indexes definition
 BDDL: can use Json user types (required persistence-core 4.5.0 or later)
+BDDL: no longer creates ERROR messages for LAZY @ManyToOnes on optional fields
+BON: no longer warning are generated due to "object not freezable due to parent" if parent contains a BonaPortable / Object
 
+4.5.1:
+BDDL: by default setters to collections of @OneToMany are no longer generated (they will if forceSetters is specified)
+BDDL: named entity graphs, part 1 (without subgraphs)
 
 
 4.x: (planned):

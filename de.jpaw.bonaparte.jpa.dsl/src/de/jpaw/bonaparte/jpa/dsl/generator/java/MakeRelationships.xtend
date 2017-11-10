@@ -127,7 +127,7 @@ class MakeRelationships {
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»
-            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', true, false)»
+            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', forceSetters || m.forceSetters, false)»
         «ENDFOR»
     '''
     }

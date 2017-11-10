@@ -710,6 +710,10 @@ class JavaDDLGeneratorMain implements IGenerator {
         «IF prefs.doIndexes»
             import javax.persistence.Index;
         «ENDIF»
+        «IF !e.neg.nullOrEmpty»
+            import javax.persistence.NamedEntityGraph;
+            import javax.persistence.NamedAttributeNode;
+        «ENDIF»
 
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
         «writeDefaultImports»
@@ -763,6 +767,9 @@ class JavaDDLGeneratorMain implements IGenerator {
                 «e.generator»(name="«e.generatorName»"«IF e.generatorValue !== null», «e.generatorValue»«ENDIF»)
             «ENDIF»
         «ENDIF»
+        «FOR negs : e.neg»
+            @NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.columns !== null», attributeNodes={«negs.columns.columnName.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)
+        «ENDFOR»
         @SuppressWarnings("all")
         «IF e.isDeprecated || e.pojoType.isDeprecated || (e.pojoType.eContainer as PackageDefinition).isDeprecated || (e.eContainer as BDDLPackageDefinition).isIsDeprecated»
             @Deprecated

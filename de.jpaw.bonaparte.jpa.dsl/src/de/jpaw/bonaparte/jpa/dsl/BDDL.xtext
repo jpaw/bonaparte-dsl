@@ -176,9 +176,16 @@ EntityDefinition:
          ('@OneToOne'   oneToOnes   += OneToOne  ) |
          ('@OneToMany'  oneToManys  += OneToMany ) |
          ('@Embeddable' embeddables += EmbeddableUse) |
-         ('@ElementCollection' elementCollections += ElementCollectionRelationship )
+         ('@ElementCollection' elementCollections += ElementCollectionRelationship ) |
+         ('@NamedEntityGraph' neg += NamedEntityGraph)
         )* 
     '}'       
+;
+
+NamedEntityGraph:
+	name = ID 'is'
+	(isAll ?= 'isAll')?
+    (columns = ListOfColumns)?
 ;
 
 ManyToOne:
@@ -202,6 +209,7 @@ OneToMany:
     (cascade       ?= 'cascade')?
     (orphanRemoval ?= 'orphanRemoval')?
     ('join'  joinColumnDirective = STRING)?
+    (forceSetters ?= 'forceSetters')?
 ;
 
 OneToOne:
