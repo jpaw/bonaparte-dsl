@@ -574,7 +574,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     }
 
     def private String entityGraph(NamedEntityGraph negs) {
-        return '''@NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.columns !== null», attributeNodes={«negs.columns.columnName.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)'''
+        return '''@NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.relationships !== null», attributeNodes={«negs.relationships.rname.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)'''
     }
 
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
@@ -777,9 +777,9 @@ class JavaDDLGeneratorMain implements IGenerator {
             «IF e.neg.size == 1»
                 «e.neg.get(0).entityGraph»
             «ELSE»
-                @NamedEntityGraphs(
-                  «e.neg.map[entityGraph].join(",\n")»
-                )
+                @NamedEntityGraphs({
+                    «e.neg.map[entityGraph].join(",\n")»
+                })
             «ENDIF»
         «ENDIF»
         @SuppressWarnings("all")

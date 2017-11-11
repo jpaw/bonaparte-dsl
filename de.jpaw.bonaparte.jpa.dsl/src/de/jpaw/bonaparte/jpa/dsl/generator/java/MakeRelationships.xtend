@@ -27,8 +27,27 @@ import java.util.List
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 class MakeRelationships {
+
+    def private static boolean shouldHaveSetter(EntityDefinition e, Relationship r) {
+    	return e.forceSetters || r.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters 
+    }
+    def private static XVisibility setterVisibility(EntityDefinition e, Relationship r, boolean forcePublic) {
+    	if (forcePublic)
+    	    return XVisibility.PUBLIC
+    	if (r.forceSetters)
+    	    return r.setterVisibility
+    	if (e.forceSetters)
+    		return e.setterVisibility
+        return (e.eContainer as BDDLPackageDefinition).setterVisibility 
+    }
+    def private static String asKeyword(XVisibility v) {
+    	if (v === null || v == XVisibility.DEFAULT)
+    		return ""
+   		return v.literal
+    }
 
     // nmd2 is own entity, nmd1 is for child entity
     def static private makeJoin(Relationship m, int i, boolean readonly, List<FieldDefinition> childPkColumns, String joinColumnDirective, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) '''
@@ -90,11 +109,10 @@ class MakeRelationships {
     def private static isReadOnly(Relationship m) {
         val f = m.referencedFields.columnName.get(0)
         val ref = DataTypeExtension::get(f.datatype)
-        return ref.elementaryDataType !== null || f.properties.hasProperty(PROP_REF)  // either we decleared to want that "Long" field, or it is defined as a long anyway
+        return ref.elementaryDataType !== null || f.properties.hasProperty(PROP_REF)  // either we declared to want that "Long" field, or it is defined as a long anyway
     }
 
     def public static writeRelationships(EntityDefinition e, String fieldVisibility) {
-        val forceSetters = e.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters
         val myNmd = e.nameMapping
         return '''
         «FOR m : e.manyToOnes»
@@ -103,7 +121,7 @@ class MakeRelationships {
                 if (m.relationship.nonOptional(e)) '''optional=false'''
             )»
             «m.relationship.writeJoinColumns(m.relationship.isReadOnly, m.relationship.childObject, null, myNmd)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", forceSetters || m.forceSetters || !m.relationship.isReadOnly, true)»
+            «m.relationship.writeFGS(e, fieldVisibility, m.relationship.childObject.name, "", !m.relationship.isReadOnly, true)»
         «ENDFOR»
 
         «FOR m : e.oneToOnes»
@@ -114,7 +132,7 @@ class MakeRelationships {
                 if (m.cascade)       'cascade=CascadeType.ALL'
             )»
             «m.relationship.writeJoinColumns(!m.cascade, m.relationship.childObject, m.joinColumnDirective, myNmd)»
-            «m.relationship.writeFGS(fieldVisibility, m.relationship.childObject.name, "", true, true)»
+            «m.relationship.writeFGS(e, fieldVisibility, m.relationship.childObject.name, "", true, true)»
         «ENDFOR»
 
         «FOR m : e.oneToManys»
@@ -127,12 +145,12 @@ class MakeRelationships {
             «IF m.collectionType == 'Map'»
                 @MapKey(name="«m.mapKey»")
             «ENDIF»
-            «m.relationship.writeFGS(fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', forceSetters || m.forceSetters, false)»
+            «m.relationship.writeFGS(e, fieldVisibility, m.o2mTypeName, ''' = new «m.getInitializer»()''', false, false)»
         «ENDFOR»
     '''
     }
 
-    def private static writeFGS(Relationship m, String fieldVisibility, CharSequence type, String initializer, boolean doSetter, boolean doThis) '''
+    def private static writeFGS(Relationship m, EntityDefinition e, String fieldVisibility, CharSequence type, String initializer, boolean doSetter, boolean doThis) '''
         «fieldVisibility»«type» «m.name»«initializer»;
 
         public «type» get«m.name.toFirstUpper»() {
@@ -142,8 +160,8 @@ class MakeRelationships {
                 return «m.name»;
             «ENDIF»
         }
-        «IF doSetter»
-            public void set«m.name.toFirstUpper»(«type» «m.name») {
+        «IF doSetter || shouldHaveSetter(e, m)»
+            «setterVisibility(e, m, doSetter).asKeyword» void set«m.name.toFirstUpper»(«type» «m.name») {
                 this.«m.name» = «m.name»;
             }
         «ENDIF»

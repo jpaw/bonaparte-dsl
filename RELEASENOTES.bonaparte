@@ -563,6 +563,11 @@ BON: no longer warning are generated due to "object not freezable due to parent"
 BDDL: by default setters to collections of @OneToMany are no longer generated (they will if forceSetters is specified)
 BDDL: named entity graphs, part 1 (without subgraphs)
 
+4.5.2:
+BDDL: can define visibility for relationship setters now
+BDDL: named entity graphs part 2: specify relationships
+
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
