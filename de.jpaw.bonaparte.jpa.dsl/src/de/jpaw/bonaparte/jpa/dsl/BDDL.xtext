@@ -141,7 +141,7 @@ ConverterDefinition:
 EntityDefinition:
     (javadoc = JAVADOC_COMMENT)?
     (isDeprecated?='@Deprecated')?
-    ('@Generator' '(' (doMapper?= 'doMapper' | noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper') ')')?
+    ('@Generator' '(' (doMapper?= 'doMapper' | noJava?='noJava' | noMapper?='noMapper' | noKeyMapper?='noKeyMapper' | noDDL?='noDDLs') ')')?
     (generator = ('@SequenceGenerator' | '@TableGenerator') generatorName = ID ('(' generatorValue = STRING ')')?)?
     (isAbstract?='abstract')?  // abstract means mappedSuperclass
     'entity' name = ID      

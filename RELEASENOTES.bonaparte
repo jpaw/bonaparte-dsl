@@ -567,6 +567,8 @@ BDDL: named entity graphs, part 1 (without subgraphs)
 BDDL: can define visibility for relationship setters now
 BDDL: named entity graphs part 2: specify relationships
 
+4.5.3:
+BDDL: add @Generator(noDDLs) to suppress creation of DDL files (useful to define entities for views with external DDL definition)
 
 
 4.x: (planned):
