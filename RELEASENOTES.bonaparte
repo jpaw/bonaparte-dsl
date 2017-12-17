@@ -570,6 +570,9 @@ BDDL: named entity graphs part 2: specify relationships
 4.5.3:
 BDDL: add @Generator(noDDLs) to suppress creation of DDL files (useful to define entities for views with external DDL definition)
 
+4.5.4:
+BON: get rid of maven-plugin dependencies (Apache commons)
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
