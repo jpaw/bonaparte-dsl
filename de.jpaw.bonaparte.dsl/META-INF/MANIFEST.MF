@@ -8,7 +8,6 @@ Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext;bundle-version="2.9.2";visibility:=reexport,
  org.eclipse.xtext.xbase;bundle-version="2.9.2";resolution:=optional;visibility:=reexport,
  org.eclipse.xtext.generator;bundle-version="2.9.2";resolution:=optional,
- org.apache.commons.logging;bundle-version="1.0.4";resolution:=optional,
  org.eclipse.emf.codegen.ecore;resolution:=optional,
  org.eclipse.emf.mwe.utils;resolution:=optional,
  org.eclipse.emf.mwe2.launch;resolution:=optional,
