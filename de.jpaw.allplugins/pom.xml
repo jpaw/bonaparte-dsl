@@ -4,10 +4,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.5.4</version>
+    <version>4.6.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Bonaparte DSL - Parent for all plugin projects</name>
+    <description>Bonaparte DSL - Parent for all plugin projects</description>
 
     <licenses>
         <license>
@@ -31,193 +31,289 @@
 
     <modules>
         <module>../de.jpaw.bonaparte.dsl</module>
+        <module>../de.jpaw.bonaparte.dsl.ide</module>
         <module>../de.jpaw.bonaparte.dsl.ui</module>
-        <module>../de.jpaw.bonaparte.dsl.sdk</module>
-        <module>../de.jpaw.bonaparte.dts.dsl</module>
-        <module>../de.jpaw.bonaparte.dts.dsl.ui</module>
-        <module>../de.jpaw.bonaparte.dts.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.dsl.target</module>
+        <module>../de.jpaw.bonaparte.dsl.feature</module>
         <module>../de.jpaw.bonaparte.jpa.dsl</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl.ide</module>
         <module>../de.jpaw.bonaparte.jpa.dsl.ui</module>
-        <module>../de.jpaw.bonaparte.jpa.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl.target</module>
+        <module>../de.jpaw.bonaparte.jpa.dsl.feature</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl.ide</module>
         <module>../de.jpaw.bonaparte.noSQL.dsl.ui</module>
-        <module>../de.jpaw.bonaparte.noSQL.dsl.sdk</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl.target</module>
+        <module>../de.jpaw.bonaparte.noSQL.dsl.feature</module>
         <module>../de.jpaw.updatesite</module>
     </modules>
 
     <properties>
+        <tycho-version>1.0.0</tycho-version>
+        <xtextVersion>2.13.0</xtextVersion>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <tycho.version>0.26.0</tycho.version>
-        <fornax.version>3.6.0</fornax.version>
-        <xtend.version>2.10.0</xtend.version>
-
-        <!-- org.apache.maven.plugins -->
-        <compiler.plugin.version>3.5.1</compiler.plugin.version>
-        <clean.plugin.version>2.6.1</clean.plugin.version>
-        <enforcer.plugin.version>1.4.1</enforcer.plugin.version>
-        <javadoc.plugin.version>2.10.3</javadoc.plugin.version>
-
-        <!-- org.codehaus.mojo maven plugins -->
-        <exec.plugin.version>1.4.0</exec.plugin.version>
-        <build-helper.plugin.version>1.9.1</build-helper.plugin.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <build>
-        <sourceDirectory>src</sourceDirectory>      <!-- not the maven default structure -->
-
+        <plugins>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-maven-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <extensions>true</extensions>
+            </plugin>
+            <!-- next 3 used for updatesite -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-source-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <executions>
+                    <execution>
+                        <id>plugin-source</id>
+                        <goals>
+                            <goal>plugin-source</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho.extras</groupId>
+                <artifactId>tycho-source-feature-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <executions>
+                    <execution>
+                        <id>source-feature</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>source-feature</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-p2-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-p2-metadata</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>p2-metadata</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <target>
+                        <artifact>
+                            <groupId>de.jpaw.bonaparte.dsl</groupId>
+                            <artifactId>de.jpaw.bonaparte.dsl.target</artifactId>
+                            <version>${project.version}</version>
+                        </artifact>
+                    </target>
+                    <environments>
+                        <environment>
+                            <os>macosx</os>
+                            <ws>cocoa</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>win32</os>
+                            <ws>win32</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                        <environment>
+                            <os>linux</os>
+                            <ws>gtk</ws>
+                            <arch>x86_64</arch>
+                        </environment>
+                    </environments>
+                </configuration>
+            </plugin>
+        </plugins>
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>org.eclipse.xtend</groupId>
+                    <artifactId>xtend-maven-plugin</artifactId>
+                    <version>${xtextVersion}</version>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>compile</goal>
+                                <goal>xtend-install-debug-info</goal>
+                                <goal>testCompile</goal>
+                                <goal>xtend-test-install-debug-info</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <outputDirectory>${basedir}/xtend-gen</outputDirectory>
+                        <testOutputDirectory>${basedir}/xtend-gen</testOutputDirectory>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>${clean.plugin.version}</version>
+                    <version>2.5</version>
                     <configuration>
                         <filesets>
-                            <!-- do not clean src-gen, as this prevents a "mvn clean install" in modules (src-gen for the ui project is created in the dsl project
                             <fileset>
-                                <directory>src-gen</directory>
+                                <directory>${basedir}/xtend-gen</directory>
                                 <includes>
-                                    <include>**</include>
+                                    <include>**/*</include>
                                 </includes>
-                                <excludes>
-                                    <exlude>.gitignore</exlude>
-                                </excludes>
-                            </fileset>
-                             -->
-                            <fileset>
-                                <directory>xtend-gen</directory>
+                                <directory>${basedir}/xtend-gen</directory>
                                 <includes>
-                                    <include>**</include>
+                                    <include>**/*</include>
                                 </includes>
-                                <excludes>
-                                    <exlude>.gitignore</exlude>
-                                </excludes>
                             </fileset>
                         </filesets>
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>build-helper-maven-plugin</artifactId>
-                    <version>${build-helper.plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>add-source</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>add-source</goal>
-                            </goals>
-                            <configuration>
-                                <sources>
-                                    <source>src-gen</source>
-                                    <source>${basedir}/xtend-gen</source>
-                                </sources>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.xtend</groupId>
-                    <artifactId>xtend-maven-plugin</artifactId>
-                    <version>${xtend.version}</version>
-                    <executions>
-                        <execution>
-                            <id>xtend</id>
-                            <phase>generate-sources</phase>
-                            <goals>
-                                <goal>compile</goal>
-                            </goals>
-                            <configuration>
-                                <outputDirectory>${basedir}/xtend-gen</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.fornax.toolsupport</groupId>
-                    <artifactId>fornax-oaw-m2-plugin</artifactId>
-                    <version>${fornax.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-maven-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                    <extensions>true</extensions>
-                </plugin>
-                <plugin>
-                    <groupId>org.eclipse.tycho</groupId>
-                    <artifactId>tycho-p2-repository-plugin</artifactId>
-                    <version>${tycho.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${compiler.plugin.version}</version>
+                    <groupId>org.eclipse.m2e</groupId>
+                    <artifactId>lifecycle-mapping</artifactId>
+                    <version>1.0.0</version>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
-                        <encoding>${project.build.sourceEncoding}</encoding>
+                        <lifecycleMappingMetadata>
+                            <pluginExecutions>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.apache.maven.plugins
+                                        </groupId>
+                                        <artifactId>
+                                            maven-resources-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [2.4.3,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>resources</goal>
+                                            <goal>testResources</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.codehaus.mojo
+                                        </groupId>
+                                        <artifactId>
+                                            build-helper-maven-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [1.9.1,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>add-resource</goal>
+                                            <goal>add-source</goal>
+                                            <goal>add-test-resource</goal>
+                                            <goal>add-test-source</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.eclipse.tycho
+                                        </groupId>
+                                        <artifactId>
+                                            tycho-compiler-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [0.23.1,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>compile</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                                <pluginExecution>
+                                    <pluginExecutionFilter>
+                                        <groupId>
+                                            org.eclipse.tycho
+                                        </groupId>
+                                        <artifactId>
+                                            tycho-packaging-plugin
+                                        </artifactId>
+                                        <versionRange>
+                                            [0.23.1,)
+                                        </versionRange>
+                                        <goals>
+                                            <goal>build-qualifier</goal>
+                                            <goal>build-qualifier-aggregator</goal>
+                                            <goal>validate-id</goal>
+                                            <goal>validate-version</goal>
+                                        </goals>
+                                    </pluginExecutionFilter>
+                                    <action>
+                                        <ignore></ignore>
+                                    </action>
+                                </pluginExecution>
+                            </pluginExecutions>
+                        </lifecycleMappingMetadata>
                     </configuration>
                 </plugin>
                 <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${javadoc.plugin.version}</version>
+                    <!--
+                        Can be removed after first generator execution
+                        https://bugs.eclipse.org/bugs/show_bug.cgi?id=480097
+                    -->
+                    <groupId>org.eclipse.tycho</groupId>
+                    <artifactId>tycho-compiler-plugin</artifactId>
+                    <version>${tycho-version}</version>
                     <configuration>
-                        <charset>UTF-8</charset>
+                        <compilerArgument>-err:-forbidden</compilerArgument>
+                        <useProjectSettings>false</useProjectSettings>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
-
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${enforcer.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>enforce-no-snapshots</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <rules>
-                        <requireReleaseDeps>
-                            <message>No snapshots dependencies allowed on the master branch!</message>
-                            <searchTransitive>true</searchTransitive>
-                            <failWhenParentIsSnapshot>true</failWhenParentIsSnapshot>
-                            <onlyWhenRelease>true</onlyWhenRelease>
-                        </requireReleaseDeps>
-                    </rules>
-                    <fail>true</fail>
-                    <failFast>true</failFast>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-maven-plugin</artifactId>
-            </plugin>
-        </plugins>
     </build>
-
     <repositories>
         <repository>
-            <id>p2-xtext</id>
-            <layout>p2</layout>
-            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/releases/2.10.0/</url>
-        </repository>
-        <repository>
-            <id>p2-neon</id>
-            <layout>p2</layout>
-            <!-- 201506241002 was Mars original release, 201510021000 is SR1, 201602261000 is SR2 -->
-            <!-- 201606221000 was Neon original release, 201609281000 is SR1 -->
-            <url>http://download.eclipse.org/releases/neon/201610111000/</url>
+            <id>codehaus-snapshots</id>
+            <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
+            <url>http://nexus.codehaus.org/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>codehaus-snapshots</id>
+            <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
+            <url>http://nexus.codehaus.org/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <distributionManagement>
         <snapshotRepository>
