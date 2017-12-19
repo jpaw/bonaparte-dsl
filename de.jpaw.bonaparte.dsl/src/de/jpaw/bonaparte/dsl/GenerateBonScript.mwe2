@@ -32,6 +32,7 @@ Workflow {
                 language = StandardLanguage {
                         name = "de.jpaw.bonaparte.dsl.BonScript"
                         fileExtensions = "bon"
+                        referencedResource = "platform:/resource/org.eclipse.xtext.common.types/model/JavaVMTypes.genmodel"
 
                         serializer = {
                                 generateStub = false
@@ -43,7 +44,7 @@ Workflow {
         }
 }
 
-
+// old MWE2:
 // module de.jpaw.bonaparte.dsl.GenerateBonScript
 //
 //import org.eclipse.emf.mwe.utils.*

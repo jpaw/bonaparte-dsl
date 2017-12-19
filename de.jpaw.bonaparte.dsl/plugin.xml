@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-	<extension point="org.eclipse.emf.ecore.generated_package">
-		<package 
-			uri = "http://www.jpaw.de/bonaparte/dsl/BonScript"
-			class = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
-			genModel = "model/generated/BonScript.genmodel" />
-	</extension>
+    <extension point="org.eclipse.emf.ecore.generated_package">
+        <package
+            uri = "http://www.jpaw.de/bonaparte/dsl/BonScript"
+            class = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
+            genModel = "model/generated/BonScript.genmodel" />
+    </extension>
 </plugin>

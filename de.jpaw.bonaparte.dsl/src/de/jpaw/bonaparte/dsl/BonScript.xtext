@@ -14,17 +14,14 @@
   * limitations under the License.
   */
 
-
 // grammar rule: every component either uses { } to wrap the body, or a semicolon ';' to terminate the directive
-// 3.2.0: added ; to xenum rule
 
-grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
-/* NEW: required for generics
-grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase // org.eclipse.xtext.common.Terminals
+grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xtype
+//grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase
+//grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
 
-import "http://www.eclipse.org/xtext/xbase/Xtype"        as xTypes */
 import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
-// used here are JvmAnnotationType and JvmGenericType
+import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
 
@@ -35,9 +32,9 @@ Model:
 
 //terminal ML_JAVADOC_COMMENT : '/#' -> '#/';
 //terminal SL_JAVADOC_COMMENT : '/-' !('\n'|'\r')* ('\r'? '\n')?;
-    
+terminal INT returns ecore::EInt: ('0'..'9')+;
 
-
+@Override
 terminal ML_COMMENT: '/*' !'*'-> '*/' ;     // overwrite ML_COMMENT to derive the non-Terminal JAVADOC comment
 terminal JAVADOC_COMMENT: '/**' -> '*/';    // and provide a separate JavaDoc multiline comment
 
