@@ -13,15 +13,15 @@
   * See the License for the specific language governing permissions and
   * limitations under the License.
   */
-  
+
 grammar de.jpaw.bonaparte.jpa.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
-//grammar de.jpaw.bonaparte.jpa.dsl.BDDL with org.eclipse.xtext.common.Terminals
 
 generate bDDL "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL"
 
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
 import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
 
+@Override
 Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
