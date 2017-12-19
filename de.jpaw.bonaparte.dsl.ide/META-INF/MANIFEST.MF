@@ -1,0 +1,15 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: de.jpaw.bonaparte.dsl.ide
+Bundle-Vendor: Michael Bischoff
+Bundle-Version: 4.6.0.qualifier
+Bundle-SymbolicName: de.jpaw.bonaparte.dsl.ide; singleton:=true
+Bundle-ActivationPolicy: lazy
+Require-Bundle: de.jpaw.bonaparte.dsl,
+ org.eclipse.xtext.ide,
+ org.eclipse.xtext.xbase.ide,
+ org.antlr.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Export-Package: de.jpaw.bonaparte.dsl.ide.contentassist.antlr.internal,
+ de.jpaw.bonaparte.dsl.ide.contentassist.antlr
+

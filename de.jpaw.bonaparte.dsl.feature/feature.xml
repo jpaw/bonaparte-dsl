@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feature id="de.jpaw.bonaparte.dsl.feature"
+	label="BonScript Feature "
+	version="4.6.0.qualifier">
+	<plugin
+			id="de.jpaw.bonaparte.dsl"
+			download-size="0"
+			install-size="0"
+			version="0.0.0"
+			unpack="false"/>
+	<plugin
+			id="de.jpaw.bonaparte.dsl.ide"
+			download-size="0"
+			install-size="0"
+			version="0.0.0"
+			unpack="false"/>
+	<plugin
+			id="de.jpaw.bonaparte.dsl.ui"
+			download-size="0"
+			install-size="0"
+			version="0.0.0"
+			unpack="false"/>
+</feature>

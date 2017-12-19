@@ -16,6 +16,7 @@
 
 package de.jpaw.bonaparte.jpa.dsl.generator
 
+import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
 import de.jpaw.bonaparte.jpa.dsl.generator.java.JavaDDLGeneratorMain
 import de.jpaw.bonaparte.jpa.dsl.generator.res.ResourceGeneratorMain
 import de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlDDLGeneratorMain
@@ -23,11 +24,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
-import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess2
+import org.eclipse.xtext.generator.IGenerator2
+import org.eclipse.xtext.generator.IGeneratorContext
 
-class BDDLGenerator implements IGenerator {
+class BDDLGenerator implements IGenerator2 {
     private static Logger LOGGER = Logger.getLogger(BDDLGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
@@ -45,9 +46,9 @@ class BDDLGenerator implements IGenerator {
         LOGGER.info("BDDLGenerator constructed. " + filterInfo)
     }
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
 
-        bonaparteGenerator.doGenerate(resource, fsa)
+        bonaparteGenerator.doGenerate(resource, fsa, unused)
 
         LOGGER.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
         generatorSql.doGenerate(resource, fsa)
@@ -60,4 +61,10 @@ class BDDLGenerator implements IGenerator {
 
         LOGGER.info(filterInfo + "start cleanup");
     }
+
+	override afterGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
+	}
+	
+	override beforeGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
+	}
 }
