@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>4.6.0-SNAPSHOT</version>
+        <version>4.6.0</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
     <artifactId>de.jpaw.bonaparte.jpa.dsl</artifactId>
