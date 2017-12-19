@@ -8,12 +8,6 @@ import org.eclipse.emf.mwe.utils.*
 var rootPath = ".."
 
 Workflow {
-//    bean = StandaloneSetup {
-//        scanClassPath = true
-//        platformUri = ".."
-//        registerGeneratedEPackage = "de.jpaw.bonaparte.dsl.bonScript.BonScriptPackage"
-//        registerGenModelFile = "platform:/resource/de.jpaw.bonaparte.dsl/model/generated/BonScript.genmodel"
-//    }
 
         component = XtextGenerator {
                 configuration = {

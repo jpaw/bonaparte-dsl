@@ -20,6 +20,7 @@ generate bDsl "http://www.jpaw.de/bonaparte/noSQL/dsl/BDsl"
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
 import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes    // to allow checking of referenced imports
 
+@Override
 Model:
     includes        += IncludeDefinition*
     imports         += ImportDefinition*
