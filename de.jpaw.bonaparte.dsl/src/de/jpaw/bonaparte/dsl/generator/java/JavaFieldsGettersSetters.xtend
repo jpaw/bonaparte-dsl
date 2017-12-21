@@ -27,11 +27,11 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import java.util.HashMap
 import java.util.Map
+import java.util.concurrent.atomic.AtomicBoolean
 
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import java.util.concurrent.atomic.AtomicBoolean
 
 class JavaFieldsGettersSetters {
     val static String xmlInterfaceAnnotation = "@XmlAnyElement"   // "@XmlElement(type=Object.class)"

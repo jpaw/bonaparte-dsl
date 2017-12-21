@@ -16,31 +16,31 @@
 
 package de.jpaw.bonaparte.dsl.generator
 
-import java.util.List
-
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
-import de.jpaw.bonaparte.dsl.bonScript.DataType
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
-import de.jpaw.bonaparte.dsl.bonScript.XRequired
-import de.jpaw.bonaparte.dsl.bonScript.ClassReference
-import org.apache.log4j.Logger;
-import de.jpaw.bonaparte.dsl.bonScript.MapModifier
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import org.eclipse.emf.ecore.EObject
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
-import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
-import java.util.ArrayList
-import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
-import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
-import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import com.google.common.base.Joiner
 import com.google.common.base.Splitter
 import com.google.common.collect.Lists
-import static extension de.jpaw.bonaparte.dsl.generator.Util.*
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+import de.jpaw.bonaparte.dsl.bonScript.DataType
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.GenericsDef
+import de.jpaw.bonaparte.dsl.bonScript.MapModifier
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XRequired
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import java.util.ArrayList
+import java.util.List
+import java.util.concurrent.Callable
+import org.apache.log4j.Logger
+import org.eclipse.emf.ecore.EObject
+import org.eclipse.xtend2.lib.StringConcatenationClient
 
 class XUtil {
     private static Logger LOGGER = Logger.getLogger(XUtil)
@@ -48,6 +48,15 @@ class XUtil {
     public static final String PROP_ACTIVE                  = "active";
     public static final String PROP_ATTRIBUTE               = "xmlAttribute";
     public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element
+
+    def public static xRef(Callable<CharSequence> lambda) {
+    	return new StringConcatenationClient() {
+	        override protected void appendTo(StringConcatenationClient.TargetStringConcatenation builder) {
+	            builder.append(lambda.call);
+	        }
+        };
+    }
+
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
         ref.elementaryDataType.xenumType.root.name + ".myFactory"
@@ -625,7 +634,7 @@ class XUtil {
     }
 
     def public static generateAnnotation(PropertyUse it) {
-        return '''@«key.annotationReference.qualifiedName»«IF value !== null»(«IF key.withMultiArgs»«value»«ELSE»"«value.escapeString2Java»"«ENDIF»)«ENDIF»'''
+        return '''@«key.annotationReference.qualifiedName»«IF value !== null»(«IF key.withMultiArgs»«value»«ELSE»"«Util.escapeString2Java(value)»"«ENDIF»)«ENDIF»'''
     }
     def public static generateAllAnnotations(List<PropertyUse> it) {
         return filter[key.annotationReference !== null].map[generateAnnotation].join('\n')

@@ -16,13 +16,18 @@
 
 package de.jpaw.bonaparte.jpa.dsl.generator.sql
 
+import com.google.inject.Inject
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Delimiter
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.BDDLTraceExtensions
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
@@ -34,8 +39,9 @@ import java.util.Set
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
+import org.eclipse.xtext.generator.AbstractGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess2
+import org.eclipse.xtext.generator.IGeneratorContext
 
 import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOut.*
 import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOutOracle.*
@@ -43,12 +49,11 @@ import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOutOracle.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
-import de.jpaw.bonaparte.dsl.generator.DataCategory
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
-class SqlDDLGeneratorMain implements IGenerator {
+class SqlDDLGeneratorMain extends AbstractGenerator {
     private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
+    @Inject extension BDDLTraceExtensions
+
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
@@ -58,7 +63,7 @@ class SqlDDLGeneratorMain implements IGenerator {
         return "sql/" + databaseFlavour.toString + "/" + object + "/" + basename + ".sql";
     }
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         prefs = BDDLPreferences.currentPrefs
         LOGGER.info('''Settings are: max ID length = («prefs.maxTablenameLength», «prefs.maxFieldnameLength»), Debug=«prefs.doDebugOut», Postgres=«prefs.doPostgresOut», Oracle=«prefs.doOracleOut», MSSQL=«prefs.doMsSQLServerOut», MySQL=«prefs.doMySQLOut»''')
         enumsRequired.clear
@@ -86,9 +91,9 @@ class SqlDDLGeneratorMain implements IGenerator {
         // enum mapping functions
         for (e : enumsRequired) {
             if (prefs.doPostgresOut)
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), postgresEnumFuncs(e))
+                fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, e.name, "Function"), e, xRef[postgresEnumFuncs(e)])
             if (prefs.doOracleOut)
-                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   e.name, "Function"), oracleEnumFuncs(e))
+                fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   e.name, "Function"), e, xRef[oracleEnumFuncs(e)])
             // TODO: HANA + MS SQL
         }
     }
@@ -124,24 +129,24 @@ class SqlDDLGeneratorMain implements IGenerator {
         }
     }
 
-    def private void makeElementCollectionTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
+    def private void makeElementCollectionTables(IFileSystemAccess2 fsa, EntityDefinition e, boolean doHistory) {
         for (ec : e.elementCollections) {
             if (doHistory && ec.historytablename === null) {
                 // no history here
             } else {
                 val tablename = if (doHistory) ec.historytablename else ec.tablename
                 if (prefs.doPostgresOut)
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory))
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e, xRef[e.sqlEcOut(ec, tablename, DatabaseFlavour::POSTGRES, doHistory)])
                 if (prefs.doMsSQLServerOut)
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::MSSQLSERVER, doHistory))
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e, xRef[e.sqlEcOut(ec, tablename, DatabaseFlavour::MSSQLSERVER, doHistory)])
                 if (prefs.doMySQLOut)
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::MYSQL, doHistory))
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e, xRef[e.sqlEcOut(ec, tablename, DatabaseFlavour::MYSQL, doHistory)])
                 if (prefs.doOracleOut) {
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory))
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e, xRef[e.sqlEcOut(ec, tablename, DatabaseFlavour::ORACLE, doHistory)])
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), e, xRef[tablename.sqlSynonymOut])
                 }
                 if (prefs.doSapHanaOut)
-                    fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlEcOut(ec, tablename, DatabaseFlavour::SAPHANA, doHistory))
+                    fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e, xRef[e.sqlEcOut(ec, tablename, DatabaseFlavour::SAPHANA, doHistory)])
             }
         }
     }
@@ -162,37 +167,37 @@ class SqlDDLGeneratorMain implements IGenerator {
             collectEnums(emb.name)
     }
 
-    def private void makeViews(IFileSystemAccess fsa, EntityDefinition e, boolean withTracking, String suffix) {
+    def private void makeViews(IFileSystemAccess2 fsa, EntityDefinition e, boolean withTracking, String suffix) {
         val tablename = mkTablename(e, false) + suffix
         if (prefs.doOracleOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e.createView(DatabaseFlavour::ORACLE, withTracking, suffix))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename, "View"), e, xRef[e.createView(DatabaseFlavour::ORACLE, withTracking, suffix)])
         if (prefs.doPostgresOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename, "View"), e, xRef[e.createView(DatabaseFlavour::POSTGRES, withTracking, suffix)])
     }
 
-    def private void makeTriggers(IFileSystemAccess fsa, EntityDefinition e) {
+    def private void makeTriggers(IFileSystemAccess2 fsa, EntityDefinition e) {
         val tablename = mkTablename(e, false)
         if (prefs.doOracleOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename + "_tr", "Trigger"), SqlTriggerOut.triggerOutOracle(e))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,   tablename + "_tr", "Trigger"), e, xRef[SqlTriggerOut.triggerOutOracle(e)])
         if (prefs.doPostgresOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename + "_tr", "Trigger"), SqlTriggerOut.triggerOutPostgres(e))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, tablename + "_tr", "Trigger"), e, xRef[SqlTriggerOut.triggerOutPostgres(e)])
     }
 
-    def private void makeTables(IFileSystemAccess fsa, EntityDefinition e, boolean doHistory) {
-        var tablename = mkTablename(e, doHistory)
+    def private void makeTables(IFileSystemAccess2 fsa, EntityDefinition e, boolean doHistory) {
+        val tablename = mkTablename(e, doHistory)
         // System::out.println("    tablename is " + tablename);
         if (prefs.doPostgresOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e, xRef[e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory)])
         if (prefs.doMsSQLServerOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e, xRef[e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory)])
         if (prefs.doMySQLOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MYSQL, doHistory))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e, xRef[e.sqlDdlOut(DatabaseFlavour::MYSQL, doHistory)])
         if (prefs.doOracleOut) {
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e, xRef[e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory)])
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), e, xRef[tablename.sqlSynonymOut])
         }
         if (prefs.doSapHanaOut)
-            fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::SAPHANA, doHistory))
+            fsa.generateTracedFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e, xRef[e.sqlDdlOut(DatabaseFlavour::SAPHANA, doHistory)])
     }
 
     def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {

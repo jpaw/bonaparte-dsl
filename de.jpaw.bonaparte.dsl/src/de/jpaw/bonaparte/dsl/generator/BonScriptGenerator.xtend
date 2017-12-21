@@ -24,11 +24,11 @@ import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
+import org.eclipse.xtext.generator.AbstractGenerator
 import org.eclipse.xtext.generator.IFileSystemAccess2
-import org.eclipse.xtext.generator.IGenerator2
 import org.eclipse.xtext.generator.IGeneratorContext
 
-class BonScriptGenerator implements IGenerator2 {
+class BonScriptGenerator extends AbstractGenerator {
     private static final Logger LOGGER = Logger.getLogger(BonScriptGenerator)
     private static final AtomicInteger globalId = new AtomicInteger(0)
     private final int localId = globalId.incrementAndGet
@@ -53,20 +53,14 @@ class BonScriptGenerator implements IGenerator2 {
         }
 
         LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-        generatorJava.doGenerate(resource, fsa)
+        generatorJava.doGenerate(resource, fsa, unused)
 
         if (!BonScriptPreferences.getNoXML) {
             LOGGER.info(filterInfo + "start XSD creation for " + resource.URI.toString);
-            generatorXsd.doGenerate(resource, fsa)
+            generatorXsd.doGenerate(resource, fsa, unused)
         }
 
         LOGGER.info(filterInfo + "start cleanup");
         DataTypeExtension::clear()
     }
-				
-	override afterGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
-	}
-	
-	override beforeGenerate(Resource input, IFileSystemAccess2 fsa, IGeneratorContext context) {
-	}
 }

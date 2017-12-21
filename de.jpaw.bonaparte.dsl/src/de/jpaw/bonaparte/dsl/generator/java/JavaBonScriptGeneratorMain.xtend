@@ -16,34 +16,40 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
+import com.google.inject.Inject
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
+import de.jpaw.bonaparte.dsl.BonScriptTraceExtensions
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
+import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
+import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
+import de.jpaw.bonaparte.dsl.bonScript.XXmlFormDefault
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.List
 import java.util.Map
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
-
-import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import org.eclipse.xtext.generator.AbstractGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess2
+import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
-import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
-import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XXmlFormDefault
+import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 // generator for the language Java
-class JavaBonScriptGeneratorMain implements IGenerator {
+class JavaBonScriptGeneratorMain extends AbstractGenerator {
     static private boolean AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES = false
+//    @TracedAccessors(BonScriptFactory)
+//    static class BonScriptTraceExtensions {}
+
+    @Inject extension BonScriptTraceExtensions
 
     var Map<String, String> requiredImports = new HashMap<String, String>()
 
@@ -64,25 +70,26 @@ class JavaBonScriptGeneratorMain implements IGenerator {
         if (!(XXmlFormDefault.UNQUALIFIED == xmlElementFormDefault && "" == d.xmlNsPrefix))
             return ''', xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }'''
     }
+    
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaEnumSet::writeEnumSetDefinition(d)]);
         for (d : resource.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d));
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaXEnumSet::writeXEnumSetDefinition(d)]);
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaEnum::writeEnumDefinition(d)]);
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaXEnum::writeXEnumDefinition(d)]);
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
                 print('''output of xml adapter for «d.name»''')
-                fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
+                fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), d, xRef[JavaXEnum::writeXEnumTypeAdapter(d)]);
             }
         }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition);
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[d.writeClassDefinition]);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()

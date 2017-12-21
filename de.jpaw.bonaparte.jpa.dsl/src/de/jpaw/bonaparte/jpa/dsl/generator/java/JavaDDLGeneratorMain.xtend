@@ -16,42 +16,46 @@
 
 package de.jpaw.bonaparte.jpa.dsl.generator.java
 
+import com.google.inject.Inject
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.BDDLTraceExtensions
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.jpa.dsl.bDDL.NamedEntityGraph
 import de.jpaw.bonaparte.jpa.dsl.generator.PrimaryKeyType
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import java.util.ArrayList
 import java.util.List
+import java.util.concurrent.atomic.AtomicInteger
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
-import org.eclipse.xtext.generator.IGenerator
+import org.eclipse.xtext.common.types.JvmGenericType
+import org.eclipse.xtext.generator.AbstractGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess2
+import org.eclipse.xtext.generator.IGeneratorContext
 
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import org.eclipse.xtext.common.types.JvmGenericType
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
-import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
-import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
-import java.util.concurrent.atomic.AtomicInteger
-import de.jpaw.bonaparte.jpa.dsl.bDDL.NamedEntityGraph
 
-class JavaDDLGeneratorMain implements IGenerator {
+class JavaDDLGeneratorMain extends AbstractGenerator {
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
 
+    @Inject extension BDDLTraceExtensions
     var JavaFieldWriter fieldWriter = null
 
     var FieldDefinition haveIntVersion = null
@@ -62,23 +66,23 @@ class JavaDDLGeneratorMain implements IGenerator {
         return "java/" + pkg.replaceAll("\\.", "/") + "/" + name + ".java"
     }
 
-    override void doGenerate(Resource resource, IFileSystemAccess fsa) {
+    override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
             if (!e.noJava && !(e.eContainer as BDDLPackageDefinition).isNoJava) {
                 val primaryKeyType = determinePkType(e)
                 if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
-                    fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e.javaKeyOut)
+                    fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e, xRef[e.javaKeyOut])
                 }
-                fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEntityOut(primaryKeyType))
+                fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[e.javaEntityOut(primaryKeyType)])
             }
         }
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
-            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEmbeddableOut)
+            fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[e.javaEmbeddableOut])
         }
         for (e : resource.allContents.toIterable.filter(typeof(ConverterDefinition))) {
-            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), Converters.writeTypeConverter(e))
+            fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[Converters.writeTypeConverter(e)])
         }
         for (d : resource.allContents.toIterable.filter(typeof(BDDLPackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists

@@ -573,6 +573,14 @@ BDDL: add @Generator(noDDLs) to suppress creation of DDL files (useful to define
 4.5.4:
 BON: get rid of maven-plugin dependencies (Apache commons)
 
+4.6.0:
+(all): Upgrade to Xtext 2.13. Recreate projects from scratch with Xtext new project wizard, new MWE2
+
+4.6.1:
+cleanup: only use log4j Logger for logging.
+BON: basic cross reference information (Xtext tracing)
+BDDL: basic cross reference information (Xtext tracing)
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)
