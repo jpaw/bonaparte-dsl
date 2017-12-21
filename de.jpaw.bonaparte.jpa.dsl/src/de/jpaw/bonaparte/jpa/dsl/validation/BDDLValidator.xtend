@@ -27,8 +27,10 @@ import org.eclipse.xtext.validation.Check
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import org.apache.log4j.Logger
 
 class BDDLValidator extends AbstractBDDLValidator {
+    private static Logger LOGGER = Logger.getLogger(BDDLValidator)
     private boolean infoDoneTablenames = false
     private boolean infoDoneColumnNames = false
 
@@ -38,7 +40,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         if (!infoDoneTablenames) {
             // log on the console once we do some initial check to be able to verify that the validator is active!
             infoDoneTablenames = true
-            System.out.println("Checking table names against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
+            LOGGER.debug("Checking table names against configured limit of " + BDDLPreferences.currentPrefs.maxTablenameLength);
         }
         if (s.length() > BDDLPreferences.currentPrefs.maxTablenameLength)
             error("The resulting SQL table or related index name " + s + " exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxTablenameLength + " characters and will not work for some database brands",
@@ -50,7 +52,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         if (!infoDoneColumnNames) {
             // log on the console once we do some initial check to be able to verify that the validator is active!
             infoDoneColumnNames = true
-            System.out.println("Checking column names against configured limit of " + BDDLPreferences.currentPrefs.maxFieldnameLength);
+            LOGGER.debug("Checking column names against configured limit of " + BDDLPreferences.currentPrefs.maxFieldnameLength);
         }
         if (sqlName.length() > BDDLPreferences.currentPrefs.maxFieldnameLength)
             error("The field name " + s + " is in SQL " + sqlName + ", which exceeds the maximum configured length of " + BDDLPreferences.currentPrefs.maxFieldnameLength

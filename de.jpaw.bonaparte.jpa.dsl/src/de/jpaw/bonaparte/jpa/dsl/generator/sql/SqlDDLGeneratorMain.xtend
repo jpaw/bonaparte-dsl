@@ -60,7 +60,7 @@ class SqlDDLGeneratorMain implements IGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess fsa) {
         prefs = BDDLPreferences.currentPrefs
-        System.out.println('''Settings are: max ID length = («prefs.maxTablenameLength», «prefs.maxFieldnameLength»), Debug=«prefs.doDebugOut», Postgres=«prefs.doPostgresOut», Oracle=«prefs.doOracleOut», MSSQL=«prefs.doMsSQLServerOut», MySQL=«prefs.doMySQLOut»''')
+        LOGGER.info('''Settings are: max ID length = («prefs.maxTablenameLength», «prefs.maxFieldnameLength»), Debug=«prefs.doDebugOut», Postgres=«prefs.doPostgresOut», Oracle=«prefs.doOracleOut», MSSQL=«prefs.doMsSQLServerOut», MySQL=«prefs.doMySQLOut»''')
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {

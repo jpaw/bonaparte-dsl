@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
@@ -52,6 +53,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
 import de.jpaw.bonaparte.dsl.generator.java.JavaXEnum;
 
 public class DataTypeExtension {
+    private static final Logger LOGGER = Logger.getLogger(DataTypeExtension.class);
     // constants for enumMaxTokenLength field
     public static final int NO_ENUM = -2;
     public static final int ENUM_NUMERIC = -1;
@@ -486,7 +488,7 @@ public class DataTypeExtension {
             map.put(key, r);
             if (r.typedef.getDatatype() == null) {
                 // currently we have some sporadic NPE on Windows here
-                System.out.println("NPE alert for typedef " + nvl(r.typedef.getName(), "NULL") + " for parent " + prtParent(r.typedef.eContainer()));
+                LOGGER.error("NPE alert for typedef " + nvl(r.typedef.getName(), "NULL") + " for parent " + prtParent(r.typedef.eContainer()));
                 return null;
             }
             DataTypeExtension resolvedReference = get(r.typedef.getDatatype());  // descend via DFS

@@ -3,9 +3,11 @@ package de.jpaw.bonaparte.dsl
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
 import org.eclipse.xtend.lib.annotations.Data
+import org.apache.log4j.Logger
 
 @Data
 public class ConfigReader {
+    private static final Logger LOGGER = Logger.getLogger(ConfigReader);
     String prefix;
 
     def String getProp(String name, String defaultValue) {
@@ -15,14 +17,14 @@ public class ConfigReader {
             if (result !== null)
                 return result
         } catch (Exception e) {
-            System.out.println('''Exception «e» while accessing system property «prefix».«name»''')
+            LOGGER.error('''Exception «e» while accessing system property «prefix».«name»''')
         }
         try {
             result = System.getenv(prefix + "_" + name)
+            LOGGER.debug('''Setting «prefix».«name» is «result ?: defaultValue»''')
         } catch (Exception e) {
-            System.out.println('''Exception «e» while accessing environment variable «prefix»_«name»''')
+            LOGGER.error('''Exception «e» while accessing environment variable «prefix»_«name»''')
         }
-        System.out.println('''Setting «prefix».«name» is «result ?: defaultValue»''')
         return result ?: defaultValue
     }
 
