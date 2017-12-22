@@ -11,10 +11,12 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.XUtil
 import java.util.HashMap
 import java.util.Map
+import org.apache.log4j.Logger
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 public class ImportCollector {
+    private static final Logger LOGGER = Logger.getLogger(ImportCollector);
     private Map<String, String> requiredImports
     private String myPackageName
 
@@ -72,7 +74,7 @@ public class ImportCollector {
         for (i : d.fields) {
             val ref = DataTypeExtension::get(i.datatype)
             if (ref === null) {
-                System::out.println('''recurseImports: NPE catch for «d.name».«i.name»''')
+                LOGGER.error('''recurseImports: NPE catch for «d.name».«i.name»''')
             } else {
                 // referenced objects
                 if (ref.objectDataType !== null)

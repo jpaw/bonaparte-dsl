@@ -42,6 +42,11 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
+import org.eclipse.xtext.generator.trace.node.Traced
+import org.eclipse.xtext.generator.trace.node.CompositeGeneratorNode
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain extends AbstractGenerator {
@@ -70,7 +75,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
         if (!(XXmlFormDefault.UNQUALIFIED == xmlElementFormDefault && "" == d.xmlNsPrefix))
             return ''', xmlns = { @XmlNs(prefix="«d.xmlNsPrefix ?: d.schemaToken»", namespaceURI="«d.effectiveXmlNs»") }'''
     }
-    
+
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
@@ -89,7 +94,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             }
         }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[d.writeClassDefinition]);
+            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition as CompositeGeneratorNode);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
@@ -253,6 +258,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
         }
     }
 
+    @Traced
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
@@ -371,14 +377,16 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             @TrackingClass(«d.trackingClass.name».class)
         «ENDIF»
         «d.properties.generateAllAnnotations»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.bonPackageName».«d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d._name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.bonPackageName».«d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements «d.refExtension»«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
             «JavaRtti::writeRtti(d)»
             «JavaMeta::writeMetaData(d)»
             «JavaFrozen::writeFreezingCode(d)»
-            «JavaFieldsGettersSetters::writeFields(d, doBeanVal)»
+            «FOR i:d.fields»
+                «writeOneField(i, d, doBeanVal)»
+            «ENDFOR»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
             «JavaValidate::writePatterns(d)»
             «JavaSerialize::writeSerialize(d)»
@@ -431,4 +439,22 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
     }
     def JavaDeexternalize(ClassDefinition definition) { }
 
+    @Traced
+    def private writeOneField(FieldDefinition i, ClassDefinition d, boolean doBeanVal) {
+        val ref = DataTypeExtension::get(i.datatype)
+        val v = getFieldVisibility(d, i)
+        // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
+        // System::out.println('''writing one field «d.name»:«i.name» needs XmlAccess=«i.needsXmlObjectType» has XmlAccess «d.getRelevantXmlAccess»''')
+
+        return '''
+            «JavaFieldsGettersSetters.writeFieldComments(i)»
+            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
+            «i.properties.generateAllAnnotations»
+            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
+                «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper)»
+            «ENDIF»
+            «i.writeIfDeprecated»
+            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i._name»«JavaFieldsGettersSetters.writeDefaultValue(i, ref, i.aggregate)»;
+        '''
+    }
 }

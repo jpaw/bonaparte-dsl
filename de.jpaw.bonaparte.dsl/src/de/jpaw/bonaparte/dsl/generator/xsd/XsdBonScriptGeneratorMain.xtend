@@ -203,7 +203,7 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
-	@Traced
+    @Traced
     def public createEnumType(EnumDefinition en) {
         return '''
             <xs:simpleType name="«en.name»">
@@ -222,7 +222,7 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
-	@Traced
+    @Traced
     def public createXEnumType(XEnumDefinition en) {
         return '''
             <xs:simpleType name="«en.name»">
@@ -233,7 +233,7 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
-	@Traced
+    @Traced
     def public createEnumsetType(EnumSetDefinition en) {
         return '''
             <xs:simpleType name="«en.name»">
@@ -242,7 +242,7 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
-	@Traced
+    @Traced
     def public createXEnumsetType(XEnumSetDefinition en) {
         return '''
             <xs:simpleType name="«en.name»">
@@ -598,10 +598,10 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
                 «IF !ROOT_ELEMENTS_SEPARATE»
                     «pkg.createTopLevelElements»
                 «ENDIF»
-    	        «FOR en1: pkg.enums»
+                «FOR en1: pkg.enums»
                     «en1.createEnumType»
                 «ENDFOR»
-	            «FOR en2: pkg.xenums»
+                «FOR en2: pkg.xenums»
                     «en2.createXEnumType»
                 «ENDFOR»
                 «FOR en3: pkg.enumSets»

@@ -50,10 +50,10 @@ class XUtil {
     public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element
 
     def public static xRef(Callable<CharSequence> lambda) {
-    	return new StringConcatenationClient() {
-	        override protected void appendTo(StringConcatenationClient.TargetStringConcatenation builder) {
-	            builder.append(lambda.call);
-	        }
+        return new StringConcatenationClient() {
+            override protected void appendTo(StringConcatenationClient.TargetStringConcatenation builder) {
+                builder.append(lambda.call);
+            }
         };
     }
 

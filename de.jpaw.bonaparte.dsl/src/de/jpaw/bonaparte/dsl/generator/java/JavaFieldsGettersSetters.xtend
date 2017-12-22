@@ -20,7 +20,6 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XBeanNames
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
@@ -70,7 +69,7 @@ class JavaFieldsGettersSetters {
             '''
     }
 
-    def private static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
+    def public static writeDefaultValue(FieldDefinition i, DataTypeExtension ref, boolean effectiveAggregate) {
         if (effectiveAggregate)  // Only write defaults if we are not in an array / set / map etc.
             return ''''''
 
@@ -105,7 +104,7 @@ class JavaFieldsGettersSetters {
                 // TODO: for map, the last one seems to be causing issue at the moment because of the non-matching type
                 // probably create all classes with all possibilities is good/not good option
                 // temporarily skipping in case of map since its not really used at the moment
-    def private static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper) {
+    def public static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper) {
         val datatype = ref.elementaryDataType?.name?.toLowerCase
         if (i.properties.hasProperty(PROP_ATTRIBUTE)) {
             return '''
@@ -133,38 +132,6 @@ class JavaFieldsGettersSetters {
             «ENDIF»
         '''
     }
-
-    def private static writeOneField(ClassDefinition d, FieldDefinition i, boolean doBeanVal) {
-        val ref = DataTypeExtension::get(i.datatype)
-        val v = getFieldVisibility(d, i)
-        // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
-        // System::out.println('''writing one field «d.name»:«i.name» needs XmlAccess=«i.needsXmlObjectType» has XmlAccess «d.getRelevantXmlAccess»''')
-
-        return '''
-            «i.writeFieldComments»
-            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
-            «i.properties.generateAllAnnotations»
-            «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
-                «allXmlAnnotations(i, ref, d.isXmlUpper)»
-            «ENDIF»
-            «i.writeIfDeprecated»
-            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«writeDefaultValue(i, ref, i.aggregate)»;
-        '''
-    }
-
-    // TODO: Setters might need to check string max length, and also clone for byte arrays?
-    def public static writeFields(ClassDefinition d, boolean doBeanVal) '''
-        // fields as defined in DSL
-        «FOR i:d.fields»
-            «writeOneField(d, i, doBeanVal)»
-        «ENDFOR»
-        '''
-
-    // Unused. Test to see the generated code for Lambdas.
-    def public static writeFieldsWithLambda(ClassDefinition d, boolean doBeanVal) '''
-        // fields as defined in DSL
-        «d.fields.forEach [ writeOneField(d, it, doBeanVal) ]»
-    '''
 
     // write the standard getter plus maybe some indexed one
     // if getterWritten is true, then this is a subsequent call for a field which has seen a getter already.

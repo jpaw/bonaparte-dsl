@@ -185,7 +185,15 @@ EntityDefinition:
 NamedEntityGraph:
 	name = ID 'is'
 	(isAll ?= 'all')?
-    (relationships = ListOfRelationships)?
+	('(' rname += GraphRelationship (',' rname += GraphRelationship)* ')')?
+;
+
+// used for entity graphs
+GraphRelationship:
+	name = [Relationship] ( '(' fields = SubGraphFields ')')?
+;
+SubGraphFields:
+	fields += [Relationship|QualifiedId] (',' fields += [Relationship|QualifiedId])*
 ;
 
 ManyToOne:
@@ -248,10 +256,6 @@ IndexDefinition:
 // by custom ScopeProvider implementation, an appropriate importedNamespace will be added here
 ListOfColumns:
     '(' columnName += [pojos::FieldDefinition] (',' columnName += [pojos::FieldDefinition])* ')'    
-;
-
-ListOfRelationships:
-	'(' rname += [Relationship] (',' rname += [Relationship])* ')'
 ;
 
 // by custom ScopeProvider implementation, an appropriate importedNamespace will be added here

@@ -19,8 +19,8 @@ package de.jpaw.bonaparte.dsl.generator;
 public class Util {
     // we want to avoid extra dependencies in the poms of our users,
     // otherwise Apache commons text: StringEscapeUtils.escapeJava could also have been used (but that is 2 to 4 times slower...).
-	private static final char [] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
-	
+    private static final char [] HEX_DIGITS = "0123456789ABCDEF".toCharArray();
+
     static public String escapeString2Java(final String s) {
         if (!needsEscaping(s))
             return s;  // shortcut - avoid buffer allocation unless required
@@ -52,13 +52,13 @@ public class Util {
                 default:
 //                    sb.append(String.format("\\%o", c));      // 1 or 2 octal digits
                     //sb.append(String.format("\\u%04x", c));        // 4 hex digits - Apache commons compatibility
-                	appendHex(sb, c);
+                    appendHex(sb, c);
                     break;
                 }
             } else if (c > 0x7e) {
                 // Unicode escape
 //                sb.append(String.format("\\u%04x", c));        // 4 hex digits
-            	appendHex(sb, c);
+                appendHex(sb, c);
             } else {
                 // printable ASCII character
                 switch (c) {
@@ -76,14 +76,14 @@ public class Util {
         }
         return sb.toString();
     }
-    
+
     private static void appendHex(StringBuilder sb, int c) {
-    	sb.append('\\');
-    	sb.append('u');
-    	sb.append(HEX_DIGITS[0xf & (c >> 12)]);
-    	sb.append(HEX_DIGITS[0xf & (c >>  8)]);
-    	sb.append(HEX_DIGITS[0xf & (c >>  4)]);
-    	sb.append(HEX_DIGITS[0xf &  c]);
+        sb.append('\\');
+        sb.append('u');
+        sb.append(HEX_DIGITS[0xf & (c >> 12)]);
+        sb.append(HEX_DIGITS[0xf & (c >>  8)]);
+        sb.append(HEX_DIGITS[0xf & (c >>  4)]);
+        sb.append(HEX_DIGITS[0xf &  c]);
     }
 
     // return false if the string contains a non-ASCII printable character, else true

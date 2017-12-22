@@ -9,7 +9,7 @@ package de.jpaw.bonaparte.jpa.dsl
  */
 class BDDLStandaloneSetup extends BDDLStandaloneSetupGenerated {
 
-	def static void doSetup() {
-		new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration()
-	}
+    def static void doSetup() {
+        new BDDLStandaloneSetup().createInjectorAndDoEMFRegistration()
+    }
 }

@@ -32,21 +32,21 @@ import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 class MakeRelationships {
 
     def private static boolean shouldHaveSetter(EntityDefinition e, Relationship r) {
-    	return e.forceSetters || r.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters 
+        return e.forceSetters || r.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters
     }
     def private static XVisibility setterVisibility(EntityDefinition e, Relationship r, boolean forcePublic) {
-    	if (forcePublic)
-    	    return XVisibility.PUBLIC
-    	if (r.forceSetters)
-    	    return r.setterVisibility
-    	if (e.forceSetters)
-    		return e.setterVisibility
-        return (e.eContainer as BDDLPackageDefinition).setterVisibility 
+        if (forcePublic)
+            return XVisibility.PUBLIC
+        if (r.forceSetters)
+            return r.setterVisibility
+        if (e.forceSetters)
+            return e.setterVisibility
+        return (e.eContainer as BDDLPackageDefinition).setterVisibility
     }
     def private static String asKeyword(XVisibility v) {
-    	if (v === null || v == XVisibility.DEFAULT)
-    		return ""
-   		return v.literal
+        if (v === null || v == XVisibility.DEFAULT)
+            return ""
+        return v.literal
     }
 
     // nmd2 is own entity, nmd1 is for child entity

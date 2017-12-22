@@ -17,19 +17,21 @@
 package de.jpaw.bonaparte.jpa.dsl.generator.sql
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import java.util.ArrayList
 import java.util.List
+import org.apache.log4j.Logger
 
-import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.generator.DataCategory
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 
 class SqlTriggerOut {
+    private static final Logger LOGGER = Logger.getLogger(SqlTriggerOut);
 
     def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
@@ -97,7 +99,7 @@ class SqlTriggerOut {
         val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
         val nmd = e.nameMapping
-        println('''Creating ORACLE trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
+        LOGGER.debug('''Creating ORACLE trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         // create an additional list to provide an ordered collection of both lists, but without repeated field names,
         // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
         val keyFieldNames = myPrimaryKeyColumns.map[name]
@@ -169,7 +171,7 @@ class SqlTriggerOut {
         val myPrimaryKeyColumns = e.primaryKeyColumns ?: new ArrayList<FieldDefinition>(0) // here, myPrimaryKeyColumns may not be null
         val nonPrimaryKeyColumns = e.nonPrimaryKeyColumns(true) ?: new ArrayList<FieldDefinition>(0)
         val nmd = e.nameMapping
-        println('''Creating POSTGRES trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
+        LOGGER.debug('''Creating POSTGRES trigger for table «baseTablename», writing to «tablename». PK columns are «myPrimaryKeyColumns.map[name].join(', ')»''')
         // create an additional list to provide an ordered collection of both lists, but without repeated field names,
         // in the ordering of the original lists. For natural keys to work, it is essential that the comparison is based on the field names only!
         val keyFieldNames = myPrimaryKeyColumns.map[name]

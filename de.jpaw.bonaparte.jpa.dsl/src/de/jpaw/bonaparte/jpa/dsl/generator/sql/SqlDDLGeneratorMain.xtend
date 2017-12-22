@@ -69,23 +69,23 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         enumsRequired.clear
         // SQL DDLs
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
-        	if (e.noDDL) {
+            if (e.noDDL) {
                 LOGGER.info("skipping code output of main table for " + e.name)
-        	} else {
-	            LOGGER.info("start code output of main table for " + e.name)
-	            // System::out.println("start code output of main table for " + e.name)
-	            makeTables(fsa, e, false)
-	            if (e.tableCategory !== null && e.tableCategory.historyCategory !== null) {
-	                // do histories as well
-	                LOGGER.info("    doing history table as well, due to category " + e.tableCategory.name);
-	                // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
-	                makeTables(fsa, e, true)
-	                makeTriggers(fsa, e)
-	            }
-	            collectEnums(e)
-	            makeViews(fsa, e, false, "_nt")
-	            makeViews(fsa, e, true, "_v")      // enums included, also create a view
-	            makeElementCollectionTables(fsa, e, false)
+            } else {
+                LOGGER.info("start code output of main table for " + e.name)
+                // System::out.println("start code output of main table for " + e.name)
+                makeTables(fsa, e, false)
+                if (e.tableCategory !== null && e.tableCategory.historyCategory !== null) {
+                    // do histories as well
+                    LOGGER.info("    doing history table as well, due to category " + e.tableCategory.name);
+                    // System::out.println("    doing history table as well, due to category " + e.tableCategory.name);
+                    makeTables(fsa, e, true)
+                    makeTriggers(fsa, e)
+                }
+                collectEnums(e)
+                makeViews(fsa, e, false, "_nt")
+                makeViews(fsa, e, true, "_v")      // enums included, also create a view
+                makeElementCollectionTables(fsa, e, false)
             }
         }
         // enum mapping functions

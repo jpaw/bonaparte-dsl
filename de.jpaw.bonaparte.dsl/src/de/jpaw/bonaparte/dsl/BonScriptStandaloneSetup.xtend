@@ -9,7 +9,7 @@ package de.jpaw.bonaparte.dsl
  */
 class BonScriptStandaloneSetup extends BonScriptStandaloneSetupGenerated {
 
-	def static void doSetup() {
-		new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration()
-	}
+    def static void doSetup() {
+        new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration()
+    }
 }

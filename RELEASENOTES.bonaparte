@@ -580,6 +580,7 @@ BON: get rid of maven-plugin dependencies (Apache commons)
 cleanup: only use log4j Logger for logging.
 BON: basic cross reference information (Xtext tracing)
 BDDL: basic cross reference information (Xtext tracing)
+BDDL: add NamedSubgraphs (draft)
 
 
 4.x: (planned):

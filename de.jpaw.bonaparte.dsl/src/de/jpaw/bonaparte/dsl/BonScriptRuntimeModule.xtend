@@ -12,7 +12,7 @@ import org.eclipse.xtext.conversion.IValueConverterService
  */
 class BonScriptRuntimeModule extends AbstractBonScriptRuntimeModule {
     private static Logger LOGGER = Logger.getLogger(BonScriptRuntimeModule)
-    
+
     new() {
         LOGGER.info("BON Runtime module constructed");
     }
