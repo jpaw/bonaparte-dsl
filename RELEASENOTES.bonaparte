@@ -581,9 +581,11 @@ cleanup: only use log4j Logger for logging.
 BON: basic cross reference information (Xtext tracing)
 BDDL: basic cross reference information (Xtext tracing)
 BDDL: add NamedSubgraphs (draft)
+BON, BDDL: restore "NamesAreUnique" validator (got lost in 4.6.0)
 
 4.6.2:
-BON, BDDL: restore syntax highlighting for Javadoc comments (got lost in 4.6.0)
+BON, BDDL, BDSL: restore syntax highlighting for Javadoc comments (got lost in 4.6.0)
+BDSL: restore "NamesAreUnique" validator (got lost in 4.6.0)
 BDDL: add validation for fields in NamedEntityGraph subgraphs
 
 
