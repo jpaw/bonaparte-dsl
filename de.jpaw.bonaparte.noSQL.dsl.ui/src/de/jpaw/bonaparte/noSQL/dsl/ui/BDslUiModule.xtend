@@ -3,11 +3,21 @@
  */
 package de.jpaw.bonaparte.noSQL.dsl.ui
 
+import de.jpaw.bonaparte.dsl.ui.BonAntlrTokenToAttributeIdMapper
+import de.jpaw.bonaparte.dsl.ui.Highlighter
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper
+import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
  */
 @FinalFieldsConstructor
 class BDslUiModule extends AbstractBDslUiModule {
+    def Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
+        return Highlighter;
+    }
+    def Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+        return BonAntlrTokenToAttributeIdMapper;
+    }
 }
