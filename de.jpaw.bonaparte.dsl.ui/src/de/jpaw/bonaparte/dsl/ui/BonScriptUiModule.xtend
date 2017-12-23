@@ -4,13 +4,25 @@
 package de.jpaw.bonaparte.dsl.ui
 
 import org.eclipse.xtend.lib.annotations.FinalFieldsConstructor
+import org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage
+import org.eclipse.xtext.ui.editor.syntaxcoloring.AbstractAntlrTokenToAttributeIdMapper
+import org.eclipse.xtext.ui.editor.syntaxcoloring.IHighlightingConfiguration
 
 /**
  * Use this class to register components to be used within the Eclipse IDE.
  */
 @FinalFieldsConstructor
 class BonScriptUiModule extends AbstractBonScriptUiModule {
-    def Class<? extends org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage> bindLanguageRootPreferencePage() {
+    def Class<? extends LanguageRootPreferencePage> bindLanguageRootPreferencePage() {
         return BonScriptConfiguration;
     }
+    def Class<? extends IHighlightingConfiguration> bindIHighlightingConfiguration() {
+        return Highlighter;
+    }
+    def Class<? extends AbstractAntlrTokenToAttributeIdMapper> bindAbstractAntlrTokenToAttributeIdMapper() {
+        return BonAntlrTokenToAttributeIdMapper;
+    }
+//    def Class<? extends IGlobalScopeProvider> bindIGlobalScopeProvider() {
+//        return BonaparteGlobalScopeProvider;
+//    }
 }

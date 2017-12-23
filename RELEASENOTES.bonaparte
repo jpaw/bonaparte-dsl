@@ -582,6 +582,10 @@ BON: basic cross reference information (Xtext tracing)
 BDDL: basic cross reference information (Xtext tracing)
 BDDL: add NamedSubgraphs (draft)
 
+4.6.2:
+BON, BDDL: restore syntax highlighting for Javadoc comments (got lost in 4.6.0)
+BDDL: add validation for fields in NamedEntityGraph subgraphs
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

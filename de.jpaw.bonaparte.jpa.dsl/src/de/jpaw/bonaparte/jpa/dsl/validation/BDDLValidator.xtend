@@ -28,6 +28,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import org.apache.log4j.Logger
+import de.jpaw.bonaparte.jpa.dsl.bDDL.GraphRelationship
 
 class BDDLValidator extends AbstractBDDLValidator {
     private static Logger LOGGER = Logger.getLogger(BDDLValidator)
@@ -628,4 +629,20 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
     }
 
+    // workaround because scoping allows also subgraph fields of the wrong entity
+    @Check
+    def public void checkGraphRelationship(GraphRelationship c) {
+    	if (c.fields !== null) {
+    		val referencedEntity = c.name.childObject
+    		for (sgf: c.fields.fields) {
+    			val usedEntity = sgf.eContainer.eContainer
+    			if (usedEntity instanceof EntityDefinition) {
+    				if (referencedEntity.name != usedEntity.name)
+                        error('''Subgraph field «sgf.name» is child of entity «usedEntity.name», but should be in «referencedEntity.name»''', BDDLPackage.Literals.GRAPH_RELATIONSHIP__FIELDS);
+    			} else {
+    				    error('''Internal error: type mismatch: Subgraph field «sgf.name» has grandfather of type «usedEntity.class.simpleName», but should be in «referencedEntity.class.simpleName»''', BDDLPackage.Literals.GRAPH_RELATIONSHIP__FIELDS);
+    			}
+    		}
+    	}
+    }
 }
