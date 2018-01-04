@@ -16,7 +16,6 @@
 
 package de.jpaw.bonaparte.jpa.dsl.generator.java
 
-import com.google.inject.Inject
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
@@ -24,7 +23,6 @@ import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
-import de.jpaw.bonaparte.jpa.dsl.BDDLTraceExtensions
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
@@ -58,7 +56,6 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
     private static final Logger LOGGER = Logger.getLogger(JavaDDLGeneratorMain);
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
 
-    @Inject extension BDDLTraceExtensions
     var JavaFieldWriter fieldWriter = null
 
     var FieldDefinition haveIntVersion = null
@@ -76,16 +73,16 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                 val primaryKeyType = determinePkType(e)
                 if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
-                    fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e, xRef[e.javaKeyOut])
+                    fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e.javaKeyOut)
                 }
-                fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[e.javaEntityOut(primaryKeyType)])
+                fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEntityOut(primaryKeyType))
             }
         }
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
-            fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[e.javaEmbeddableOut])
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEmbeddableOut)
         }
         for (e : resource.allContents.toIterable.filter(typeof(ConverterDefinition))) {
-            fsa.generateTracedFile(getJavaFilename(e.bddlPackageName, e.name), e, xRef[Converters.writeTypeConverter(e)])
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), Converters.writeTypeConverter(e))
         }
         for (d : resource.allContents.toIterable.filter(typeof(BDDLPackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists

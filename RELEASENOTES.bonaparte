@@ -588,6 +588,9 @@ BON, BDDL, BDSL: restore syntax highlighting for Javadoc comments (got lost in 4
 BDSL: restore "NamesAreUnique" validator (got lost in 4.6.0)
 BDDL: add validation for fields in NamedEntityGraph subgraphs
 
+4.6.3:
+all: revert cross referencing / tracing, as it was causing trouble (Exceptions) with source jars
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

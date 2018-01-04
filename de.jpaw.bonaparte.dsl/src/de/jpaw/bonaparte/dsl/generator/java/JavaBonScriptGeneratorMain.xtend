@@ -16,12 +16,11 @@
 
 package de.jpaw.bonaparte.dsl.generator.java
 
-import com.google.inject.Inject
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
-import de.jpaw.bonaparte.dsl.BonScriptTraceExtensions
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.InterfaceListDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XBeanValidation
@@ -29,8 +28,10 @@ import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XExternalizable
 import de.jpaw.bonaparte.dsl.bonScript.XHazelcast
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import de.jpaw.bonaparte.dsl.bonScript.XXmlFormDefault
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import java.util.ArrayList
 import java.util.HashMap
 import java.util.List
@@ -42,19 +43,10 @@ import org.eclipse.xtext.generator.IGeneratorContext
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import org.eclipse.xtext.generator.trace.node.Traced
-import org.eclipse.xtext.generator.trace.node.CompositeGeneratorNode
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain extends AbstractGenerator {
     static private boolean AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES = false
-//    @TracedAccessors(BonScriptFactory)
-//    static class BonScriptTraceExtensions {}
-
-    @Inject extension BonScriptTraceExtensions
 
     var Map<String, String> requiredImports = new HashMap<String, String>()
 
@@ -81,20 +73,20 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaEnumSet::writeEnumSetDefinition(d)]);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaXEnumSet::writeXEnumSetDefinition(d)]);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaEnum::writeEnumDefinition(d)]);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d, xRef[JavaXEnum::writeXEnumDefinition(d)]);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
                 print('''output of xml adapter for «d.name»''')
-                fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), d, xRef[JavaXEnum::writeXEnumTypeAdapter(d)]);
+                fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
             }
         }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
-            fsa.generateTracedFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition as CompositeGeneratorNode);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition);
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
@@ -258,7 +250,6 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
         }
     }
 
-    @Traced
     def writeClassDefinition(ClassDefinition d) {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
@@ -377,7 +368,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             @TrackingClass(«d.trackingClass.name».class)
         «ENDIF»
         «d.properties.generateAllAnnotations»
-        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d._name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.bonPackageName».«d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
+        public«IF d.isFinal» final«ENDIF»«IF d.isAbstract» abstract«ENDIF» class «d.name»«genericDef2String(d.genericParameters)»«IF d.parent !== null» extends «d.parent.bonPackageName».«d.parent.name»«genericArgs2String(d.extendsClass.classRefGenericParms)»«ENDIF»
           implements «d.refExtension»«d.intComparable»«IF doExt», Externalizable«ENDIF»«intHazel(doHazel)»«interfaceOut(d.implementsInterfaceList)» {
             private static final long serialVersionUID = «getSerialUID(d)»L;
 
@@ -439,7 +430,6 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
     }
     def JavaDeexternalize(ClassDefinition definition) { }
 
-    @Traced
     def private writeOneField(FieldDefinition i, ClassDefinition d, boolean doBeanVal) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
@@ -454,7 +444,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                 «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper)»
             «ENDIF»
             «i.writeIfDeprecated»
-            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i._name»«JavaFieldsGettersSetters.writeDefaultValue(i, ref, i.aggregate)»;
+            «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«JavaFieldsGettersSetters.writeDefaultValue(i, ref, i.aggregate)»;
         '''
     }
 }

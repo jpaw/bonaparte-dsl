@@ -37,10 +37,8 @@ import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.bonScript.XXmlAccess
 import java.util.ArrayList
 import java.util.List
-import java.util.concurrent.Callable
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
-import org.eclipse.xtend2.lib.StringConcatenationClient
 
 class XUtil {
     private static Logger LOGGER = Logger.getLogger(XUtil)
@@ -48,14 +46,6 @@ class XUtil {
     public static final String PROP_ACTIVE                  = "active";
     public static final String PROP_ATTRIBUTE               = "xmlAttribute";
     public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element
-
-    def public static xRef(Callable<CharSequence> lambda) {
-        return new StringConcatenationClient() {
-            override protected void appendTo(StringConcatenationClient.TargetStringConcatenation builder) {
-                builder.append(lambda.call);
-            }
-        };
-    }
 
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
