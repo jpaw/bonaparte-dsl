@@ -18,38 +18,41 @@ package de.jpaw.bonaparte.jpa.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.generator.Util
 import de.jpaw.bonaparte.dsl.generator.java.ImportCollector
 import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.GraphRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.jpa.dsl.bDDL.NamedEntityGraph
 import de.jpaw.bonaparte.jpa.dsl.generator.PrimaryKeyType
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import java.util.ArrayList
 import java.util.List
+import java.util.concurrent.atomic.AtomicInteger
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
-import org.eclipse.xtext.generator.IFileSystemAccess
+import org.eclipse.xtext.common.types.JvmGenericType
 import org.eclipse.xtext.generator.IGenerator
+import org.eclipse.xtext.generator.IFileSystemAccess
 
+import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
-import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
-import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
-import org.eclipse.xtext.common.types.JvmGenericType
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
-import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
-import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
-import java.util.concurrent.atomic.AtomicInteger
-import de.jpaw.bonaparte.jpa.dsl.bDDL.NamedEntityGraph
 
 class JavaDDLGeneratorMain implements IGenerator {
+    private static final Logger LOGGER = Logger.getLogger(JavaDDLGeneratorMain);
     val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
 
     var JavaFieldWriter fieldWriter = null
@@ -108,7 +111,7 @@ class JavaDDLGeneratorMain implements IGenerator {
         el !== null && el.map[name].contains(c)
         /*
         val result = e.elementCollections !== null && e.elementCollections.map[name].contains(c)
-        System::out.println('''Testing for «c.name» in «e.name» gives «result»''')
+        LOGGER.debug('''Testing for «c.name» in «e.name» gives «result»''')
         return result  */
     }
 
@@ -155,7 +158,7 @@ class JavaDDLGeneratorMain implements IGenerator {
                 val newPrefix = '''«prefix»«finalPrefix»'''
                 val newSuffix = '''«finalSuffix»«suffix»'''
                 val efields = pojo.allFields  // shorthand...: the fields of the embeddable
-                System::out.println('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
+                LOGGER.debug('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
                 //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
 
@@ -517,7 +520,7 @@ class JavaDDLGeneratorMain implements IGenerator {
     // BonaKey is written once the key has been defined, independent of root class or not, independent of abstract class or not
     // deprecated interfaces BonaPersistableNoData* are written together with the key.
     def private wrImplements(EntityDefinition e, String pkType, String trackingType, boolean pkDefinedInThisEntity, boolean shouldBeSerializable) {
-        println('''write Implements for entity «e.name»: abstract=«e.isIsAbstract», root=«e.extends === null», PK defined here=«pkDefinedInThisEntity», PK class = «pkType», first non abstract base entity=«e.firstNonAbstractBaseClass»''')
+        //println('''write Implements for entity «e.name»: abstract=«e.isIsAbstract», root=«e.extends === null», PK defined here=«pkDefinedInThisEntity», PK class = «pkType», first non abstract base entity=«e.firstNonAbstractBaseClass»''')
         // val doNone = !(e.extends === null) && !(pkDefinedInThisEntity && !e.doNoKeyMapper) && !e.isFirstNonAbstractClass
         val interfaces = new ArrayList<String>(4)
         if (pkDefinedInThisEntity && !e.doNoKeyMapper) {
@@ -573,8 +576,30 @@ class JavaDDLGeneratorMain implements IGenerator {
         return ''', indexes = { «e.index.map[declareIndex(e, tablename, indexCounter, nmd)].join(", ")»}'''
     }
 
-    def private String entityGraph(NamedEntityGraph negs) {
-        return '''@NamedEntityGraph(name="«negs.name»"«IF negs.isAll», includeAllAttributes=true«ENDIF»«IF negs.relationships !== null», attributeNodes={«negs.relationships.rname.map['''@NamedAttributeNode("«name»")'''].join(", ")»}«ENDIF»)'''
+    def private String joinNodes(List<String> names) {
+        return names.map['''@NamedAttributeNode(«it»)'''].join(", ")
+    }
+    def private String quoted(String name) {
+        return '''"«name»"'''
+    }
+    def private String subgraph(GraphRelationship sub, NamedEntityGraph neg) {
+        return '''@NamedSubgraph(name="«neg.name».«sub.name.name»", attributeNodes={«sub.fields.fields.map[name.quoted].joinNodes»})'''
+    }
+    def private String entityGraph(NamedEntityGraph neg) {
+        val haveSubgraphs = neg.rname.exists[fields !== null]
+        return '''
+            @NamedEntityGraph(name="«neg.name»"«IF neg.isAll»,
+                includeAllAttributes = true«ENDIF»«IF !neg.rname.empty»,
+                attributeNodes = {
+                    «neg.rname.map[if (fields === null) '''"«name.name»"''' else '''value="«name.name»", subgraph="«neg.name».«name.name»"'''].joinNodes»
+                }«ENDIF»«IF haveSubgraphs»,
+                subgraphs = {
+                    «FOR sg: neg.rname.filter[fields !== null]»
+                        «sg.subgraph(neg)»
+                    «ENDFOR»
+                }«ENDIF»
+            )
+        '''
     }
 
     def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
@@ -719,6 +744,7 @@ class JavaDDLGeneratorMain implements IGenerator {
             import javax.persistence.NamedEntityGraph;
             import javax.persistence.NamedEntityGraphs;
             import javax.persistence.NamedAttributeNode;
+            import javax.persistence.NamedSubgraph;
         «ENDIF»
 
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
