@@ -76,7 +76,7 @@ class JavaXEnumSet {
                 super(bitmap);
             }
 
-            public static «d.name» of(final «eName»... args) {
+            public static «d.name» ofTokens(final «eName»... args) {
                 return new «d.name»(bitmapOf(args));
             }
 
