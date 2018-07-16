@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>4.7.1</version>
+    <version>4.8.0</version>
     <packaging>pom</packaging>
 
     <description>Bonaparte DSL - Parent for all plugin projects</description>
@@ -154,6 +154,14 @@
                     <groupId>org.eclipse.xtend</groupId>
                     <artifactId>xtend-maven-plugin</artifactId>
                     <version>${xtextVersion}</version>
+                                        <!-- temporary workaround (release of photon broke the plugin) -->
+					<dependencies>
+						<dependency>
+						    <groupId>org.eclipse.platform</groupId>
+						    <artifactId>org.eclipse.equinox.common</artifactId>
+						    <version>3.10.0</version>
+						</dependency>
+					</dependencies>
                     <executions>
                         <execution>
                             <goals>
@@ -298,6 +306,7 @@
             </plugins>
         </pluginManagement>
     </build>
+    <!-- http://download.eclipse.org/releases/photon/201806271001/  -->
     <repositories>
         <repository>
             <id>codehaus-snapshots</id>
