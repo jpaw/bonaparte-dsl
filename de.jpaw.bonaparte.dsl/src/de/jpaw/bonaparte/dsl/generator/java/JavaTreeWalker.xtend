@@ -22,34 +22,37 @@ import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 
 import static de.jpaw.bonaparte.dsl.generator.XUtil.*
+import java.util.function.Predicate
 
 class JavaTreeWalker {
 
     def public static writeTreeWalkerCode(ClassDefinition d) '''
-        «d.writeGenericTreeWalkerCode("String",       "AlphanumericElementaryDataItem", true, DataCategory::STRING)»
-        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem",      true, DataCategory::NUMERIC)»
-        «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, DataCategory::OBJECT)»
-        «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, null)»
+        «d.writeGenericTreeWalkerCode("String",       "AlphanumericElementaryDataItem", true, [ category == DataCategory::STRING ])»
+        «d.writeGenericTreeWalkerCode("Integer",      "BasicNumericElementaryDataItem", true, [ javaType.toLowerCase == "integer" || javaType.toLowerCase == "int" ])»
+        «d.writeGenericTreeWalkerCode("Boolean",      "MiscElementaryDataItem",         true, [ javaType.toLowerCase == "boolean" ])»
+        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem",      true, [ category == DataCategory::NUMERIC ])»
+        «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, [ category == DataCategory::OBJECT ])»
+        «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, [ true ])»
     '''
 
-    def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, DataCategory category) '''
+    def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, Predicate<DataTypeExtension> decision) '''
         @Override
         public void treeWalk«javaType»(DataConverter<«javaType»,«metadataType»> _cvt, boolean _descend) {
             «IF d.extendsClass !== null»
                 super.treeWalk«javaType»(_cvt, _descend);
             «ENDIF»
             «FOR i:d.fields»
-                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype), javaType, doAssign, category)»
+                «treeWalkSub(d, i, DataTypeExtension::get(i.datatype), javaType, doAssign, decision)»
             «ENDFOR»
         }
      '''
 
-     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, DataCategory category) {
+     def private static treeWalkSub(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, String javaType, boolean doAssign, Predicate<DataTypeExtension> decision) {
          if (ref.objectDataType?.externalType !== null) // skip external types for all tree walk methods
             return null
-         if (category == DataCategory::OBJECT && isJsonField(ref))
+         if (isJsonField(ref))
             return null
-         if (category === null || ref.category == category) {
+         if (decision.test(ref)) {
              val target = if (doAssign) i.name + " = ";
              // field which must be processed. This still can be a List or an Array
              // for types as Object or BonaPortable, which are not final, we need type casts!
