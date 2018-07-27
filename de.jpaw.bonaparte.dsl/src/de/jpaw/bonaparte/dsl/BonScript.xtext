@@ -185,7 +185,8 @@ ClassDefinition:
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
     ('XML' xmlAccess = XmlAccess (xmlUppercase?='UPPERCASE')?)?                      // set @XmlAccess annotation
-    (isXmlRoot?='xmlRoot' ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
+    (isXmlRoot?='xmlRoot' ('<' xmlRootName = ID '>')? ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
+    ('xmlTypeName' '<' xmlTypeName = ID '>')?
     (isXmlAdapter ?= 'xmlAdapter')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
     (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added

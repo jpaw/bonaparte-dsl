@@ -339,13 +339,13 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
 
         «IF withXml»
             «IF d.effectiveXmlRoot»
-                @XmlRootElement(name="«d.name»")
+                @XmlRootElement(name="«d.xmlRootName ?: d.name»")
             «ENDIF»
             @XmlAccessorType(XmlAccessType.«xmlAccess.toString»)
             «IF xmlNonAttributeFields.size > 1»
-                @XmlType(name="«d.name»", propOrder={«xmlNonAttributeFields.map['''"«name»"'''].join(', ')»})
+                @XmlType(name="«d.xmlTypeName ?: d.name»", propOrder={«xmlNonAttributeFields.map['''"«name»"'''].join(', ')»})
             «ELSE»
-                @XmlType(name="«d.name»")
+                @XmlType(name="«d.xmlTypeName ?: d.name»")
             «ENDIF»
             «IF writeXmlAdapter»
                 @XmlJavaTypeAdapter(«d.name».DefaultXmlAdapter.class)
