@@ -51,7 +51,7 @@ import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 class BonScriptValidator extends AbstractBonScriptValidator {
     static private final int GIGABYTE = 1024 * 1024 * 1024;
-    static public final int MAX_PQON_LENGTH = 63;     // keep in sync with length in bonaparte-java/StaticMeta
+    static public final int MAX_PQON_LENGTH = 255;     // keep in sync with length in bonaparte-java/StaticMeta
     static Map<String,Integer> maxDigitsIfLimited = new HashMap<String,Integer>(10) => [
         put("byte",    2)
         put("short",   4)
