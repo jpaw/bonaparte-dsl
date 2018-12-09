@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.jpa.dsl.ui
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.9.1
+Bundle-Version: 4.10.0
 Bundle-SymbolicName: de.jpaw.bonaparte.jpa.dsl.ui; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.jpa.dsl,
@@ -17,7 +17,7 @@ Require-Bundle: de.jpaw.bonaparte.jpa.dsl,
  org.eclipse.compare,
  org.eclipse.xtext.builder,
  org.eclipse.xtend.lib;resolution:=optional,
- org.eclipse.xtext.xbase.lib;bundle-version="2.15.0",
+ org.eclipse.xtext.xbase.lib;bundle-version="2.16.0",
  org.eclipse.xtext.xbase.ui,
  org.eclipse.xtext.common.types.ui
 Import-Package: org.apache.log4j

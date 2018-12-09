@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>4.9.1</version>
+        <version>4.10.0</version>
         <relativePath>../de.jpaw.allplugins/pom.xml</relativePath>
     </parent>
     <artifactId>de.jpaw.bonaparte.jpa.dsl.ide</artifactId>
@@ -14,27 +14,27 @@
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-            <version>1.2.16</version>
+            <version>${log4j-version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.lsp4j</groupId>
             <artifactId>org.eclipse.lsp4j</artifactId>
-            <version>0.2.1</version>
+            <version>${lsp4j-version}</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>5.0.1</version>
+            <version>${asm-version}</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-commons</artifactId>
-            <version>5.0.1</version>
+            <version>${asm-version}</version>
         </dependency>
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm-tree</artifactId>
-            <version>5.0.1</version>
+            <version>${asm-version}</version>
         </dependency>
     </dependencies>
     <build>

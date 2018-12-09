@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-   <feature id="de.jpaw.bonaparte.dsl.feature" version="4.9.1">
+   <feature id="de.jpaw.bonaparte.dsl.feature" version="4.10.0">
       <category name="Bonaparte"/>
    </feature>
-   <feature id="de.jpaw.bonaparte.jpa.dsl.feature" version="4.9.1">
+   <feature id="de.jpaw.bonaparte.jpa.dsl.feature" version="4.10.0">
       <category name="Bonaparte"/>
    </feature>
-   <feature id="de.jpaw.bonaparte.noSQL.dsl.feature" version="4.9.1">
+   <feature id="de.jpaw.bonaparte.noSQL.dsl.feature" version="4.10.0">
       <category name="Bonaparte"/>
    </feature>
    <category-def name="Bonaparte" label="Software development tools related to object serialization and persistence">
