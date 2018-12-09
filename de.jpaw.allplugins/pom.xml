@@ -327,6 +327,17 @@
                 <enabled>false</enabled>
             </snapshots>
         </pluginRepository>
+        <pluginRepository>
+            <id>xtext</id>
+            <name>Xtext plugins</name>
+            <url>http://download.eclipse.org/modeling/tmf/xtext/updates/composite/releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
     </pluginRepositories>
 
     <distributionManagement>
