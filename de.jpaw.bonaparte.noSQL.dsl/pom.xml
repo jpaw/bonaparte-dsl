@@ -15,7 +15,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>1.4.0</version>
+                <version>${exec-plugin-version}</version>
                 <executions>
                     <execution>
                         <id>mwe2Launcher</id>
@@ -40,7 +40,7 @@
                     <dependency>
                         <groupId>org.eclipse.emf</groupId>
                         <artifactId>org.eclipse.emf.mwe2.launch</artifactId>
-                        <version>2.10.0</version>
+                        <version>${mwe-version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.eclipse.xtext</groupId>
