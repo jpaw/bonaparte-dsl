@@ -435,7 +435,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                 «IF fld.properties.hasProperty(PROP_FINDBY)»
                     public static «e.name» findBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
+                            final TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getSingleResult();
                         } catch (NoResultException e) {
                             return null;
@@ -444,7 +444,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                 «ELSEIF fld.properties.hasProperty(PROP_LISTBY)»
                     public static List<«e.name»> listBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
+                            final TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;
@@ -454,7 +454,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                 «IF fld.properties.hasProperty(PROP_LIACBY)»
                     public static List<«e.name»> listBy«myName.toFirstUpper»(EntityManager _em, «fld.JavaDataTypeNoName(false)» _key) {
                         try {
-                            TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1 AND isActive = true", «e.name».class);
+                            final TypedQuery<«e.name»> _query = _em.createQuery("SELECT u FROM «e.name» u WHERE u.«myName» = ?1 AND isActive = true", «e.name».class);
                             return _query.setParameter(1, _key).getResultList();
                         } catch (NoResultException e) {
                             return null;

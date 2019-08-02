@@ -51,7 +51,7 @@ class MakeMapper {
         «IF cl.immutable»
             return new «cl.name»(«cl.recurseDataGetter(false, embeddables).join(', ')»);
         «ELSE»
-            «cl.name» _r = new «cl.name»();
+            final «cl.name» _r = new «cl.name»();
             «cl.recurseDataGetter(true, embeddables).join('\n')»
             return _r;
          «ENDIF»
