@@ -343,7 +343,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         «IF !doHistory»
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
-                    «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, false)»«ENDFOR»
+                    «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull)»«ENDFOR»
                 )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
