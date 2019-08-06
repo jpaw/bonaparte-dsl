@@ -343,7 +343,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         «IF !doHistory»
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
-                    «FOR c : i.columns.columnName SEPARATOR ', '»«c.name.java2sql(nmd)»«ENDFOR»
+                    «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, false)»«ENDFOR»
                 )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
@@ -370,5 +370,31 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables, nmd)»
         «ENDIF»
     '''
+    }
+    
+    // writes a column name for an index. support function based indexes
+    def CharSequence writeIndexColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, ColumnNameMappingDefinition nmd, boolean isFunctionBased) {
+        val regular = c.name.java2sql(nmd)
+        if (isFunctionBased && !c.isNotNullField) {
+            // nullable field with a zeroWhenNull directive on index
+            switch (databaseFlavour) {
+                case MSSQLSERVER: {
+                    return '''ISNULL(«regular», 0)'''
+                }
+                case MYSQL: {
+                    return '''IFNULL(«regular», 0)''' // also supports COALESCE
+                }
+                case ORACLE: {
+                    return '''NVL(«regular», 0)'''
+                }
+                case POSTGRES: {
+                    return '''COALESCE(«regular», 0)'''
+                }
+                case SAPHANA: {
+                    return '''IFNULL(«regular», 0)'''
+                }
+            }
+        }
+        return regular
     }
 }
