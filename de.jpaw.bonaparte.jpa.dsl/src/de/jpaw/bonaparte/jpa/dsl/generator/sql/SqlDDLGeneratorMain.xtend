@@ -376,22 +376,23 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
     def CharSequence writeIndexColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, ColumnNameMappingDefinition nmd, boolean isFunctionBased) {
         val regular = c.name.java2sql(nmd)
         if (isFunctionBased && !c.isNotNullField) {
+            val defaulVal = if (SqlMapping.isAnAlphanumericField(c)) "' '" else "0";
             // nullable field with a zeroWhenNull directive on index
             switch (databaseFlavour) {
                 case MSSQLSERVER: {
-                    return '''ISNULL(«regular», 0)'''
+                    return '''ISNULL(«regular», «defaulVal»)'''
                 }
                 case MYSQL: {
-                    return '''IFNULL(«regular», 0)''' // also supports COALESCE
+                    return '''IFNULL(«regular», «defaulVal»)''' // also supports COALESCE
                 }
                 case ORACLE: {
-                    return '''NVL(«regular», 0)'''
+                    return '''NVL(«regular», «defaulVal»)'''
                 }
                 case POSTGRES: {
-                    return '''COALESCE(«regular», 0)'''
+                    return '''COALESCE(«regular», «defaulVal»)'''
                 }
                 case SAPHANA: {
-                    return '''IFNULL(«regular», 0)'''
+                    return '''IFNULL(«regular», «defaulVal»)'''
                 }
             }
         }

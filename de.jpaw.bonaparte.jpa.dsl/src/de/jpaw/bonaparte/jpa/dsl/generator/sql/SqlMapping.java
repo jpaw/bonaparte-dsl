@@ -224,6 +224,27 @@ public class SqlMapping {
         return 2000;  // last resort fallback
     }
 
+    // tries to determine if the data type is of string or CHAR type
+    static boolean isAnAlphanumericField(FieldDefinition c) throws Exception {
+        final DataTypeExtension ref = DataTypeExtension.get(c.getDatatype());
+        if (ref.objectDataType != null) {
+            return false;
+        }
+        if (ref.elementaryDataType != null) {
+            switch (ref.category) {
+            case ENUMSETALPHA:
+            case XENUMSET:
+            case ENUMALPHA:
+            case XENUM:
+            case STRING:
+                return true;
+            default:
+                return false;
+            }
+        }
+        return false;
+    }
+
     static String sqlType(FieldDefinition c, DatabaseFlavour databaseFlavour) throws Exception {
         String datatype;
         DataTypeExtension ref;
