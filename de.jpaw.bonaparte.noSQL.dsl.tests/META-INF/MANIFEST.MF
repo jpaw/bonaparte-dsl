@@ -2,12 +2,12 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.noSQL.dsl.tests
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.12.1
+Bundle-Version: 4.12.2
 Bundle-SymbolicName: de.jpaw.bonaparte.noSQL.dsl.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.noSQL.dsl,
  de.jpaw.bonaparte.dsl,
- org.junit;bundle-version="4.12.1",
+ org.junit;bundle-version="4.12.2",
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
  org.eclipse.xtext.xbase.lib;bundle-version="2.18.0",
