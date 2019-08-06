@@ -30,7 +30,7 @@ class MakeMapper {
         if (!hasProperty(i.properties, PROP_NOJAVA)) {
             var getMe = '''get«i.name.toFirstUpper»()'''
             if (hasProperty(i.properties, PROP_SIMPLEREF)) {
-                getMe = '''new «i.JavaDataTypeNoName(true)»(«getMe»)'''
+                getMe = '''«getMe» == null ? null : new «i.JavaDataTypeNoName(true)»(«getMe»)'''
                 if (setter)
                     getMe = '''_r.set«i.name.toFirstUpper»(«getMe»);'''
                 return getMe
@@ -66,7 +66,7 @@ class MakeMapper {
         «FOR i:pojo.fields»
             «IF !hasProperty(i.properties, PROP_NOJAVA) && !inList(fieldsToIgnore, i)»
                 «IF hasProperty(i.properties, PROP_SIMPLEREF)»
-                    set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»().«i.properties.getProperty(PROP_SIMPLEREF)»);
+                    if («variable».get«i.name.toFirstUpper»() != null) set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»().«i.properties.getProperty(PROP_SIMPLEREF)»);
                 «ELSEIF !hasProperty(i.properties, PROP_REF) && (JavaFieldWriter.shouldWriteColumn(i) || i.isAnEmbeddable(embeddables))»
                     set«i.name.toFirstUpper»(«variable».get«i.name.toFirstUpper»());
                 «ENDIF»
