@@ -38,7 +38,6 @@ class JavaEnum {
         d.avalues !== null && !d.avalues.empty
     }
     def static public writeEnumDefinition(EnumDefinition d) {
-        var int counter = -1
         val isAlphaEnum = d.isAlphaEnum
         val isSpecialAlpha = isAlphaEnum && d.avalues.exists[token == ""]
         val myInterface = if (isAlphaEnum) "BonaTokenizableEnum" else "BonaNonTokenizableEnum"
@@ -53,6 +52,8 @@ class JavaEnum {
 
         import de.jpaw.bonaparte.pojos.meta.EnumDefinition;
         import de.jpaw.bonaparte.enums.«myInterface»;
+        import de.jpaw.util.EnumIterator;
+        import java.util.Iterator;
 
         «d.javadoc»
         «IF d.isDeprecated || (d.eContainer as PackageDefinition).isDeprecated»
@@ -115,28 +116,31 @@ class JavaEnum {
             «ENDIF»
 
             private static final long serialVersionUID = «getSerialUID(d)»L;
+            private static final «d.name»[] _ALL_VALUES = «d.name».values();  // it creates a new array (defensive copy) every time called, we do it once, OK to call here by JLS 8.9.2.2
 
             «d.writeEnumMetaData»
 
             /** Returns the enum instance which has the ordinal as specified by the parameter. Returns null for a null parameter.
               * valueOf by default only exists for String type parameters for enums. */
             public static «d.name» valueOf(Integer ordinal) {
-                if (ordinal != null) {
-                    switch (ordinal.intValue()) {
-                    «IF d.avalues === null || d.avalues.size() == 0»
-                        «FOR v:d.values»
-                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v»;
-                        «ENDFOR»
-                    «ELSE»
-                        «FOR v:d.avalues»
-                            case «Integer::valueOf(counter = counter + 1).toString()»: return «v.name»;
-                        «ENDFOR»
-                    «ENDIF»
-                    default: throw new IllegalArgumentException("Enum «d.name» has no instance for ordinal " + ordinal.toString());
-                    }
-                }
-                return null;
+                return ordinal == null ? null : valueOf(ordinal.intValue());
             }
+            public static «d.name» valueOf(final int _ord) {
+                if (_ord < 0 || _ord >= _ALL_VALUES.length)
+                    throw new IllegalArgumentException("Enum «d.name» has no instance for ordinal " + Integer.toString(_ord));
+                return _ALL_VALUES[_ord];
+            }
+            /** Returns an iterator which traverses all enum instances. */
+            public static Iterator<«d.name»> iterator() {
+                return new EnumIterator(_ALL_VALUES);
+            }
+
+            public static Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
+                @Override
+                public Iterator<«d.name»> iterator() {
+                    return iterator();
+                }
+            };
         }
         '''
     }
