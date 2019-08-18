@@ -138,7 +138,7 @@ class JavaEnum {
             public static Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
                 @Override
                 public Iterator<«d.name»> iterator() {
-                    return iterator();
+                    return «d.name».iterator();
                 }
             };
         }
