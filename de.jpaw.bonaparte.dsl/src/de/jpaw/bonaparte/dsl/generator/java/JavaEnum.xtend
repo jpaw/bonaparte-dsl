@@ -25,7 +25,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnum {
-    val static final boolean codegenJava7 = false    // set to true to generate String switches for enum
+    val static final int codegenJavaVersion = Integer.valueOf(System.getProperty("bonaparte.java.version", "6"))
 
     def static public boolean hasNullToken(EnumDefinition ed) {
         ed.avalues !== null && ed.avalues.exists[token == ""]
@@ -78,11 +78,11 @@ class JavaEnum {
                     return _token;
                 }
 
-                /** static factory method«IF codegenJava7» (requires Java 7)«ENDIF».
+                /** static factory method«IF codegenJavaVersion >= 7» (requires Java 7)«ENDIF».
                   * Null is passed through, a non-null parameter will return a non-null response. */
                 public static «d.name» factory(String _token) {
                     if (_token != null) {
-                        «IF codegenJava7»
+                        «IF codegenJavaVersion >= 7»
                             switch (_token) {
                             «FOR v:d.avalues»
                                 case "«v.token»": return «v.name»;
@@ -132,15 +132,19 @@ class JavaEnum {
             }
             /** Returns an iterator which traverses all enum instances. */
             public static Iterator<«d.name»> iterator() {
-                return new EnumIterator(_ALL_VALUES);
+                return new EnumIterator<«d.name»>(_ALL_VALUES);
             }
 
-            public static Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
-                @Override
-                public Iterator<«d.name»> iterator() {
-                    return «d.name».iterator();
-                }
-            };
+            «IF codegenJavaVersion >= 8»
+                public static Iterable<«d.name»> all = () -> new EnumIterator<«d.name»>(_ALL_VALUES); // constant in lower case to avoid name clash with possible enum instance name
+            «ELSE»
+                public static Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
+                    @Override
+                    public Iterator<«d.name»> iterator() {
+                        return «d.name».iterator();
+                    }
+                };
+            «ENDIF»
         }
         '''
     }
