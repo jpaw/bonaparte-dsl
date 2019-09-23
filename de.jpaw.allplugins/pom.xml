@@ -33,8 +33,8 @@
         <xtextVersion>2.19.0</xtextVersion>
         <tycho-version>1.4.0</tycho-version>
         <mwe-version>2.11.0</mwe-version>
-        <exec-plugin-version>1.4.0</exec-plugin-version>               <!-- TODO: upgrade to 1.6.0 -->
-        <dependency-plugin-version>3.0.1</dependency-plugin-version>   <!-- TODO: upgrade to 3.1.1 -->
+        <exec-plugin-version>1.6.0</exec-plugin-version>
+        <dependency-plugin-version>3.1.1</dependency-plugin-version>
         <lsp4j-version>0.8.0</lsp4j-version>
         <log4j-version>1.2.16</log4j-version>
         <asm-version>7.1</asm-version>
