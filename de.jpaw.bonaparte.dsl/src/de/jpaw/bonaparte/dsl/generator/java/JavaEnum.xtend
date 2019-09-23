@@ -25,7 +25,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnum {
-    val static final int codegenJavaVersion = Integer.valueOf(System.getProperty("bonaparte.java.version", "6"))
+    val static final int codegenJavaVersion = Integer.valueOf(System.getProperty("bonaparte.java.version", "8"))
 
     def static public boolean hasNullToken(EnumDefinition ed) {
         ed.avalues !== null && ed.avalues.exists[token == ""]
