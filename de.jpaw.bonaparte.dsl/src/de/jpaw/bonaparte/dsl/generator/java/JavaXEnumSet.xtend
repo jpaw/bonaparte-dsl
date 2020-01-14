@@ -81,11 +81,6 @@ class JavaXEnumSet {
                 return new «d.name»(bitmapOf(args));
             }
 
-            // add code for a singleField adapter (was used for enum serialization, now done by message composers
-            //public String marshal() {
-            //    return getBitmap();
-            //}
-
             public static <E extends Exception> «d.name» unmarshal(XEnumSetDataItem _di, MessageParser<E> _p) throws E {
                 String _bitmap = _p.readString4Xenumset(_di);
                 return _bitmap == null ? null : new «d.name»(_bitmap);

@@ -91,11 +91,6 @@ class JavaEnumSet {
                 return new «d.name»(bitmapOf(args));
             }
 
-            // add code for a singleField adapter (was used for enum serialization, now done by message composers
-            //public «bitmapType» marshal() {
-            //    return getBitmap();
-            //}
-
             // factory used by message parsers
             public static <E extends Exception> «d.name» unmarshal(«diType» _di, MessageParser<E> _p) throws E {
                 «bitmapTypeWrapper» _bitmap = _p.read«bitmapTypeWrapper»4EnumSet(_di);
