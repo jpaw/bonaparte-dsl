@@ -28,8 +28,8 @@ class JavaSerialize {
     def private static makeWrite(FieldDefinition i, String indexedName, ElementaryDataType e, DataTypeExtension ref) {
         if (ref.category == DataCategory.ENUM || ref.category == DataCategory.XENUM || ref.category == DataCategory.ENUMALPHA) {
             return '''_w.addEnum(meta$$«i.name», meta$$«i.name»$token, «indexedName»);''' // enums / xenums to be written as their ordinals or tokens, the meta for the enum as well as the expansion are provided
-        } else if (ref.category == DataCategory.ENUMSET || ref.category == DataCategory.ENUMSETALPHA || ref.category == DataCategory.XENUMSET) { // enum sets to be written by their marshalled data. A null check is required.
-            '''if («indexedName» == null) _w.writeNull(meta$$«i.name»); else _w.addField(meta$$«i.name», «indexedName».marshal());'''
+        } else if (ref.category == DataCategory.ENUMSET || ref.category == DataCategory.ENUMSETALPHA || ref.category == DataCategory.XENUMSET) { // enumsets / xenumsets
+            '''_w.addField(meta$$«i.name», «indexedName»);'''
         } else if (ref.isWrapper) {  // boxed types: separate call for Null, else unbox!
             '''if («indexedName» == null) _w.writeNull(meta$$«i.name»); else _w.addField(meta$$«i.name», «indexedName»);'''
         } else {
@@ -89,7 +89,7 @@ class JavaSerialize {
             '''
     }
 
-    def public static writeSerialize(ClassDefinition d) '''
+    def static writeSerialize(ClassDefinition d) '''
         /* serialize the object into a String. uses implicit toString() member functions of elementary data types */
         @Override
         public <_E extends Exception> void serializeSub(MessageComposer<_E> _w) throws _E {
@@ -131,7 +131,7 @@ class JavaSerialize {
 
     '''
 
-    def public static writeFoldedSerialize(ClassDefinition d) '''
+    def static writeFoldedSerialize(ClassDefinition d) '''
         /* serialize selected fields of the object. */
         @Override
         public <_E extends Exception> void foldedOutput(MessageComposer<_E> _w, ParsedFoldingComponent _pfc) throws _E {

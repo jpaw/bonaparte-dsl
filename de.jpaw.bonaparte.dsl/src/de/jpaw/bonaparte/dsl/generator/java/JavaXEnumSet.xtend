@@ -25,7 +25,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaXEnumSet {
 
-    def static public writeXEnumSetDefinition(XEnumSetDefinition d) {
+    def static writeXEnumSetDefinition(XEnumSetDefinition d) {
         val eName = d.myXEnum.name
 
         return '''
@@ -39,7 +39,8 @@ class JavaXEnumSet {
 
         import de.jpaw.enums.AbstractStringXEnumSet;
         import de.jpaw.bonaparte.enums.BonaStringEnumSet;
-        import de.jpaw.bonaparte.core.ExceptionConverter;
+        import de.jpaw.bonaparte.core.MessageParser;
+        import de.jpaw.bonaparte.pojos.meta.XEnumSetDataItem;
         import de.jpaw.bonaparte.pojos.meta.XEnumSetDefinition;
 
         «IF d.myXEnum.package !== d.package»
@@ -80,12 +81,13 @@ class JavaXEnumSet {
                 return new «d.name»(bitmapOf(args));
             }
 
-            // add code for a singleField adapter
-            public String marshal() {
-                return getBitmap();
-            }
+            // add code for a singleField adapter (was used for enum serialization, now done by message composers
+            //public String marshal() {
+            //    return getBitmap();
+            //}
 
-            public static <E extends Exception> «d.name» unmarshal(String _bitmap, ExceptionConverter<E> _p) throws E {
+            public static <E extends Exception> «d.name» unmarshal(XEnumSetDataItem _di, MessageParser<E> _p) throws E {
+                String _bitmap = _p.readString4Xenumset(_di);
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
 

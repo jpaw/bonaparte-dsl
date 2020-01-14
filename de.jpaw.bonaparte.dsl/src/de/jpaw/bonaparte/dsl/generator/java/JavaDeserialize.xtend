@@ -65,8 +65,8 @@ class JavaDeserialize {
         case 'xenum':     '''_p.readXEnum(«metaName», «XUtil.xEnumFactoryName(ref)»)'''  // must reference the actual type just to ensure that the class is loaded and values initialized!
 
         // enum sets
-        case 'enumset':   '''«ref.javaType».unmarshal(_p.read«i.enumsetType.mapEnumSetIndex»(«metaName»), _p)'''
-        case 'xenumset':  '''«ref.javaType».unmarshal(_p.readString(«metaName»), _p)'''
+        case 'enumset':   '''«ref.javaType».unmarshal(«metaName», _p)'''
+        case 'xenumset':  '''«ref.javaType».unmarshal(«metaName», _p)'''
 
         // objects
         case 'object':    '''_p.readObject    («metaName», BonaPortable.class)'''

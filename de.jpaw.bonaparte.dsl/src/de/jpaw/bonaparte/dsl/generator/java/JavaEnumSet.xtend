@@ -25,11 +25,13 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnumSet {
 
-    def static public writeEnumSetDefinition(EnumSetDefinition d) {
+    def static writeEnumSetDefinition(EnumSetDefinition d) {
         val eName = d.myEnum.name
         val bitmapType = d.indexType ?: "int"       // default to int
         val bitmapTypeWrapper = d.mapEnumSetIndex
         val nameComponent = bitmapType.toFirstUpper
+        val diType = if (nameComponent == "String") "AlphanumericEnumSetDataItem" else "NumericEnumSetDataItem";
+
 //        val nullTest = if (d.nullWhenEmpty) ''' || _es.isEmpty()'''
 //        val nullObject = if (d.nullWhenEmpty) '''new «d.name»(«IF bitmapType == "String"»""«ELSE»0«ENDIF»)''' else '''null'''
 
@@ -44,9 +46,10 @@ class JavaEnumSet {
 
         import de.jpaw.enums.Abstract«nameComponent»EnumSet;
         import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;
-        import de.jpaw.bonaparte.core.ExceptionConverter;
+        import de.jpaw.bonaparte.core.MessageParser;
         import de.jpaw.bonaparte.pojos.meta.EnumSetDefinition;
         import de.jpaw.bonaparte.pojos.meta.IndexType;
+        import de.jpaw.bonaparte.pojos.meta.«diType»;
 
         «IF d.myEnum.package !== d.package»
             import «getBonPackageName(d.myEnum)».«eName»;
@@ -88,12 +91,14 @@ class JavaEnumSet {
                 return new «d.name»(bitmapOf(args));
             }
 
-            // add code for a singleField adapter
-            public «bitmapType» marshal() {
-                return getBitmap();
-            }
+            // add code for a singleField adapter (was used for enum serialization, now done by message composers
+            //public «bitmapType» marshal() {
+            //    return getBitmap();
+            //}
 
-            public static <E extends Exception> «d.name» unmarshal(«bitmapTypeWrapper» _bitmap, ExceptionConverter<E> _p) throws E {
+            // factory used by message parsers
+            public static <E extends Exception> «d.name» unmarshal(«diType» _di, MessageParser<E> _p) throws E {
+                «bitmapTypeWrapper» _bitmap = _p.read«bitmapTypeWrapper»4EnumSet(_di);
                 return _bitmap == null ? null : new «d.name»(_bitmap);
             }
 
