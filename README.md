@@ -33,7 +33,7 @@ The generated Java classes need support libraries. These are:
 
 ## How to build
 
-The project uses a multi module maven based build, with the parent pom in de.jpaw.allplugins.
+The project uses a multi module maven based build.
 
 
 ## Serialized forms
