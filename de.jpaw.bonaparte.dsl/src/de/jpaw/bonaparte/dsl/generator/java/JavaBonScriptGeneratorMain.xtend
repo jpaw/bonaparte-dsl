@@ -441,7 +441,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
             «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
-                «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper)»
+                «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper, d.isXmlAllUpper)»
             «ENDIF»
             «i.writeIfDeprecated»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«JavaFieldsGettersSetters.writeDefaultValue(i, ref, i.aggregate)»;

@@ -104,11 +104,11 @@ class JavaFieldsGettersSetters {
                 // TODO: for map, the last one seems to be causing issue at the moment because of the non-matching type
                 // probably create all classes with all possibilities is good/not good option
                 // temporarily skipping in case of map since its not really used at the moment
-    def public static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper) {
+    def public static allXmlAnnotations(FieldDefinition i, DataTypeExtension ref, boolean xmlUpper, boolean xmlAllUpper) {
         val datatype = ref.elementaryDataType?.name?.toLowerCase
         if (i.properties.hasProperty(PROP_ATTRIBUTE)) {
             return '''
-                @XmlAttribute(name="«xmlName(i, xmlUpper)»"«IF i.isRequired», required=true«ENDIF»)
+                @XmlAttribute(name="«xmlName(i, xmlUpper, xmlAllUpper)»"«IF i.isRequired», required=true«ENDIF»)
             '''
         }
         return '''
@@ -143,7 +143,7 @@ class JavaFieldsGettersSetters {
             «ref.intJavaDoc(i, "@return")»
             «IF d.getRelevantXmlAccess == XXmlAccess::PROPERTY»
                 «IF initialCall»
-                    «allXmlAnnotations(i, ref, d.isXmlUpper)»
+                    «allXmlAnnotations(i, ref, d.isXmlUpper, d.isXmlAllUppercase)»
                 «ELSE»
                     @XmlTransient
                 «ENDIF»

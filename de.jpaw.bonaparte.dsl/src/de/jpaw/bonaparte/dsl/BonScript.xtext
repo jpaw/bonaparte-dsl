@@ -129,7 +129,7 @@ PackageDefinition:
     (isDeprecated?='@Deprecated')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess
-             (xmlUppercase?='UPPERCASE')?
+             (xmlUppercase?='UPPERCASE' | xmlAllUppercase?='ALL_UPPERCASE')?
              ( ('NAMESPACE'            xmlNs       = STRING)?
              & ('NAMESPACEPREFIX'      xmlNsPrefix = STRING)?
              & ('ELEMENTFORMDEFAULT'   xmlElementFormDefault   = XmlFormDefault)?
@@ -184,7 +184,7 @@ ClassDefinition:
     'class'
      name = ID ('<' genericParameters += GenericsDef (',' genericParameters += GenericsDef)* '>')?
     (noJava ?= 'nojava')?                               // suppress code generation (if only used for other purposes) 
-    ('XML' xmlAccess = XmlAccess (xmlUppercase?='UPPERCASE')?)?                      // set @XmlAccess annotation
+    ('XML' xmlAccess = XmlAccess (xmlUppercase?='UPPERCASE' | xmlAllUppercase?='ALL_UPPERCASE')?)?                      // set @XmlAccess annotation
     (isXmlRoot?='xmlRoot' ('<' xmlRootName = ID '>')? ('=' xmlListName=ID ('('((minXmlcount=INT '..')? maxXmlcount=INT)? ')')? )?)?       // define xml entry point (separate xsd creation / XmlRootElement) as well as decision about scalar or multiple types
     ('xmlTypeName' '<' xmlTypeName = ID '>')?
     (isXmlAdapter ?= 'xmlAdapter')?

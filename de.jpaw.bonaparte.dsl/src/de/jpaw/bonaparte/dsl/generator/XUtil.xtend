@@ -45,7 +45,9 @@ class XUtil {
     public static final String bonaparteInterfacesPackage   = "de.jpaw.bonaparte.core"
     public static final String PROP_ACTIVE                  = "active";
     public static final String PROP_ATTRIBUTE               = "xmlAttribute";
-    public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element
+    public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element (first char)
+    public static final String PROP_ALL_UPPERCASE           = "xmlAllUppercase";  // upper case for a single element (all characters)
+    public static final String PROP_XML_ID                  = "xmlId";            // separate name
 
 
     def public static xEnumFactoryName(DataTypeExtension ref) {
@@ -639,8 +641,19 @@ class XUtil {
         return cls.isXmlUppercase || cls.package.isXmlUppercase
     }
 
-    def public static xmlName(FieldDefinition f, boolean toUpper) {
-        return f.metaName ?: if (toUpper || f.properties.hasProperty(PROP_UPPERCASE)) f.name.toFirstUpper else f.name
+    def public static isXmlAllUpper(ClassDefinition cls) {
+        return cls.isXmlAllUppercase || cls.package.isXmlAllUppercase
+    }
+
+    def public static xmlName(FieldDefinition f, boolean toUpper, boolean toAllUpper) {
+        val xsdId = f.properties.getProperty(PROP_XML_ID)
+        return xsdId ?: f.metaName ?:
+            if (toUpper || f.properties.hasProperty(PROP_UPPERCASE))
+                f.name.toFirstUpper
+            else if (toAllUpper || f.properties.hasProperty(PROP_ALL_UPPERCASE))
+                f.name.toUpperCase
+            else
+                f.name
     }
 
     def public static typeOfAggregate(String aggregate) {

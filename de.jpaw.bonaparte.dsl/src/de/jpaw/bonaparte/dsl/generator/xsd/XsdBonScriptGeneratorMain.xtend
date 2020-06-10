@@ -442,19 +442,21 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
 
     def public listAttributes(ClassDefinition cls, PackageDefinition pkg) {
         val xmlUpper = cls.isXmlUpper
+        val xmlAllUpper = cls.isXmlAllUpper
         return '''
             «FOR f: cls.fields.filter[properties.hasProperty(PROP_ATTRIBUTE)]»
-                <xs:attribute name="«xmlName(f, xmlUpper)»"«IF f.isRequired» use="required"«ENDIF»«describeField(pkg, f.datatype, "xs:attribute")»
+                <xs:attribute name="«xmlName(f, xmlUpper, xmlAllUpper)»"«IF f.isRequired» use="required"«ENDIF»«describeField(pkg, f.datatype, "xs:attribute")»
             «ENDFOR»
         '''
     }
 
     def public listDeclaredFields(ClassDefinition cls, PackageDefinition pkg) {
         val xmlUpper = cls.isXmlUpper
+        val xmlAllUpper = cls.isXmlAllUpper
         return '''
             <xs:sequence>
                 «FOR f: cls.fields.filter[!properties.hasProperty(PROP_ATTRIBUTE)]»
-                    <xs:element name="«xmlName(f, xmlUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, "xs:element")»
+                    <xs:element name="«xmlName(f, xmlUpper, xmlAllUpper)»"«f.obtainOccurs»«describeField(pkg, f.datatype, "xs:element")»
                 «ENDFOR»
                 «IF GENERATE_EXTENSION_FIELDS && cls.final»
                     <!-- allow for upwards compatible type extensions -->
