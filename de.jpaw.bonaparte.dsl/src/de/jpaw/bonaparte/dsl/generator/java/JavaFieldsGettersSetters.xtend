@@ -111,6 +111,7 @@ class JavaFieldsGettersSetters {
                 @XmlAttribute(name="«xmlName(i, xmlUpper, xmlAllUpper)»"«IF i.isRequired», required=true«ENDIF»)
             '''
         }
+        val xmlId = i.properties.getProperty(PROP_XML_ID)
         return '''
             «IF i.needsXmlObjectType»
                 «xmlInterfaceAnnotation»
@@ -127,10 +128,15 @@ class JavaFieldsGettersSetters {
             «IF i.isMap === null && (ref.category == DataCategory.BASICNUMERIC || ref.category == DataCategory.NUMERIC)»
                 «ref.xmlAnnotation»
             «ENDIF»
-            «IF xmlUpper || i.properties.hasProperty(PROP_UPPERCASE)»
+            «IF xmlId !== null»
+                @XmlElement(name="«xmlId»")
+            «ELSEIF xmlUpper || i.properties.hasProperty(PROP_UPPERCASE)»
                 @XmlElement(name="«i.name.toFirstUpper»")
+            «ELSEIF xmlAllUpper || i.properties.hasProperty(PROP_ALL_UPPERCASE)»
+                @XmlElement(name="«i.name.toUpperCase»")
             «ENDIF»
         '''
+        // also see XUtil.xmlName
     }
 
     // write the standard getter plus maybe some indexed one
