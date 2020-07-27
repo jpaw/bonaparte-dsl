@@ -88,7 +88,7 @@ class JavaCompare {
         // not object. treat elementary data types next
         switch (getJavaDataType(i.datatype)) {
         case "byte []":     '''Arrays.equals(«index», «tindex»)'''
-        case "BigDecimal":  '''«index».compareTo(«tindex») == 0'''
+        case "BigDecimal":  '''(«tindex» != null && «index».compareTo(«tindex») == 0)'''
         // case "BigDecimal":  '''BigDecimalTools.equals(«index», «ref.elementaryDataType.decimals», «tindex», «ref.elementaryDataType.decimals»)'''     // was: «index».compareTo(«tindex») == 0'''
         // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
