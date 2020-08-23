@@ -54,8 +54,7 @@ class JavaValidate {
 
     def private static makePatternCheck(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
         «IF ref.elementaryDataType.regexp !== null»
-            Matcher _m =  regexp$«i.name».matcher(«fieldname»);
-            if (!_m.find())
+            if (!regexp$«i.name».matcher(«fieldname»).find())
                 throw new ObjectValidationException(ObjectValidationException.NO_PATTERN_MATCH, "«i.name»", _PARTIALLY_QUALIFIED_CLASS_NAME);
         «ENDIF»
         «IF ref.isUpperCaseOrLowerCaseSpecialType»
