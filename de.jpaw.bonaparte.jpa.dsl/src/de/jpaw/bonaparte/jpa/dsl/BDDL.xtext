@@ -152,7 +152,7 @@ EntityDefinition:
         ('historytablename' historytablename = ID)?  // overwrite auto-generated tablename
         ('tablespace' tablespaceName=ID ('index' indexTablespacename=ID)?)?
         (('autoSetter' autoSetter=QualifiedId) | ('entityListener' entityListener=[jvmTypes::JvmGenericType|QualifiedId]))?
-        ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | discriminatorValue=STRING))?
+        ('inheritance' xinheritance=Inheritance ('discriminator' discname=ID ((discriminatorTypeInt ?= 'int') | (discriminatorTypeChar ?= 'char') | discriminatorValue=STRING))?
          | ('inherits' (extends=[EntityDefinition|QualifiedId] ('discriminator' discriminatorValue=STRING)? )))?
         (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)

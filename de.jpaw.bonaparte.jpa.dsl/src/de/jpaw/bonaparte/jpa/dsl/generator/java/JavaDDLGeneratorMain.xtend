@@ -53,8 +53,8 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 
 class JavaDDLGeneratorMain extends AbstractGenerator {
-    private static final Logger LOGGER = Logger.getLogger(JavaDDLGeneratorMain);
-    val static final EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
+    static final Logger LOGGER = Logger.getLogger(JavaDDLGeneratorMain);
+    val static EMPTY_ELEM_COLL = new ArrayList<ElementCollectionRelationship>(0);
 
     var JavaFieldWriter fieldWriter = null
 
@@ -791,8 +791,8 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                 @Inheritance(strategy=InheritanceType.«i2s(e.xinheritance)»)
             «ENDIF»
             «IF e.discname !== null»
-                @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSE»STRING«ENDIF»)
-                @DiscriminatorValue(«IF e.discriminatorTypeInt»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
+                @DiscriminatorColumn(name="«e.discname»", discriminatorType=DiscriminatorType.«IF e.discriminatorTypeInt»INTEGER«ELSEIF e.discriminatorTypeChar»CHAR«ELSE»STRING«ENDIF»)
+                @DiscriminatorValue(«IF e.discriminatorTypeInt || e.discriminatorTypeChar»"0"«ELSE»"«Util::escapeString2Java(e.discriminatorValue)»"«ENDIF»)
             «ELSEIF e.discriminatorValue !== null»
                 @DiscriminatorValue("«Util::escapeString2Java(e.discriminatorValue)»")
             «ENDIF»
@@ -961,7 +961,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         }
     '''
 
-    def public static writeJpaImports() '''
+    def static writeJpaImports() '''
         import java.io.Serializable;
 
         import «bonaparteInterfacesPackage».BonaPortable;

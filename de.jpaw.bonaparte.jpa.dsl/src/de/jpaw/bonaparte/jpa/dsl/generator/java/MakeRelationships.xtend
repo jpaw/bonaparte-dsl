@@ -28,8 +28,10 @@ import java.util.List
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.bonScript.XVisibility
+import org.apache.log4j.Logger
 
 class MakeRelationships {
+    static final Logger LOGGER = Logger.getLogger(MakeRelationships)
 
     def private static boolean shouldHaveSetter(EntityDefinition e, Relationship r) {
         return e.forceSetters || r.forceSetters || (e.eContainer as BDDLPackageDefinition).forceSetters
@@ -54,13 +56,13 @@ class MakeRelationships {
         @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql(nmd1)»", referencedColumnName="«childPkColumns.get(i).name.java2sql(nmd2)»"«IF readonly», insertable=false, updatable=false«ENDIF»«IF joinColumnDirective !== null», «joinColumnDirective»«ENDIF»)
     '''
 
-    // new method, taking attributes from referenced column
-    def static private makeJoin(Relationship m, int i, List<FieldDefinition> childPkColumns, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) {
-        val refcol = childPkColumns.get(i)
-        '''
-            @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql(nmd1)»", referencedColumnName="«refcol.name.java2sql(nmd2)»"«refcol.fieldAnnotations»)
-        '''
-    }
+//    // new method, taking attributes from referenced column
+//    def static private makeJoin(Relationship m, int i, List<FieldDefinition> childPkColumns, ColumnNameMappingDefinition nmd1, ColumnNameMappingDefinition nmd2) {
+//        val refcol = childPkColumns.get(i)
+//        '''
+//            @JoinColumn(name="«m.referencedFields.columnName.get(i).name.java2sql(nmd1)»", referencedColumnName="«refcol.name.java2sql(nmd2)»"«refcol.fieldAnnotations»)
+//        '''
+//    }
 
     def private static boolean nonOptional(Relationship m, EntityDefinition e) {
         var oneOptional = false
@@ -71,12 +73,23 @@ class MakeRelationships {
         return !oneOptional
     }
 
-    def public static optArgs(String ... args) {
+    def static optArgs(String ... args) {
         args.filterNull.join('(',', ', ')', [it])
+    }
+    
+    def private static obtainKeyColumns(EntityDefinition childObject) {
+        var o = childObject
+        while (o !== null) {
+            if (o.primaryKeyColumns0 !== null && !o.primaryKeyColumns0.empty) {
+                return o.primaryKeyColumns0
+            }
+            o = o.extends // switch to the parent
+        }
+        LOGGER.error("Cannot find any key columns for " + childObject.name)
     }
 
     def private static writeJoinColumns(Relationship m, boolean readOnly, EntityDefinition childObject, String joinColumnDirective, ColumnNameMappingDefinition myNmd) {
-        val childPkColumns = childObject.primaryKeyColumns0
+        val childPkColumns = childObject.obtainKeyColumns
         val otherNmd = childObject.nameMapping
         '''
             «IF m.referencedFields.columnName.size == 1»
@@ -89,20 +102,20 @@ class MakeRelationships {
         '''
     }
 
-    // new method, taking attributes from referenced column
-    def private static writeJoinColumns(Relationship m, EntityDefinition childObject, ColumnNameMappingDefinition myNmd) {
-        val childPkColumns = childObject.primaryKeyColumns0
-        val otherNmd = childObject.nameMapping
-        '''
-            «IF m.referencedFields.columnName.size == 1»
-                «m.makeJoin(0, childPkColumns, otherNmd, myNmd)»
-            «ELSE»
-                @JoinColumns({
-                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, childPkColumns, otherNmd, myNmd)].join(', ')»
-                })
-            «ENDIF»
-        '''
-    }
+//    // new method, taking attributes from referenced column
+//    def private static writeJoinColumns(Relationship m, EntityDefinition childObject, ColumnNameMappingDefinition myNmd) {
+//        val childPkColumns = childObject.obtainKeyColumns
+//        val otherNmd = childObject.nameMapping
+//        '''
+//            «IF m.referencedFields.columnName.size == 1»
+//                «m.makeJoin(0, childPkColumns, otherNmd, myNmd)»
+//            «ELSE»
+//                @JoinColumns({
+//                   «(0 .. m.referencedFields.columnName.size-1).map[m.makeJoin(it, childPkColumns, otherNmd, myNmd)].join(', ')»
+//                })
+//            «ENDIF»
+//        '''
+//    }
 
     // make the join column not updateable if a "properties ref" has been specified, i.e. a separate Long field will be generated in the entity.
     // in this case, it is assumed that the Long field is used for updates.
@@ -112,7 +125,7 @@ class MakeRelationships {
         return ref.elementaryDataType !== null || f.properties.hasProperty(PROP_REF)  // either we declared to want that "Long" field, or it is defined as a long anyway
     }
 
-    def public static writeRelationships(EntityDefinition e, String fieldVisibility) {
+    def static writeRelationships(EntityDefinition e, String fieldVisibility) {
         val myNmd = e.nameMapping
         return '''
         «FOR m : e.manyToOnes»

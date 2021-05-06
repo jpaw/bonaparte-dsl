@@ -36,8 +36,8 @@ import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class JavaFieldWriter {
-    val static final String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
-    val static final String JDBC4TYPE = "Date";  // choose Calendar or Date
+    val static String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
+    val static String JDBC4TYPE = "Date";  // choose Calendar or Date
     final boolean useUserTypes;
     final String fieldVisibility;
 
@@ -51,7 +51,7 @@ class JavaFieldWriter {
             fieldScope.toString() + " "
     }
 
-    def public static final defineVisibility(EntityDefinition e) {
+    def static final defineVisibility(EntityDefinition e) {
         val myPackage = e.eContainer as BDDLPackageDefinition
         return makeVisibility(if(e.visibility !== null) e.visibility else myPackage.getVisibility)
     }
@@ -414,7 +414,7 @@ class JavaFieldWriter {
         '''
     }
 
-    def public buildEmbeddedId(EntityDefinition e) '''
+    def buildEmbeddedId(EntityDefinition e) '''
         @EmbeddedId
         «fieldVisibility»«e.name»Key key;
         // forwarding getters and setters
@@ -441,7 +441,7 @@ class JavaFieldWriter {
     }
 
     // write the definition of a single column (entities or Embeddables)
-    def public writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
+    def writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
         List<EmbeddableUse> embeddables, ClassDefinition optionalClass, ColumnNameMappingDefinition nmd) {
         val relevantElementCollection = el?.findFirst[name == f]
         val relevantEmbeddable = embeddables?.findFirst[field == f]
@@ -506,7 +506,7 @@ class JavaFieldWriter {
         '''
     }
 
-    def public static boolean shouldWriteColumn(FieldDefinition c) {
+    def static boolean shouldWriteColumn(FieldDefinition c) {
         val ref = DataTypeExtension::get(c.datatype)
         if (ref.objectDataType === null)
             return true;  // any elementary data type filters already applied before

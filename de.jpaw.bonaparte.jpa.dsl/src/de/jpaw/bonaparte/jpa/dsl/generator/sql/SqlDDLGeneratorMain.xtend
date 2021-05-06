@@ -49,12 +49,12 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
 
 class SqlDDLGeneratorMain extends AbstractGenerator {
-    private static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
+    static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
 
     var int indexCount
     val Set<EnumDefinition> enumsRequired = new HashSet<EnumDefinition>(100)
 
-    var private BDDLPreferences prefs
+    var BDDLPreferences prefs
 
     def makeSqlFilename(EObject e, DatabaseFlavour databaseFlavour, String basename, String object) {
         return "sql/" + databaseFlavour.toString + "/" + object + "/" + basename + ".sql";
@@ -201,7 +201,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         writeFieldWithEmbeddedAndList(f, embeddables, null, null, reqType, false, "", [ fld, myName, reqType2 | SqlColumns.doDdlColumn(fld, databaseFlavour, reqType2, d, myName, nmd) ])
     }
 
-    def public doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
+    def doDiscriminator(EntityDefinition t, DatabaseFlavour databaseFlavour) {
         if (t.discriminatorTypeInt) {
             switch (databaseFlavour) {
             case DatabaseFlavour::POSTGRES:     return '''«t.discname» integer DEFAULT 0 NOT NULL'''
@@ -209,6 +209,14 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» int DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::MYSQL:        return '''«t.discname» integer DEFAULT 0 NOT NULL'''
             case DatabaseFlavour::SAPHANA:      return '''«t.discname» integer DEFAULT 0 NOT NULL'''
+            }
+        } else if (t.discriminatorTypeChar) {
+            switch (databaseFlavour) {
+            case DatabaseFlavour::POSTGRES:     return '''«t.discname» varchar(1) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::ORACLE:       return '''«t.discname» varchar2(1) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::SAPHANA:      return '''«t.discname» nvarchar(1) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::MSSQLSERVER:  return '''«t.discname» nvarchar(1) DEFAULT '«t.discriminatorValue»' NOT NULL'''
+            case DatabaseFlavour::MYSQL:        return '''«t.discname» varchar(1) DEFAULT '«t.discriminatorValue»' NOT NULL'''
             }
         } else {
             switch (databaseFlavour) {

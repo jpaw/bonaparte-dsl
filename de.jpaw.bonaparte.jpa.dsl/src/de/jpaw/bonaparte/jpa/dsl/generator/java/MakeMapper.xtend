@@ -57,7 +57,7 @@ class MakeMapper {
          «ENDIF»
     '''
 
-    def public static isAnEmbeddable(FieldDefinition f, List<EmbeddableUse> embeddables) {
+    def static isAnEmbeddable(FieldDefinition f, List<EmbeddableUse> embeddables) {
         embeddables !== null && embeddables.exists[field == f]
     }
 
@@ -82,7 +82,7 @@ class MakeMapper {
     '''
 
 
-    def public static writeDataMapperMethods(ClassDefinition pojo, boolean isRootEntity, ClassDefinition rootPojo, List<EmbeddableUse> embeddables,
+    def static writeDataMapperMethods(ClassDefinition pojo, boolean isRootEntity, ClassDefinition rootPojo, List<EmbeddableUse> embeddables,
         List<FieldDefinition> fieldsNotToSet) '''
         @Override
         public String ret$DataPQON() {
@@ -119,7 +119,7 @@ class MakeMapper {
         }
     '''
 
-    def public static writeTrackingMapperMethods(ClassDefinition pojo, String pojoname) '''
+    def static writeTrackingMapperMethods(ClassDefinition pojo, String pojoname) '''
         public static Class<«pojoname»> class$TrackingClass() {
             «IF pojo === null»
                 return null;

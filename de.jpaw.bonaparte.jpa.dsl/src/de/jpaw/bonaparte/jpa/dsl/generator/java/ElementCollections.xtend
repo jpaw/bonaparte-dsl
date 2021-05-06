@@ -32,7 +32,7 @@ class ElementCollections {
         }
     }
 
-    def public static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, ElementCollectionRelationship it) '''
+    def static CharSequence writePossibleCollectionOrRelation(FieldDefinition c, ElementCollectionRelationship it) '''
         @ElementCollection«IF fetchType !== null»(fetch=FetchType.«fetchType»)«ENDIF»
         @CollectionTable(name="«tablename»", joinColumns=«writeJoinColumns(c)»)
         «IF mapKey !== null»

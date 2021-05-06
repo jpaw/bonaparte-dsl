@@ -81,7 +81,7 @@ class EqualsHash {
         «d.fields.writeHashSubForListOfFields»
     '''
 
-    def public static writeHashMethodForClassPlusExtraFields(ClassDefinition cls, List<FieldDefinition> fields) '''
+    def static writeHashMethodForClassPlusExtraFields(ClassDefinition cls, List<FieldDefinition> fields) '''
         @Override
         public int hashCode() {
             int _hash = 997;
@@ -238,7 +238,7 @@ class EqualsHash {
 
 
 
-    def public static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
+    def static writeEqualsAndHashCode(EntityDefinition e, PrimaryKeyType primaryKeyType) {
         switch (primaryKeyType) {
         case PrimaryKeyType::IMPLICIT_EMBEDDABLE:       // delegates to some object (another generated class)
             writeEqualsAndHashCodeForEmbeddable(e, "key")
@@ -260,7 +260,7 @@ class EqualsHash {
     }
 
     // invoked where the container is not an entity and therefore extends... does not work. But we know there is no parent
-    def public static writeKeyEquals(String name, List<FieldDefinition> fields) '''
+    def static writeKeyEquals(String name, List<FieldDefinition> fields) '''
         @Override
         public boolean equals(Object _that) {
             if (this == _that)

@@ -26,7 +26,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaEnum.*
 /** Create output for JPA 2.1 type converters. */
 class Converters {
 
-    def public static CharSequence writeTypeConverter(ConverterDefinition e) {
+    def static CharSequence writeTypeConverter(ConverterDefinition e) {
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var dbType = "XXXX"
