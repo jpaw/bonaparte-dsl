@@ -47,18 +47,24 @@ class BDDLGenerator extends AbstractGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
+        try {
+            bonaparteGenerator.doGenerate(resource, fsa, unused)
 
-        bonaparteGenerator.doGenerate(resource, fsa, unused)
+            LOGGER.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
+            generatorSql.doGenerate(resource, fsa, unused)
 
-        LOGGER.info(filterInfo + "start code output: SQL DDL for " + resource.URI.toString);
-        generatorSql.doGenerate(resource, fsa, unused)
+            LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+            generatorJava.doGenerate(resource, fsa, unused)
 
-        LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-        generatorJava.doGenerate(resource, fsa, unused)
+            LOGGER.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
+            generatorResource.doGenerate(resource, fsa)
 
-        LOGGER.info(filterInfo + "start code output: resource output for " + resource.URI.toString);
-        generatorResource.doGenerate(resource, fsa)
+            LOGGER.info(filterInfo + "start cleanup");
 
-        LOGGER.info(filterInfo + "start cleanup");
+        } catch (Exception e) {
+            LOGGER.error("Exception " + e.message)
+            e.printStackTrace(System.out)
+            throw e
+        }
     }
 }

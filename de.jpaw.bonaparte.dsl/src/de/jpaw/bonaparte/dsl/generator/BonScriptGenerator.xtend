@@ -47,20 +47,27 @@ class BonScriptGenerator extends AbstractGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
 
-        if (BonScriptPreferences.currentPrefs.doDebugOut) {
-            LOGGER.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
-            generatorDebug.doGenerate(resource, fsa)
+        try {
+            if (BonScriptPreferences.currentPrefs.doDebugOut) {
+                LOGGER.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+                generatorDebug.doGenerate(resource, fsa)
+            }
+
+            LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
+            generatorJava.doGenerate(resource, fsa, unused)
+
+            if (!BonScriptPreferences.getNoXML) {
+                LOGGER.info(filterInfo + "start XSD creation for " + resource.URI.toString);
+                generatorXsd.doGenerate(resource, fsa, unused)
+            }
+
+            LOGGER.info(filterInfo + "start cleanup");
+            DataTypeExtension::clear()
+
+        } catch (Exception e) {
+            LOGGER.error("Exception " + e.message)
+            e.printStackTrace(System.out)
+            throw e
         }
-
-        LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-        generatorJava.doGenerate(resource, fsa, unused)
-
-        if (!BonScriptPreferences.getNoXML) {
-            LOGGER.info(filterInfo + "start XSD creation for " + resource.URI.toString);
-            generatorXsd.doGenerate(resource, fsa, unused)
-        }
-
-        LOGGER.info(filterInfo + "start cleanup");
-        DataTypeExtension::clear()
     }
 }
