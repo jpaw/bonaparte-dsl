@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.jpa.dsl.ui.tests
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.40.0
+Bundle-Version: 4.40.1
 Bundle-SymbolicName: de.jpaw.bonaparte.jpa.dsl.ui.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.jpa.dsl.ui,
- org.junit;bundle-version="4.40.0",
+ org.junit;bundle-version="4.40.1",
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
  org.eclipse.xtext.junit4,
