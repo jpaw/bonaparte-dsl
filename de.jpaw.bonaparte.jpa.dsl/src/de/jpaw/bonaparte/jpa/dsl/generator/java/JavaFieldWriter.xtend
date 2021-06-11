@@ -305,6 +305,8 @@ class JavaFieldWriter {
             } else if (ref.elementaryDataType !== null) {
                 // JSON, ARRAY or ELEMENT
                 val isNative = i.properties.hasProperty(PROP_NATIVE)
+                val isDontStoreNulls = i.properties.hasProperty(PROP_DONT_STORE_NULLS)
+                val noNullExt = isDontStoreNulls ? ", false" : "";
                 if (prefs.doUserTypeForJson) {
                     val nativePrefix = if (isCompact || isCompact2) "Compact" else if (isNative) "Native" else "String";
                     val nativeSuffix = if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) "JsonElement" else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) "JsonArray" else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) "JsonObject" else null
@@ -326,7 +328,7 @@ class JavaFieldWriter {
                         } else {
                             // default: text JSON
                             getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseElement()''')
-                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
                         }
                     } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
                         // Element => store in compact serialized form by default
@@ -340,7 +342,7 @@ class JavaFieldWriter {
                         } else {
                             // default: text JSON
                             getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseArray()''')
-                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
                         }
                     } else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) {
                         // Element => store in compact serialized form by default
@@ -354,7 +356,7 @@ class JavaFieldWriter {
                         } else {
                             // default: text JSON
                             getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseObject()''')
-                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x);'''
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
                         }
                     } else {
                         // JSON: fall through (done via user type)
