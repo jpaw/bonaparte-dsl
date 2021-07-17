@@ -30,14 +30,14 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.23.0</xtextVersion>
-        <tycho-version>1.7.0</tycho-version>
-        <mwe-version>2.11.3</mwe-version>
+        <xtextVersion>2.26.0-SNAPSHOT</xtextVersion>
+        <tycho-version>2.3.0</tycho-version>
+        <mwe-version>2.12.2-SNAPSHOT</mwe-version>
         <exec-plugin-version>1.6.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
         <lsp4j-version>0.9.0</lsp4j-version>
         <log4j-version>1.2.17</log4j-version>
-        <asm-version>8.0.1</asm-version>
+        <asm-version>9.1</asm-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -286,7 +286,7 @@
         <repository>
             <id>codehaus-snapshots</id>
             <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
-            <url>http://nexus.codehaus.org/snapshots/</url>
+            <url>https://nexus.codehaus.org/snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -294,12 +294,49 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+
+    <repository>
+      <id>xtext-lib-repository</id>
+      <name>xtext-lib-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-lib/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-core-repository</id>
+      <name>xtext-core-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-core/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-extras-repository</id>
+      <name>xtext-extras-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-extras/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-maven-repository</id>
+      <name>xtext-maven-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-maven/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-xtend-repository</id>
+      <name>xtext-xtend-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-xtend/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-web-repository</id>
+      <name>xtext-web-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-web/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+    </repository>
+    <repository>
+      <id>xtext-mwe-repository</id>
+      <name>xtext-mwe-repository</name>
+      <url>https://ci.eclipse.org/mwe/job/mwe2/job/cd_mweGuice5Experimentb/lastSuccessfulBuild/artifact/git-repo/my-local-snapshots-dir/</url>
+    </repository>
+
     </repositories>
     <pluginRepositories>
         <pluginRepository>
             <id>codehaus-snapshots</id>
             <name>disable dead 'Codehaus Snapshots' repository, see https://bugs.eclipse.org/bugs/show_bug.cgi?id=481478</name>
-            <url>http://nexus.codehaus.org/snapshots/</url>
+            <url>https://nexus.codehaus.org/snapshots/</url>
             <releases>
                 <enabled>false</enabled>
             </releases>
@@ -318,6 +355,80 @@
                 <enabled>false</enabled>
             </snapshots>
         </pluginRepository>
+
+    <pluginRepository>
+      <id>xtext-lib-plugin-repository</id>
+      <name>xtext-lib-plugin-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-lib/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>xtext-core-plugin-repository</id>
+      <name>xtext-core-plugin-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-core/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>xtext-extras-plugin-repository</id>
+      <name>xtext-extras-plugin-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-extras/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <name>xtext-maven-plugin-repository</name>
+      <id>xtext-maven-plugin-repository</id>
+      <url>https://ci.eclipse.org/xtext/job/xtext-maven/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <name>xtext-xtend-plugin-repository</name>
+      <id>xtext-xtend-plugin-repository</id>
+      <url>https://ci.eclipse.org/xtext/job/xtext-xtend/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>xtext-web-plugin-repository</id>
+      <name>xtext-web-plugin-repository</name>
+      <url>https://ci.eclipse.org/xtext/job/xtext-web/job/cd_guice501/lastSuccessfulBuild/artifact/build/maven-repository/</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </pluginRepository>
+    <pluginRepository>
+      <id>xtext-mwe-plugin-repository</id>
+      <name>xtext-mwe-plugin-repository</name>
+      <url>https://ci.eclipse.org/mwe/job/mwe2/job/cd_mweGuice5Experimentb/lastSuccessfulBuild/artifact/git-repo/my-local-snapshots-dir/</url>
+      <releases><enabled>false</enabled></releases>
+      <snapshots><enabled>true</enabled></snapshots>
+    </pluginRepository>
     </pluginRepositories>
 
     <distributionManagement>
