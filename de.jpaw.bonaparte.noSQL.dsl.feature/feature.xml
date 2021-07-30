@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="de.jpaw.bonaparte.noSQL.dsl.feature"
     label="BDsl Feature "
-    version="4.43.0.qualifier">
+    version="4.43.1">
     <plugin
             id="de.jpaw.bonaparte.noSQL.dsl"
             download-size="0"
