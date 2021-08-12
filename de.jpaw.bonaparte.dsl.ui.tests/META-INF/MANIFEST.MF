@@ -6,7 +6,7 @@ Bundle-Version: 4.43.1
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl.ui.tests; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.dsl.ui,
- org.junit;bundle-version="4.43.1",
+ org.junit;bundle-version="4.13.0",
  org.eclipse.xtext.testing,
  org.eclipse.xtext.xbase.testing,
  org.eclipse.xtext.junit4,
