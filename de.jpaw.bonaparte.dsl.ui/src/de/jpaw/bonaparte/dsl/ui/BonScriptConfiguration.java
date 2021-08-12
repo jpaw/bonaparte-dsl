@@ -73,6 +73,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeO));
         addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
+        addField(new BooleanFieldEditor("Jakarta", "Generate NEW jakarta package prefixes", compositeO));
         outputGroup.pack();
 
         // blank, to fill the second column
@@ -128,6 +129,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("DebugOut",            defaults.doDebugOut);
         store.setDefault("DateTime",            defaults.doDateTime);
         store.setDefault("XMLOut",              defaults.noXML);
+        store.setDefault("Jakarta",             defaults.jakartaOutput);
         store.setDefault("Externalize",         defaults.defaultExternalize);
         store.setDefault("HazelcastDs",         defaults.defaultHazelcastDs);
         store.setDefault("HazelcastId",         defaults.defaultHazelcastId);
@@ -144,6 +146,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doDateTime                  = store.getBoolean("DateTime");
         currentSettings.noXML                       = store.getBoolean("XMLOut");
+        currentSettings.jakartaOutput               = store.getBoolean("Jakarta");
         currentSettings.defaultExternalize          = store.getBoolean("Externalize");
         currentSettings.defaultHazelcastDs          = store.getBoolean("HazelcastDs");
         currentSettings.defaultHazelcastId          = store.getBoolean("HazelcastId");
@@ -170,6 +173,9 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "XMLOut":
                       BonScriptPreferences.currentPrefs.noXML               = toBool(event.getNewValue());
+                      break;
+                  case "Jakarta":
+                      BonScriptPreferences.currentPrefs.jakartaOutput       = toBool(event.getNewValue());
                       break;
                   case "DateTime":
                       BonScriptPreferences.currentPrefs.doDateTime          = toBool(event.getNewValue());

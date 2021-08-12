@@ -102,7 +102,7 @@ class JavaFieldWriter {
         }
     }
 
-    def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal) {
+    def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal, String jakartaPrefix) {
         val prefs = BDDLPreferences.currentPrefs
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
 
@@ -130,8 +130,8 @@ class JavaFieldWriter {
                     // manual conversion in the getters / setters. Use the converted field here. Recursive call of the same method. (Nested conversions won't work!)
                     // repeat the bean val annotations here. Due to the type, the first ones will at maximum have been NotNull, and the second won't repeat that because first fields are always nullable.
                     return '''
-                        «JavaBeanValidation::writeAnnotations(newField, newRef, doBeanVal, !c.isNotNullField)»
-                        «writeColumnType(newField, myName, doBeanVal)»
+                        «JavaBeanValidation::writeAnnotations(newField, newRef, doBeanVal, !c.isNotNullField, jakartaPrefix)»
+                        «writeColumnType(newField, myName, doBeanVal, jakartaPrefix)»
                     '''
                 }
 //            } else if (c.properties.hasProperty("ManyToOne")) {     // TODO: undocumented and also unused feature. Remove it?
@@ -444,7 +444,7 @@ class JavaFieldWriter {
 
     // write the definition of a single column (entities or Embeddables)
     def writeColStuff(FieldDefinition f, List<ElementCollectionRelationship> el, boolean doBeanVal, String myName,
-        List<EmbeddableUse> embeddables, ClassDefinition optionalClass, ColumnNameMappingDefinition nmd) {
+        List<EmbeddableUse> embeddables, ClassDefinition optionalClass, ColumnNameMappingDefinition nmd, String jakartaPrefix) {
         val relevantElementCollection = el?.findFirst[name == f]
         val relevantEmbeddable = embeddables?.findFirst[field == f]
         // val emb = relevantEmbeddable?.name?.pojoType
@@ -456,7 +456,7 @@ class JavaFieldWriter {
                 «ElementCollections::writePossibleCollectionOrRelation(f, relevantElementCollection)»
                 «IF relevantEmbeddable === null»
                     @Column(name="«myName.java2sql(nmd)»"«IF f.isNotNullField», nullable=false«ENDIF»)
-                    «f.writeColumnType(myName, false)»
+                    «f.writeColumnType(myName, false, jakartaPrefix)»
                     «f.writeGetterAndSetter(myName, optionalClass)»
                 «ELSE»
                     «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
@@ -500,8 +500,8 @@ class JavaFieldWriter {
                     «f.properties.optionalAnnotation("version", "@Version")»
                     «f.properties.optionalAnnotation("lob", "@Lob")»
                     «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»
-                    «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField)»
-                    «f.writeColumnType(myName, doBeanVal)»
+                    «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField, jakartaPrefix)»
+                    «f.writeColumnType(myName, doBeanVal, jakartaPrefix)»
                     «f.writeGetterAndSetter(myName, optionalClass)»
                 «ENDIF»
             «ENDIF»

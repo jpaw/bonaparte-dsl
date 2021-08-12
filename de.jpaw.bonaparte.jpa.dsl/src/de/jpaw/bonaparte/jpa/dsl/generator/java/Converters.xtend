@@ -26,7 +26,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaEnum.*
 /** Create output for JPA 2.1 type converters. */
 class Converters {
 
-    def static CharSequence writeTypeConverter(ConverterDefinition e) {
+    def static CharSequence writeTypeConverter(ConverterDefinition e, String jakartaPrefix) {
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
         var dbType = "XXXX"
@@ -83,8 +83,8 @@ class Converters {
             // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
             package «myPackageName»;
 
-            import javax.persistence.AttributeConverter;
-            import javax.persistence.Converter;
+            import «jakartaPrefix».persistence.AttributeConverter;
+            import «jakartaPrefix».persistence.Converter;
 
             «imports.createImports»
 

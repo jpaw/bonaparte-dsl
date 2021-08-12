@@ -17,24 +17,25 @@
 package de.jpaw.bonaparte.dsl.generator.java
 
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.Util
+
+import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 /* DISCLAIMER: Bean Validation is work in progress. Neither JSR 303 nor JSR 349 annotations are complete. */
 
 class JavaBeanValidation {
 
-    def public static writeImports(boolean beanValidation) '''
+    def static writeImports(boolean beanValidation, String jakartaPrefix) '''
         «IF beanValidation»
-            import javax.validation.constraints.NotNull;
-            import javax.validation.constraints.Digits;
-            import javax.validation.constraints.Size;
-            //import javax.validation.constraints.Pattern;  // conflicts with java.util.regexp.Pattern, use FQON instead
+            import «jakartaPrefix».validation.constraints.NotNull;
+            import «jakartaPrefix».validation.constraints.Digits;
+            import «jakartaPrefix».validation.constraints.Size;
+            //import «jakartaPrefix».validation.constraints.Pattern;  // conflicts with java.util.regexp.Pattern, use FQON instead
         «ENDIF»
     '''
 
-    def public static writeAnnotations(FieldDefinition i, DataTypeExtension ref, boolean beanValidation, boolean additionalNullableCondition) '''
+    def static writeAnnotations(FieldDefinition i, DataTypeExtension ref, boolean beanValidation, boolean additionalNullableCondition, String jakartaPrefix) '''
         «IF beanValidation»
             «IF i.isRequired && !ref.isPrimitive && !i.isASpecialEnumWithEmptyStringAsNull && !additionalNullableCondition»
                 @NotNull
@@ -47,10 +48,10 @@ class JavaBeanValidation {
                 «ELSEIF ref.javaType.equals("String")»
                     @Size(«IF ref.elementaryDataType.minLength > 0»min=«ref.elementaryDataType.minLength», «ENDIF»max=«ref.elementaryDataType.length»)
                     «IF ref.isUpperCaseOrLowerCaseSpecialType»
-                        @javax.validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
+                        @«jakartaPrefix».validation.constraints.Pattern(regexp="\\A[«IF ref.elementaryDataType.name.toLowerCase().equals("uppercase")»A-Z«ELSE»a-z«ENDIF»]*\\z")
                     «ENDIF»
                     «IF ref.elementaryDataType.regexp !== null»
-                        @javax.validation.constraints.Pattern(regexp="\\A«Util::escapeString2Java(ref.elementaryDataType.regexp)»\\z")
+                        @«jakartaPrefix».validation.constraints.Pattern(regexp="\\A«Util::escapeString2Java(ref.elementaryDataType.regexp)»\\z")
                     «ENDIF»
                 «ENDIF»
             «ENDIF»

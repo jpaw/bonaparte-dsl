@@ -51,6 +51,7 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaRtti.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.dsl.BonScriptPreferences
 
 class JavaDDLGeneratorMain extends AbstractGenerator {
     static final Logger LOGGER = Logger.getLogger(JavaDDLGeneratorMain);
@@ -67,22 +68,24 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
+        val jakartaPrefix = if (BonScriptPreferences.currentPrefs.jakartaOutput) "jakarta" else "javax"
+
         // java
         for (e : resource.allContents.toIterable.filter(typeof(EntityDefinition))) {
             if (!e.noJava && !(e.eContainer as BDDLPackageDefinition).isNoJava) {
                 val primaryKeyType = determinePkType(e)
                 if (primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE) {
                     // write a separate class for the composite key
-                    fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e.javaKeyOut)
+                    fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name + "Key"), e.javaKeyOut(jakartaPrefix))
                 }
-                fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEntityOut(primaryKeyType))
+                fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEntityOut(primaryKeyType, jakartaPrefix))
             }
         }
         for (e : resource.allContents.toIterable.filter(typeof(EmbeddableDefinition))) {
-            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEmbeddableOut)
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), e.javaEmbeddableOut(jakartaPrefix))
         }
         for (e : resource.allContents.toIterable.filter(typeof(ConverterDefinition))) {
-            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), Converters.writeTypeConverter(e))
+            fsa.generateFile(getJavaFilename(e.bddlPackageName, e.name), Converters.writeTypeConverter(e, jakartaPrefix))
         }
         for (d : resource.allContents.toIterable.filter(typeof(BDDLPackageDefinition))) {
             // write a package-info.java file, if javadoc on package level exists
@@ -246,13 +249,13 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
 
     // shorthand call for entities
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
-        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails) {
-        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.nameMapping, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails);
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails, String jakartaPrefix) {
+        cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.nameMapping, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails, jakartaPrefix);
     }
 
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
         List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd, boolean doBeanVal,
-        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails
+        List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails, String jakartaPrefix
     ) {
         // include aggregates if there is an @ElementCollection defined for them
         //        «IF embeddables?.filter[isPk !== null].head?.field == fld»
@@ -268,7 +271,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                     «ENDIF»
                 «ENDIF»
                 «IF (primaryKeyType != PrimaryKeyType::IMPLICIT_EMBEDDABLE || !inList(pkColumns, fld)) && !fld.properties.hasProperty(PROP_NOJAVA)»
-                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl, nmd)»
+                    «fieldWriter.writeColStuff(fld, el, doBeanVal, myName, embeddables, cl, nmd, jakartaPrefix)»
                     «IF fld.properties.hasProperty(PROP_VERSION)»
                         «IF fld.JavaDataTypeNoName(false).equals("int") || fld.JavaDataTypeNoName(false).equals("Integer")»
                             «fld.setIntVersion»
@@ -603,7 +606,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         '''
     }
 
-    def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType) {
+    def private javaEntityOut(EntityDefinition e, PrimaryKeyType primaryKeyType, String jakartaPrefix) {
         val prefs = BDDLPreferences.currentPrefs
         val String myPackageName = e.bddlPackageName
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -674,81 +677,81 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         package «myPackageName»;
 
         «IF e.tenantId !== null»
-            //import javax.persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
+            //import «jakartaPrefix».persistence.Multitenant;  // not (yet?) there. Should be in JPA 2.1
             import org.eclipse.bonaparte.jpa.annotations.Multitenant;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheSize != 0»
             import org.eclipse.bonaparte.jpa.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
         «ENDIF»
         «IF e.cacheable»
-            import javax.persistence.Cacheable;
+            import «jakartaPrefix».persistence.Cacheable;
         «ENDIF»
         «IF e.xinheritance !== null && e.xinheritance != Inheritance::NONE»
-            import javax.persistence.Inheritance;
-            import javax.persistence.InheritanceType;
+            import «jakartaPrefix».persistence.Inheritance;
+            import «jakartaPrefix».persistence.InheritanceType;
         «ENDIF»
         «IF e.discname !== null»
-            import javax.persistence.DiscriminatorType;
-            import javax.persistence.DiscriminatorColumn;
-            import javax.persistence.DiscriminatorValue;
+            import «jakartaPrefix».persistence.DiscriminatorType;
+            import «jakartaPrefix».persistence.DiscriminatorColumn;
+            import «jakartaPrefix».persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.^extends !== null»
-            import javax.persistence.DiscriminatorValue;
+            import «jakartaPrefix».persistence.DiscriminatorValue;
         «ENDIF»
         «IF e.isAbstract»
-            import javax.persistence.MappedSuperclass;
+            import «jakartaPrefix».persistence.MappedSuperclass;
         «ENDIF»
         «IF e.isIdGenerated»
-            import javax.persistence.GeneratedValue;
-            import javax.persistence.GenerationType;
+            import «jakartaPrefix».persistence.GeneratedValue;
+            import «jakartaPrefix».persistence.GenerationType;
         «ENDIF»
         «IF e.generator !== null»
-            import javax.persistence.«e.generator.substring(1)»;
+            import «jakartaPrefix».persistence.«e.generator.substring(1)»;
         «ENDIF»
-        import javax.persistence.EntityManager;
-        import javax.persistence.Entity;
-        import javax.persistence.Table;
-        import javax.persistence.Version;
-        import javax.persistence.Column;
-        import javax.persistence.Lob;
-        import javax.persistence.Basic;
-        import javax.persistence.FetchType;
-        import javax.persistence.CascadeType;
-        import javax.persistence.Id;
-        import javax.persistence.IdClass;
-        import javax.persistence.Temporal;
-        import javax.persistence.TemporalType;
-        import javax.persistence.NoResultException;
-        import javax.persistence.TypedQuery;
-        import javax.persistence.EmbeddedId;
-        import javax.persistence.Embedded;
-        import javax.persistence.ManyToOne;
-        import javax.persistence.OneToMany;
-        import javax.persistence.OneToOne;
-        import javax.persistence.FetchType;
-        import javax.persistence.CascadeType;
-        import javax.persistence.MapKey;
-        import javax.persistence.MapKeyJoinColumn;
-        import javax.persistence.JoinColumn;
-        import javax.persistence.JoinColumns;
-        import javax.persistence.ElementCollection;
-        import javax.persistence.MapKeyColumn;
-        import javax.persistence.CollectionTable;
-        import javax.persistence.EntityListeners;
-        import javax.persistence.UniqueConstraint;
-        import javax.persistence.AttributeOverride;
-        import javax.persistence.AttributeOverrides;
+        import «jakartaPrefix».persistence.EntityManager;
+        import «jakartaPrefix».persistence.Entity;
+        import «jakartaPrefix».persistence.Table;
+        import «jakartaPrefix».persistence.Version;
+        import «jakartaPrefix».persistence.Column;
+        import «jakartaPrefix».persistence.Lob;
+        import «jakartaPrefix».persistence.Basic;
+        import «jakartaPrefix».persistence.FetchType;
+        import «jakartaPrefix».persistence.CascadeType;
+        import «jakartaPrefix».persistence.Id;
+        import «jakartaPrefix».persistence.IdClass;
+        import «jakartaPrefix».persistence.Temporal;
+        import «jakartaPrefix».persistence.TemporalType;
+        import «jakartaPrefix».persistence.NoResultException;
+        import «jakartaPrefix».persistence.TypedQuery;
+        import «jakartaPrefix».persistence.EmbeddedId;
+        import «jakartaPrefix».persistence.Embedded;
+        import «jakartaPrefix».persistence.ManyToOne;
+        import «jakartaPrefix».persistence.OneToMany;
+        import «jakartaPrefix».persistence.OneToOne;
+        import «jakartaPrefix».persistence.FetchType;
+        import «jakartaPrefix».persistence.CascadeType;
+        import «jakartaPrefix».persistence.MapKey;
+        import «jakartaPrefix».persistence.MapKeyJoinColumn;
+        import «jakartaPrefix».persistence.JoinColumn;
+        import «jakartaPrefix».persistence.JoinColumns;
+        import «jakartaPrefix».persistence.ElementCollection;
+        import «jakartaPrefix».persistence.MapKeyColumn;
+        import «jakartaPrefix».persistence.CollectionTable;
+        import «jakartaPrefix».persistence.EntityListeners;
+        import «jakartaPrefix».persistence.UniqueConstraint;
+        import «jakartaPrefix».persistence.AttributeOverride;
+        import «jakartaPrefix».persistence.AttributeOverrides;
         «IF prefs.doIndexes»
-            import javax.persistence.Index;
+            import «jakartaPrefix».persistence.Index;
         «ENDIF»
         «IF !e.neg.nullOrEmpty»
-            import javax.persistence.NamedEntityGraph;
-            import javax.persistence.NamedEntityGraphs;
-            import javax.persistence.NamedAttributeNode;
-            import javax.persistence.NamedSubgraph;
+            import «jakartaPrefix».persistence.NamedEntityGraph;
+            import «jakartaPrefix».persistence.NamedEntityGraphs;
+            import «jakartaPrefix».persistence.NamedAttributeNode;
+            import «jakartaPrefix».persistence.NamedSubgraph;
         «ENDIF»
 
-        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
+        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal, jakartaPrefix)»
         «writeDefaultImports»
         «writeJpaImports»
 
@@ -820,9 +823,9 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
             «IF primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
-            «IF e.extends === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»«ENDIF»
-            «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
-            «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails)»
+            «IF e.extends === null»«e.tableCategory.trackingColumns?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails, jakartaPrefix)»«ENDIF»
+            «e.tenantClass?.recurseColumns(null, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails, jakartaPrefix)»
+            «e.pojoType.recurseColumns(stopper, e, pkColumns, primaryKeyType, e.isIsIdGenerated, e.generatedIdDetails, jakartaPrefix)»
             «IF pkDefinedInThisEntity || (e.^extends === null && !e.isIsAbstract)»
                 «EqualsHash::writeEqualsAndHashCode(e, primaryKeyType)»
             «ENDIF»
@@ -843,7 +846,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         }
         '''
     }
-    def private javaKeyOut(EntityDefinition e) {
+    def private javaKeyOut(EntityDefinition e, String jakartaPrefix) {
         val String myPackageName = e.bddlPackageName
         val String myName = e.name + "Key"
         val ImportCollector imports = new ImportCollector(myPackageName)
@@ -858,18 +861,18 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «myPackageName»;
 
-        import javax.persistence.EntityManager;
-        import javax.persistence.Embeddable;
-        import javax.persistence.Embedded;
-        import javax.persistence.Column;
-        import javax.persistence.EmbeddedId;
-        import javax.persistence.Temporal;
-        import javax.persistence.TemporalType;
-        import javax.persistence.ManyToOne;
-        import javax.persistence.JoinColumn;
-        import javax.persistence.FetchType;
-        import javax.persistence.CascadeType;
-        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal)»
+        import «jakartaPrefix».persistence.EntityManager;
+        import «jakartaPrefix».persistence.Embeddable;
+        import «jakartaPrefix».persistence.Embedded;
+        import «jakartaPrefix».persistence.Column;
+        import «jakartaPrefix».persistence.EmbeddedId;
+        import «jakartaPrefix».persistence.Temporal;
+        import «jakartaPrefix».persistence.TemporalType;
+        import «jakartaPrefix».persistence.ManyToOne;
+        import «jakartaPrefix».persistence.JoinColumn;
+        import «jakartaPrefix».persistence.FetchType;
+        import «jakartaPrefix».persistence.CascadeType;
+        «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal, jakartaPrefix)»
         «writeDefaultImports»
         «writeJpaImports»
 
@@ -880,7 +883,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         public class «myName» implements Serializable, Cloneable {
             private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «FOR col : e.pk.columnName»
-                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null, e.nameMapping)»
+                «fieldWriter.writeColStuff(col, e.elementCollections, e.tableCategory.doBeanVal, col.name, null, null, e.nameMapping, jakartaPrefix)»
             «ENDFOR»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(null, e.pk.columnName)»
             «EqualsHash::writeKeyEquals(myName, e.pk.columnName)»
@@ -889,7 +892,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         '''
     }
 
-    def private javaEmbeddableOut(EmbeddableDefinition e) {
+    def private javaEmbeddableOut(EmbeddableDefinition e, String jakartaPrefix) {
         val prefs = BDDLPreferences.currentPrefs
         val String myPackageName = e.bddlPackageName
         val String myName = e.name
@@ -905,18 +908,18 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «myPackageName»;
 
-        import javax.persistence.EntityManager;
-        import javax.persistence.Embeddable;
-        import javax.persistence.Embedded;
-        import javax.persistence.Column;
-        import javax.persistence.EmbeddedId;
-        import javax.persistence.Temporal;
-        import javax.persistence.TemporalType;
-        import javax.persistence.ManyToOne;
-        import javax.persistence.JoinColumn;
-        import javax.persistence.FetchType;
-        import javax.persistence.CascadeType;
-        «JavaBeanValidation::writeImports(e.doBeanVal)»
+        import «jakartaPrefix».persistence.EntityManager;
+        import «jakartaPrefix».persistence.Embeddable;
+        import «jakartaPrefix».persistence.Embedded;
+        import «jakartaPrefix».persistence.Column;
+        import «jakartaPrefix».persistence.EmbeddedId;
+        import «jakartaPrefix».persistence.Temporal;
+        import «jakartaPrefix».persistence.TemporalType;
+        import «jakartaPrefix».persistence.ManyToOne;
+        import «jakartaPrefix».persistence.JoinColumn;
+        import «jakartaPrefix».persistence.FetchType;
+        import «jakartaPrefix».persistence.CascadeType;
+        «JavaBeanValidation::writeImports(e.doBeanVal, jakartaPrefix)»
         «writeDefaultImports»
         «writeJpaImports»
 
@@ -937,7 +940,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         «ENDIF»
         public class «e.name» implements Serializable, Cloneable, BonaData<«e.pojoType.name»> {
             private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
-            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.nameMappingGroup, e.doBeanVal, null, PrimaryKeyType::NONE, false, null)»
+            «e.pojoType.recurseColumns(null, EMPTY_ELEM_COLL, e.embeddables, e.nameMappingGroup, e.doBeanVal, null, PrimaryKeyType::NONE, false, null, jakartaPrefix)»
             «EqualsHash::writeHashMethodForClassPlusExtraFields(e.pojoType, null)»
             «EqualsHash::writeKeyEquals(e.name, e.pojoType.fields)»
             «writeCloneable(myName)»

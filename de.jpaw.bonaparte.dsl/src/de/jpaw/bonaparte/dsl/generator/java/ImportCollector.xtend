@@ -15,10 +15,10 @@ import org.apache.log4j.Logger
 
 import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
-public class ImportCollector {
-    private static final Logger LOGGER = Logger.getLogger(ImportCollector);
-    private Map<String, String> requiredImports
-    private String myPackageName
+class ImportCollector {
+    static final Logger LOGGER = Logger.getLogger(ImportCollector);
+    Map<String, String> requiredImports
+    String myPackageName
 
     new(String myPackage) {
         requiredImports = new HashMap<String, String>()

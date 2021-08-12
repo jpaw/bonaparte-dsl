@@ -25,13 +25,13 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaXEnum {
-    def static public int getOverallMaxLength(XEnumDefinition ed) {
+    def static int getOverallMaxLength(XEnumDefinition ed) {
         if (ed.maxlength > 0)
             return ed.maxlength
         else
             return getInternalMaxLength(ed.myEnum, if (ed.extendsXenum !== null) getOverallMaxLength(ed.extendsXenum) else ed.maxlength)
     }
-    def static public int getInternalMaxLength(EnumDefinition ed, int priorMax) {
+    def static int getInternalMaxLength(EnumDefinition ed, int priorMax) {
         var max = priorMax
         for (a : ed.avalues) {
             val l = a.token.length
@@ -41,11 +41,11 @@ class JavaXEnum {
             max = 1
         return max
     }
-    def static public boolean hasNullToken(XEnumDefinition d) {
+    def static boolean hasNullToken(XEnumDefinition d) {
         JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
 
-    def static public writeXEnumDefinition(XEnumDefinition d) {
+    def static writeXEnumDefinition(XEnumDefinition d) {
         val boolean subClass = d.extendsXenum !== null
         val rootClass = d.root
 
@@ -145,7 +145,7 @@ class JavaXEnum {
         '''
     }
 
-    def public static writeXEnumMetaData(XEnumDefinition d) {
+    def static writeXEnumMetaData(XEnumDefinition d) {
         val myPackage = d.package
         return '''
             // my name and revision
@@ -182,7 +182,7 @@ class JavaXEnum {
         '''
     }
 
-    def public static writeXEnumTypeAdapter(XEnumDefinition d) {
+    def static writeXEnumTypeAdapter(XEnumDefinition d, String jakartaPrefix) {
         if (d.extendsXenum !== null)
             return null
 
@@ -192,7 +192,7 @@ class JavaXEnum {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getBonPackageName(d)»;
 
-        import javax.xml.bind.annotation.adapters.XmlAdapter;
+        import «jakartaPrefix».xml.bind.annotation.adapters.XmlAdapter;
 
         public class «d.name»XmlAdapter extends XmlAdapter<String, «d.name»>{
 

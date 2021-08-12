@@ -29,9 +29,11 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 class BonScriptGenerator extends AbstractGenerator {
-    private static final Logger LOGGER = Logger.getLogger(BonScriptGenerator)
-    private static final AtomicInteger globalId = new AtomicInteger(0)
-    private final int localId = globalId.incrementAndGet
+    static final Logger LOGGER = Logger.getLogger(BonScriptGenerator)
+    static final AtomicInteger globalId = new AtomicInteger(0)
+
+    final int localId = globalId.incrementAndGet
+    final String jakartaPrefix;
 
     @Inject DebugBonScriptGeneratorMain generatorDebug
     @Inject JavaBonScriptGeneratorMain generatorJava
@@ -41,8 +43,9 @@ class BonScriptGenerator extends AbstractGenerator {
         "@" + localId + ": "
     }
 
-    public new() {
-        LOGGER.info("BonScriptGenerator constructed. " + filterInfo)
+    new() {
+        jakartaPrefix = if (BonScriptPreferences.currentPrefs.jakartaOutput) "jakarta" else "javax"
+        LOGGER.info("BonScriptGenerator constructed for " + jakartaPrefix + ". " + filterInfo)
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {

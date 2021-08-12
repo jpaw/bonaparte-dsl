@@ -46,7 +46,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 // generator for the language Java
 class JavaBonScriptGeneratorMain extends AbstractGenerator {
-    static private boolean AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES = false
+    static boolean AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES = false
 
     var Map<String, String> requiredImports = new HashMap<String, String>()
 
@@ -71,6 +71,8 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
+        val jakartaPrefix = if (BonScriptPreferences.currentPrefs.jakartaOutput) "jakarta" else "javax"
+
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
             fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
@@ -82,11 +84,11 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
                 print('''output of xml adapter for «d.name»''')
-                fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d));
+                fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d, jakartaPrefix));
             }
         }
         for (d : resource.allContents.toIterable.filter(typeof(ClassDefinition)).filter[!noJava])
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition);
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), d.writeClassDefinition(jakartaPrefix));
         for (d : resource.allContents.toIterable.filter(typeof(PackageDefinition))) {
             // get a list of all classes which have an XML tag
             var List<ClassDefinition> classList = new ArrayList<ClassDefinition>()
@@ -133,11 +135,11 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                     package «getBonPackageName(d)»;
                     «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
 
-                        import javax.xml.bind.annotation.XmlSchema;
-                        import javax.xml.bind.annotation.XmlNs;
-                        import javax.xml.bind.annotation.XmlNsForm;
-                        import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-                        import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+                        import «jakartaPrefix».xml.bind.annotation.XmlSchema;
+                        import «jakartaPrefix».xml.bind.annotation.XmlNs;
+                        import «jakartaPrefix».xml.bind.annotation.XmlNsForm;
+                        import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+                        import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapters;
                         import de.jpaw.util.ByteArray;
                         import de.jpaw.xml.jaxb.ByteArrayAdapter;
                         «IF needJoda»
@@ -250,7 +252,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
         }
     }
 
-    def writeClassDefinition(ClassDefinition d) {
+    def writeClassDefinition(ClassDefinition d, String jakartaPrefix) {
     // map to evaluate if we have conflicting class names and need FQCNs
     // key is the class name, data is the package name
     // using FQONs in case of conflict is not yet implemented
@@ -291,19 +293,19 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
 
         «writeDefaultImports»
         «IF withXml»
-            import javax.xml.bind.annotation.XmlAccessorType;
-            import javax.xml.bind.annotation.XmlAccessType;
-            import javax.xml.bind.annotation.XmlAttribute;
-            import javax.xml.bind.annotation.XmlRootElement;
-            import javax.xml.bind.annotation.XmlElement;
-            import javax.xml.bind.annotation.XmlTransient;
-            import javax.xml.bind.annotation.XmlAnyElement;
-            import javax.xml.bind.annotation.XmlSchemaType;
-            import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-            import javax.xml.bind.annotation.adapters.XmlAdapter;
-            import javax.xml.bind.annotation.XmlType;
+            import «jakartaPrefix».xml.bind.annotation.XmlAccessorType;
+            import «jakartaPrefix».xml.bind.annotation.XmlAccessType;
+            import «jakartaPrefix».xml.bind.annotation.XmlAttribute;
+            import «jakartaPrefix».xml.bind.annotation.XmlRootElement;
+            import «jakartaPrefix».xml.bind.annotation.XmlElement;
+            import «jakartaPrefix».xml.bind.annotation.XmlTransient;
+            import «jakartaPrefix».xml.bind.annotation.XmlAnyElement;
+            import «jakartaPrefix».xml.bind.annotation.XmlSchemaType;
+            import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+            import «jakartaPrefix».xml.bind.annotation.adapters.XmlAdapter;
+            import «jakartaPrefix».xml.bind.annotation.XmlType;
         «ENDIF»
-        «JavaBeanValidation::writeImports(doBeanVal)»
+        «JavaBeanValidation::writeImports(doBeanVal, jakartaPrefix)»
         «IF doExt»
             «JavaExternalize::writeExternalizeImports»
         «ENDIF»
@@ -376,7 +378,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             «JavaMeta::writeMetaData(d)»
             «JavaFrozen::writeFreezingCode(d)»
             «FOR i:d.fields»
-                «writeOneField(i, d, doBeanVal)»
+                «writeOneField(i, d, doBeanVal, jakartaPrefix)»
             «ENDFOR»
             «JavaFieldsGettersSetters::writeGettersSetters(d)»
             «JavaValidate::writePatterns(d)»
@@ -430,7 +432,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
     }
     def JavaDeexternalize(ClassDefinition definition) { }
 
-    def private writeOneField(FieldDefinition i, ClassDefinition d, boolean doBeanVal) {
+    def private writeOneField(FieldDefinition i, ClassDefinition d, boolean doBeanVal, String jakartaPrefix) {
         val ref = DataTypeExtension::get(i.datatype)
         val v = getFieldVisibility(d, i)
         // val isImmutable = '''«IF isImmutable(d)»final «ENDIF»'''   // does not work, as we generate the deSerialization!
@@ -438,7 +440,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
 
         return '''
             «JavaFieldsGettersSetters.writeFieldComments(i)»
-            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false)»
+            «JavaBeanValidation::writeAnnotations(i, ref, doBeanVal, false, jakartaPrefix)»
             «i.properties.generateAllAnnotations»
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
                 «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper, d.isXmlAllUpper)»
