@@ -30,9 +30,9 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.26.0-SNAPSHOT</xtextVersion>
+        <xtextVersion>2.25.0</xtextVersion>
         <tycho-version>2.3.0</tycho-version>
-        <mwe-version>2.12.2-SNAPSHOT</mwe-version>
+        <mwe-version>2.12.1</mwe-version>
         <exec-plugin-version>1.6.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
         <lsp4j-version>0.9.0</lsp4j-version>
@@ -295,6 +295,7 @@
             </snapshots>
         </repository>
 
+<!--
     <repository>
       <id>xtext-lib-repository</id>
       <name>xtext-lib-repository</name>
@@ -330,6 +331,7 @@
       <name>xtext-mwe-repository</name>
       <url>https://ci.eclipse.org/mwe/job/mwe2/job/cd_mweGuice5Experimentb/lastSuccessfulBuild/artifact/git-repo/my-local-snapshots-dir/</url>
     </repository>
+-->
 
     </repositories>
     <pluginRepositories>
@@ -356,6 +358,7 @@
             </snapshots>
         </pluginRepository>
 
+<!--
     <pluginRepository>
       <id>xtext-lib-plugin-repository</id>
       <name>xtext-lib-plugin-repository</name>
@@ -429,6 +432,7 @@
       <releases><enabled>false</enabled></releases>
       <snapshots><enabled>true</enabled></snapshots>
     </pluginRepository>
+-->
     </pluginRepositories>
 
     <distributionManagement>
