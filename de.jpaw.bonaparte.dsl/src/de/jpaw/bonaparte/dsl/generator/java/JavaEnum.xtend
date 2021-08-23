@@ -37,7 +37,7 @@ class JavaEnum {
     def static public boolean isAlphaEnum(EnumDefinition d) {
         d.avalues !== null && !d.avalues.empty
     }
-    def static public writeEnumDefinition(EnumDefinition d) {
+    def static public writeEnumDefinition(EnumDefinition d, String timePackage) {
         val isAlphaEnum = d.isAlphaEnum
         val isSpecialAlpha = isAlphaEnum && d.avalues.exists[token == ""]
         val myInterface = if (isAlphaEnum) "BonaTokenizableEnum" else "BonaNonTokenizableEnum"

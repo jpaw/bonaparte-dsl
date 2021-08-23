@@ -45,7 +45,7 @@ class JavaXEnum {
         JavaEnum.hasNullToken(d.myEnum) || (d.extendsXenum !== null && d.extendsXenum.hasNullToken)
     }
 
-    def static writeXEnumDefinition(XEnumDefinition d) {
+    def static writeXEnumDefinition(XEnumDefinition d, String timePackage) {
         val boolean subClass = d.extendsXenum !== null
         val rootClass = d.root
 
@@ -55,7 +55,7 @@ class JavaXEnum {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «getBonPackageName(d)»;
 
-        import org.joda.time.Instant;
+        import «timePackage».Instant;
         import java.io.Serializable;
 
         import de.jpaw.enums.XEnumFactory;

@@ -25,7 +25,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaEnumSet {
 
-    def static writeEnumSetDefinition(EnumSetDefinition d) {
+    def static writeEnumSetDefinition(EnumSetDefinition d, String timePackage) {
         val eName = d.myEnum.name
         val bitmapType = d.indexType ?: "int"       // default to int
         val bitmapTypeWrapper = d.mapEnumSetIndex
@@ -42,7 +42,7 @@ class JavaEnumSet {
         package «getBonPackageName(d)»;
 
         import java.util.Iterator;
-        import org.joda.time.Instant;
+        import «timePackage».Instant;
 
         import de.jpaw.enums.Abstract«nameComponent»EnumSet;
         import de.jpaw.bonaparte.enums.Bona«nameComponent»EnumSet;

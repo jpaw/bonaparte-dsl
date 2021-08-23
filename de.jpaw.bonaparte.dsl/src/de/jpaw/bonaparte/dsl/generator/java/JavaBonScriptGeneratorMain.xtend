@@ -72,16 +72,17 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
         val needJoda = !BonScriptPreferences.currentPrefs.doDateTime
         val jakartaPrefix = if (BonScriptPreferences.currentPrefs.jakartaOutput) "jakarta" else "javax"
+        val timePackage = if (needJoda) "org.joda.time" else "java.time"
 
         requiredImports.clear()  // clear hash for this new class output
         for (d : resource.allContents.toIterable.filter(typeof(EnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnumSet::writeEnumSetDefinition(d, timePackage));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnumSet::writeXEnumSetDefinition(d, timePackage));
         for (d : resource.allContents.toIterable.filter(typeof(EnumDefinition)))
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnum::writeEnumDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaEnum::writeEnumDefinition(d, timePackage));
         for (d : resource.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d));
+            fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name), JavaXEnum::writeXEnumDefinition(d, timePackage));
             if (d.getRelevantXmlAccess !== null && !d.abstract && d.extendsXenum === null) {
                 print('''output of xml adapter for «d.name»''')
                 fsa.generateFile(getJavaFilename(getBonPackageName(d), d.name + "XmlAdapter"), JavaXEnum::writeXEnumTypeAdapter(d, jakartaPrefix));

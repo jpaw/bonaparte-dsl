@@ -25,7 +25,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 class JavaXEnumSet {
 
-    def static writeXEnumSetDefinition(XEnumSetDefinition d) {
+    def static writeXEnumSetDefinition(XEnumSetDefinition d, String timePackage) {
         val eName = d.myXEnum.name
 
         return '''
@@ -35,7 +35,7 @@ class JavaXEnumSet {
         package «getBonPackageName(d)»;
 
         import java.util.Iterator;
-        import org.joda.time.Instant;
+        import «timePackage».Instant;
 
         import de.jpaw.enums.AbstractStringXEnumSet;
         import de.jpaw.bonaparte.enums.BonaStringEnumSet;
