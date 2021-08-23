@@ -41,7 +41,7 @@ public class BonScriptPreferences {
     static private final boolean warnByteDefault                = configReader.getProp("WarnByte", true);
     static private final boolean warnFloatDefault               = configReader.getProp("WarnFloat", false);
     static private final boolean doDebugOutDefault              = configReader.getProp("DebugOut", false);
-    static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", false);
+    static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", true);
     static private final boolean noXmlDefault                   = configReader.getProp("noXML", false);
     static private final boolean jakartaOutputDefault           = configReader.getProp("jakarta", false);  // use jakarta instead of javax
     static private final boolean defaultExternalizeDefault      = configReader.getProp("Externalize", false);
