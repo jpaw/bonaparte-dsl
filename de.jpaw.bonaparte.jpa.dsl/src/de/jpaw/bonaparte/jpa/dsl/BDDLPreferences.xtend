@@ -16,9 +16,9 @@ public class BDDLPreferences {
     static private final boolean doDebugOutDefault                  = configReader.getProp("DebugOut",  false);
     static private final boolean doPostgresOutDefault               = configReader.getProp("Postgres",  true);
     static private final boolean doOracleOutDefault                 = configReader.getProp("Oracle",    true);
-    static private final boolean doMsSQLServerOutDefault            = configReader.getProp("MSSQL",     true);
+    static private final boolean doMsSQLServerOutDefault            = configReader.getProp("MSSQL",     false);
     static private final boolean doMySQLOutDefault                  = configReader.getProp("MySQL",     false);
-    static private final boolean doSapHanaOutDefault                = configReader.getProp("SapHana",   true);
+    static private final boolean doSapHanaOutDefault                = configReader.getProp("SapHana",   false);
 
     // JPA 2.1 code generation options
     static private final boolean doUserTypeForEnumDefault           = configReader.getProp("UserTypeEnum",      false);
