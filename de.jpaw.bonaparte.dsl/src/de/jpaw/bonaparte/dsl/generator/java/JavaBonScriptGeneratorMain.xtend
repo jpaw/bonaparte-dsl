@@ -123,12 +123,10 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                     @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»«writeAttributeFormDefault(xmlAttributeFormDefault)»«d.writeXmlNs(xmlElementFormDefault)»)
 
                     @XmlJavaTypeAdapters({
-                        «IF needJoda»
-                            @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
-                            @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
-                            @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
-                            @XmlJavaTypeAdapter(type=Instant.class,         value=InstantAdapter.class),
-                        «ENDIF»
+                        @XmlJavaTypeAdapter(type=LocalDate.class,       value=LocalDateAdapter.class),
+                        @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
+                        @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
+                        @XmlJavaTypeAdapter(type=Instant.class,         value=InstantAdapter.class),
                         @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
                     })
                     «ENDIF»
@@ -143,16 +141,14 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                         import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapters;
                         import de.jpaw.util.ByteArray;
                         import de.jpaw.xml.jaxb.ByteArrayAdapter;
-                        «IF needJoda»
-                            import org.joda.time.LocalDate;
-                            import org.joda.time.LocalDateTime;
-                            import org.joda.time.LocalTime;
-                            import org.joda.time.Instant;
-                            import de.jpaw.xml.jaxb.InstantAdapter;
-                            import de.jpaw.xml.jaxb.LocalDateAdapter;
-                            import de.jpaw.xml.jaxb.LocalTimeAdapter;
-                            import de.jpaw.xml.jaxb.LocalDateTimeAdapter;
-                        «ENDIF»
+                        import «timePackage».LocalDate;
+                        import «timePackage».LocalDateTime;
+                        import «timePackage».LocalTime;
+                        import «timePackage».Instant;
+                        import de.jpaw.xml.jaxb.InstantAdapter;
+                        import de.jpaw.xml.jaxb.LocalDateAdapter;
+                        import de.jpaw.xml.jaxb.LocalTimeAdapter;
+                        import de.jpaw.xml.jaxb.LocalDateTimeAdapter;
                     «ENDIF»
                 ''')
             }
