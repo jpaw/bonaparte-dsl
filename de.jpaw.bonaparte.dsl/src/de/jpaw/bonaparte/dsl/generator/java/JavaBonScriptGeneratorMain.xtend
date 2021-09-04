@@ -127,10 +127,10 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                         @XmlJavaTypeAdapter(type=LocalTime.class,       value=LocalTimeAdapter.class),
                         @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
                         @XmlJavaTypeAdapter(type=Instant.class,         value=InstantAdapter.class),
+                        @XmlJavaTypeAdapter(type=MilliUnits.class,      value=MilliUnitsAdapter.class),
+                        @XmlJavaTypeAdapter(type=MicroUnits.class,      value=MicroUnitsAdapter.class),
+                        @XmlJavaTypeAdapter(type=NanoUnits.class,       value=NanoUnitsAdapter.class),
                         @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
-                        @XmlJavaTypeAdapter(type=MilliUnits.class,      value=MilliUnitsAdapter.class)
-                        @XmlJavaTypeAdapter(type=MicroUnits.class,      value=MicroUnitsAdapter.class)
-                        @XmlJavaTypeAdapter(type=NanoUnits.class,       value=NanoUnitsAdapter.class)
                     })
                     «ENDIF»
                     «d.javadoc»
