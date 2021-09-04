@@ -351,7 +351,7 @@ ElementaryDataType:
       | (
            (signed = Signedness)?
            (
-            (name=('fixedpoint'| 'FixedPoint')      // fixed point data types (Units..FemtoUnits)
+            (name=('fixedPoint'| 'FixedPoint')      // fixed point data types (Units..FemtoUnits)
                  "(" length=INT ("," decimals=INT)? ")"
                  (rounding = Rounding)?
             ) |

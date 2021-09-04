@@ -509,7 +509,7 @@ class XUtil {
         else
             return null
     }
-    
+
     // returns true if this a fixed point elementary data field
     def public static isFixedPointType(DataTypeExtension ref) {
         if (ref.category != DataCategory::BASICNUMERIC) {
@@ -520,7 +520,7 @@ class XUtil {
             return false
         }
         return e.name.toLowerCase == "fixedpoint";
-    }    
+    }
 
     // returns true if this an enum or an xenum which can have an instance of null
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {

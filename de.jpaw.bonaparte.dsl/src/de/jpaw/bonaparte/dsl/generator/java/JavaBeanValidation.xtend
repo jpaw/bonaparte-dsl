@@ -24,7 +24,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 
 /* DISCLAIMER: Bean Validation is work in progress. Neither JSR 303 nor JSR 349 annotations are complete. */
 
-class JavaBeanValidation {
+class JavaBeanValidation {  // FIXME: must define custom validation for FixedPoint types
 
     def static writeImports(boolean beanValidation, String jakartaPrefix) '''
         «IF beanValidation»

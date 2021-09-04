@@ -427,7 +427,7 @@ public class DataTypeExtension {
                     e.setName("char");        // fix java naming inconsistency
             }
             final String lowerCaseTypeDSL = e.getName().toLowerCase();
-            if (!"fixedpoint".equals(lowerCaseTypeDSL)) {
+            if ("fixedpoint".equals(lowerCaseTypeDSL)) {
                 r.javaType = FIXED_POINT_TYPES.get(e.getDecimals());
             } else {
                 r.javaType = dataTypeJava.get(lowerCaseTypeDSL);

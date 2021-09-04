@@ -35,30 +35,30 @@ class JavaValidate {
         «ENDFOR»
     '''
 
-    def private static makeLengthCheck(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
-        «IF ref.javaType.equals("String")»
-            if («fieldname».length() > «ref.elementaryDataType.length»)
-                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
-                                                    "«i.name».length=" + «fieldname».length() + " > «ref.elementaryDataType.length»",
-                                                    _PARTIALLY_QUALIFIED_CLASS_NAME);
-            «IF ref.elementaryDataType.minLength > 0»
-                if («fieldname».length() < «ref.elementaryDataType.minLength»)
-                    throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
-                                                        "«i.name».length=" + «fieldname».length() + " < «ref.elementaryDataType.minLength»",
-                                                        _PARTIALLY_QUALIFIED_CLASS_NAME);
-            «ENDIF»
-        «ELSEIF ref.javaType.equals("BigDecimal")»
-            BigDecimalTools.validate(«fieldname», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
-        «ELSEIF ref.isFixedPointType»
-            «IF ref.elementaryDataType.length == 18»
-                if (!«fieldname».isWithin18Digits())
-            «ELSE»
-                if (!«fieldname».isWithinDigits(«ref.elementaryDataType.length»))
-            «ENDIF»
-                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
-                                                    "«i.name».digits=" + «fieldname».length() + " max, but value is " + «i.name»,
+    def private static makeLengthCheckString(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
+        if («fieldname».length() > «ref.elementaryDataType.length»)
+            throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                "«i.name».length=" + «fieldname».length() + " > «ref.elementaryDataType.length»",
+                                                _PARTIALLY_QUALIFIED_CLASS_NAME);
+        «IF ref.elementaryDataType.minLength > 0»
+            if («fieldname».length() < «ref.elementaryDataType.minLength»)
+                throw new ObjectValidationException(ObjectValidationException.TOO_SHORT,
+                                                    "«i.name».length=" + «fieldname».length() + " < «ref.elementaryDataType.minLength»",
                                                     _PARTIALLY_QUALIFIED_CLASS_NAME);
         «ENDIF»
+    '''
+    def private static makeLengthCheckBigDecimal(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
+        BigDecimalTools.validate(«fieldname», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
+    '''
+    def private static makeLengthCheckFixedPoint(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
+        «IF ref.elementaryDataType.length == 18»
+            if (!«fieldname».isWithin18Digits())
+        «ELSE»
+            if (!«fieldname».isWithinDigits(«ref.elementaryDataType.length»))
+        «ENDIF»
+            throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                "«i.name».digits=" + «fieldname».length() + " max, but value is " + «i.name»,
+                                                _PARTIALLY_QUALIFIED_CLASS_NAME);
     '''
 
     def private static makePatternCheck(FieldDefinition i, String fieldname, DataTypeExtension ref) '''
@@ -134,8 +134,12 @@ class JavaValidate {
         val fieldname = indexedName(i)
         return '''
             «writeObjectValidationCode(i, fieldname, ref)»
-            «IF ref.category == DataCategory::STRING || ref.javaType == "BigDecimal"»
-                «makeLengthCheck(i, fieldname, ref)»
+            «IF ref.category == DataCategory::STRING && ref.javaType == "String"»
+                «makeLengthCheckString(i, fieldname, ref)»
+             «ELSEIF ref.javaType == "BigDecimal"»
+                «makeLengthCheckBigDecimal(i, fieldname, ref)»
+             «ELSEIF ref.isFixedPointType»
+                «makeLengthCheckFixedPoint(i, fieldname, ref)»
             «ENDIF»
             «IF resolveElem(i.datatype) !== null && (resolveElem(i.datatype).regexp !== null || ref.isUpperCaseOrLowerCaseSpecialType)»
                 «makePatternCheck(i, fieldname, ref)»
