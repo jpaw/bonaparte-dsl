@@ -57,7 +57,7 @@ class JavaValidate {
             if (!«fieldname».isWithinDigits(«ref.elementaryDataType.length»))
         «ENDIF»
             throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
-                                                "«i.name».digits=" + «fieldname».length() + " max, but value is " + «i.name»,
+                                                "«i.name».digits=«ref.elementaryDataType.length» max, but value is " + «i.name»,
                                                 _PARTIALLY_QUALIFIED_CLASS_NAME);
     '''
 
