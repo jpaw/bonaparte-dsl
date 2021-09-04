@@ -16,13 +16,8 @@
 
 package de.jpaw.bonaparte.dsl.generator;
 
-// A class to extend the grammar's DataType EObject,
-// in order to provide space for internal extra fields used by the code generator, but also
-// in order to support O(1) lookup of recursive typedefs
-
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,26 +25,29 @@ import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference;
+import de.jpaw.bonaparte.dsl.bonScript.DataType;
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.EnumAlphaValueDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefaultsDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.TypeDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.DataType;
-import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.XAutoScale;
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefaults;
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition;
-import de.jpaw.bonaparte.dsl.bonScript.XRounding;
-import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
-import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 import de.jpaw.bonaparte.dsl.bonScript.XRequired;
+import de.jpaw.bonaparte.dsl.bonScript.XRounding;
 import de.jpaw.bonaparte.dsl.bonScript.XSignedness;
 import de.jpaw.bonaparte.dsl.bonScript.XSpecialCharsSetting;
 import de.jpaw.bonaparte.dsl.bonScript.XTrimming;
+import de.jpaw.bonaparte.dsl.bonScript.XTruncating;
+import de.jpaw.bonaparte.dsl.bonScript.XUsePrimitives;
 import de.jpaw.bonaparte.dsl.generator.java.JavaXEnum;
 
 public class DataTypeExtension {
@@ -69,9 +67,13 @@ public class DataTypeExtension {
 
     // a lookup to determine if a data type can (should) be implemented as a Java primitive.
     // (LANGUAGE SPECIFIC: JAVA)
-    private static final Set<String> JAVA_PRIMITIVES = new HashSet<String>(Arrays.asList(new String[] {
+    private static final Set<String> JAVA_PRIMITIVES = ImmutableSet.of(
         "boolean", "int", "long", "float", "double", "byte", "short", "char"
-    }));
+    );
+    public static final List<String> FIXED_POINT_TYPES = ImmutableList.of(
+        "Units", "Tenths", "Hundreds", "MilliUnits", "4", "5", "MicroUnits",
+        "7", "8", "NanoUnits", "10", "11", "PicoUnits", "13", "14", "FemtoUnits" 
+    );
 
     // a lookup to resolve typedefs. Also collects preprocessed information about a data type
     static private Map<DataType,DataTypeExtension> map = new HashMap<DataType,DataTypeExtension>(200);
@@ -87,6 +89,7 @@ public class DataTypeExtension {
         dataCategory.put("float",     DataCategory.BASICNUMERIC);
         dataCategory.put("double",    DataCategory.BASICNUMERIC);
         dataCategory.put("number",    DataCategory.BASICNUMERIC);
+        dataCategory.put("fixedpoint",DataCategory.BASICNUMERIC);
         dataCategory.put("decimal",   DataCategory.NUMERIC);
         dataCategory.put("byte",      DataCategory.BASICNUMERIC);
         dataCategory.put("short",     DataCategory.BASICNUMERIC);
@@ -127,6 +130,7 @@ public class DataTypeExtension {
         dataTypeJava.put("double",    "Double");
         dataTypeJava.put("number",    "BigInteger");
         dataTypeJava.put("decimal",   "BigDecimal");
+        dataTypeJava.put("fixedpoint","FixedPoint");  // dummy entry
         dataTypeJava.put("byte",      "Byte");
         dataTypeJava.put("short",     "Short");
         dataTypeJava.put("char",      "Character");
@@ -422,8 +426,13 @@ public class DataTypeExtension {
                 if (e.getName().equals("character"))
                     e.setName("char");        // fix java naming inconsistency
             }
-            r.javaType = dataTypeJava.get(e.getName().toLowerCase());
-            r.category = dataCategory.get(e.getName().toLowerCase());
+            final String lowerCaseTypeDSL = e.getName().toLowerCase();
+            if (!"fixedpoint".equals(lowerCaseTypeDSL)) {
+                r.javaType = FIXED_POINT_TYPES.get(e.getDecimals());
+            } else {
+                r.javaType = dataTypeJava.get(lowerCaseTypeDSL);
+            }
+            r.category = dataCategory.get(lowerCaseTypeDSL);
             // merge the defaults specifications
             mergeFieldSpecsWithDefaults(r, key);
 

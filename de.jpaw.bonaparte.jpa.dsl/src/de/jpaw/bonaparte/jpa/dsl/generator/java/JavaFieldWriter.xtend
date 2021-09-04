@@ -224,7 +224,7 @@ class JavaFieldWriter {
             (ref.category == DataCategory::ENUMALPHA && !prefs.doUserTypeForEnumAlpha))
             return ''', length=«ref.enumMaxTokenLength»'''
 
-        if (ref.elementaryDataType !== null && ref.elementaryDataType.name.toLowerCase.equals("decimal"))
+        if (ref.elementaryDataType !== null && (ref.elementaryDataType.name.toLowerCase.equals("decimal") || ref.elementaryDataType.name.toLowerCase.equals("fixedpoint")))
             return ''', precision=«ref.elementaryDataType.length», scale=«ref.elementaryDataType.decimals»'''
         if (ref.category == DataCategory::BASICNUMERIC && ref.elementaryDataType !== null && ref.elementaryDataType.length > 0)
             return ''', precision=«ref.elementaryDataType.length»'''  // stored fixed point numbers as integral numbers on the DB, but refer to their max number of digits

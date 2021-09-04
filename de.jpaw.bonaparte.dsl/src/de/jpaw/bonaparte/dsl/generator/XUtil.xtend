@@ -475,6 +475,7 @@ class XUtil {
         import java.util.concurrent.ConcurrentMap;
         import java.math.BigInteger;
         import java.math.BigDecimal;
+        import de.jpaw.fixedpoint.FixedPointBase;
         import de.jpaw.util.ByteArray;
         import de.jpaw.util.CharTestsASCII;
         import de.jpaw.util.ApplicationException;
@@ -508,6 +509,18 @@ class XUtil {
         else
             return null
     }
+    
+    // returns true if this a fixed point elementary data field
+    def public static isFixedPointType(DataTypeExtension ref) {
+        if (ref.category != DataCategory::BASICNUMERIC) {
+            return false
+        }
+        val e = ref.elementaryDataType
+        if (e === null) {
+            return false
+        }
+        return e.name.toLowerCase == "fixedpoint";
+    }    
 
     // returns true if this an enum or an xenum which can have an instance of null
     def public static isASpecialEnumWithEmptyStringAsNull(FieldDefinition f) {

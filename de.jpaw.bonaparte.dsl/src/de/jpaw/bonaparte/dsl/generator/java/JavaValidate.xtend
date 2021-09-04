@@ -49,6 +49,15 @@ class JavaValidate {
             «ENDIF»
         «ELSEIF ref.javaType.equals("BigDecimal")»
             BigDecimalTools.validate(«fieldname», meta$$«i.name», _PARTIALLY_QUALIFIED_CLASS_NAME);
+        «ELSEIF ref.isFixedPointType»
+            «IF ref.elementaryDataType.length == 18»
+                if (!«fieldname».isWithin18Digits())
+            «ELSE»
+                if (!«fieldname».isWithinDigits(«ref.elementaryDataType.length»))
+            «ENDIF»
+                throw new ObjectValidationException(ObjectValidationException.TOO_LONG,
+                                                    "«i.name».digits=" + «fieldname».length() + " max, but value is " + «i.name»,
+                                                    _PARTIALLY_QUALIFIED_CLASS_NAME);
         «ENDIF»
     '''
 

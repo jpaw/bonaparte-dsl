@@ -128,6 +128,9 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                         @XmlJavaTypeAdapter(type=LocalDateTime.class,   value=LocalDateTimeAdapter.class),
                         @XmlJavaTypeAdapter(type=Instant.class,         value=InstantAdapter.class),
                         @XmlJavaTypeAdapter(type=ByteArray.class,       value=ByteArrayAdapter.class)
+                        @XmlJavaTypeAdapter(type=MilliUnits.class,      value=MilliUnitsAdapter.class)
+                        @XmlJavaTypeAdapter(type=MicroUnits.class,      value=MicroUnitsAdapter.class)
+                        @XmlJavaTypeAdapter(type=NanoUnits.class,       value=NanoUnitsAdapter.class)
                     })
                     «ENDIF»
                     «d.javadoc»
@@ -139,8 +142,14 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                         import «jakartaPrefix».xml.bind.annotation.XmlNsForm;
                         import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapter;
                         import «jakartaPrefix».xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+                        import de.jpaw.fixedpoint.types.MilliUnits;
+                        import de.jpaw.fixedpoint.types.MicroUnits;
+                        import de.jpaw.fixedpoint.types.NanoUnits;
                         import de.jpaw.util.ByteArray;
                         import de.jpaw.xml.jaxb.ByteArrayAdapter;
+                        import de.jpaw.xml.jaxb.fixedpoint.MilliUnitsAdapter;
+                        import de.jpaw.xml.jaxb.fixedpoint.MicroUnitsAdapter;
+                        import de.jpaw.xml.jaxb.fixedpoint.NanoUnitsAdapter;
                         import «timePackage».LocalDate;
                         import «timePackage».LocalDateTime;
                         import «timePackage».LocalTime;

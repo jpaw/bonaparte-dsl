@@ -40,6 +40,7 @@ class JavaDeserialize {
         case 'long':      '''_p.read«prim»Long     («metaName»)'''
         case 'int':       '''_p.read«prim»Integer  («metaName»)'''
         case 'integer':   '''_p.read«prim»Integer  («metaName»)'''
+        case 'fixedpoint':'''_p.readFixedPoint(«metaName», «ref.javaType»::of)'''
         // float/double, char and boolean
         case 'float':     '''_p.read«prim»Float    («metaName»)'''
         case 'double':    '''_p.read«prim»Double   («metaName»)'''

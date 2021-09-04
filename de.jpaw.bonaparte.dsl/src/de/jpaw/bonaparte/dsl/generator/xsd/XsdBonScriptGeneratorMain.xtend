@@ -384,7 +384,7 @@ class XsdBonScriptGeneratorMain extends AbstractGenerator {
             switch (e.name.toLowerCase) {
                 case 'float':       return "xs:float".typeWrap(terminator)
                 case 'double':      return "xs:double".typeWrap(terminator)
-                case 'decimal':
+                case 'decimal', case 'fixedpoint':
                     return '''
                         <xs:restriction base="xs:decimal">
                             <xs:totalDigits value="«e.length»"/>

@@ -20,7 +20,7 @@ grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xtype
 //grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.xbase.Xbase
 //grammar de.jpaw.bonaparte.dsl.BonScript with org.eclipse.xtext.common.Terminals
 
-import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes    // to allow checking of referenced imports
 import "http://www.eclipse.org/emf/2002/Ecore" as ecore
 
 generate bonScript "http://www.jpaw.de/bonaparte/dsl/BonScript"
@@ -137,7 +137,7 @@ PackageDefinition:
              )
         )?        // set @XmlAccess annotation
         (isExternalizable = Externalizable)?                    // decide if implements Externalizable
-        (doHazelcast = Hazelcast)?								// decide if hazelcast support is added
+        (doHazelcast = Hazelcast)?                                // decide if hazelcast support is added
         (doBeanValidation = BeanValidation)?                    // decide if some JSR 303 Bean Validation annotations should be generated
         (doBeanNames = BeanNames)?                              // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
@@ -148,7 +148,7 @@ PackageDefinition:
         (types   += TypeDefinition |
          enums   += EnumDefinition |
          enumSets += EnumSetDefinition |
-		 xenums  += XEnumDefinition |
+         xenums  += XEnumDefinition |
          xenumSets += XEnumSetDefinition |
          classes += ClassDefinition
         )*
@@ -189,7 +189,7 @@ ClassDefinition:
     ('xmlTypeName' '<' xmlTypeName = ID '>')?
     (isXmlAdapter ?= 'xmlAdapter')?
     (isExternalizable = Externalizable)?                // decide if implements Externalizable
-    (doHazelcast = Hazelcast)?				   			// decide if hazelcast support is added
+    (doHazelcast = Hazelcast)?                               // decide if hazelcast support is added
     (doBeanValidation = BeanValidation)?                // decide if some JSR 303 Bean Validation annotations should be generated
     (doBeanNames = BeanNames)?                          // create JavaBean compliant names, or plain firstUpperCase, or both (default)
     ('RTTI' (addRtti ?= '+')? rtti = INT)?              // numeric runtime type information
@@ -243,7 +243,7 @@ XEnumDefinition:
     'xenum' name = ID
         ('XML' xmlAccess = XmlAccess ('NAMESPACE' xmlNs = STRING)?)?    // set @XmlAccess annotation
 //      (isExternalizable = Externalizable)?                // decide if implements Externalizable
-//      ('revision' revision = STRING)?						// revisions are currently not supported for XEnums
+//      ('revision' revision = STRING)?                        // revisions are currently not supported for XEnums
         'is' myEnum=[EnumDefinition|QualifiedId]
         ((':' maxlength=INT (isAscii?='ascii' | isUnicode?='unicode')?)
           | ('extends' extendsXenum=[XEnumDefinition|QualifiedId]))?
@@ -326,7 +326,7 @@ MapModifier:
     {MapModifier}
     'Map' '<' indexType=('String' | 'Integer' | 'Long') (',' (mincount=INT '..')? maxcount=INT)? '>'
 ;
- 
+
 ElementaryDataType:
     (   name = ("boolean" | "Boolean"  | "day"       | "Day"       // some primitive types or their boxed equivalents
               | "char"    | "Char"     | "character" | "Character" // day is 8 digit number, YYYYMMDD
@@ -335,8 +335,8 @@ ElementaryDataType:
       | (name = ('xenum'| 'XEnum') xenumType = [XEnumDefinition|QualifiedId] (enumDefault?='default')? )  // xenums are not precisely elementary data types in Java, but they do not require recursing another class
       | (name = ('enumset'| 'Enumset') enumsetType = [EnumSetDefinition|QualifiedId] )
       | (name = ('xenumset'| 'XEnumset') xenumsetType = [XEnumSetDefinition|QualifiedId] "(" length=INT ")")
-      | (name= ("instant" | "Instant" | "timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time or Java8 java.time.* types
-      | ( 
+      | (name = ("instant" | "Instant" | "timestamp" | "Timestamp" | "time" | "Time") ("(" length=INT ")")? (doHHMMSS ?= 'hhmmss')?)    // Joda-Time or Java8 java.time.* types
+      | (
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7e)
            "(" (minLength=INT '..')? length=INT ")"
            (trimming   = Trimming)?          
@@ -350,7 +350,12 @@ ElementaryDataType:
         )
       | (
            (signed = Signedness)?
-           ((name=("decimal"|"Decimal")             // BigDecimal data type
+           (
+            (name=('fixedpoint'| 'FixedPoint')      // fixed point data types (Units..FemtoUnits)
+                 "(" length=INT ("," decimals=INT)? ")"
+                 (rounding = Rounding)?
+            ) |
+               (name=("decimal"|"Decimal")             // BigDecimal data type
                  "(" length=INT ("," decimals=INT)? ")"
                  (rounding = Rounding)?
                  (autoScale = AutoScale)?
@@ -364,5 +369,5 @@ ElementaryDataType:
            )
          )
       | (name=("raw"|"Raw"|"binary"|"Binary")      "(" length=INT ")")  // byte array (raw = mutable, binary = immutable)
-    )   
+    )
 ;

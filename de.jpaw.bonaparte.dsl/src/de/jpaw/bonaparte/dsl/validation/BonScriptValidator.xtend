@@ -50,7 +50,7 @@ import static extension de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 
 class BonScriptValidator extends AbstractBonScriptValidator {
-    static private final int GIGABYTE = 1024 * 1024 * 1024;
+    static final int GIGABYTE = 1024 * 1024 * 1024;
     static public final int MAX_PQON_LENGTH = 255;     // keep in sync with length in bonaparte-java/StaticMeta
     static Map<String,Integer> maxDigitsIfLimited = new HashMap<String,Integer>(10) => [
         put("byte",    2)
@@ -71,12 +71,12 @@ class BonScriptValidator extends AbstractBonScriptValidator {
      */
 
     @Check
-    def public void checkElementaryDataTypeLength(ElementaryDataType dt) {
+    def void checkElementaryDataTypeLength(ElementaryDataType dt) {
         val lowerName = dt.name?.toLowerCase
         if (lowerName !== null) {
             val maxDigits = maxDigitsIfLimited.get(lowerName)
             if (maxDigits !== null) {
-                if ((dt.length > maxDigits)) {
+                if (dt.length > maxDigits) {
                     error("Mantissa max be " + maxDigits + " at most for this data type",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
@@ -87,34 +87,40 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             }
             switch (lowerName) {
             case "time":
-                if ((dt.length < 0) || (dt.length > 3)) {
+                if (dt.length < 0 || dt.length > 3) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "timestamp": // similar to default, but allow 0 decimals and max. 3 digits precision
-                if ((dt.length < 0) || (dt.length > 3)) {
+                if (dt.length < 0 || dt.length > 3) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "instant": // similar to default, but allow 0 decimals and max. 3 digits precision
-                if ((dt.length < 0) || (dt.length > 3)) {
+                if (dt.length < 0 || dt.length > 3) {
                     error("Fractional seconds must be at least 0 and at most 3 digits",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
             case "number":
-                if ((dt.length <= 0) || (dt.length > 38)) {
+                if (dt.length <= 0 || dt.length > 38) {
                     error("Mantissa must be at least 1 and cannot exceed 38 (currently)",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
-            case "decimal": {
-                if ((dt.length <= 0)) {
+            case "decimal":
+                if (dt.length <= 0) {
                     error("Mantissa must be specified and cannot be 0 for this data type",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
+            case "fixedpoint":
+                if (dt.length <= 0 || dt.length > 18) {
+                    error("Length must be between 1 and 18 for fixed point numbers",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
+                } else if (dt.decimals <= 0 || dt.decimals > 15 || dt.decimals > dt.length) {
+                    error("Precision must be between 0 and 15 decimals and cannot exceed number of digits for fixed point numbers",
+                            BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__DECIMALS);
                 }
                 // String types and binary data types
-            case #[ "ascii", "unicode", "uppercase", "lowercase", "binary" ].contains(lowerName):
-            {
+            case #[ "ascii", "unicode", "uppercase", "lowercase", "binary" ].contains(lowerName): {
                 if (dt.minLength < 0) {
                     error("Field min length cannot be negative",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
@@ -125,13 +131,13 @@ class BonScriptValidator extends AbstractBonScriptValidator {
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__MIN_LENGTH);
                     return;
                 }
-                if ((dt.length <= 0) || (dt.length > GIGABYTE)) {
+                if (dt.length <= 0 || dt.length > GIGABYTE) {
                     error("Field size must be at least 1 and at most 1 GB",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 }
                 }
             case "raw":
-                if ((dt.length <= 0) || (dt.length > GIGABYTE)) {
+                if (dt.length <= 0 || dt.length > GIGABYTE) {
                     error("Field size must be at least 1 and at most 1 GB",
                             BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__LENGTH);
                 } else {
@@ -153,7 +159,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkEnumDeprecation(ElementaryDataType dt) {
+    def void checkEnumDeprecation(ElementaryDataType dt) {
         if (dt.enumType !== null) {
             if (dt.enumType.isDeprecated)
                 warning(dt.enumType.name + " is deprecated", BonScriptPackage.Literals.ELEMENTARY_DATA_TYPE__ENUM_TYPE)
@@ -164,7 +170,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         }
     }
 
-    private static final char DOT = 'c';
+    static final char DOT = 'c';
 
     def private boolean isSubBundle(String myBundle, String extendedBundle) {
         if (extendedBundle === null)
@@ -188,7 +194,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkClassDefinition(ClassDefinition cd) {
+    def void checkClassDefinition(ClassDefinition cd) {
         val s = cd.name;
         if (s !== null) {
             if (!Character.isUpperCase(s.charAt(0))) {
@@ -388,12 +394,12 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     // helper function for checkFieldDefinition
-    def public static int countSameName(ClassDefinition cl,  String myName) {
+    def static int countSameName(ClassDefinition cl,  String myName) {
         cl.fields.filter[name == myName].size
     }
 
     @Check
-    def public void checkFieldDefinition(FieldDefinition fd) {
+    def void checkFieldDefinition(FieldDefinition fd) {
         val s = fd.name
         if (s !== null) {
             if (!Character.isLowerCase(s.charAt(0))) {
@@ -441,7 +447,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
             } */
             if ((fd.required.x == XRequired.OPTIONAL) && (fd.datatype !== null)) {
                 val dt = fd.datatype.elementaryDataType;
-                if ((dt !== null) && (dt.name !== null) && Character.isLowerCase(dt.name.charAt(0))) {
+                if (dt !== null && dt.name !== null && Character.isLowerCase(dt.name.charAt(0))) {
                     error("optional attribute conflicts implicit 'required' meaning of lower case data type",
                             BonScriptPackage.Literals.FIELD_DEFINITION__REQUIRED);
                 }
@@ -482,7 +488,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkGenericsParameterList(ClassReference ref) {
+    def void checkGenericsParameterList(ClassReference ref) {
         if (ref.getClassRef() !== null) {
             if (ref.classRef.isDeprecated)
                 warning(ref.classRef.name + " is deprecated", BonScriptPackage.Literals.CLASS_REFERENCE__CLASS_REF)
@@ -520,7 +526,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
 
     @Check
-    def public void checkPropertyUse(PropertyUse pu) {
+    def void checkPropertyUse(PropertyUse pu) {
         if (pu.key.annotationReference === null)
             return; // no check for standard properties
         if (pu.key.isWithArg() || pu.key.isWithMultiArgs()) {
@@ -533,25 +539,25 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkArrayModifier(ArrayModifier it) {
+    def void checkArrayModifier(ArrayModifier it) {
         if (mincount > maxcount)
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.ARRAY_MODIFIER__MINCOUNT);
     }
     @Check
-    def public void checkListModifier(ListModifier it) {
+    def void checkListModifier(ListModifier it) {
         if (mincount > maxcount)
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.LIST_MODIFIER__MINCOUNT);
     }
     @Check
-    def public void checkSetModifier(SetModifier it) {
+    def void checkSetModifier(SetModifier it) {
         if (mincount > maxcount)
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.SET_MODIFIER__MINCOUNT);
     }
     @Check
-    def public void checkMapModifier(MapModifier it) {
+    def void checkMapModifier(MapModifier it) {
         if (mincount > maxcount)
             error("The minimum count cannot be larger than the maximum count",
                     BonScriptPackage.Literals.MAP_MODIFIER__MINCOUNT);
@@ -560,7 +566,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     // if two object references are provides, verify that the second is a subclass of the first, as the generated data type is
     // provided by the first and the second must be storable in the same field
     @Check
-    def public void checkDataType(DataType it) {
+    def void checkDataType(DataType it) {
         val lowerBoundOfFirst = objectDataType?.lowerBound
         if (lowerBoundOfFirst !== null && secondaryObjectDataType !== null) {
             // the second must be a subtype of the first!
@@ -592,7 +598,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkComparableFields(ComparableFieldsList fl) {
+    def void checkComparableFields(ComparableFieldsList fl) {
         for (f : fl.field) {
             // f may not be an aggregate, and may not be "Object", and not point to a Class which by itself is not a Comparable
             // also, f must be "required"
@@ -609,7 +615,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
 
 
     @Check
-    def public void checkEnumIDsAndTokens(EnumDefinition e) {
+    def void checkEnumIDsAndTokens(EnumDefinition e) {
         // any used ID or token may be 63 characters max length.
         val idSet = new HashSet<String>(50)
         if (e.values !== null && !e.values.empty) {
@@ -635,7 +641,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkEnumAlphaValueDefinition(EnumAlphaValueDefinition aval) {
+    def void checkEnumAlphaValueDefinition(EnumAlphaValueDefinition aval) {
         if (aval.name.length > 63)
             error("ID is too long (max 63 characters allowed, found " + aval.name.length + ")", BonScriptPackage.Literals.ENUM_ALPHA_VALUE_DEFINITION__NAME)
         if (aval.token.length > 63)
@@ -652,7 +658,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkXEnum(XEnumDefinition e) {
+    def void checkXEnum(XEnumDefinition e) {
         try {
             e.checkInheritance(20)      // 20 levels of nesting should be sufficient
         } catch (Exception ex) {
@@ -695,7 +701,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkImplements(InterfaceListDefinition il) {
+    def void checkImplements(InterfaceListDefinition il) {
         if (il.ilist !== null) {
             for (intrface : il.ilist)
                 if (!intrface.isInterface)
@@ -714,7 +720,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkEnumSetDefinition(EnumSetDefinition es) {
+    def void checkEnumSetDefinition(EnumSetDefinition es) {
         if ("String" == es.indexType) {
             // validate that the referenced enum has alpha, and a token size of 1
             if (es.myEnum?.avalues.nullOrEmpty) {
@@ -745,14 +751,14 @@ class BonScriptValidator extends AbstractBonScriptValidator {
     }
 
     @Check
-    def public void checkXEnumSetDefinition(XEnumSetDefinition es) {
+    def void checkXEnumSetDefinition(XEnumSetDefinition es) {
         val tokenLength = getOverallMaxLength(es.myXEnum)
         if (tokenLength != 1)
             error("max length of tokens must be 1, but is " + tokenLength, BonScriptPackage.Literals.XENUM_SET_DEFINITION__MY_XENUM)
     }
 
     @Check
-    def public void checkPackageDefinition(PackageDefinition p) {
+    def void checkPackageDefinition(PackageDefinition p) {
         if (p.name == "xs" || p.name == "xsi" || p.name == "bon")
             error("The package IDs xs, xsi and bon are reserved", BonScriptPackage.Literals.PACKAGE_DEFINITION__NAME)
         if (p.name.toLowerCase.startsWith("xml"))

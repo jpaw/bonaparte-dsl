@@ -97,6 +97,10 @@ class ImportCollector {
                     addImport(ref.elementaryDataType.enumsetType)
                 case DataCategory::XENUMSET:
                     addImport(ref.elementaryDataType.xenumsetType)
+                case DataCategory::BASICNUMERIC:
+                    if (XUtil.isFixedPointType(ref)) {
+                        addImport("de.jpaw.fixedpoint.types." + ref.javaType)
+                    }
                 default: {}
                 }
             }

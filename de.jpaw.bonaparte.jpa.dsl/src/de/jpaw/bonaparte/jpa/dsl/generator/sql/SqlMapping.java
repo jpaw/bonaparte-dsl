@@ -49,6 +49,7 @@ public class SqlMapping {
         dataTypeSqlOracle.put("double",    "binary_double");
         dataTypeSqlOracle.put("number",    "number(#length)");
         dataTypeSqlOracle.put("decimal",   "number(#length,#precision)");
+        dataTypeSqlOracle.put("fixedpoint","number(#length,#precision)");
         dataTypeSqlOracle.put("byte",      "number(#length)");
         dataTypeSqlOracle.put("short",     "number(#length)");
         dataTypeSqlOracle.put("char",      "varchar2(1 char)");
@@ -83,6 +84,7 @@ public class SqlMapping {
         dataTypeSqlPostgres.put("double",    "double precision");
         dataTypeSqlPostgres.put("number",    "numeric(#length)");           // numeric and decimal are equivalent in Postgres
         dataTypeSqlPostgres.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
+        dataTypeSqlPostgres.put("fixedpoint","decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
         dataTypeSqlPostgres.put("byte",      "smallint");                   // there is no Postgres single byte numeric datatype
         dataTypeSqlPostgres.put("short",     "smallint");
         dataTypeSqlPostgres.put("char",      "char(1)");
@@ -117,6 +119,7 @@ public class SqlMapping {
         dataTypeSqlMsSQLServer.put("double",    "double");
         dataTypeSqlMsSQLServer.put("number",    "decimal(#length)");
         dataTypeSqlMsSQLServer.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
+        dataTypeSqlMsSQLServer.put("fixedpoint","decimal(#length,#precision)"); // numeric and decimal are equivalent in MS SQL server
         dataTypeSqlMsSQLServer.put("byte",      "tinyint");
         dataTypeSqlMsSQLServer.put("short",     "smallint");
         dataTypeSqlMsSQLServer.put("char",      "char(1)");
@@ -149,9 +152,10 @@ public class SqlMapping {
         dataTypeSqlMySQL.put("long",      "bigint");
         dataTypeSqlMySQL.put("float",     "real");
         dataTypeSqlMySQL.put("double",    "double precision");
-        dataTypeSqlMySQL.put("number",    "numeric(#length)");           // numeric and decimal are equivalent in Postgres
-        dataTypeSqlMySQL.put("decimal",   "decimal(#length,#precision)"); // numeric and decimal are equivalent in Postgres
-        dataTypeSqlMySQL.put("byte",      "tinyint");                    // there is no Postgres single byte numeric datatype
+        dataTypeSqlMySQL.put("number",    "numeric(#length)");
+        dataTypeSqlMySQL.put("decimal",   "decimal(#length,#precision)");
+        dataTypeSqlMySQL.put("fixedpoint","decimal(#length,#precision)");
+        dataTypeSqlMySQL.put("byte",      "tinyint");
         dataTypeSqlMySQL.put("short",     "smallint");
         dataTypeSqlMySQL.put("char",      "char(1)");
         dataTypeSqlMySQL.put("character", "char(1)");
@@ -185,6 +189,7 @@ public class SqlMapping {
         dataTypeSqlSapHana.put("double",    "double");
         dataTypeSqlSapHana.put("number",    "decimal(#length)");
         dataTypeSqlSapHana.put("decimal",   "decimal(#length,#precision)");
+        dataTypeSqlSapHana.put("fixedpoint","decimal(#length,#precision)");
         dataTypeSqlSapHana.put("byte",      "tinyint");                      // ATTN: this one is unsigned (an unsigned 1 byte char)!!!!
         dataTypeSqlSapHana.put("short",     "smallint");
         dataTypeSqlSapHana.put("char",      "nvarchar(1)");
