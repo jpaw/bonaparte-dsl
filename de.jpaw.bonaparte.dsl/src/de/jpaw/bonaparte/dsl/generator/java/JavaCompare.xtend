@@ -116,8 +116,8 @@ class JavaCompare {
     /** Write a hashcode expression for a single primitive field. */
     def public static writePrimitiveSimpleHash(FieldDefinition i, DataTypeExtension ref) {
         switch (ref.javaType) {
-        case "Float":   '''(Float.valueOf(«i.name»).hashCode())'''
-        case "Double":  '''(Double.valueOf(«i.name»).hashCode())'''
+        case "Float":   '''Float.hashCode(«i.name»)'''
+        case "Double":  '''Double.hashCode(«i.name»)'''
         case "Boolean": '''(«i.name» ? 1231 : 1237)'''  // as in Boolean.hashCode() according to Java specs
         case "Long":    '''(int)(«i.name»^(«i.name»>>>32))'''  // as in Java Long
         case "Integer": '''«i.name»'''
