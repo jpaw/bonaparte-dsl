@@ -39,7 +39,7 @@ class AesGeneratorMain {
         // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
         package «e.packageName»;
 
-        import org.joda.time.Instant;
+        import java.time.Instant;
 
         import com.aerospike.client.AerospikeClient;
         import com.aerospike.client.Bin;
