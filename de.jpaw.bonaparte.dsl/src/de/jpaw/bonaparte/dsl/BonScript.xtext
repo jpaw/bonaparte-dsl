@@ -142,6 +142,7 @@ PackageDefinition:
         (doBeanNames = BeanNames)?                              // create JavaBean compliant names, or plain firstUpperCase, or both (default)
         ('bundle' bundle = QualifiedId)?  // bundles are coarser structures than packages, they correspond to OSGi bundles
         ('factoryId' hazelcastFactoryId = INT)?
+        (doSwagger ?= 'swagger')?         // create Swagger annotations
     '{'  
         (defaults = FieldDefaultsDefinition)?
         ('properties' ((inheritProperties ?= 'inherited') | validProperties += PropertyDefinition)  (',' validProperties += PropertyDefinition)* ';')?

@@ -44,8 +44,9 @@ class XUtil {
     private static Logger LOGGER = Logger.getLogger(XUtil)
     public static final String bonaparteInterfacesPackage   = "de.jpaw.bonaparte.core"
     public static final String PROP_ACTIVE                  = "active";
+    public static final String PROP_EXAMPLE                 = "example";          // property used for Swagger output
     public static final String PROP_ATTRIBUTE               = "xmlAttribute";
-    public static final String PROP_UPPERCASE               = "xmlUppercase";  // upper case for a single element (first char)
+    public static final String PROP_UPPERCASE               = "xmlUppercase";     // upper case for a single element (first char)
     public static final String PROP_ALL_UPPERCASE           = "xmlAllUppercase";  // upper case for a single element (all characters)
     public static final String PROP_XML_ID                  = "xmlId";            // separate name
 

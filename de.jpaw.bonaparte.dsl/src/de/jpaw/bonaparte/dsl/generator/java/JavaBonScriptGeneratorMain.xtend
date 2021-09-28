@@ -311,6 +311,9 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             import «jakartaPrefix».xml.bind.annotation.adapters.XmlAdapter;
             import «jakartaPrefix».xml.bind.annotation.XmlType;
         «ENDIF»
+        «IF d.package.doSwagger»
+            «JavaOpenApiOutput.writeImports»
+        «ENDIF»
         «JavaBeanValidation::writeImports(doBeanVal, jakartaPrefix)»
         «IF doExt»
             «JavaExternalize::writeExternalizeImports»
@@ -451,6 +454,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
             «IF d.getRelevantXmlAccess == XXmlAccess::FIELD»
                 «JavaFieldsGettersSetters.allXmlAnnotations(i, ref, d.isXmlUpper, d.isXmlAllUpper)»
             «ENDIF»
+            «JavaOpenApiOutput.writeAnnotations(d, i, ref, false)»
             «i.writeIfDeprecated»
             «IF v != XVisibility::DEFAULT»«v» «ENDIF»«JavaDataTypeNoName(i, false)» «i.name»«JavaFieldsGettersSetters.writeDefaultValue(i, ref, i.aggregate)»;
         '''
