@@ -591,6 +591,20 @@ BDDL: add validation for fields in NamedEntityGraph subgraphs
 4.6.3:
 all: revert cross referencing / tracing, as it was causing trouble (Exceptions) with source jars
 
+4.50.0: generate jakarta package prefixes instead of javax (switchable)
+
+4.60.x: Use Java 8 date/time as default
+
+4.70.x: introduce FixedPoint as core type, supported in BON and BDDL
+
+4.70.7: add support for swagger annotation output. add keyword swagger in package definition of BON files.
+Needs additional dependency:
+<dependency>
+  <groupId>io.swagger.core.v3</groupId>
+  <artifactId>swagger-annotations</artifactId>
+  <version>2.1.10</version>
+</dependency>
+
 
 4.x: (planned):
 - BON: ObjectReference with generic parameter, lazy initialization for ClassDefinition structures (fix null references where a self / cyclic reference should appear)

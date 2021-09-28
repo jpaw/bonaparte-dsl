@@ -26,14 +26,16 @@ import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 class JavaOpenApiOutput {
 
     def static writeImports() '''
-        import io.swagger.v3.oas.annotations.Schema;
+        import io.swagger.v3.oas.annotations.media.Schema;
     '''
 
     def static writeAnnotations(ClassDefinition d, FieldDefinition i, DataTypeExtension ref, boolean additionalNullableCondition) {
         if (d.package.doSwagger) {
             val b = new StringBuilder
             b.append("@Schema(description=\"");
-            b.append(Util::escapeString2Java(i.javadoc))
+            if (i.javadoc !== null) {
+                b.append(Util::escapeString2Java(i.javadoc))
+            }
             b.append("\"");
             
             if (i.isIsDeprecated) {
