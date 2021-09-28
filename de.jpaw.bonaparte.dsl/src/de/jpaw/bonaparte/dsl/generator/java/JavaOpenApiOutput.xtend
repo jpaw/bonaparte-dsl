@@ -33,8 +33,8 @@ class JavaOpenApiOutput {
         if (d.package.doSwagger) {
             val b = new StringBuilder
             b.append("@Schema(description=\"");
-            if (i.javadoc !== null) {
-                b.append(Util::escapeString2Java(i.javadoc))
+            if (i.comment !== null) {
+                b.append(Util::escapeString2Java(i.comment))
             }
             b.append("\"");
             
