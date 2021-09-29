@@ -296,7 +296,8 @@ FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     ((isAggregateRequired ?='required')? (isArray = ArrayModifier | isList = ListModifier | isSet = SetModifier | isMap = MapModifier))?
     name        = ID ('altGetter' getter = ID)? ('altSetter' setter = ID)?  // specify alternate getter / setters, for cornercases like mTimestamp
     ('is' metaName = STRING)?                         // specify a name of the meta data, to allow for unusual JSON I/O
-    ('default'    defaultString = STRING)?          
+    ('default'    defaultString = STRING)?
+    ('example'    exampleString = STRING)?
     ('properties' properties += PropertyUse (',' properties += PropertyUse)*)?  // unused in bonaparte, may be evaluated in other languages
     ';'
     (comment     = SL_COMMENT)?
@@ -340,13 +341,13 @@ ElementaryDataType:
       | (
          name=("ascii" | "Ascii" | "uppercase" | "Uppercase" | "lowercase" | "Lowercase") // ASCII 7 bit chars (0x20 - 0x7e)
            "(" (minLength=INT '..')? length=INT ")"
-           (trimming   = Trimming)?          
+           (trimming   = Trimming)?
            (truncating = Truncating)?
-           ('regexp' regexp=STRING)?                )          
+           ('regexp' regexp=STRING)?)
       | (name=("unicode"|"Unicode")                            // any displayable Unicode character
            "(" (minLength=INT '..')? length=INT ")"
-           (trimming   = Trimming)?          
-           (truncating = Truncating)?          
+           (trimming   = Trimming)?
+           (truncating = Truncating)?
            (allowCtrls = SpecialCharsSetting)?      // Unicode fields: allow control characters
         )
       | (

@@ -482,7 +482,8 @@ public class DataTypeExtension {
                     break;
                 case "String":
                     // special treatment for uppercase / lowercase shorthands
-                    if (e.getName().equals("uppercase") || e.getName().equals("lowercase"))
+                    final String lowercaseName = e.getName().toLowerCase();
+                    if (lowercaseName.equals("uppercase") || lowercaseName.equals("lowercase"))
                         r.isUpperCaseOrLowerCaseSpecialType = true;
                     break;
                 }
