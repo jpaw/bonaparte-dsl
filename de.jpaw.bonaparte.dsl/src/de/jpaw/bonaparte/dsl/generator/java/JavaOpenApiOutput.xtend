@@ -120,7 +120,7 @@ class JavaOpenApiOutput {
     def private static void addLimits(StringBuilder b, DataTypeExtension ref, long maxValueByType) {
         val long maxVal = if (ref.elementaryDataType.length == 0) maxValueByType else maxByNumberOfDigits(ref.elementaryDataType.length);
         b.append(", minimum=\"")
-        b.append(ref.effectiveSigned ? Long.toString(-maxVal - 1L) : 0L)
+        b.append(ref.effectiveSigned ? Long.toString(-maxVal - (ref.elementaryDataType.length == 0 ? 1L : 0L)) : "0")
         b.append("\"")
         b.append(", maximum=\"")
         b.append(Long.toString(maxVal))
