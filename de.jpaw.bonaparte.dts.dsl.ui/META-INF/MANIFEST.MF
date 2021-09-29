@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dts.dsl.ui
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 4.70.8"
+Bundle-Version: 4.70.9"
 Bundle-SymbolicName: de.jpaw.bonaparte.dts.dsl.ui;singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.dts.dsl;visibility:=reexport,
@@ -17,8 +17,8 @@ Require-Bundle: de.jpaw.bonaparte.dts.dsl;visibility:=reexport,
  org.eclipse.xtext.common.types.ui,
  org.eclipse.xtext.ui.codetemplates.ui,
  org.eclipse.compare,
- de.jpaw.bonaparte.dsl;bundle-version="4.70.8"
- de.jpaw.bonaparte.dsl.ui;bundle-version="4.70.8"
+ de.jpaw.bonaparte.dsl;bundle-version="4.70.9"
+ de.jpaw.bonaparte.dsl.ui;bundle-version="4.70.9"
 Import-Package: org.apache.log4j
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: de.jpaw.bonaparte.dts.dsl.ui.contentassist,
