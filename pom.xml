@@ -30,14 +30,14 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.25.0</xtextVersion>
-        <tycho-version>2.3.0</tycho-version>
+        <xtextVersion>2.26.0.M2</xtextVersion>
+        <tycho-version>2.5.0</tycho-version>
         <mwe-version>2.12.1</mwe-version>
         <exec-plugin-version>1.6.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
         <lsp4j-version>0.9.0</lsp4j-version>
         <log4j-version>1.2.17</log4j-version>
-        <asm-version>9.1</asm-version>
+        <asm-version>9.2</asm-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
