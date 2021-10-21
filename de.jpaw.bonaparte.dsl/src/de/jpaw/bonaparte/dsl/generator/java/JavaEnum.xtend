@@ -136,9 +136,9 @@ class JavaEnum {
             }
 
             «IF codegenJavaVersion >= 8»
-                public static Iterable<«d.name»> all = () -> new EnumIterator<«d.name»>(_ALL_VALUES); // constant in lower case to avoid name clash with possible enum instance name
+                public static final Iterable<«d.name»> all = () -> new EnumIterator<«d.name»>(_ALL_VALUES); // constant in lower case to avoid name clash with possible enum instance name
             «ELSE»
-                public static Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
+                public static final Iterable<«d.name»> all = new Iterable<«d.name»>() { // constant in lower case to avoid name clash with possible enum instance name
                     @Override
                     public Iterator<«d.name»> iterator() {
                         return «d.name».iterator();

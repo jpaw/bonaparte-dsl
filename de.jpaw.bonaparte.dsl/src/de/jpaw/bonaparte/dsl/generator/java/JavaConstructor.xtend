@@ -129,5 +129,5 @@ class JavaConstructor {
                 throw new IllegalArgumentException("«d.name» does not support copyOf(" + desiredSuperType.getCanonicalName() + ")");
             «ENDIF»
         }
-     '''
+    '''
 }

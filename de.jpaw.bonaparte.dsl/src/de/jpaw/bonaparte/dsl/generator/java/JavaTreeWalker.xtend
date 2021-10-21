@@ -37,7 +37,7 @@ class JavaTreeWalker {
 
     def private static writeGenericTreeWalkerCode(ClassDefinition d, String javaType, String metadataType, boolean doAssign, Predicate<DataTypeExtension> decision) '''
         @Override
-        public void treeWalk«javaType»(DataConverter<«javaType»,«metadataType»> _cvt, boolean _descend) {
+        public void treeWalk«javaType»(DataConverter<«javaType», «metadataType»> _cvt, boolean _descend) {
             «IF d.extendsClass !== null»
                 super.treeWalk«javaType»(_cvt, _descend);
             «ENDIF»
