@@ -28,9 +28,6 @@ class JavaTreeWalker {
 
     def public static writeTreeWalkerCode(ClassDefinition d) '''
         «d.writeGenericTreeWalkerCode("String",       "AlphanumericElementaryDataItem", true, [ category == DataCategory::STRING ])»
-        «d.writeGenericTreeWalkerCode("Integer",      "BasicNumericElementaryDataItem", true, [ javaType.toLowerCase == "integer" || javaType.toLowerCase == "int" ])»
-        «d.writeGenericTreeWalkerCode("Boolean",      "MiscElementaryDataItem",         true, [ javaType.toLowerCase == "boolean" ])»
-        «d.writeGenericTreeWalkerCode("BigDecimal",   "NumericElementaryDataItem",      true, [ category == DataCategory::NUMERIC ])»
         «d.writeGenericTreeWalkerCode("BonaPortable", "ObjectReference",                false, [ category == DataCategory::OBJECT ])»
         «d.writeGenericTreeWalkerCode("Object",       "FieldDefinition",                false, [ true ])»
     '''
