@@ -43,7 +43,7 @@ public class BonScriptPreferences {
     static private final boolean doDebugOutDefault              = configReader.getProp("DebugOut", false);
     static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", true);
     static private final boolean noXmlDefault                   = configReader.getProp("noXML", false);
-    static private final boolean jakartaOutputDefault           = configReader.getProp("jakarta", false);  // use jakarta instead of javax
+    static private final boolean jakartaOutputDefault           = configReader.getProp("jakarta", true);  // use jakarta instead of javax
     static private final boolean defaultExternalizeDefault      = configReader.getProp("Externalize", false);
     static private final boolean defaultHazelcastDsDefault      = configReader.getProp("HazelcastDs", false);
     static private final boolean defaultHazelcastIdDefault      = configReader.getProp("HazelcastId", false);
