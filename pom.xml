@@ -30,7 +30,7 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.26.0.M3</xtextVersion>
+        <xtextVersion>2.26.0</xtextVersion>
         <tycho-version>2.6.0</tycho-version>
         <mwe-version>2.12.2</mwe-version>
         <exec-plugin-version>1.6.0</exec-plugin-version>
