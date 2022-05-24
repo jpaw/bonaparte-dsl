@@ -2,11 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.noSQL.dsl
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 5.0.2
+Bundle-Version: 5.0.3
 Bundle-SymbolicName: de.jpaw.bonaparte.noSQL.dsl; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: org.eclipse.xtext,
- de.jpaw.bonaparte.dsl;bundle-version="5.0.2",
+ de.jpaw.bonaparte.dsl;bundle-version="5.0.3",
  org.eclipse.xtext.xbase,
  org.eclipse.equinox.common;bundle-version="3.15.0",
  org.eclipse.emf.ecore,
