@@ -113,7 +113,7 @@ class JavaFrozen {
                 val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
-                    final Map«genericsArg» _b = new HashMap(«i.name».size() * 2);
+                    final Map«genericsArg» _b = new HashMap(«i.name».size());
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet()) {
                         if (_i.getValue() != null)
                             «ref.invokeFreezeMethod("_i.getValue()")»
@@ -184,7 +184,7 @@ class JavaFrozen {
                 val genericsArg = '''<«IF (i.isMap !== null)»«i.isMap.indexType», «ENDIF»«ref.javaType»>'''
                 '''
                 if («i.name» != null) {
-                    final Map«genericsArg» _b = new HashMap(«i.name».size() * 2);
+                    final Map«genericsArg» _b = new HashMap(«i.name».size());
                     for (Map.Entry«genericsArg» _i: «i.name».entrySet())
                         _b.put(_i.getKey(), «optionalCast»«ref.getFrozenClone("_i.getValue()")»);
                     _new.«i.name» = Collections.unmodifiableMap(_b);
