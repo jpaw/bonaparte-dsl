@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>5.0.3</version>
+    <version>5.0.4</version>
     <packaging>pom</packaging>
 
     <description>Bonaparte DSL - Parent for all plugin projects</description>
@@ -30,12 +30,12 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.26.0</xtextVersion>
+        <xtextVersion>2.27.0</xtextVersion>
         <tycho-version>2.7.3</tycho-version>
         <mwe-version>2.13.0</mwe-version>
         <exec-plugin-version>1.6.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
-        <lsp4j-version>0.13.0</lsp4j-version>
+        <lsp4j-version>0.14.0</lsp4j-version>
         <log4j-version>1.2.17</log4j-version>
         <asm-version>9.3</asm-version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
