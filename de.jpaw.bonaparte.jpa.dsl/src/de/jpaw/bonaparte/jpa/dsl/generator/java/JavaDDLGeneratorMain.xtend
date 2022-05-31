@@ -913,6 +913,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Embeddable;
         import «jakartaPrefix».persistence.Embedded;
         import «jakartaPrefix».persistence.Column;
+        import «jakartaPrefix».persistence.Convert;
         import «jakartaPrefix».persistence.EmbeddedId;
         import «jakartaPrefix».persistence.Temporal;
         import «jakartaPrefix».persistence.TemporalType;
