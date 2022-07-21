@@ -130,6 +130,16 @@
                     </environments>
                 </configuration>
             </plugin>
+
+            <!-- without this the downstream projects would also need to use tycho -->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-packaging-plugin</artifactId>
+                <version>${tycho-version}</version>
+                <configuration>
+                    <skipPomGeneration>true</skipPomGeneration>
+                </configuration>
+            </plugin>
         </plugins>
         <pluginManagement>
             <plugins>
