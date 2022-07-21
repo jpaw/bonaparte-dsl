@@ -92,6 +92,16 @@ class JavaFieldWriter {
         «ENDIF»
     '''
 
+    def private static jsonJavaType(FieldDefinition c, String nativetype, boolean userType) {
+        if (c.properties.hasProperty(PROP_COMPACT)) {
+            return if (userType) "Compact" + nativetype else "byte []"
+        } else if (c.properties.hasProperty(PROP_NATIVE)) {
+            return "Native" + nativetype
+        } else {
+            return if (userType) "String" + nativetype else "String" // default storage type
+        }
+    }
+
     def private CharSequence writeColumnType(FieldDefinition c, String myName, boolean doBeanVal, String jakartaPrefix) {
         val prefs = BDDLPreferences.currentPrefs
         val DataTypeExtension ref = DataTypeExtension::get(c.datatype)
@@ -164,11 +174,11 @@ class JavaFieldWriter {
                         writeField(c, ref, myName, useUserTypes, "byte []", null, null)
 
                     case DataTypeExtension.JAVA_JSON_TYPE:
-                        '''«c.optionalNative("Json")»«fieldVisibility»Map<String, Object> «myName»;'''
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonObject", prefs.doUserTypeForJson),  null, null)
                     case DataTypeExtension.JAVA_ARRAY_TYPE:
-                        '''«c.optionalNative("Array")»«fieldVisibility»List «myName»;'''
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonArray", prefs.doUserTypeForJson),   null, null)
                     case DataTypeExtension.JAVA_ELEMENT_TYPE:
-                        '''«c.optionalNative("Element")»«fieldVisibility»Object «myName»;'''
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonElement", prefs.doUserTypeForJson), null, null)
                     case DataTypeExtension.JAVA_OBJECT_TYPE:
                         if (prefs.doUserTypeForBonaPortable)
                             return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
@@ -180,22 +190,6 @@ class JavaFieldWriter {
                     default: '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
                 }
             }
-        }
-    }
-
-    def private optionalNative(FieldDefinition f, String specificType) {
-        if (f.properties.hasProperty(PROP_NATIVE)) {
-            // use hibernate specific addon to use DB specific SQL JSON type
-            // @Type is in package org.hibernate.annotation
-            // JsonType is in package com.vladmihalcea.hibernate.type.json
-            '''
-                @Type(JsonType.class)
-            '''
-        } else {
-            // use default converter to String
-            '''
-                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterString«specificType».class)
-            '''
         }
     }
 
@@ -310,7 +304,64 @@ class JavaFieldWriter {
                 } // else stay with the default (fall through)
             } else if (ref.elementaryDataType !== null) {
                 // JSON, ARRAY or ELEMENT
-                // fall through to default
+                val isNative = i.properties.hasProperty(PROP_NATIVE)
+                val isDontStoreNulls = i.properties.hasProperty(PROP_DONT_STORE_NULLS)
+                val noNullExt = isDontStoreNulls ? ", false" : "";
+                if (prefs.doUserTypeForJson) {
+                    val nativePrefix = if (isCompact || isCompact2) "Compact" else if (isNative) "Native" else "String";
+                    val nativeSuffix = if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) "JsonElement" else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) "JsonArray" else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) "JsonObject" else null
+                    if (nativeSuffix !== null) {
+                        // assign the wrapper object
+                        getter = '''return «myName» == null ? null : «myName».getData();'''
+                        setter = '''«myName» = _x == null ? null : new «nativePrefix»«nativeSuffix»(_x);'''
+                    }
+                } else {
+                    if (DataTypeExtension.JAVA_ELEMENT_TYPE.equals(ref.javaType)) {
+                        // Element => store in compact serialized form by default
+                        if (isCompact) {
+                            getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalElement(«myName», «dtoName».meta$$«myName»)''')
+                            setter = '''«myName» = CompactByteArrayComposer.marshalAsElement(«dtoName».meta$$«myName», _x«compactExtra»);'''
+                        } else if (isNative) {
+                            // assign the wrapper object
+                            getter = '''return «myName» == null ? null : «myName».getData();'''
+                            setter = '''«myName» = _x == null ? null : new NativeJsonElement(_x);'''
+                        } else {
+                            // default: text JSON
+                            getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseElement()''')
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
+                        }
+                    } else if (DataTypeExtension.JAVA_ARRAY_TYPE.equals(ref.javaType)) {
+                        // Element => store in compact serialized form by default
+                        if (isCompact) {
+                            getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalArray(«myName», «dtoName».meta$$«myName»)''')
+                            setter = '''«myName» = CompactByteArrayComposer.marshalAsArray(«dtoName».meta$$«myName», _x«compactExtra»);'''
+                        } else if (isNative) {
+                            // assign the wrapper object
+                            getter = '''return «myName» == null ? null : «myName».getData();'''
+                            setter = '''«myName» = _x == null ? null : new NativeJsonArray(_x);'''
+                        } else {
+                            // default: text JSON
+                            getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseArray()''')
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
+                        }
+                    } else if (DataTypeExtension.JAVA_JSON_TYPE.equals(ref.javaType)) {
+                        // Element => store in compact serialized form by default
+                        if (isCompact) {
+                            getter = writeUnmarshaller(myName, "MessageParserException", '''CompactByteArrayParser.unmarshalJson(«myName», «dtoName».meta$$«myName»)''')
+                            setter = '''«myName» = CompactByteArrayComposer.marshalAsJson(«dtoName».meta$$«myName», _x«compactExtra»);'''
+                        } else if (isNative) {
+                            // assign the wrapper object
+                            getter = '''return «myName» == null ? null : «myName».getData();'''
+                            setter = '''«myName» = _x == null ? null : new NativeJsonObject(_x);'''
+                        } else {
+                            // default: text JSON
+                            getter = writeUnmarshaller(myName, "JsonException", '''«myName» == null ? null : new JsonParser(«myName», false).parseObject()''')
+                            setter = '''«myName» = BonaparteJsonEscaper.asJson(_x«noNullExt»);'''
+                        }
+                    } else {
+                        // JSON: fall through (done via user type)
+                    }
+                }
             } else if (ref.objectDataType !== null) {
                 // anything else with object type
                 if (ref.objectDataType.isSingleField && !prefs.doUserTypeForSFExternals) {

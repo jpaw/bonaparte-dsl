@@ -713,7 +713,6 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Table;
         import «jakartaPrefix».persistence.Version;
         import «jakartaPrefix».persistence.Column;
-        import «jakartaPrefix».persistence.Convert;
         import «jakartaPrefix».persistence.Lob;
         import «jakartaPrefix».persistence.Basic;
         import «jakartaPrefix».persistence.FetchType;
