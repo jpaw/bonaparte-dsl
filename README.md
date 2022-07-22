@@ -4,7 +4,6 @@ Bonaparte DSL
 Some DSLs to simplify API and persistence definition.
 This project creates 3 plugins for Eclipse 4.x (Kepler and upwards), based on xtext.
 
-
 ## Purpose
 
 The main DSL is the Bonaparte DSL. Its main purpose is to allow a very efficient definition
@@ -35,6 +34,10 @@ The generated Java classes need support libraries. These are:
 
 The project uses a multi module maven based build.
 
+## How to install
+
+Install the Eclipse plugins with the help of provided update sites.
+You can find the list of available versions here: [https://arvato-systems-jacs.github.io/bonaparte-dsl/](https://arvato-systems-jacs.github.io/bonaparte-dsl/)
 
 ## Serialized forms
 
