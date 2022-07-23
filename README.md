@@ -17,16 +17,13 @@ Using type adapters, similar to JAXB, also custom types can be used in objects.
 
 The syntax is Java like, with some differences. The DSL supports typedefs as in C or C++.
 
-The Bonaparte JPA DSL generates JPA 2 Entity classes for the specified types. The Bonaparte noSQL DSL generates access classes for
-some noSQL databases (this DSL is "work in progress").
+The Bonaparte JPA DSL generates JPA 3.0 Entity classes for the specified types (JPA 2.2 is still supported, by changing the respective target setting in preferences).
 
 The generated Java classes need support libraries. These are:
 
 * bonaparte-java for the main Bonaparte DSL
 
 * persistence-java for the Bonaparte JPA persistence DSL
-
-* noSQL-java for the Bonaparte noSQL persistence DSL
 
 
 

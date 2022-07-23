@@ -6,9 +6,6 @@
    <feature id="de.jpaw.bonaparte.jpa.dsl.feature" version="0.0.0">
       <category name="Bonaparte"/>
    </feature>
-   <feature id="de.jpaw.bonaparte.noSQL.dsl.feature" version="0.0.0">
-      <category name="Bonaparte"/>
-   </feature>
    <category-def name="Bonaparte" label="Software development tools related to object serialization and persistence">
       <description>
          DSLs to simplify the creation and persistence of serializable objects.

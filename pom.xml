@@ -73,11 +73,6 @@
         <module>de.jpaw.bonaparte.jpa.dsl.ui</module>
         <module>de.jpaw.bonaparte.jpa.dsl.target</module>
         <module>de.jpaw.bonaparte.jpa.dsl.feature</module>
-        <module>de.jpaw.bonaparte.noSQL.dsl</module>
-        <module>de.jpaw.bonaparte.noSQL.dsl.ide</module>
-        <module>de.jpaw.bonaparte.noSQL.dsl.ui</module>
-        <module>de.jpaw.bonaparte.noSQL.dsl.target</module>
-        <module>de.jpaw.bonaparte.noSQL.dsl.feature</module>
         <module>de.jpaw.updatesite</module>
     </modules>
 
@@ -103,11 +98,6 @@
                         <artifact>
                             <groupId>de.jpaw.bonaparte-dsl</groupId>
                             <artifactId>de.jpaw.bonaparte.jpa.dsl.target</artifactId>
-                            <version>${project.version}</version>
-                        </artifact>
-                        <artifact>
-                            <groupId>de.jpaw.bonaparte-dsl</groupId>
-                            <artifactId>de.jpaw.bonaparte.noSQL.dsl.target</artifactId>
                             <version>${project.version}</version>
                         </artifact>
                     </target>
