@@ -32,3 +32,9 @@ generated/
 !*/src-gen/.gitignore
 */xtend-gen/*
 !*/xtend-gen/.gitignore
+
+# eclipse project files
+.classpath
+.project
+.settings
+.checkstyle
