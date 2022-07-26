@@ -322,17 +322,17 @@
         </pluginRepository>
     </pluginRepositories>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>repo-snapshots</id>
-            <name>repo-snapshots</name>
-            <url>${repo.url}/libs-snapshot-local</url>
-        </snapshotRepository>
-        <repository>
-            <id>repo-releases</id>
-            <name>repo-releases</name>
-            <url>${repo.url}/libs-release-local</url>
-        </repository>
-    </distributionManagement>
+    <profiles>
+        <profile>
+            <id>github</id>
+            <distributionManagement>
+                <repository>
+                    <id>github</id>
+                    <name>GitHub Packages</name>
+                    <url>https://maven.pkg.github.com/arvato-systems-jacs/bonaparte-dsl</url>
+                </repository>
+            </distributionManagement>
+        </profile>
+    </profiles>
 
 </project>
