@@ -1,0 +1,37 @@
+# Build and publish package when release is created.
+
+name: Publish Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up JDK 17 for build
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'corretto'
+        cache: maven
+
+    - name: Set version to release name
+      run: mvn -B versions:set -DremoveSnapshot
+
+    - name: Update eclipse metadata
+      run: mvn -B org.eclipse.tycho:tycho-versions-plugin:update-eclipse-metadata
+      
+    - name: Build with Maven
+      run: mvn -B -U package --file pom.xml
+
+    - name: Publish to GitHub Packages
+      run: mvn -B -Pgithub deploy
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
