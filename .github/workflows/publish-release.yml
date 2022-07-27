@@ -22,7 +22,7 @@ jobs:
         distribution: 'corretto'
         cache: maven
 
-    - name: Set version to release name
+    - name: Remove SNAPSHOT from version
       run: mvn -B versions:set -DremoveSnapshot
 
     - name: Update eclipse metadata
