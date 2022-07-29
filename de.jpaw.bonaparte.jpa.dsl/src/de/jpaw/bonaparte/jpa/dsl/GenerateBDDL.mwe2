@@ -14,13 +14,7 @@ Workflow {
                         project = StandardProjectConfig {
                                 baseName = "de.jpaw.bonaparte.jpa.dsl"
                                 rootPath = rootPath
-                                runtimeTest = {
-                                        enabled = true
-                                }
                                 eclipsePlugin = {
-                                        enabled = true
-                                }
-                                eclipsePluginTest = {
                                         enabled = true
                                 }
                                 createEclipseMetaData = true
