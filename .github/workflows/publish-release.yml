@@ -6,6 +6,10 @@ on:
   release:
     types: [created]
 
+env:
+  JAVA_VERSION_TO_USE: '11'
+  JAVA_DISTRI_TO_USE: 'corretto'
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -15,11 +19,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Set up JDK 17 for build
+    - name: Set up JDK ${{ env.JAVA_VERSION_TO_USE }} (${{ env.JAVA_DISTRI_TO_USE }})
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
-        distribution: 'corretto'
+        java-version: ${{ env.JAVA_VERSION_TO_USE }}
+        distribution: ${{ env.JAVA_DISTRI_TO_USE }}
         cache: maven
 
     - name: Remove SNAPSHOT from version
@@ -29,7 +33,7 @@ jobs:
       run: mvn -B org.eclipse.tycho:tycho-versions-plugin:update-eclipse-metadata
       
     - name: Build with Maven
-      run: mvn -B -U package --file pom.xml
+      run: mvn -B package
 
     - name: Publish to GitHub Packages
       run: mvn -B -Pgithub deploy
