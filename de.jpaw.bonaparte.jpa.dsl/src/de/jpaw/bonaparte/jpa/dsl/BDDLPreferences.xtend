@@ -15,7 +15,7 @@ public class BDDLPreferences {
     static private final boolean doIndexesDefault                   = configReader.getProp("IndexCreation", false);
     static private final boolean doDebugOutDefault                  = configReader.getProp("DebugOut",  false);
     static private final boolean doPostgresOutDefault               = configReader.getProp("Postgres",  true);
-    static private final boolean doOracleOutDefault                 = configReader.getProp("Oracle",    true);
+    static private final boolean doOracleOutDefault                 = configReader.getProp("Oracle",    false);
     static private final boolean doMsSQLServerOutDefault            = configReader.getProp("MSSQL",     false);
     static private final boolean doMySQLOutDefault                  = configReader.getProp("MySQL",     false);
     static private final boolean doSapHanaOutDefault                = configReader.getProp("SapHana",   false);
