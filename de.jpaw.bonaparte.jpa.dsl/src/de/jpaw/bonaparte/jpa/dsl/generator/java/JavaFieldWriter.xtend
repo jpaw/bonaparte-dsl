@@ -200,11 +200,11 @@ class JavaFieldWriter {
         }
         if (c.properties.hasProperty(PROP_INTERN)) {
             return '''
-                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterInternString.class))
+                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterInternString.class)
             '''
         } else if (c.properties.hasProperty(PROP_UNIFY)) {
             return '''
-                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterUnify«ref.javaType».class))
+                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterUnify«ref.javaType».class)
             '''
         } else {
             return "";
