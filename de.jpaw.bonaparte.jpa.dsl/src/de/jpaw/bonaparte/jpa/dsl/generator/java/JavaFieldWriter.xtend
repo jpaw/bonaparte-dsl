@@ -187,19 +187,38 @@ class JavaFieldWriter {
                                 // @Lob
                                 «writeField(c, ref, myName, false, "byte []", null, null)»
                             '''
-                    default: '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
+                    default:
+                        '''«getConverter(c, ref)»«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
                 }
             }
         }
     }
 
+    def private static getConverter(FieldDefinition c, DataTypeExtension ref) {
+        if (c.isAggregate) {
+            return "";
+        }
+        if (c.properties.hasProperty(PROP_INTERN)) {
+            return '''
+                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterInternString.class))
+            '''
+        } else if (c.properties.hasProperty(PROP_UNIFY)) {
+            return '''
+                @Convert(converter=de.jpaw.bonaparte.jpa.converters.ConverterUnify«ref.javaType».class))
+            '''
+        } else {
+            return "";
+        }
+    }
     def private static makeEnumNumDefault(FieldDefinition f, DataTypeExtension ref) {
-        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) ''' = 0''' else ''''''
+        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) " = 0" else ""
     }
 
     def private static makeEnumAlphanumDefault(FieldDefinition f, DataTypeExtension ref) {
-        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) ''' = "«ref.
-            elementaryDataType.enumType.avalues.get(0).token.escapeString2Java»"''' else ''''''
+        if (ref.effectiveEnumDefault && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL)))
+            ''' = "«ref.elementaryDataType.enumType.avalues.get(0).token.escapeString2Java»"'''
+        else
+            ''''''
     }
 
     def private static optionalAnnotation(List<PropertyUse> properties, String key, String annotation) {

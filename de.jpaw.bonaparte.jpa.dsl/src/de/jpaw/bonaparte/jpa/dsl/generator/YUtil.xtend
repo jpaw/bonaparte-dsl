@@ -62,6 +62,8 @@ class YUtil {
     public static final String PROP_VERSION             = "version";
     public static final String PROP_CURRENT_USER        = "currentUser";
     public static final String PROP_CURRENT_TIMESTAMP   = "currentTimestamp";
+    public static final String PROP_UNIFY               = "unify";          // reuse instances for String and Long elementary types
+    public static final String PROP_INTERN              = "intern";         // reuse "interned" instances for String elementary types
 
     def public static fieldAnnotations(FieldDefinition f) {
         return '''«IF f.isNotNullField», nullable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOINSERT)», insertable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOUPDATE)», updatable=false«ENDIF»'''

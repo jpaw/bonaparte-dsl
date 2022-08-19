@@ -717,6 +717,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Basic;
         import «jakartaPrefix».persistence.FetchType;
         import «jakartaPrefix».persistence.CascadeType;
+        import «jakartaPrefix».persistence.Converter;
         import «jakartaPrefix».persistence.Id;
         import «jakartaPrefix».persistence.IdClass;
         import «jakartaPrefix».persistence.Temporal;
@@ -872,6 +873,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.ManyToOne;
         import «jakartaPrefix».persistence.JoinColumn;
         import «jakartaPrefix».persistence.FetchType;
+        import «jakartaPrefix».persistence.Converter;
         import «jakartaPrefix».persistence.CascadeType;
         «JavaBeanValidation::writeImports(e.tableCategory.doBeanVal, jakartaPrefix)»
         «writeDefaultImports»
@@ -913,6 +915,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Embeddable;
         import «jakartaPrefix».persistence.Embedded;
         import «jakartaPrefix».persistence.Column;
+        import «jakartaPrefix».persistence.Converter;
         import «jakartaPrefix».persistence.EmbeddedId;
         import «jakartaPrefix».persistence.Temporal;
         import «jakartaPrefix».persistence.TemporalType;
