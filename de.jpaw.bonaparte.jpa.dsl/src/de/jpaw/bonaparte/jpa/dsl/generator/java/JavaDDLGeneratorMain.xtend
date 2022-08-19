@@ -820,6 +820,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
             «IF shouldBeSerializable»
                 private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «ENDIF»
+            public static final String TABLE_NAME = "«mkTablename(e, false)»";
             «IF primaryKeyType == PrimaryKeyType::IMPLICIT_EMBEDDABLE»
                 «fieldWriter.buildEmbeddedId(e)»
             «ENDIF»
