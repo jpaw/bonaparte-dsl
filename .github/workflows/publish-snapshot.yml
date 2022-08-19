@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - master
+      - feature/DSL-5
 
 # cancel already running instances of this workflow
 concurrency:
@@ -38,3 +39,8 @@ jobs:
       run: mvn -B -Pgithub -DdeployAtEnd=true -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Attach plugin zip as artifact
+      uses: actions/upload-artifact@v3.1.0
+      with:
+        path: ${{ github.workspace }}/**/*-SNAPSHOT.zip
