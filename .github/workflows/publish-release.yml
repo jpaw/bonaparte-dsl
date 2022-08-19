@@ -9,6 +9,7 @@ on:
 env:
   JAVA_VERSION_TO_USE: '11'
   JAVA_DISTRI_TO_USE: 'corretto'
+  DEPLOY_RETRY: 10
 
 jobs:
   publish:
@@ -35,7 +36,7 @@ jobs:
     - name: Build with Maven
       run: mvn -B package
 
-    - name: Publish to GitHub Packages
-      run: mvn -B -Pgithub deploy
+    - name: Build and Publish
+      run: mvn -B -Pgithub -DdeployAtEnd=true -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
