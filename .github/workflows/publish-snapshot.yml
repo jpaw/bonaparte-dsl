@@ -7,7 +7,6 @@ on:
   push:
     branches:
       - master
-      - feature/DSL-5
 
 # cancel already running instances of this workflow
 concurrency:
