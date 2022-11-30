@@ -2,20 +2,26 @@
 
 name: Publish Release
 
+run-name: Publish Release ${{ inputs.release_version }}
+
 on:
-  release:
-    types: [created]
+  workflow_dispatch: # enable manual trigger
+    inputs:
+      release_version:
+        description: 'Release Version'
+        required: true
+        type: string
 
 env:
   JAVA_VERSION_TO_USE: '11'
   JAVA_DISTRI_TO_USE: 'corretto'
-  DEPLOY_RETRY: 10
+  DEPLOY_RETRY: 5
 
 jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
     steps:
     - uses: actions/checkout@v3
@@ -27,14 +33,11 @@ jobs:
         distribution: ${{ env.JAVA_DISTRI_TO_USE }}
         cache: maven
 
-    - name: Remove SNAPSHOT from version
-      run: mvn -B versions:set -DremoveSnapshot
+    - name: Configure Git User
+      run: git config user.name "Release Management"
 
-    - name: Update eclipse metadata
-      run: mvn -B org.eclipse.tycho:tycho-versions-plugin:update-eclipse-metadata
-
-    - name: Build and Publish
-      run: mvn -B -Pgithub -DdeployAtEnd=true -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
+    - name: Release Packages
+      run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} release:prepare release:perform
       env:
         GITHUB_TOKEN: ${{ github.token }}
 
