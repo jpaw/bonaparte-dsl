@@ -633,8 +633,11 @@ class BDDLValidator extends AbstractBDDLValidator {
     @Check
     def checkIndexDefinition(IndexDefinition ind) {
         // a partial index can only be defined if no function based index is used
-        if (ind.zeroWhenNull && ind.condition !== null) {
+        if (ind.zeroWhenNull && ind.partialIndex) {
             error('''Cannot define a partial index with zeroWhenNull''', BDDLPackage.Literals.INDEX_DEFINITION__CONDITION);
+        }
+        if (ind.partialIndex && ind.notNull && ind.columns.columnName.size != 1) {
+            error('''Short form partial index (where notNull) requires index of single column''', BDDLPackage.Literals.INDEX_DEFINITION__PARTIAL_INDEX);
         }
     }
 

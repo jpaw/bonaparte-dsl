@@ -353,7 +353,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
                     «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull)»«ENDFOR»
-                )«writePartialIndexClause(i, databaseFlavour)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
+                )«writePartialIndexClause(i, databaseFlavour, nmd)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
         «IF grantGroup !== null && grantGroup.grants !== null && databaseFlavour != DatabaseFlavour.MYSQL»
@@ -382,9 +382,13 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
     }
 
     // writes a definition for a partial index (currently only supported for POSTGRES databases)
-    def CharSequence writePartialIndexClause(IndexDefinition ind, DatabaseFlavour databaseFlavour) {
-        if (databaseFlavour == DatabaseFlavour.POSTGRES && ind.condition !== null) {
-            return ''' WHERE «ind.condition»'''
+    def CharSequence writePartialIndexClause(IndexDefinition ind, DatabaseFlavour databaseFlavour, ColumnNameMappingDefinition nmd) {
+        if (databaseFlavour == DatabaseFlavour.POSTGRES && ind.partialIndex) {
+            if (ind.condition !== null) {
+                return ''' WHERE «ind.condition»'''
+            } else {
+                return ''' WHERE «ind.columns.columnName.get(0).name.java2sql(nmd)» IS NOT NULL'''
+            }
         } else {
             return ''''''
         }
