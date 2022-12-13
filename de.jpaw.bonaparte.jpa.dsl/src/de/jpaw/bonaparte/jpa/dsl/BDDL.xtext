@@ -252,6 +252,7 @@ IndexDefinition:
     (isUnique ?= 'unique')?
     columns = ListOfColumns
     (zeroWhenNull ?= 'zeroWhenNull')?  // builds a function based index if nullable fields are included, mapping nulls to zero (or a blank)
+    (partialIndex ?= 'where' condition = STRING)?
 ;
 
 // by custom ScopeProvider implementation, an appropriate importedNamespace will be added here

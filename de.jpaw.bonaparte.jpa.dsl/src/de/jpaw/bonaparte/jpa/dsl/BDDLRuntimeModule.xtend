@@ -13,7 +13,7 @@ import org.eclipse.xtext.scoping.IScopeProvider
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 class BDDLRuntimeModule extends AbstractBDDLRuntimeModule {
-    private static Logger LOGGER = Logger.getLogger(BDDLRuntimeModule);
+    static Logger LOGGER = Logger.getLogger(BDDLRuntimeModule);
 
     new() {
         LOGGER.info("BDDL Runtime module constructed");

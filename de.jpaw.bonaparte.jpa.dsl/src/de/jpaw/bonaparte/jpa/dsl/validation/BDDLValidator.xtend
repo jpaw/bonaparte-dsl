@@ -29,11 +29,12 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import org.apache.log4j.Logger
 import de.jpaw.bonaparte.jpa.dsl.bDDL.GraphRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 
 class BDDLValidator extends AbstractBDDLValidator {
-    private static Logger LOGGER = Logger.getLogger(BDDLValidator)
-    private boolean infoDoneTablenames = false
-    private boolean infoDoneColumnNames = false
+    static Logger LOGGER = Logger.getLogger(BDDLValidator)
+    boolean infoDoneTablenames = false
+    boolean infoDoneColumnNames = false
 
     def private void checkTablenameLength(String s, EStructuralFeature where) {
         // leave room for suffixes like _t(n) or _pk or _i(n) / _j(n) for index naming
@@ -183,7 +184,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         return RESERVED_SQL
     }
     // SQL reserved words - column names are checked against these
-    static private final Map<String,String> RESERVED_SQL = createAndPopulateReservedSQL;
+    static final Map<String,String> RESERVED_SQL = createAndPopulateReservedSQL;
 
     def private static boolean exists(FieldDefinition f, List<FieldDefinition> l) {
         return l.exists[it.name == f.name];
@@ -208,7 +209,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkTableCategoryDefinition(TableCategoryDefinition c) {
+    def void checkTableCategoryDefinition(TableCategoryDefinition c) {
         checkClassForReservedColumnNames(c.getTrackingColumns(), BDDLPackage.Literals.TABLE_CATEGORY_DEFINITION__TRACKING_COLUMNS, c.nameMappingGroup);
         if (c.getHistoryCategory() !== null) {
             // validate that the category requires a primary key, and that the history category defines history columns
@@ -242,7 +243,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkEntity(EntityDefinition e) {
+    def void checkEntity(EntityDefinition e) {
         val s = e.name
         if (s !== null) {
             if (!Character.isUpperCase(s.charAt(0))) {
@@ -405,7 +406,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkListOfColumns(ListOfColumns lc) {
+    def void checkListOfColumns(ListOfColumns lc) {
         // these are used for indexes and can be scalar only (currently) (planned extension: allow index)
         lc.columnName.forEach [
             if (isAggregate)
@@ -414,14 +415,14 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkSingleColumn(SingleColumn sc) {
+    def void checkSingleColumn(SingleColumn sc) {
         // this is used for the tenant ID only currently and can be scalar only
         if (sc.singleColumnName.isAggregate)
             error('''Only scalar types allowed here, «sc.singleColumnName.name» is not''', BDDLPackage.Literals.SINGLE_COLUMN__SINGLE_COLUMN_NAME)
     }
 
     @Check
-    def public void checkCollection(CollectionDefinition c) {
+    def void checkCollection(CollectionDefinition c) {
         if (c.getMap() !== null && c.getMap().getIsMap() !== null) {
             error("Collections component only allowed to reference fields which are a Map<>", BDDLPackage.Literals.COLLECTION_DEFINITION__MAP);
             return;
@@ -432,7 +433,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkRelationship(Relationship m2o) {
+    def void checkRelationship(Relationship m2o) {
         val s = m2o.getName();
         if (s !== null) {
             if (!Character.isLowerCase(s.charAt(0))) {
@@ -512,7 +513,7 @@ class BDDLValidator extends AbstractBDDLValidator {
 //    }
 
     @Check
-    def public void checkElementCollectionRelationship(ElementCollectionRelationship ec) {
+    def void checkElementCollectionRelationship(ElementCollectionRelationship ec) {
         val f = ec.getName();
 
         if (f === null)  // not yet complete
@@ -578,14 +579,14 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkOneToMany(OneToMany ec) {
+    def void checkOneToMany(OneToMany ec) {
         if (ec.getMapKey() !== null) {
             checkFieldnameLength(ec.getMapKey(), BDDLPackage.Literals.ONE_TO_MANY__MAP_KEY, null);
         }
     }
 
     @Check
-    def public void checkEmbeddableDefinition(EmbeddableDefinition e) {
+    def void checkEmbeddableDefinition(EmbeddableDefinition e) {
         if (e.getPojoType() !== null) {
             if (!e.getPojoType().isFinal())
                 warning("Embeddables should be final", BDDLPackage.Literals.EMBEDDABLE_DEFINITION__POJO_TYPE);
@@ -595,7 +596,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkEmbeddableUse(EmbeddableUse u) {
+    def void checkEmbeddableUse(EmbeddableUse u) {
         var DataTypeExtension ref;
         try {
             ref = DataTypeExtension.get(u.getField().getDatatype());
@@ -615,7 +616,7 @@ class BDDLValidator extends AbstractBDDLValidator {
     }
 
     @Check
-    def public void checkConverterDefinition(ConverterDefinition c) {
+    def void checkConverterDefinition(ConverterDefinition c) {
         val a = c.getMyAdapter();
         if (a !== null) {
             if (!a.isSingleField()) {
@@ -629,20 +630,28 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
     }
 
+    @Check
+    def checkIndexDefinition(IndexDefinition ind) {
+        // a partial index can only be defined if no function based index is used
+        if (ind.zeroWhenNull && ind.condition !== null) {
+            error('''Cannot define a partial index with zeroWhenNull''', BDDLPackage.Literals.INDEX_DEFINITION__CONDITION);
+        }
+    }
+
     // workaround because scoping allows also subgraph fields of the wrong entity
     @Check
-    def public void checkGraphRelationship(GraphRelationship c) {
-    	if (c.fields !== null) {
-    		val referencedEntity = c.name.childObject
-    		for (sgf: c.fields.fields) {
-    			val usedEntity = sgf.eContainer.eContainer
-    			if (usedEntity instanceof EntityDefinition) {
-    				if (referencedEntity.name != usedEntity.name)
+    def void checkGraphRelationship(GraphRelationship c) {
+        if (c.fields !== null) {
+            val referencedEntity = c.name.childObject
+            for (sgf: c.fields.fields) {
+                val usedEntity = sgf.eContainer.eContainer
+                if (usedEntity instanceof EntityDefinition) {
+                    if (referencedEntity.name != usedEntity.name)
                         error('''Subgraph field «sgf.name» is child of entity «usedEntity.name», but should be in «referencedEntity.name»''', BDDLPackage.Literals.GRAPH_RELATIONSHIP__FIELDS);
-    			} else {
-    				    error('''Internal error: type mismatch: Subgraph field «sgf.name» has grandfather of type «usedEntity.class.simpleName», but should be in «referencedEntity.class.simpleName»''', BDDLPackage.Literals.GRAPH_RELATIONSHIP__FIELDS);
-    			}
-    		}
-    	}
+                } else {
+                        error('''Internal error: type mismatch: Subgraph field «sgf.name» has grandfather of type «usedEntity.class.simpleName», but should be in «referencedEntity.class.simpleName»''', BDDLPackage.Literals.GRAPH_RELATIONSHIP__FIELDS);
+                }
+            }
+        }
     }
 }

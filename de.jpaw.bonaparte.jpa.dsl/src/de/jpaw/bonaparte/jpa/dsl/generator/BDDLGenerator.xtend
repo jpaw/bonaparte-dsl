@@ -29,9 +29,9 @@ import org.eclipse.xtext.generator.IFileSystemAccess2
 import org.eclipse.xtext.generator.IGeneratorContext
 
 class BDDLGenerator extends AbstractGenerator {
-    private static Logger LOGGER = Logger.getLogger(BDDLGenerator)
-    private static final AtomicInteger globalId = new AtomicInteger(0)
-    private final int localId = globalId.incrementAndGet
+    static Logger LOGGER = Logger.getLogger(BDDLGenerator)
+    static final AtomicInteger globalId = new AtomicInteger(0)
+    final int localId = globalId.incrementAndGet
 
     @Inject BonScriptGenerator bonaparteGenerator
     @Inject SqlDDLGeneratorMain generatorSql
@@ -42,7 +42,7 @@ class BDDLGenerator extends AbstractGenerator {
         "#" + localId + ": "
     }
 
-    public new() {
+    new() {
         LOGGER.info("BDDLGenerator constructed. " + filterInfo)
     }
 

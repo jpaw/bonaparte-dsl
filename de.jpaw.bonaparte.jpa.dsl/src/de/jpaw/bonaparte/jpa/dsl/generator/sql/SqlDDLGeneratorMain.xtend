@@ -47,6 +47,7 @@ import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOutOracle.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 
 class SqlDDLGeneratorMain extends AbstractGenerator {
     static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
@@ -352,7 +353,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
                     «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull)»«ENDFOR»
-                )«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
+                )«writePartialIndexClause(i, databaseFlavour)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
         «IF grantGroup !== null && grantGroup.grants !== null && databaseFlavour != DatabaseFlavour.MYSQL»
@@ -379,7 +380,16 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         «ENDIF»
     '''
     }
-    
+
+    // writes a definition for a partial index (currently only supported for POSTGRES databases)
+    def CharSequence writePartialIndexClause(IndexDefinition ind, DatabaseFlavour databaseFlavour) {
+        if (databaseFlavour == DatabaseFlavour.POSTGRES && ind.condition !== null) {
+            return ''' WHERE «ind.condition»'''
+        } else {
+            return ''''''
+        }
+    }
+
     // writes a column name for an index. support function based indexes
     def CharSequence writeIndexColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, ColumnNameMappingDefinition nmd, boolean isFunctionBased) {
         val regular = c.name.java2sql(nmd)
