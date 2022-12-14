@@ -35,12 +35,6 @@ jobs:
         cache: maven
 
     - name: Build and Publish
-      run: mvn -B -Pgithub -DdeployAtEnd=true -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
+      run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
-
-    - name: Attach plugin zip as artifact
-      uses: actions/upload-artifact@v3.1.0
-      with:
-        name: de.jpaw.updatesite-SNAPSHOT.zip
-        path: de.jpaw.updatesite/target/*-SNAPSHOT.zip
