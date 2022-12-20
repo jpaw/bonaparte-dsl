@@ -55,6 +55,7 @@ class YUtil {
     public static final String PROP_REF                 = "ref";
     public static final String PROP_SIMPLEREF           = "simpleref";
     public static final String PROP_SQL_DEFAULT         = "SQLdefault";
+    public static final String PROP_HISTORY_TRIGGER     = "historyTrigger"; // trigger a history data record creation only if these column values change
     public static final String PROP_NOTNULL             = "notNull";        // make a field optional in Java, but required on the DB
     public static final String PROP_NOINSERT            = "noinsert";       // cannot insert this field
     public static final String PROP_NOUPDATE            = "noupdate";       // do not update existing fields (create user / timestamp)

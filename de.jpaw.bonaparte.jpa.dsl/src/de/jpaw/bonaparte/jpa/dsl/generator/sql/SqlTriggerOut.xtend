@@ -29,6 +29,7 @@ import org.apache.log4j.Logger
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
+import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class SqlTriggerOut {
     private static final Logger LOGGER = Logger.getLogger(SqlTriggerOut);
@@ -49,6 +50,7 @@ class SqlTriggerOut {
         '''
     }
 
+    /** Build a null replacement for Oracle. */
     def private static buildNvl(FieldDefinition f, ColumnNameMappingDefinition nmd) {
         val colname = f.name.java2sql(nmd)
         val ref = DataTypeExtension::get(f.datatype)
@@ -69,6 +71,29 @@ class SqlTriggerOut {
             return ''':OLD.«colname» <> :NEW.«colname»'''
         else
             return '''NVL(:OLD.«colname», «nullReplacement») <> NVL(:NEW.«colname», «nullReplacement»)'''
+    }
+
+    /** Build a null replacement for Postgres. */
+    def private static buildCoalesce(FieldDefinition f, ColumnNameMappingDefinition nmd) {
+        val colname = f.name.java2sql(nmd)
+        val ref = DataTypeExtension::get(f.datatype)
+        var nullReplacement = "''"  // differs to ORACLE
+        // find out the cases when we need a different default
+        // TODO: unsure which default to use for UUID
+        switch (ref.category) {
+        case DataCategory.BASICNUMERIC: nullReplacement = "0"
+        case DataCategory.NUMERIC: nullReplacement = "0"
+        case DataCategory.ENUM: nullReplacement = "0"  // only numeric enums
+        case DataCategory.ENUMSET: nullReplacement = "0"
+        case DataCategory.MISC: if (ref.javaType.toLowerCase == "boolean") nullReplacement = "false" else if (ref.javaType.toLowerCase == "uuid") nullReplacement = null
+        case DataCategory.TEMPORAL: nullReplacement = "TO_DATE('19700101', 'YYYYMMDD')"
+        case DataCategory.BINARY: nullReplacement = null
+        default: {}
+        }
+        if (nullReplacement === null)
+            return ''':OLD.«colname» <> :NEW.«colname»'''
+        else
+            return '''COALESCE(:OLD.«colname», «nullReplacement») <> COALESCE(:NEW.«colname», «nullReplacement»)'''
     }
 
     def private static v(FieldDefinition f, boolean categorySetting, CharSequence regularData) {
@@ -164,6 +189,14 @@ class SqlTriggerOut {
         return '''OLD.«colname» <> NEW.«colname»'''
     }
 
+    def private static buildNullSafeComparePostgres(FieldDefinition f, ColumnNameMappingDefinition nmd) {
+        if (f.isRequired) {
+            return buildNe(f, nmd)
+        } else {
+            return buildCoalesce(f, nmd)
+        }
+    }
+
     def public static triggerOutPostgres(EntityDefinition e) {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
@@ -177,6 +210,7 @@ class SqlTriggerOut {
         val keyFieldNames = myPrimaryKeyColumns.map[name]
         val allColumns = new ArrayList<FieldDefinition>(myPrimaryKeyColumns)
         nonPrimaryKeyColumns.filter[!keyFieldNames.contains(it.name)].forEach[allColumns.add(it)]
+        val onlyHistoryTriggers = nonPrimaryKeyColumns.filter[XUtil.hasProperty(properties, PROP_HISTORY_TRIGGER)].toList
 
         // in postgres, there is no CREATE OR REPLACE TRIGGER.
         // We need 3 statements instead:
@@ -205,11 +239,15 @@ class SqlTriggerOut {
                     RETURN NEW;
                 END IF;
                 IF (TG_OP = 'UPDATE') THEN
-                    «IF myPrimaryKeyColumns.size > 0»
+                    «IF !myPrimaryKeyColumns.empty»
                         -- deny attempts to change a primary key column
                         IF «FOR c : myPrimaryKeyColumns SEPARATOR ' OR '»«c.buildNe(nmd)»«ENDFOR» THEN
                             RAISE EXCEPTION 'Cannot change primary key column to different value';
                         END IF;
+                    «ENDIF»
+                    «IF !onlyHistoryTriggers.empty»
+                        -- create a history record only in case of changes of certain columns
+                        IF «FOR c : onlyHistoryTriggers SEPARATOR ' OR '»«c.buildNullSafeComparePostgres(nmd)»«ENDFOR» THEN
                     «ENDIF»
                     INSERT INTO «tablename» (
                         «historyCategory.historySequenceColumn»
@@ -219,6 +257,9 @@ class SqlTriggerOut {
                         next_seq_, 'U'
                         «e.recurseTrigger(allColumns, [ fld, myName, reqType | fld.v(historyCategory.actualData, ''', NEW.«myName.java2sql(nmd)»''') ])»
                     );
+                    «IF !onlyHistoryTriggers.empty»
+                        END IF;
+                    «ENDIF»
                     RETURN NEW;
                 END IF;
                 IF (TG_OP = 'DELETE') THEN
