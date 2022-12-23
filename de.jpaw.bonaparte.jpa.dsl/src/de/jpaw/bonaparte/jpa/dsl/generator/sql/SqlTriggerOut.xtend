@@ -91,9 +91,9 @@ class SqlTriggerOut {
         default: {}
         }
         if (nullReplacement === null)
-            return ''':OLD.«colname» <> :NEW.«colname»'''
+            return '''OLD.«colname» <> NEW.«colname»'''
         else
-            return '''COALESCE(:OLD.«colname», «nullReplacement») <> COALESCE(:NEW.«colname», «nullReplacement»)'''
+            return '''COALESCE(OLD.«colname», «nullReplacement») <> COALESCE(NEW.«colname», «nullReplacement»)'''
     }
 
     def private static v(FieldDefinition f, boolean categorySetting, CharSequence regularData) {
