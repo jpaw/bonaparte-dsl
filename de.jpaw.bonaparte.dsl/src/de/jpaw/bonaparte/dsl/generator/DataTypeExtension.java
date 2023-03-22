@@ -319,7 +319,7 @@ public class DataTypeExtension {
                         ? classdefs.getAllowCtrls().getX()
                         : p.getDefaults() != null && p.getDefaults().getAllowCtrls() != null
                             ? p.getDefaults().getAllowCtrls().getX()
-                            : XSpecialCharsSetting.ALLOW_CONTROL_CHARS;
+                            : XSpecialCharsSetting.NO_CONTROL_CHARS;
         r.effectiveAllowCtrls = spc == XSpecialCharsSetting.ALLOW_CONTROL_CHARS;
 
         r.defaultRequired = classdefs != null && classdefs.getRequired() != null
