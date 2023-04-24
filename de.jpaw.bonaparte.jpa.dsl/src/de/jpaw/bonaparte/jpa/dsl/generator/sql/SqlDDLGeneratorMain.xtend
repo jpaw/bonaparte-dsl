@@ -183,19 +183,42 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
 
     def private void makeTables(IFileSystemAccess2 fsa, EntityDefinition e, boolean doHistory) {
         val tablename = mkTablename(e, doHistory)
+        val doSequenceForPk = !doHistory && !e.isAbstract && e.extends === null && e.pk !== null
+          && e.pk.columnName == 1 && e.pk.columnName.get(0).JavaDataTypeNoName(false).toLowerCase == 'long'
+        val sequencename = tablename + "_s"
         // System::out.println("    tablename is " + tablename);
-        if (prefs.doPostgresOut)
+        if (prefs.doPostgresOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES,    tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::POSTGRES, doHistory))
-        if (prefs.doMsSQLServerOut)
+            if (doSequenceForPk) {
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::POSTGRES, sequencename, "Sequence"), SqlSequenceOut.createSequence(sequencename, DatabaseFlavour::POSTGRES))
+            }
+        }
+        if (prefs.doMsSQLServerOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MSSQLSERVER, doHistory))
-        if (prefs.doMySQLOut)
+            if (doSequenceForPk) {
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MSSQLSERVER, sequencename, "Sequence"), SqlSequenceOut.createSequence(sequencename, DatabaseFlavour::MSSQLSERVER))
+            }
+        }
+        if (prefs.doMySQLOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,       tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::MYSQL, doHistory))
+            if (doSequenceForPk) {
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::MYSQL,   sequencename, "Sequence"), SqlSequenceOut.createSequence(sequencename, DatabaseFlavour::MYSQL))
+            }
+        }
         if (prefs.doOracleOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::ORACLE, doHistory))
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,      tablename, "Synonym"), tablename.sqlSynonymOut)
+            if (doSequenceForPk) {
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,  sequencename, "Sequence"), SqlSequenceOut.createSequence(sequencename, DatabaseFlavour::ORACLE))
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::ORACLE,  sequencename, "Synonym"), sequencename.sqlSynonymOut)
+            }
         }
-        if (prefs.doSapHanaOut)
+        if (prefs.doSapHanaOut) {
             fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA,     tablename, "Table"), e.sqlDdlOut(DatabaseFlavour::SAPHANA, doHistory))
+            if (doSequenceForPk) {
+                fsa.generateFile(makeSqlFilename(e, DatabaseFlavour::SAPHANA, sequencename, "Sequence"), SqlSequenceOut.createSequence(sequencename, DatabaseFlavour::SAPHANA))
+            }
+        }
     }
 
     def private static CharSequence writeFieldSQLdoColumn(FieldDefinition f, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
