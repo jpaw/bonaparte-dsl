@@ -85,7 +85,7 @@ class SqlViewOut {
         return '''«IF level == 0» WHERE «ELSE» AND «ENDIF»t0.object_ref = t«level+1».object_ref«joinConditions(e.extends, level+1)»'''
     }
 
-    def public static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
+    def static createView(EntityDefinition e, DatabaseFlavour databaseFlavour, boolean includeTracking, String suffix) '''
         CREATE OR REPLACE VIEW «mkTablename(e, false)»«suffix» AS SELECT
             «recurseInheritance(e, databaseFlavour, includeTracking, 0, new Delimiter("", ", "))»
         FROM «mkTablename(e, false)» t0«e.joinedTables(0)»«e.joinConditions(0)»;

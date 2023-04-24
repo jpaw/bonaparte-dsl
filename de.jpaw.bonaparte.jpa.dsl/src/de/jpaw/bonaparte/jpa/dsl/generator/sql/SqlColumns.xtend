@@ -26,7 +26,7 @@ import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class SqlColumns {
-    private static Logger LOGGER = Logger.getLogger(SqlColumns)
+    static Logger LOGGER = Logger.getLogger(SqlColumns)
 
     // reqType == RequiredType::FORCE_NOT_NULL if column is in PK (then assume implicit NOT NULL)
     def private static notNullConstraint(FieldDefinition c, RequiredType reqType) {
@@ -47,7 +47,7 @@ class SqlColumns {
             ""
     }
 
-    def public static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, String myName, ColumnNameMappingDefinition nmd) {
+    def static doDdlColumn(FieldDefinition c, DatabaseFlavour databaseFlavour, RequiredType reqType, Delimiter d, String myName, ColumnNameMappingDefinition nmd) {
         val String columnName = myName.java2sql(nmd)
         if (databaseFlavour == DatabaseFlavour::ORACLE && columnName.length > 30)
             LOGGER.error("column name " + columnName + " is too long for Oracle DBs, originating Bonaparte class is " + (c.eContainer as ClassDefinition).name);
@@ -55,5 +55,4 @@ class SqlColumns {
             «d.get»«columnName» «SqlMapping::sqlType(c, databaseFlavour)»«mkDefaults(c, databaseFlavour)»«notNullConstraint(c, reqType)»
         '''
     }
-
 }

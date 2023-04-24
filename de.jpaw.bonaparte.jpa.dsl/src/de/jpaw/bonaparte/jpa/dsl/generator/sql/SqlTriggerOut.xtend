@@ -32,7 +32,7 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import de.jpaw.bonaparte.dsl.generator.XUtil
 
 class SqlTriggerOut {
-    private static final Logger LOGGER = Logger.getLogger(SqlTriggerOut);
+    static final Logger LOGGER = Logger.getLogger(SqlTriggerOut);
 
     def static private recurseTrigger(EntityDefinition e, FieldDefinition f, List<EmbeddableUse> embeddables,
         (FieldDefinition, String, RequiredType) => CharSequence func) {
@@ -117,7 +117,7 @@ class SqlTriggerOut {
         }
     }
 
-    def public static triggerOutOracle(EntityDefinition e) {
+    def static triggerOutOracle(EntityDefinition e) {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory
@@ -197,7 +197,7 @@ class SqlTriggerOut {
         }
     }
 
-    def public static triggerOutPostgres(EntityDefinition e) {
+    def static triggerOutPostgres(EntityDefinition e) {
         val baseTablename = mkTablename(e, false)
         val tablename = mkTablename(e, true)
         val historyCategory = e.tableCategory.historyCategory

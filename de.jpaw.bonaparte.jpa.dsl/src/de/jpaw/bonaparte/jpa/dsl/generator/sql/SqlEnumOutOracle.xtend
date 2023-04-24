@@ -77,7 +77,7 @@ class SqlEnumOutOracle {
         /
         '''
 
-    def public static oracleEnumFuncs(EnumDefinition e) {
+    def static oracleEnumFuncs(EnumDefinition e) {
         if (e.avalues !== null && !e.avalues.empty)
             oracleEnumFuncsAlpha(e)
         else

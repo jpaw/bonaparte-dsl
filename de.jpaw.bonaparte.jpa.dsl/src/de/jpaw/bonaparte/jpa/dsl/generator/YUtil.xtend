@@ -66,12 +66,12 @@ class YUtil {
     public static final String PROP_UNIFY               = "unify";          // reuse instances for String and Long elementary types
     public static final String PROP_INTERN              = "intern";         // reuse "interned" instances for String elementary types
 
-    def public static fieldAnnotations(FieldDefinition f) {
+    def static fieldAnnotations(FieldDefinition f) {
         return '''«IF f.isNotNullField», nullable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOINSERT)», insertable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOUPDATE)», updatable=false«ENDIF»'''
     }
 
     // create the package name for an entity or embeddable
-    def public static String getBddlPackageName(EObject p) {
+    def static String getBddlPackageName(EObject p) {
         if (p instanceof BDDLPackageDefinition)
             return (if (p.prefix === null) bonaparteClassDefaultPackagePrefix else p.prefix) + "." + p.name
         else
@@ -84,17 +84,17 @@ class YUtil {
         c.isList !== null && c.isList.mincount < c.isList.maxcount
     }
 
-    def public static isNotNullField(FieldDefinition f) {
+    def static isNotNullField(FieldDefinition f) {
         return (f.isRequired  || f.properties.hasProperty(PROP_NOTNULL))
             && !f.isPartOfVariableLengthList && !f.isASpecialEnumWithEmptyStringAsNull && !f.properties.hasProperty(PROP_NULL_WHEN_ZERO)
     }
 
     /** Escapes the parament for use in a quoted SQL string, i.e. single quotes and backslashes are doubled. */
-    def public static String quoteSQL(String text) {
+    def static String quoteSQL(String text) {
         return text.replace("'", "''").replace("\\", "\\\\");
     }
 
-    def public static java2sql(String javaname, ColumnNameMappingDefinition nmdIn) {
+    def static java2sql(String javaname, ColumnNameMappingDefinition nmdIn) {
         for (var nmd = nmdIn; nmd !== null; nmd = nmd.extendsMapping) {
             for (nm : nmd.mappings)
                 if (javaname == nm.javaName)
@@ -103,11 +103,11 @@ class YUtil {
         CaseFormat::LOWER_CAMEL.to(CaseFormat::LOWER_UNDERSCORE, javaname);
     }
 
-    def public static ColumnNameMappingDefinition getNameMapping(EntityDefinition t) {
+    def static ColumnNameMappingDefinition getNameMapping(EntityDefinition t) {
         return t.nameMappingGroup ?: t.tableCategory.nameMappingGroup
     }
 
-    def public static javaEnum2sql(String javaname, DatabaseFlavour databaseFlavour, int suffixLen) {
+    def static javaEnum2sql(String javaname, DatabaseFlavour databaseFlavour, int suffixLen) {
         val len = javaname.length + suffixLen
         if (databaseFlavour == DatabaseFlavour.ORACLE && len > 30) {
             // Oracle is limited to only 30 characters, must truncate
@@ -117,18 +117,18 @@ class YUtil {
     }
 
 
-    def public static getInheritanceRoot(EntityDefinition e) {
+    def static getInheritanceRoot(EntityDefinition e) {
         var EntityDefinition ee = e
         while (ee.^extends !== null)
             ee = ee.^extends
         return ee
     }
 
-    def public static getTableCategory(EntityDefinition e) {
+    def static getTableCategory(EntityDefinition e) {
         return e.inheritanceRoot.optTableCategory
     }
 
-    def public static Model getModel(EObject someReference) {
+    def static Model getModel(EObject someReference) {
         var EObject ref = someReference
         while (!(ref instanceof Model))
             ref = ref.eContainer
@@ -139,7 +139,7 @@ class YUtil {
     /** Returns the Entity in which an object is defined in. Expectation is that there is a class of type PackageDefinition containing it at some level.
      * If this cannot be found, throw an Exception, because callers assume the result is not null and would throw a NPE anyway.
      */
-    def public static EntityDefinition getBaseEntity(EObject ee) {
+    def static EntityDefinition getBaseEntity(EObject ee) {
         var e = ee
         while (e !== null) {
             if (e instanceof EntityDefinition)
@@ -163,11 +163,11 @@ class YUtil {
         throw new RuntimeException("could not find category <" + category + "> for Entity " + t.name)
 
     } */
-    def public static String indexname(String tablename, IndexDefinition i, int indexCounter) {
+    def static String indexname(String tablename, IndexDefinition i, int indexCounter) {
         return '''«tablename»_«IF i.isUnique»u«ELSE»i«ENDIF»«indexCounter»'''
     }
 
-    def public static String mkTablename(EntityDefinition t, boolean forHistory) {
+    def static String mkTablename(EntityDefinition t, boolean forHistory) {
         if (!forHistory && t.tablename !== null)
             t.tablename
         else if (forHistory && t.historytablename !== null)
@@ -218,7 +218,7 @@ class YUtil {
         }
     }
 
-    def public static String mkTablespaceName(EntityDefinition t, boolean forIndex, TableCategoryDefinition myCategory) {
+    def static String mkTablespaceName(EntityDefinition t, boolean forIndex, TableCategoryDefinition myCategory) {
         if (t.tablespaceName !== null) {
             return if (forIndex && t.indexTablespacename !== null) t.indexTablespacename else t.tablespaceName
         } else {
@@ -274,7 +274,7 @@ class YUtil {
     // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
     // The method takes two lambdas, one for the code generation of a field, a second optional one for output of group separators.
-    def public static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
+    def static CharSequence recurse(ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition,
         List<EmbeddableUse> embeddables,
         (ClassDefinition)=> CharSequence groupSeparator,
         (FieldDefinition, String, RequiredType) => CharSequence fieldOutput) '''
@@ -289,7 +289,7 @@ class YUtil {
         «ENDIF»
     '''
 
-    def public static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
+    def static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
         if (cl !== null && cl != stopAt) {
             // add fields of subclasses
             bucket.recurseAdd(cl.extendsClass?.classRef, stopAt, includeAggregates, filterCondition)
@@ -299,11 +299,11 @@ class YUtil {
             }
         }
     }
-    def public static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
+    def static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
         recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
     }
 
-    def public static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
+    def static CharSequence recurseComments(ClassDefinition cl, ClassDefinition stopAt, String tablename, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd) {
         recurse(cl, stopAt, false,
                 [ comment !== null && !properties.hasProperty(PROP_NODDL) ],
                 embeddables,
@@ -317,7 +317,7 @@ class YUtil {
         )
     }
 
-    def public static boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
+    def static boolean inList(List<FieldDefinition> pkColumns, FieldDefinition c) {
         if (pkColumns === null)
             return false
         for (i : pkColumns)
@@ -327,7 +327,7 @@ class YUtil {
     }
 
 
-    def public static String asEmbeddedName(String myName, String prefix, String suffix) {
+    def static String asEmbeddedName(String myName, String prefix, String suffix) {
         if (prefix === null)
             '''«myName»«suffix»'''
         else
@@ -338,7 +338,7 @@ class YUtil {
         return (1..max).map[String.format(pattern, it)]
     }
 
-    def public static indexList(FieldDefinition f) {
+    def static indexList(FieldDefinition f) {
         if (f.isList === null || !f.properties.hasProperty(PROP_UNROLL))
             return null
         val userPattern = f.properties.getProperty(PROP_UNROLL)
@@ -350,7 +350,7 @@ class YUtil {
     }
 
     // output a single field (which maybe expands to multiple DB columns due to embeddables and List expansion. The field could be used from an entity or an embeddable
-    def public static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
+    def static CharSequence writeFieldWithEmbeddedAndList(FieldDefinition f, List<EmbeddableUse> embeddables, String prefix, String suffix,
         RequiredType reqType,
         boolean noListAtThisPoint, String separator, (FieldDefinition, String, RequiredType) => CharSequence func) {
         // expand Lists first
@@ -386,16 +386,16 @@ class YUtil {
         }
     }
 
-    def public static countEmbeddablePks(EntityDefinition e) {
+    def static countEmbeddablePks(EntityDefinition e) {
         if (e.embeddables === null)
             return 0
         return e.embeddables.filter[isPk !== null].size
     }
-    def public static getEmbeddablePk(EntityDefinition e) {
+    def static getEmbeddablePk(EntityDefinition e) {
         return e?.embeddables.filter[isPk !== null].head
     }
 
-    def public static determinePkType(EntityDefinition e) {
+    def static determinePkType(EntityDefinition e) {
         if (e.pk !== null) {
             if (e.pk.columnName.size > 1)
                 PrimaryKeyType::IMPLICIT_EMBEDDABLE
@@ -411,7 +411,7 @@ class YUtil {
 
     // checks if the field f is an elementcollection for entity e
     // this methods checks the definitions of the entity itself, as well as in any parent entity
-    def public static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
+    def static boolean isInElementCollection(FieldDefinition f, EntityDefinition e) {
         var ee = e;
         while (ee !== null) {
             if (ee.elementCollections !== null && ee.elementCollections.exists[name == f])
@@ -421,26 +421,27 @@ class YUtil {
         return false
     }
 
-    def public static List<FieldDefinition> tenantFields(EntityDefinition e) {
+    def static List<FieldDefinition> tenantFields(EntityDefinition e) {
         if (e.tenantId !== null)
             return #[ e.tenantId.singleColumnName ]
         else if (e.tenantClass !== null)
             return e.tenantClass.fields
     }
 
-    /** Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
+    /**
+     * Returns a list of the main columns in the primary key of an entity, or null if no PK exists.
      * The fields not included are:
      * element collection map key,
      * history sequence number
      *
      */
-    def public static primaryKeyColumns(EntityDefinition e) {
+    def static primaryKeyColumns(EntityDefinition e) {
         return primaryKeyColumns0(e, e.inheritanceRoot) // for derived tables, the original (root) table
     }
-    def public static primaryKeyColumns0(EntityDefinition e) {
+    def static primaryKeyColumns0(EntityDefinition e) {
         return primaryKeyColumns0(e, e) // for derived tables, the original (root) table
     }
-    def public static primaryKeyColumns0(EntityDefinition e, EntityDefinition baseEntity) {
+    def static primaryKeyColumns0(EntityDefinition e, EntityDefinition baseEntity) {
         return if (baseEntity.embeddablePk !== null)
                 baseEntity.embeddablePk.name.pojoType.fields
             else if (baseEntity.pk !== null)
@@ -450,12 +451,13 @@ class YUtil {
             else null
     }
 
-    /** Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.
+    /**
+     * Returns a list of the main non-primary key columns of an entity. This list may be empty, but the response is never null.
      * The non-included columns are:
      * discriminators for inheritance, history change type
      *
      */
-    def public static nonPrimaryKeyColumns(EntityDefinition t, boolean descendForTablePerClass) {
+    def static nonPrimaryKeyColumns(EntityDefinition t, boolean descendForTablePerClass) {
         val resultList = new ArrayList<FieldDefinition>(50)
         val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
         val myPrimaryKeyColumns = t.primaryKeyColumns
@@ -478,7 +480,7 @@ class YUtil {
             t.^extends.combinedEmbeddables(work)
         work
     }
-    def static public theEmbeddables(EntityDefinition t) {
+    def static theEmbeddables(EntityDefinition t) {
         return if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
     }
 }
