@@ -184,7 +184,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
     def private void makeTables(IFileSystemAccess2 fsa, EntityDefinition e, boolean doHistory) {
         val tablename = mkTablename(e, doHistory)
         val doSequenceForPk = !doHistory && !e.isAbstract && e.extends === null && e.pk !== null
-          && e.pk.columnName == 1 && e.pk.columnName.get(0).JavaDataTypeNoName(false).toLowerCase == 'long'
+          && e.pk.columnName.size == 1 && e.pk.columnName.get(0).JavaDataTypeNoName(true).toLowerCase == 'long'
         val sequencename = tablename + "_s"
         // System::out.println("    tablename is " + tablename);
         if (prefs.doPostgresOut) {
