@@ -3,7 +3,7 @@
     <parent>
         <groupId>de.jpaw.bonaparte-dsl</groupId>
         <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-        <version>5.1.6-SNAPSHOT</version>
+        <version>5.1.6</version>
     </parent>
     <artifactId>de.jpaw.bonaparte.jpa.dsl.ui</artifactId>
     <packaging>eclipse-plugin</packaging>
