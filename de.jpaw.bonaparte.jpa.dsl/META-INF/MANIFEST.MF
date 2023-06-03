@@ -9,14 +9,14 @@ Require-Bundle: org.eclipse.xtext,
  org.eclipse.xtext.xbase,
  de.jpaw.bonaparte.dsl,
  org.eclipse.equinox.common;bundle-version="3.16.0",
- org.eclipse.xtext.xbase.lib;bundle-version="2.29.0",
+ org.eclipse.xtext.xbase.lib;bundle-version="2.31.0",
  org.antlr.runtime;bundle-version="[3.2.0,3.2.1)",
  org.eclipse.xtext.util,
- org.eclipse.xtend.lib;bundle-version="2.29.0",
+ org.eclipse.xtend.lib;bundle-version="2.31.0",
  org.eclipse.emf.ecore,
  org.eclipse.emf.common,
  org.eclipse.xtext.common.types,
- org.objectweb.asm;bundle-version="9.4.0";resolution:=optional
+ org.objectweb.asm;bundle-version="9.5.0";resolution:=optional
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Export-Package: de.jpaw.bonaparte.jpa.dsl.validation,
  de.jpaw.bonaparte.jpa.dsl,

@@ -61,7 +61,7 @@ class BonScriptValidator extends AbstractBonScriptValidator {
         put("decimal",18)
     ]
     /* Must change MANIFEST.MF to contain
-     * Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+     * Bundle-RequiredExecutionEnvironment: JavaSE-11
      * Otherwise, Eclipse will complain:
      * An internal error occurred during: "Building workspace".
      * Unresolved compilation problem:
