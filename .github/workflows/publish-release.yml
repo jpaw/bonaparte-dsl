@@ -33,10 +33,13 @@ jobs:
         distribution: ${{ env.JAVA_DISTRI_TO_USE }}
         cache: maven
 
+    - name: Build
+      run: mvn -B -T 1C package
+
     - name: Configure Git User
       run: git config user.name "Release Management"
 
     - name: Release Packages
-      run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} -DreleaseVersion=${{ inputs.release_version }} release:prepare release:perform
+      run: mvn -B -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} -DreleaseVersion=${{ inputs.release_version }} release:prepare release:perform
       env:
         GITHUB_TOKEN: ${{ github.token }}

@@ -35,6 +35,6 @@ jobs:
         cache: maven
 
     - name: Build and Publish
-      run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
+      run: mvn -B -P github -T 1C -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
       env:
         GITHUB_TOKEN: ${{ github.token }}
