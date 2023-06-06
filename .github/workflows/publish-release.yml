@@ -13,7 +13,7 @@ on:
         type: string
 
 env:
-  JAVA_VERSION_TO_USE: '11'
+  JAVA_VERSION_TO_USE: '17'
   JAVA_DISTRI_TO_USE: 'corretto'
   DEPLOY_RETRY: 5
 
