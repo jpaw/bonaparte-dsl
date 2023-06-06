@@ -5,8 +5,8 @@ name: Publish Snapshot
 on:
   workflow_dispatch: # enable manual trigger
   push:
-    branches:
-      - master
+    branches: [ "master" ]
+    paths-ignore: [ ".github/**" ]
 
 # cancel already running instances of this workflow
 concurrency:
@@ -16,7 +16,7 @@ concurrency:
 env:
   JAVA_VERSION_TO_USE: '11'
   JAVA_DISTRI_TO_USE: 'corretto'
-  DEPLOY_RETRY: 10
+  DEPLOY_RETRY: 5
 
 jobs:
   publish:
