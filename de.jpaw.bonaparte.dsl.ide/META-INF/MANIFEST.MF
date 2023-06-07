@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dsl.ide
 Bundle-Vendor: Michael Bischoff
-Bundle-Version: 5.1.7.qualifier
+Bundle-Version: 5.2.0
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl.ide; singleton:=true
 Bundle-ActivationPolicy: lazy
 Require-Bundle: de.jpaw.bonaparte.dsl,
