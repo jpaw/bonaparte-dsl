@@ -34,7 +34,7 @@ jobs:
         cache: maven
 
     - name: Build
-      run: mvn -B -T 1C package
+      run: mvn -B -U -T 1C package
 
     - name: Configure Git User
       run: git config user.name "Release Management"

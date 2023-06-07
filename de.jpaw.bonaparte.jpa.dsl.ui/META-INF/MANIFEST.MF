@@ -21,7 +21,7 @@ Require-Bundle: de.jpaw.bonaparte.jpa.dsl,
  org.eclipse.xtext.xbase.ui,
  org.eclipse.xtext.common.types.ui
 Import-Package: org.apache.log4j
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: de.jpaw.bonaparte.jpa.dsl.ui.internal,
  de.jpaw.bonaparte.jpa.dsl.ui.contentassist,
  de.jpaw.bonaparte.jpa.dsl.ui.quickfix
