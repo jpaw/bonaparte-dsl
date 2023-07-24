@@ -277,7 +277,7 @@ class JavaFieldWriter {
 //        return if (ref.isPrimitive) "" else "_x == null || "
 //    }
 
-    def private writeGetterAndSetter(FieldDefinition i, String myName, ClassDefinition optionalClass, boolean generateSetters) {
+    def private writeGetterAndSetter(FieldDefinition i, String myName, ClassDefinition optionalClass) {
         val prefs = BDDLPreferences.currentPrefs
         val ref = DataTypeExtension::get(i.datatype);
         val theEnum = ref.enumForEnumOrXenum
@@ -287,29 +287,21 @@ class JavaFieldWriter {
 
         var String getter = '''return «myName»;'''
         var String setter = '''«myName» = _x;'''
-        var String extraSetter = null
-        var String extraSetterType = null
 
         if (ref.category == DataCategory.ENUM) {
             if (!prefs.doUserTypeForEnum) {
                 getter = '''return «ref.elementaryDataType.enumType.name».valueOf(«myName»);'''
                 setter = '''«myName» = _x == null ? null : _x.ordinal();'''
-                extraSetterType = 'Integer'
-                extraSetter = '''«myName» = _x;'''
             }
         } else if (ref.category == DataCategory.ENUMALPHA) {
             if (!prefs.doUserTypeForEnumAlpha) {
                 getter = '''return «theEnum.name».factoryNWZ(«myName»);'''
                 setter = '''«myName» = «ref.elementaryDataType.enumType.name».getTokenNWZ(_x);'''
-                extraSetterType = 'String'
-                extraSetter = '''«myName» = _x;'''
             }
         } else if (ref.category == DataCategory.XENUM) {
             if (!prefs.doUserTypeForXEnum) {
                 getter = '''return «ref.xEnumFactoryName».getByTokenWithNull(«myName»);'''
                 setter = '''«myName» = _x == null || _x == «ref.xEnumFactoryName».getNullToken() ? null : _x.getToken();'''
-                extraSetterType = 'String'
-                extraSetter = '''«myName» = _x;'''
             }
         } else if (ref.category == DataCategory.STRING) {
             if (nwz)
@@ -440,13 +432,6 @@ class JavaFieldWriter {
             public void set«myName.toFirstUpper»(«i.substitutedJavaTypeScalar» _x) {
                 «setter»
             }
-            «IF generateSetters && extraSetterType !== null»
-
-                «i.writeIfDeprecated»
-                public void set«myName.toFirstUpper»(«extraSetterType» _x) {
-                    «extraSetter»
-                }
-            «ENDIF»
         '''
     }
 
@@ -491,7 +476,7 @@ class JavaFieldWriter {
                 «IF relevantEmbeddable === null»
                     @Column(name="«myName.java2sql(nmd)»"«IF f.isNotNullField», nullable=false«ENDIF»)
                     «f.writeColumnType(myName, false, jakartaPrefix)»
-                    «f.writeGetterAndSetter(myName, optionalClass, false)»
+                    «f.writeGetterAndSetter(myName, optionalClass)»
                 «ELSE»
                     «fieldVisibility»«f.aggregateOf(embName)» «myName» = new «f.getInitializer(embName, "(4)")»;
                     // special getter to convert from embeddable entity type into DTO
@@ -536,7 +521,7 @@ class JavaFieldWriter {
                     «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField, jakartaPrefix)»
                     «f.writeColumnType(myName, doBeanVal, jakartaPrefix)»
-                    «f.writeGetterAndSetter(myName, optionalClass, true)»
+                    «f.writeGetterAndSetter(myName, optionalClass)»
                 «ENDIF»
             «ENDIF»
         '''
