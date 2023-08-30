@@ -34,9 +34,9 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.31.0</xtextVersion>
+        <xtextVersion>2.32.0</xtextVersion>
         <tycho-version>3.0.4</tycho-version>
-        <mwe-version>2.14.0</mwe-version>
+        <mwe-version>2.15.0</mwe-version>
         <exec-plugin-version>3.1.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
         <lsp4j-version>0.21.0</lsp4j-version>
