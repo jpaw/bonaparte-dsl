@@ -3,7 +3,7 @@
  */
 package de.jpaw.bonaparte.jpa.dsl.ui.labeling
 
-import com.google.inject.Inject
+import jakarta.inject.Inject
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryLabelProvider
 import org.eclipse.xtext.ui.label.DefaultEObjectLabelProvider
 

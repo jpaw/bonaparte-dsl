@@ -21,7 +21,7 @@ import de.jpaw.bonaparte.jpa.dsl.generator.java.JavaDDLGeneratorMain
 import de.jpaw.bonaparte.jpa.dsl.generator.res.ResourceGeneratorMain
 import de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlDDLGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject.Inject
+import jakarta.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator

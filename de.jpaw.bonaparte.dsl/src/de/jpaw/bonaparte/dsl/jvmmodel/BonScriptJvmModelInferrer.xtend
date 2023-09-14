@@ -3,7 +3,7 @@
  */
 package de.jpaw.bonaparte.dsl.jvmmodel
 
-import com.google.inject.Inject
+import jakarta.inject.Inject
 import de.jpaw.bonaparte.dsl.bonScript.Model
 import org.eclipse.xtext.xbase.jvmmodel.AbstractModelInferrer
 import org.eclipse.xtext.xbase.jvmmodel.IJvmDeclaredTypeAcceptor

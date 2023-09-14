@@ -21,7 +21,7 @@ import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.xsd.XsdBonScriptGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger
-import javax.inject.Inject
+import jakarta.inject.Inject
 import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
