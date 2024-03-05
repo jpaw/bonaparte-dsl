@@ -1,31 +1,37 @@
-# Build and publish snapshot package when pushed to master
-
-name: Publish Snapshot
+name: "CodeQL"
 
 on:
   workflow_dispatch: # enable manual trigger
   push:
     branches: [ "master" ]
     paths-ignore: [ ".github/**" ]
-
-# cancel already running instances of this workflow
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  pull_request:
+    branches: [ "master" ]
+  schedule:
+    - cron: '42 14 * * 0'
 
 env:
   JAVA_VERSION_TO_USE: '17'
   JAVA_DISTRI_TO_USE: 'corretto'
-  DEPLOY_RETRY: 5
+  GITHUB_TOKEN_READ_PACKAGES: ${{ secrets.GH_WORKFLOWS_PAT_READ_PACKAGES }}
 
 jobs:
-  publish:
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
+    timeout-minutes: 360
     permissions:
+      actions: read
       contents: read
-      packages: write
+      security-events: write
+
     steps:
     - uses: actions/checkout@v4
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: java
 
     - name: Set up JDK ${{ env.JAVA_VERSION_TO_USE }} (${{ env.JAVA_DISTRI_TO_USE }})
       uses: actions/setup-java@v4
@@ -35,6 +41,11 @@ jobs:
         cache: maven
 
     - name: Build and Publish
-      run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
+      run: mvn -B -P github package
       env:
         GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:java"
