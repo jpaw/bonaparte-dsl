@@ -34,14 +34,14 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.32.0</xtextVersion>
-        <tycho-version>3.0.4</tycho-version>
-        <mwe-version>2.15.0</mwe-version>
+        <xtextVersion>2.34.0</xtextVersion>
+        <tycho-version>3.0.5</tycho-version>
+        <mwe-version>2.17.0</mwe-version>
         <exec-plugin-version>3.1.0</exec-plugin-version>
         <dependency-plugin-version>3.1.1</dependency-plugin-version>
-        <lsp4j-version>0.21.0</lsp4j-version>
+        <lsp4j-version>0.22.0</lsp4j-version>
         <log4j-version>1.2.17</log4j-version>
-        <asm-version>9.5</asm-version>
+        <asm-version>9.6</asm-version>
         <release.plugin.version>3.0.1</release.plugin.version>
         <scm.plugin.version>2.0.1</scm.plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
