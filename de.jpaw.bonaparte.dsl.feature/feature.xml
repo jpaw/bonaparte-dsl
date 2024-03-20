@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="de.jpaw.bonaparte.dsl.feature"
     label="BonScript Feature "
-    version="5.3.2">
+    version="5.3.3.qualifier">
     <plugin
             id="de.jpaw.bonaparte.dsl"
             download-size="0"
