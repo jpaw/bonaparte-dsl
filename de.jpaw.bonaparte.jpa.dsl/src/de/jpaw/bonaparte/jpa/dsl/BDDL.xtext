@@ -157,7 +157,7 @@ EntityDefinition:
         (('extends' extendsClass=[pojos::ClassDefinition|QualifiedId])  // unused / unusable? or mapped superclass?
          | ('extendsJava' extendsJava=QualifiedId)
         )?
-        ('implements' implementsJavaInterface = [jvmTypes::JvmGenericType|QualifiedId] )?
+        ('implements' implementsJavaInterfaces += [jvmTypes::JvmGenericType|QualifiedId] (',' implementsJavaInterfaces += [jvmTypes::JvmGenericType|QualifiedId])* )?
         (serializable ?= 'serializable')?
     '{'
         ('fields' visibility=Visibility ';')?

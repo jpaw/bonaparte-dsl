@@ -817,7 +817,8 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         «IF e.isDeprecated || e.pojoType.isDeprecated || (e.pojoType.eContainer as PackageDefinition).isDeprecated || (e.eContainer as BDDLPackageDefinition).isIsDeprecated»
             @Deprecated
         «ENDIF»
-        public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF» implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity, shouldBeSerializable)»«IF e.implementsJavaInterface !== null», «e.implementsJavaInterface.qualifiedName»«ENDIF» {
+        public«IF e.isAbstract» abstract«ENDIF» class «e.name»«IF e.extendsClass !== null» extends «e.extendsClass.name»«ENDIF»«IF e.extendsJava !== null» extends «e.extendsJava»«ENDIF»«IF e.^extends !== null» extends «e.^extends.name»«ENDIF»
+          implements «wrImplements(e, pkType, trackingType, pkDefinedInThisEntity, shouldBeSerializable)»«IF e.implementsJavaInterfaces !== null»«FOR ii: e.implementsJavaInterfaces», «ii.qualifiedName»«ENDFOR»«ENDIF» {
             «IF shouldBeSerializable»
                 private static final long serialVersionUID = «getSerialUID(e.pojoType) + 1L»L;
             «ENDIF»
