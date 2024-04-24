@@ -622,6 +622,12 @@ RELEASE OVERVIEW:
 - 5.0.x:  xtend / xtext 2.10.x, Java 8 only
 
 
+
+- 5.3.0: switch DSL internally to jakarta (guice)
+- 5.3.1: Upgrade Xtext / Xtend to 2.34.0
+- 5.3.2: JPA entities can now implement more than one interface
+- 5.3.3: Support for vector data types (only Postgres / pgvector float)
+
 ROADMAP / PLANS:
 - data types of unspecified size (text, binary)
 - arrays for BDDL without UNROLL (only where DB supports it: HANA, Postgres)

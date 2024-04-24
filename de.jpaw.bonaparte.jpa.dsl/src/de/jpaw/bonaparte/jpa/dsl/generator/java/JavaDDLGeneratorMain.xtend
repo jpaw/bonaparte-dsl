@@ -240,19 +240,20 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
             «cl.extendsClass?.classRef?.recurseJ(stopAt, includeAggregates, filterCondition, embeddables, nmd, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
-                «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
+                «IF (includeAggregates || !c.isAggregate || c.isVectorField || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
                     «c.writeFieldWithEmbeddedAndListJ(embeddables, nmd, null, null, null, false, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
     '''
 
-    // shorthand call for entities
+    // shorthand call for entities (called from javaEntityOut)
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt, EntityDefinition e,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails, String jakartaPrefix) {
         cl.recurseColumns(stopAt, e.elementCollections, e.embeddables, e.nameMapping, e.tableCategory.doBeanVal, pkColumns, primaryKeyType, isIdGenerated, generatedIdDetails, jakartaPrefix);
     }
 
+    // called from above helper as well as embeddable output
     def private CharSequence recurseColumns(ClassDefinition cl, ClassDefinition stopAt,
         List<ElementCollectionRelationship> el, List<EmbeddableUse> embeddables, ColumnNameMappingDefinition nmd, boolean doBeanVal,
         List<FieldDefinition> pkColumns, PrimaryKeyType primaryKeyType, boolean isIdGenerated, String generatedIdDetails, String jakartaPrefix
@@ -261,7 +262,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         //        «IF embeddables?.filter[isPk !== null].head?.field == fld»
         //            @EmbeddedId
         //        «ENDIF»
-        recurseJ(cl, stopAt, true, [ !isAggregate || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables, nmd,
+        recurseJ(cl, stopAt, true, [ !isAggregate || isVectorField || hasECin(el) || properties.hasProperty(PROP_UNROLL) ], embeddables, nmd,
             [ '''// table columns of java class «name»
             ''' ], [ fld, myName, ind | '''
                 «IF (primaryKeyType == PrimaryKeyType::SINGLE_COLUMN || primaryKeyType == PrimaryKeyType::ID_CLASS) && pkColumns.map[name].contains(fld.name)»
@@ -682,6 +683,11 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         «ENDIF»
         «IF e.cacheSize != 0»
             import org.eclipse.bonaparte.jpa.annotations.Cache;  // BAD! O-R mapper specific TODO: FIXME
+        «ENDIF»
+        «IF e.pojoType.containsVectorField»
+            import org.hibernate.annotations.Array;
+            import org.hibernate.annotations.JdbcTypeCode;
+            import org.hibernate.type.SqlTypes;
         «ENDIF»
         «IF e.cacheable»
             import «jakartaPrefix».persistence.Cacheable;

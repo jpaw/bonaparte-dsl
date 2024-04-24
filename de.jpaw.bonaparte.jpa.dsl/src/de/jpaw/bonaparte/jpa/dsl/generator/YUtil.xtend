@@ -36,6 +36,8 @@ import static de.jpaw.bonaparte.dsl.generator.java.JavaPackages.*
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType
 
 class YUtil {
     // bonaparte properties which are used for bddl code generators
@@ -270,6 +272,22 @@ class YUtil {
         }
     }
 
+    /*** Determines if the field is a vector field (array of primitives). */
+    def static isVectorField(FieldDefinition c) {
+        return c.isArray !== null && DataTypeExtension.get(c.getDatatype()).isPrimitive
+    }
+
+    /*** Determines if a class (or one of its superclasses) contains a vector field (array of primitives). Uses tail-recursion for this. */
+    def static boolean containsVectorField(ClassDefinition cl) {
+        for (c: cl.fields) {
+            if (c.isVectorField) {
+                return true;
+            }
+        }
+        val superClass = cl.extendsClass?.classRef
+        return superClass === null ? false : containsVectorField(superClass)
+    }
+
     // a generic iterator over the fields of a specific class, plus certain super classes.
     // Using the new Xtend lambda expressions, which allows to separate looping logic from specific output formatting.
     // All inherited classes are recursed, until a "stop" class is encountered (which is used in case of JOIN inheritance).
@@ -282,14 +300,14 @@ class YUtil {
             «cl.extendsClass?.classRef?.recurse(stopAt, includeAggregates, filterCondition, embeddables, groupSeparator, fieldOutput)»
             «groupSeparator?.apply(cl)»
             «FOR c : cl.fields»
-                «IF (includeAggregates || !c.isAggregate || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
+                «IF (includeAggregates || !c.isAggregate || c.isVectorField || c.properties.hasProperty(PROP_UNROLL)) && filterCondition.apply(c)»
                     «c.writeFieldWithEmbeddedAndList(embeddables, null, null, RequiredType::DEFAULT, false, "", fieldOutput)»
                 «ENDIF»
             «ENDFOR»
         «ENDIF»
     '''
 
-    def static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
+    def private static void recurseAdd(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, boolean includeAggregates, (FieldDefinition) => boolean filterCondition) {
         if (cl !== null && cl != stopAt) {
             // add fields of subclasses
             bucket.recurseAdd(cl.extendsClass?.classRef, stopAt, includeAggregates, filterCondition)
@@ -299,7 +317,7 @@ class YUtil {
             }
         }
     }
-    def static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
+    def private static void recurseAddDDL(List<FieldDefinition> bucket, ClassDefinition cl, ClassDefinition stopAt, List<FieldDefinition> excludeColumns) {
         recurseAdd(bucket, cl, stopAt, false, [ !(properties.hasProperty(PROP_NODDL) || (excludeColumns !== null && excludeColumns.contains(it)))])
     }
 
@@ -482,5 +500,12 @@ class YUtil {
     }
     def static theEmbeddables(EntityDefinition t) {
         return if (t.inheritanceRoot.xinheritance == Inheritance::TABLE_PER_CLASS) t.combinedEmbeddables(new ArrayList<EmbeddableUse>()) else t.embeddables
+    }
+
+    def static int getVectorLengthFloat(ElementaryDataType elem) {
+        return elem.getLength() > 0 ? elem.getLength() : 2000;  // 2000 is the maximum supported by pgvector for float vectors
+    }
+    def static int getVectorLengthBit(ElementaryDataType elem) {
+        return elem.getLength() > 0 ? elem.getLength() : 64000;   // 64000 is the maximum supported by pgvector for bit fields
     }
 }

@@ -15,25 +15,27 @@
   */
 package de.jpaw.bonaparte.jpa.dsl.generator.java
 
+import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
+import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
+import de.jpaw.bonaparte.dsl.bonScript.Visibility
+import de.jpaw.bonaparte.dsl.bonScript.XVisibility
 import de.jpaw.bonaparte.dsl.generator.DataCategory
+import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
+import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
+import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
+import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
+import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.generator.YUtil
+import java.util.List
+
 import static extension de.jpaw.bonaparte.dsl.generator.Util.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
-import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
-import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
-import java.util.List
-import de.jpaw.bonaparte.dsl.generator.java.JavaBeanValidation
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.dsl.bonScript.Visibility
-import de.jpaw.bonaparte.dsl.bonScript.XVisibility
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
-import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackageDefinition
-import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 
 class JavaFieldWriter {
     val static String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
@@ -520,11 +522,38 @@ class JavaFieldWriter {
                     «f.properties.optionalAnnotation("lob", "@Lob")»
                     «f.properties.optionalAnnotation("lazy", "@Basic(fetch=FetchType.LAZY)")»
                     «JavaBeanValidation::writeAnnotations(f, DataTypeExtension::get(f.datatype), doBeanVal, !f.isNotNullField, jakartaPrefix)»
+                    «f.writeVectorAnnotations»
                     «f.writeColumnType(myName, doBeanVal, jakartaPrefix)»
                     «f.writeGetterAndSetter(myName, optionalClass)»
                 «ENDIF»
             «ENDIF»
         '''
+    }
+
+    def private static CharSequence writeVectorAnnotations(FieldDefinition f) {
+        val isVector = f.isVectorField
+        if (!isVector) {
+            return ""
+        }
+        val ref = DataTypeExtension.get(f.getDatatype());
+        val elem = ref.elementaryDataType
+        if (elem === null) {
+            // not an array of primitives... (should not happen at this point)
+            return ""
+        }
+        switch (ref.javaType) {
+        case "Boolean":
+            return '''
+                @JdbcTypeCode(SqlTypes.VECTOR)
+                @Array(length = «YUtil.getVectorLengthBit(elem)»)
+            '''
+        case "Float":
+            return '''
+                @JdbcTypeCode(SqlTypes.VECTOR)
+                @Array(length = «YUtil.getVectorLengthFloat(elem)»)
+            '''
+        }
+        return ""
     }
 
     def static boolean shouldWriteColumn(FieldDefinition c) {

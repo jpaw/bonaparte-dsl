@@ -6,12 +6,14 @@ import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.jpa.dsl.BDDLPreferences
 import de.jpaw.bonaparte.jpa.dsl.bDDL.BDDLPackage
 import de.jpaw.bonaparte.jpa.dsl.bDDL.CollectionDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ConverterDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ListOfColumns
+import de.jpaw.bonaparte.jpa.dsl.bDDL.GraphRelationship
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.OneToMany
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Relationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.SingleColumn
@@ -19,6 +21,7 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.TableCategoryDefinition
 import java.util.HashMap
 import java.util.List
 import java.util.Map
+import org.apache.log4j.Logger
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.EReference
 import org.eclipse.emf.ecore.EStructuralFeature
@@ -26,10 +29,6 @@ import org.eclipse.xtext.validation.Check
 
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.ColumnNameMappingDefinition
-import org.apache.log4j.Logger
-import de.jpaw.bonaparte.jpa.dsl.bDDL.GraphRelationship
-import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 
 class BDDLValidator extends AbstractBDDLValidator {
     static Logger LOGGER = Logger.getLogger(BDDLValidator)
@@ -301,6 +300,10 @@ class BDDLValidator extends AbstractBDDLValidator {
                 error("Primary key already specified by embeddables, no separate PK definition allowed", BDDLPackage.Literals.ENTITY_DEFINITION__PK);
             if (!noPkInSuperClasses)
                 error("Cannot redefine a primary key. A key has been defined in a superclass already",   BDDLPackage.Literals.ENTITY_DEFINITION__PK);
+            e.pk.columnName.forEach [
+                if (isAggregate)
+                    error('''Only scalar types allowed here, «name» is not''', BDDLPackage.Literals.LIST_OF_COLUMNS__COLUMN_NAME)
+            ]
         }
         if (e.pkPojo !== null) {
             numPks += 1;
@@ -392,6 +395,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
     }
 
+    // called for primary key fields
     def private void validateOnlyScalars(ClassDefinition c, EReference issue) {
         var cc = c;
         while (cc !== null) {
@@ -405,15 +409,7 @@ class BDDLValidator extends AbstractBDDLValidator {
         }
     }
 
-    @Check
-    def void checkListOfColumns(ListOfColumns lc) {
-        // these are used for indexes and can be scalar only (currently) (planned extension: allow index)
-        lc.columnName.forEach [
-            if (isAggregate)
-                error('''Only scalar types allowed here, «name» is not''', BDDLPackage.Literals.LIST_OF_COLUMNS__COLUMN_NAME)
-        ]
-    }
-
+    // only used for tenant
     @Check
     def void checkSingleColumn(SingleColumn sc) {
         // this is used for the tenant ID only currently and can be scalar only
@@ -441,6 +437,10 @@ class BDDLValidator extends AbstractBDDLValidator {
                         BDDLPackage.Literals.RELATIONSHIP__NAME);
             }
         }
+        m2o.referencedFields.columnName.forEach [
+            if (isAggregate)
+                error('''Only scalar types allowed here, «name» is not''', BDDLPackage.Literals.LIST_OF_COLUMNS__COLUMN_NAME)
+        ]
         /* deactivate plausis for now...
         EntityDefinition child = m2o.getChildObject();
         if (child != null) {
@@ -632,12 +632,37 @@ class BDDLValidator extends AbstractBDDLValidator {
 
     @Check
     def checkIndexDefinition(IndexDefinition ind) {
+        // check for exclusive features: partial index, zeroWhenNull, vector type index
+        var int uniqueCounter = 0;
+        if (ind.zeroWhenNull) uniqueCounter += 1;
+        if (ind.partialIndex) uniqueCounter += 1;
+        if (ind.vectorIndex !== null) uniqueCounter += 1;
+
         // a partial index can only be defined if no function based index is used
-        if (ind.zeroWhenNull && ind.partialIndex) {
-            error('''Cannot define a partial index with zeroWhenNull''', BDDLPackage.Literals.INDEX_DEFINITION__CONDITION);
+        if (uniqueCounter > 1) {
+            error('''The feature "partial index", "zeroWhenNull" and "vector index" are mutually exclusive"''', BDDLPackage.Literals.INDEX_DEFINITION__CONDITION);
         }
         if (ind.partialIndex && ind.notNull && ind.columns.columnName.size != 1) {
             error('''Short form partial index (where notNull) requires index of single column''', BDDLPackage.Literals.INDEX_DEFINITION__PARTIAL_INDEX);
+        }
+        if (ind.vectorIndex !== null) {
+            if (ind.isUnique) {
+                error('''Vector indexes cannot be declared as unique''', BDDLPackage.Literals.INDEX_DEFINITION__IS_UNIQUE);
+            }
+            if (ind.columns.columnName.size != 1) {
+                error('''Vector indexes must be on single column''', BDDLPackage.Literals.INDEX_DEFINITION__COLUMNS);
+            }
+            val indexedColumn = ind.columns.columnName.get(0)
+            if (indexedColumn.isArray === null) {
+                error('''Vector indexes require an array type column''', BDDLPackage.Literals.INDEX_DEFINITION__COLUMNS);
+            }
+        } else {
+            // no indexed column may be of array type
+            for (indCol: ind.columns.columnName) {
+                if (indCol.isArray !== null) {
+                    error('''Array type columns can only be used in vector indexes''', BDDLPackage.Literals.INDEX_DEFINITION__COLUMNS);
+                }
+            }
         }
     }
 

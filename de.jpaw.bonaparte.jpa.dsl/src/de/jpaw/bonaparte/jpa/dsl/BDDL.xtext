@@ -19,7 +19,7 @@ grammar de.jpaw.bonaparte.jpa.dsl.BDDL with de.jpaw.bonaparte.dsl.BonScript
 generate bDDL "http://www.jpaw.de/bonaparte/jpa/dsl/BDDL"
 
 import "http://www.jpaw.de/bonaparte/dsl/BonScript" as pojos
-import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes	// to allow checking of referenced imports
+import "http://www.eclipse.org/xtext/common/JavaVMTypes" as jvmTypes    // to allow checking of referenced imports
 
 @Override
 Model:
@@ -45,13 +45,19 @@ DefaultsDefinition:
 
 enum Permission:
     SELECT='SELECT'|INSERT='INSERT'|UPDATE='UPDATE'|DELETE='DELETE';
-    
+
+enum VectorIndexType:
+	HNSW="HNSW" | IVFFLAT="IVFFlat";
+
+enum DistanceMetricType:
+    L1="L1" | L2="L2" | COSINE="Cosine" | EUCLIDEAN="Euclidean" | MANHATTAN="Manhattan" | JACCARD="Jaccard" | HAMMING="Hamming" | NEGATIVE_INNER_PRODUCT="NegativeInnerProduct";
+
 PermissionList:
     (permissions += Permission (',' permissions += Permission)*);
-    
+
 GrantList:
     roleOrUserName = ID ':' permissions = PermissionList ';';
-    
+
 GrantCategoryDefinition:
     'grants' name=ID '{'
         grants += GrantList*
@@ -183,17 +189,17 @@ EntityDefinition:
 ;
 
 NamedEntityGraph:
-	name = ID 'is'
-	(isAll ?= 'all')?
-	('(' rname += GraphRelationship (',' rname += GraphRelationship)* ')')?
+    name = ID 'is'
+    (isAll ?= 'all')?
+    ('(' rname += GraphRelationship (',' rname += GraphRelationship)* ')')?
 ;
 
 // used for entity graphs
 GraphRelationship:
-	name = [Relationship] ( '(' fields = SubGraphFields ')')?
+    name = [Relationship] ( '(' fields = SubGraphFields ')')?
 ;
 SubGraphFields:
-	fields += [Relationship|QualifiedId] (',' fields += [Relationship|QualifiedId])*
+    fields += [Relationship|QualifiedId] (',' fields += [Relationship|QualifiedId])*
 ;
 
 ManyToOne:
@@ -248,8 +254,12 @@ ForeignKeyDefinition:
     'field' name = [pojos::FieldDefinition] 'references' ownerEntity = [EntityDefinition|QualifiedId] '.' referencedFieldName = ID ';'
 ;
 
+VectorIndexDefinition:
+    vectorIndexType = VectorIndexType 'for' distanceMetricType = DistanceMetricType ("WITH" ^with = STRING)?;
+
 IndexDefinition:
     (isUnique ?= 'unique')?
+    (vectorIndex = VectorIndexDefinition)?
     columns = ListOfColumns
     (zeroWhenNull ?= 'zeroWhenNull')?  // builds a function based index if nullable fields are included, mapping nulls to zero (or a blank)
     (partialIndex ?= 'where' ((condition = STRING)? | (notNull ?= 'notNull')?))?

@@ -28,7 +28,9 @@ import de.jpaw.bonaparte.jpa.dsl.bDDL.ElementCollectionRelationship
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EmbeddableUse
 import de.jpaw.bonaparte.jpa.dsl.bDDL.EntityDefinition
+import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 import de.jpaw.bonaparte.jpa.dsl.bDDL.Inheritance
+import de.jpaw.bonaparte.jpa.dsl.bDDL.VectorIndexDefinition
 import de.jpaw.bonaparte.jpa.dsl.generator.RequiredType
 import de.jpaw.bonaparte.jpa.dsl.generator.YUtil
 import java.util.HashSet
@@ -47,7 +49,6 @@ import static de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlEnumOutOracle.*
 import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 import static extension de.jpaw.bonaparte.jpa.dsl.generator.sql.SqlViewOut.*
-import de.jpaw.bonaparte.jpa.dsl.bDDL.IndexDefinition
 
 class SqlDDLGeneratorMain extends AbstractGenerator {
     static Logger LOGGER = Logger.getLogger(SqlDDLGeneratorMain)
@@ -314,6 +315,59 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         '''
     }
 
+    def private String vectorIndexType(DatabaseFlavour databaseFlavour, VectorIndexDefinition vid) {
+        if (databaseFlavour != DatabaseFlavour.POSTGRES || vid === null) {
+            return ""
+        } else {
+            return " USING " + vid.vectorIndexType.toString.toLowerCase
+        }
+    }
+
+    def private String vectorIndexWithClause(DatabaseFlavour databaseFlavour, VectorIndexDefinition vid) {
+        if (databaseFlavour != DatabaseFlavour.POSTGRES || vid === null || vid.with === null) {
+            return ""
+        } else {
+            return " WITH (" + vid.with + ")"
+        }
+    }
+
+
+    def private CharSequence distanceMetricType(DatabaseFlavour databaseFlavour, VectorIndexDefinition vid, CharSequence columnExpression) {
+        if (databaseFlavour != DatabaseFlavour.POSTGRES || vid === null) {
+            return columnExpression
+        } else {
+            switch (vid.distanceMetricType) {
+                case COSINE: {
+                    return columnExpression + " vector_cosine_ops"
+                }
+                case L1: {
+                    return columnExpression + " vector_l1_ops"
+                }
+                case MANHATTAN: {
+                    return columnExpression + " vector_l1_ops"
+                }
+                case L2: {
+                    return columnExpression + " vector_l2_ops"
+                }
+                case EUCLIDEAN: {
+                    return columnExpression + " vector_l2_ops"
+                }
+                case HAMMING: {
+                    return columnExpression + " bit_hamming_ops"
+                }
+                case JACCARD: {
+                    return columnExpression + " bit_jaccard_ops"
+                }
+                case NEGATIVE_INNER_PRODUCT: {
+                    return columnExpression + " vector_ip_ops"
+                }
+                default: {
+                    return columnExpression
+                }
+            }
+        }
+    }
+
     def sqlDdlOut(EntityDefinition t, DatabaseFlavour databaseFlavour, boolean doHistory) {
         val String tablename = YUtil::mkTablename(t, doHistory)
         val baseEntity = t.inheritanceRoot // for derived tables, the original (root) table
@@ -374,9 +428,9 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
-                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»(
-                    «FOR c : i.columns.columnName SEPARATOR ', '»«writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull)»«ENDFOR»
-                )«writePartialIndexClause(i, databaseFlavour, nmd)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
+                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»«vectorIndexType(databaseFlavour, i.vectorIndex)» (
+                    «FOR c : i.columns.columnName SEPARATOR ', '»«distanceMetricType(databaseFlavour, i.vectorIndex, writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull))»«ENDFOR»
+                )«writePartialIndexClause(i, databaseFlavour, nmd)»«vectorIndexWithClause(databaseFlavour, i.vectorIndex)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
         «IF grantGroup !== null && grantGroup.grants !== null && databaseFlavour != DatabaseFlavour.MYSQL»

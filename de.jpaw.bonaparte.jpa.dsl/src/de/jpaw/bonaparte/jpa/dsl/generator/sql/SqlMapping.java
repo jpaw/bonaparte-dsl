@@ -19,6 +19,7 @@ package de.jpaw.bonaparte.jpa.dsl.generator.sql;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.jpaw.bonaparte.dsl.bonScript.ElementaryDataType;
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
@@ -257,6 +258,19 @@ public class SqlMapping {
             ref = DataTypeExtension.get(c.getDatatype());
         } catch (Exception ee) {
             throw new Exception("Cannot get datatype extension for fieldDefinition " + c.getName(), ee);
+        }
+        // deal with vectors
+        if (YUtil.isVectorField(c)) {
+            final ElementaryDataType elem = ref.elementaryDataType;
+            if (databaseFlavour == DatabaseFlavour.POSTGRES && elem != null) {
+                switch (ref.javaType) {
+                case "Boolean":
+                    return "bit(" + YUtil.getVectorLengthBit(elem) + ")";
+                case "Float":
+                    return "vector(" + YUtil.getVectorLengthFloat(elem) + ")";
+                }
+            }
+            return "UNSUPPORTED VECTOR TYPE OR DATABASE FLAVOR for javaType " + ref.javaType + " elem " + (elem != null ? "NOT NULL" : "NULL");
         }
         int columnLength;
         int columnDecimals;
