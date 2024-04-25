@@ -53,7 +53,7 @@ class JavaOpenApiOutput {
                     b.append(", required=true")
                 else
                     b.append(", nullable=true")
-                
+
                 //
                 if (ref.elementaryDataType !== null) {
                     val lowercaseName = ref.elementaryDataType.name.toLowerCase()
@@ -110,7 +110,7 @@ class JavaOpenApiOutput {
         }
         return ""
     }
-    
+
     def private static void addPositive(StringBuilder b, DataTypeExtension ref) {
         if (ref.effectiveSigned) {
             b.append(", minimum=\"0\"")

@@ -455,7 +455,7 @@ BDDL: allow @Deprecated at package level
 BON: emulate JSON for JAXB (needs same version of bonaparte-java and bonaparte-xml dependency)
 
 4.1.7, 4.1.8:
-BON: allow to use the same simpleName for the current class as for the parent or root classes (only for not persisted classes, and not recommended) 
+BON: allow to use the same simpleName for the current class as for the parent or root classes (only for not persisted classes, and not recommended)
 
 4.2.0:
 BON: also store field properties in meta data
@@ -488,7 +488,7 @@ BON: put$active no longer throws an Exception if the object does not contain an 
 BDDL: allow manual specification of JoinColumn directives (join "updatable=false" after @OneToOne or @OneToMany)
 
 4.2.9:
-BON: Support to have uppercase names for individual fields only (property xmlUppercase) 
+BON: Support to have uppercase names for individual fields only (property xmlUppercase)
 BON: Support for XML attributes (property xmlAttribute)
 
 4.3.0:
@@ -663,5 +663,5 @@ additional plausis:
 
 Known restrictions / limitations:
 - BDDL: When using ElementCollection in conjunction with Embeddables, the names of the primary key columns of the ElementCollection must be identical to the name of the primary key of the parent entity.
-- BDDL: When DTOs reference objects which are declared as embeddables in BDDL, but are not referenced as embeddable in the entity definition, no error is raised, but the generated code contains invalid references in equals() and hashCode() 
+- BDDL: When DTOs reference objects which are declared as embeddables in BDDL, but are not referenced as embeddable in the entity definition, no error is raised, but the generated code contains invalid references in equals() and hashCode()
         (examples.pk/NoPkEntity)

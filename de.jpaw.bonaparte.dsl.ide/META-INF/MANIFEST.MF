@@ -12,4 +12,3 @@ Require-Bundle: de.jpaw.bonaparte.dsl,
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Export-Package: de.jpaw.bonaparte.dsl.ide.contentassist.antlr.internal,
  de.jpaw.bonaparte.dsl.ide.contentassist.antlr
-

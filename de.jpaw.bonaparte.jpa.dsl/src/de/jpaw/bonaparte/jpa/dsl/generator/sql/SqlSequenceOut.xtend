@@ -19,32 +19,32 @@ package de.jpaw.bonaparte.jpa.dsl.generator.sql
 class SqlSequenceOut {
 
     def static createSequence(String sequencename, DatabaseFlavour databaseFlavour) {
-    	switch (databaseFlavour) {
-		case MSSQLSERVER: {
-			return '''
-				CREATE SEQUENCE [dbo].[«sequencename»] as bigint start with 0 increment by 1;
-			'''
-		}
-		case MYSQL: {
-			return '''
-				CREATE SEQUENCE «sequencename» NOCACHE;
-			'''
-		}
-		case ORACLE: {
-			return '''
-				CREATE SEQUENCE «sequencename» NOCACHE;
-			'''
-		}
-		case POSTGRES: {
-			return '''
-				CREATE SEQUENCE «sequencename»;
-			'''
-		}
-		case SAPHANA: {
-			return '''
-				CREATE SEQUENCE «sequencename»;
-			'''
-		}
-    	}
+        switch (databaseFlavour) {
+        case MSSQLSERVER: {
+            return '''
+                CREATE SEQUENCE [dbo].[«sequencename»] as bigint start with 0 increment by 1;
+            '''
+        }
+        case MYSQL: {
+            return '''
+                CREATE SEQUENCE «sequencename» NOCACHE;
+            '''
+        }
+        case ORACLE: {
+            return '''
+                CREATE SEQUENCE «sequencename» NOCACHE;
+            '''
+        }
+        case POSTGRES: {
+            return '''
+                CREATE SEQUENCE «sequencename»;
+            '''
+        }
+        case SAPHANA: {
+            return '''
+                CREATE SEQUENCE «sequencename»;
+            '''
+        }
+        }
     }
 }

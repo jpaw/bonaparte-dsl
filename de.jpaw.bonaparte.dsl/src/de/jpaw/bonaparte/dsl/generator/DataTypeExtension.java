@@ -72,7 +72,7 @@ public class DataTypeExtension {
     );
     public static final List<String> FIXED_POINT_TYPES = ImmutableList.of(
         "Units", "Tenths", "Hundreds", "MilliUnits", "4", "5", "MicroUnits",
-        "7", "8", "NanoUnits", "10", "11", "PicoUnits", "13", "14", "FemtoUnits" 
+        "7", "8", "NanoUnits", "10", "11", "PicoUnits", "13", "14", "FemtoUnits"
     );
 
     // a lookup to resolve typedefs. Also collects preprocessed information about a data type

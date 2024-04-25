@@ -76,7 +76,7 @@ class MakeRelationships {
     def static optArgs(String ... args) {
         args.filterNull.join('(',', ', ')', [it])
     }
-    
+
     def private static obtainKeyColumns(EntityDefinition childObject) {
         var o = childObject
         while (o !== null) {

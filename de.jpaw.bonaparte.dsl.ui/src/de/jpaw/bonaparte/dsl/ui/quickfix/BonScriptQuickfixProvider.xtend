@@ -12,13 +12,13 @@ import org.eclipse.xtext.ui.editor.quickfix.DefaultQuickfixProvider
  */
 class BonScriptQuickfixProvider extends DefaultQuickfixProvider {
 
-//	@Fix(BonScriptValidator.INVALID_NAME)
-//	def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
-//		acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
-//			context |
-//			val xtextDocument = context.xtextDocument
-//			val firstLetter = xtextDocument.get(issue.offset, 1)
-//			xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
-//		]
-//	}
+//  @Fix(BonScriptValidator.INVALID_NAME)
+//  def capitalizeName(Issue issue, IssueResolutionAcceptor acceptor) {
+//      acceptor.accept(issue, 'Capitalize name', 'Capitalize the name.', 'upcase.png') [
+//          context |
+//          val xtextDocument = context.xtextDocument
+//          val firstLetter = xtextDocument.get(issue.offset, 1)
+//          xtextDocument.replace(issue.offset, 1, firstLetter.toUpperCase)
+//      ]
+//  }
 }

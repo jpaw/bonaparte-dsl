@@ -148,7 +148,7 @@
                     <completionGoals>org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata org.apache.maven.plugins:maven-scm-plugin:add</completionGoals>
                 </configuration>
             </plugin>
-            
+
             <!-- Used to add changed files by tycho:update-eclipse-metadata -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

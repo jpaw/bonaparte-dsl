@@ -13,8 +13,8 @@ import org.eclipse.xtext.util.Modules2
  */
 class BDDLIdeSetup extends BDDLStandaloneSetup {
 
-	override createInjector() {
-		Guice.createInjector(Modules2.mixin(new BDDLRuntimeModule, new BDDLIdeModule))
-	}
-	
+    override createInjector() {
+        Guice.createInjector(Modules2.mixin(new BDDLRuntimeModule, new BDDLIdeModule))
+    }
+
 }

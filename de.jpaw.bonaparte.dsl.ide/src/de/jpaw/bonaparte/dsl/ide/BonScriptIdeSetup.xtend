@@ -13,8 +13,8 @@ import org.eclipse.xtext.util.Modules2
  */
 class BonScriptIdeSetup extends BonScriptStandaloneSetup {
 
-	override createInjector() {
-		Guice.createInjector(Modules2.mixin(new BonScriptRuntimeModule, new BonScriptIdeModule))
-	}
-	
+    override createInjector() {
+        Guice.createInjector(Modules2.mixin(new BonScriptRuntimeModule, new BonScriptIdeModule))
+    }
+
 }
