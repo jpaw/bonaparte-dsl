@@ -167,6 +167,7 @@ class JavaXEnum {
                 «ELSE»
                     null,
                 «ENDIF»
+                «JavaMeta.writeComments(d.javadoc, d.regularComment)»
                 // now specific xenum items
                 «d.overallMaxLength»,
                 «d.hasNullToken»,

@@ -134,6 +134,7 @@ class JavaEnumSet {
                 _BUNDLE,
                 Instant.now(),
                 null,
+                «JavaMeta.writeComments(d.javadoc, d.regularComment)»
                 // now specific enumset items
                 IndexType.«indexType.toUpperCase»,
                 «d.myEnum.name».enum$MetaData()

@@ -126,6 +126,7 @@ FieldDefaultsDefinition:
 // packages loosely correspond to Java packages, in OSGi environments, they would be mapped to application modules
 PackageDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'package' ('(' prefix=QualifiedId ')')? name=QualifiedId   // prefix is generated but not stored in serialized form, default is de.jpaw.bonaparte.pojos
         ('XML' xmlAccess = XmlAccess
@@ -179,6 +180,7 @@ ClassReference:
 // a class corresponds to a Java class
 ClassDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')?
     ((unfreezable ?= 'not')? immutable?='immutable')?                 // no setters, final fields (requires use of all-args constructor)
@@ -239,6 +241,7 @@ InterfaceListDefinition:
 // a class corresponds to a Java class
 XEnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (abstract?='abstract' | final?='final')?
     'xenum' name = ID
@@ -253,6 +256,7 @@ XEnumDefinition:
 
 EnumDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'enum' name = ID '{'
         ((values += ID (',' values += ID)*) |
@@ -262,6 +266,7 @@ EnumDefinition:
 
 EnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'enumset' ('<' indexType=('String' | 'byte' | 'short' | 'int' | 'long') '>')? name = ID 'is' myEnum=[EnumDefinition|QualifiedId]
     ';'
@@ -269,6 +274,7 @@ EnumSetDefinition:
 
 XEnumSetDefinition:
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     'xenumset' name = ID 'is' myXEnum=[XEnumDefinition|QualifiedId]
     ';'
@@ -289,6 +295,7 @@ TypeDefinition:
 // Careful: Due to implementation of the validators, FieldDefinition may only be referenced from the ClassDefinition type!
 FieldDefinition hidden(WS, ML_COMMENT):  // unhide SL_COMMENT
     (javadoc = JAVADOC_COMMENT)?
+    (regularComment = ML_COMMENT)?
     (isDeprecated?='@Deprecated')?
     (visibility = Visibility)?
     (required   = Required)?

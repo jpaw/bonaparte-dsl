@@ -52,6 +52,14 @@ class JavaMeta {
     }
 
     def private static makeMeta(ClassDefinition d, FieldDefinition i) {
+        val comments = '''
+        , «IF i.javadoc === null»null«ELSE»"""
+        «i.javadoc»
+        """«ENDIF», «IF i.regularComment === null»null«ELSE»"""
+        «i.regularComment»
+        """«ENDIF», «IF i.comment === null»null«ELSE»"«Util.escapeString2Java(i.comment)»"«ENDIF»'''
+        val extraComments = ", null, null, null"  // currently do not generate the same entries for extra items
+
         val ref = DataTypeExtension::get(i.datatype)
         val elem = ref.elementaryDataType
         var String multi
@@ -93,7 +101,7 @@ class JavaMeta {
             // separate item for the token
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "enum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "enum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName»«extraComments», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
             '''
         }
         case DataCategory::ENUM: {
@@ -101,7 +109,7 @@ class JavaMeta {
             ext = ''', «elem.enumType.name».enum$MetaData()'''
             extraItem = '''
                 public static final BasicNumericElementaryDataItem meta$$«i.name»$token = new BasicNumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.NUMERIC,
-                    "enum", "int", true, «i.isAggregateRequired», «i.writeFieldPropertyMapName», false, 4, 0, false);  // assume 4 digits
+                    "enum", "int", true, «i.isAggregateRequired», «i.writeFieldPropertyMapName»«extraComments», false, 4, 0, false);  // assume 4 digits
             '''
         }
         case DataCategory::XENUM: {
@@ -109,7 +117,7 @@ class JavaMeta {
             // separate item for the token. TODO: Do I need this here?
             extraItem = '''
                 public static final AlphanumericElementaryDataItem meta$$«i.name»$token = new AlphanumericElementaryDataItem(Visibility.«visibility», «b2A(i.isRequired)», "«i.name»$token", «multi», DataCategory.STRING,
-                    "xenum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
+                    "xenum", "String", false, «i.isAggregateRequired», «i.writeFieldPropertyMapName»«extraComments», true, false, false, false, «ref.enumMaxTokenLength», 0, null);
                 '''
             ext = ''', «elem.xenumType.name».xenum$MetaData()'''
         }
@@ -153,11 +161,11 @@ class JavaMeta {
         return '''
             «extraItem»
             public static final «classname» meta$$«i.name» = new «classname»(Visibility.«visibility», «b2A(i.isRequired)», "«i.metaName ?: i.name»", «multi», DataCategory.«ref.category.name»,
-                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired», «i.writeFieldPropertyMapName»«ext»);
+                "«bonaparteType»", "«ref.javaType»", «b2A(ref.isPrimitive)», «i.isAggregateRequired», «i.writeFieldPropertyMapName»«comments»«ext»);
             '''
     }
 
-    def public static writeMetaData(ClassDefinition d) {
+    def static writeMetaData(ClassDefinition d) {
         val myPackage = getPackage(d)
         val fqParentName = if (d.parent !== null) d.parent.bonPackageName + "." + d.parent.name
         val propertiesInherited = (d.inheritProperties || myPackage.inheritProperties) && d.getParent !== null
@@ -217,6 +225,7 @@ class JavaMeta {
                 «ELSE»
                     null,
                 «ENDIF»
+                «writeComments(d.javadoc, d.regularComment)»
                 // now specific class items
                 _REVISION,
                 serialVersionUID,
@@ -243,6 +252,7 @@ class JavaMeta {
                     Visibility.PUBLIC, false, "this",
                     Multiplicity.SCALAR, IndexType.NONE, 0, 0,
                     DataCategory.OBJECT, "ref", "«d.name»", false, false, «IF !d.properties.empty»field$property$this«ELSE»null«ENDIF»,
+                    null, null, null,
                     «!d.final», "«d.name»", my$MetaData, null, null
                 );
             «ENDIF»
@@ -376,8 +386,25 @@ class JavaMeta {
         '''
     }
 
+    def static writeComments(String javadoc, String regularComment) '''
+        «IF javadoc === null»
+            null,
+        «ELSE»
+            """
+            «javadoc»
+            """,
+        «ENDIF»
+        «IF regularComment === null»
+            null,
+        «ELSE»
+            """
+            «regularComment»
+            """,
+        «ENDIF»
+    '''
+
     // write the access methods for the interface BonaMeta
-    def static public writeCommonMetaData() '''
+    def static writeCommonMetaData() '''
         // convenience functions for faster access if the metadata structure is not used
         @Override
         public String ret$PQON() {

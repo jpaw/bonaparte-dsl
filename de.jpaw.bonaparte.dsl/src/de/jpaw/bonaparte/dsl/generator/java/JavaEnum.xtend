@@ -186,6 +186,7 @@ class JavaEnum {
                 _BUNDLE,
                 Instant.now(),
                 null,
+                «JavaMeta.writeComments(d.javadoc, d.regularComment)»
                 // now specific enum items
                 «IF isAlphaEnum»
                     «JavaXEnum.getInternalMaxLength(d, 0)»,

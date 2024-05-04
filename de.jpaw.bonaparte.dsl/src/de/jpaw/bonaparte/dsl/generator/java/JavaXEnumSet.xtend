@@ -123,6 +123,7 @@ class JavaXEnumSet {
                 _BUNDLE,
                 Instant.now(),
                 null,
+                «JavaMeta.writeComments(d.javadoc, d.regularComment)»
                 // now specific xenumset items
                 «d.myXEnum.name».xenum$MetaData()
             );
