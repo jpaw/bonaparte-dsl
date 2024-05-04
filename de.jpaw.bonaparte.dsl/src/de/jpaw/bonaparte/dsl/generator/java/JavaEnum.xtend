@@ -156,6 +156,7 @@ class JavaEnum {
             private static final String _PARTIALLY_QUALIFIED_CLASS_NAME = "«getPartiallyQualifiedClassName(d)»";
             private static final String _PARENT = null;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
+            public static final String my$PQON = _PARTIALLY_QUALIFIED_CLASS_NAME;
 
             private static final ImmutableList<String> _ids = new ImmutableList.Builder<String>()
                 «IF !isAlphaEnum»

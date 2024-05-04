@@ -201,6 +201,7 @@ class JavaMeta {
             private static final String _PARENT = «IF (d.extendsClass !== null)»"«getPartiallyQualifiedClassName(d.getParent)»"«ELSE»null«ENDIF»;
             private static final String _BUNDLE = «IF (myPackage.bundle !== null)»"«myPackage.bundle»"«ELSE»null«ENDIF»;
             private static final int PQON$HASH = _PARTIALLY_QUALIFIED_CLASS_NAME.hashCode();
+            public static final String my$PQON = _PARTIALLY_QUALIFIED_CLASS_NAME;
 
             «FOR i : d.fields»
                 «makeMeta(d, i)»
