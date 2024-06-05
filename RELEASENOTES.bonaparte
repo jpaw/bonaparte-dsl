@@ -628,6 +628,10 @@ RELEASE OVERVIEW:
 - 5.3.2: JPA entities can now implement more than one interface
 - 5.3.3: Support for vector data types (only Postgres / pgvector float)
 
+- 6.0.0: (breaking change): extend meta data to support comments
+- 6.0.1: Upgrade to Jakarta JPA 3.2 (removal of @Temporal)
+- 6.0.2: Upgrade to Xtext 2.35.0
+
 ROADMAP / PLANS:
 - data types of unspecified size (text, binary)
 - arrays for BDDL without UNROLL (only where DB supports it: HANA, Postgres)
