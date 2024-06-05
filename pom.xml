@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.jpaw.bonaparte-dsl</groupId>
     <artifactId>de.jpaw.bonaparte.pluginparent</artifactId>
-    <version>6.0.2</version>
+    <version>6.0.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <description>Bonaparte DSL - Parent for all plugin projects</description>
 
     <scm>
         <developerConnection>scm:git:https://github.com/arvato-systems-jacs/bonaparte-dsl.git</developerConnection>
-        <tag>v6.0.2</tag>
+        <tag>HEAD</tag>
     </scm>
 
     <licenses>
