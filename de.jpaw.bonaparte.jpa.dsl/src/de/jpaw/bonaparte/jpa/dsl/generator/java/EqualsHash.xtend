@@ -139,10 +139,6 @@ class EqualsHash {
         case "BonaPortable":        '''Arrays.equals(«index», __that.«index»)'''  // mapped to byte [] (support for serialized storage)
         case "byte []":             '''Arrays.equals(«index», __that.«index»)'''
         case "BigDecimal":          '''(__that.«index» != null && «index».compareTo(__that.«index») == 0)'''  // we want the comparison to be "true" if the values are the same on the database, which ignores the actual presentation and corresponds to compareTo
-//        case "Instant":             '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalTime":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalDate":           '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
-//        case "LocalDateTime":       '''«index».compareTo(__that.«index») == 0'''  // mapped to Calendar or Date or using userdata fields
         // case "Double":      '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         // case "Float":       '''«index».compareTo(«tindex») == 0''' // difference to equals is for NaN values
         default:                    '''«index».equals(__that.«index»)'''

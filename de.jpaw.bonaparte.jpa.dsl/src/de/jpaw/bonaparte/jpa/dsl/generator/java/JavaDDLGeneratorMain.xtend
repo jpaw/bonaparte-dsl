@@ -726,8 +726,6 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.CascadeType;
         import «jakartaPrefix».persistence.Id;
         import «jakartaPrefix».persistence.IdClass;
-        import «jakartaPrefix».persistence.Temporal;
-        import «jakartaPrefix».persistence.TemporalType;
         import «jakartaPrefix».persistence.NoResultException;
         import «jakartaPrefix».persistence.TypedQuery;
         import «jakartaPrefix».persistence.EmbeddedId;
@@ -876,8 +874,6 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Column;
         import «jakartaPrefix».persistence.Convert;
         import «jakartaPrefix».persistence.EmbeddedId;
-        import «jakartaPrefix».persistence.Temporal;
-        import «jakartaPrefix».persistence.TemporalType;
         import «jakartaPrefix».persistence.ManyToOne;
         import «jakartaPrefix».persistence.JoinColumn;
         import «jakartaPrefix».persistence.FetchType;
@@ -924,8 +920,6 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
         import «jakartaPrefix».persistence.Column;
         import «jakartaPrefix».persistence.Convert;
         import «jakartaPrefix».persistence.EmbeddedId;
-        import «jakartaPrefix».persistence.Temporal;
-        import «jakartaPrefix».persistence.TemporalType;
         import «jakartaPrefix».persistence.ManyToOne;
         import «jakartaPrefix».persistence.JoinColumn;
         import «jakartaPrefix».persistence.FetchType;

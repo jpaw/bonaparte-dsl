@@ -39,7 +39,6 @@ import static extension de.jpaw.bonaparte.jpa.dsl.generator.YUtil.*
 
 class JavaFieldWriter {
     val static String EXC_CVT_ARG = ", de.jpaw.bonaparte.core.RuntimeExceptionConverter.INSTANCE"
-    val static String JDBC4TYPE = "Date";  // choose Calendar or Date
     final boolean useUserTypes;
     final String fieldVisibility;
 
@@ -85,11 +84,10 @@ class JavaFieldWriter {
     }
 
     // temporal types for UserType mappings (OR mapper specific extensions)
-    def private writeField(FieldDefinition c, DataTypeExtension ref, String myName, boolean useUserType, String replacementType, CharSequence defaultValue, CharSequence extraAnnotationType) '''
+    def private writeField(FieldDefinition c, DataTypeExtension ref, String myName, boolean useUserType, String replacementType, CharSequence defaultValue) '''
         «IF useUserType»
             «fieldVisibility»«c.JavaDataType2NoName(false, ref.javaType)» «myName»;
         «ELSE»
-            «IF extraAnnotationType !== null»@Temporal(TemporalType.«extraAnnotationType»)«ENDIF»
             «fieldVisibility»«c.JavaDataType2NoName(false, replacementType)» «myName»«defaultValue»;
         «ENDIF»
     '''
@@ -151,43 +149,43 @@ class JavaFieldWriter {
         }
         return switch (ref.category) {
             case DataCategory.ENUM:
-                writeField(c, ref, myName, prefs.doUserTypeForEnum,          "Integer", makeEnumNumDefault(c, ref), null)
+                writeField(c, ref, myName, prefs.doUserTypeForEnum,          "Integer", makeEnumNumDefault(c, ref))
             case DataCategory.ENUMALPHA:
-                writeField(c, ref, myName, prefs.doUserTypeForEnumAlpha,     "String", makeEnumAlphanumDefault(c, ref), null)
+                writeField(c, ref, myName, prefs.doUserTypeForEnumAlpha,     "String", makeEnumAlphanumDefault(c, ref))
             case DataCategory.XENUM:
-                writeField(c, ref, myName, prefs.doUserTypeForXEnum,         "String", makeEnumAlphanumDefault(c, ref), null)
+                writeField(c, ref, myName, prefs.doUserTypeForXEnum,         "String", makeEnumAlphanumDefault(c, ref))
             case DataCategory.ENUMSET:
-                writeField(c, ref, myName, prefs.doUserTypeForEnumset,       ref.elementaryDataType.enumsetType.mapEnumSetIndex, null, null)
+                writeField(c, ref, myName, prefs.doUserTypeForEnumset,       ref.elementaryDataType.enumsetType.mapEnumSetIndex, null)
             case DataCategory.ENUMSETALPHA:
-                writeField(c, ref, myName, prefs.doUserTypeForEnumset,      "String", null, null)
+                writeField(c, ref, myName, prefs.doUserTypeForEnumset,      "String", null)
             case DataCategory.XENUMSET:
-                writeField(c, ref, myName, prefs.doUserTypeForEnumset,      "String", null, null)
+                writeField(c, ref, myName, prefs.doUserTypeForEnumset,      "String", null)
             default: {
                 switch (ref.javaType) {
                     case "LocalTime":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIME")
+                        writeField(c, ref, myName, true, null, null)
                     case "LocalDateTime":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
+                        writeField(c, ref, myName, true, null, null)
                     case "LocalDate":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "DATE")
+                        writeField(c, ref, myName, true, null, null)
                     case "Instant":
-                        writeField(c, ref, myName, useUserTypes, JDBC4TYPE, null, "TIMESTAMP")
+                        writeField(c, ref, myName, true, null, null)
                     case "ByteArray":
-                        writeField(c, ref, myName, useUserTypes, "byte []", null, null)
+                        writeField(c, ref, myName, useUserTypes, "byte []", null)
 
                     case DataTypeExtension.JAVA_JSON_TYPE:
-                        writeField(c, ref, myName, false, c.jsonJavaType("JsonObject", prefs.doUserTypeForJson),  null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonObject", prefs.doUserTypeForJson),  null)
                     case DataTypeExtension.JAVA_ARRAY_TYPE:
-                        writeField(c, ref, myName, false, c.jsonJavaType("JsonArray", prefs.doUserTypeForJson),   null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonArray", prefs.doUserTypeForJson),   null)
                     case DataTypeExtension.JAVA_ELEMENT_TYPE:
-                        writeField(c, ref, myName, false, c.jsonJavaType("JsonElement", prefs.doUserTypeForJson), null, null)
+                        writeField(c, ref, myName, false, c.jsonJavaType("JsonElement", prefs.doUserTypeForJson), null)
                     case DataTypeExtension.JAVA_OBJECT_TYPE:
                         if (prefs.doUserTypeForBonaPortable)
                             return '''«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
                         else
                             '''
                                 // @Lob
-                                «writeField(c, ref, myName, false, "byte []", null, null)»
+                                «writeField(c, ref, myName, false, "byte []", null)»
                             '''
                     default:
                         '''«getConverter(c, ref)»«fieldVisibility»«JavaDataTypeNoName(c, c.properties.hasProperty(PROP_UNROLL))» «myName»;'''
@@ -402,16 +400,6 @@ class JavaFieldWriter {
             if (!prefs.doUserTypeForEnumset) {
                 getter = '''return «myName» == null ? «IF nwz»new «ref.javaType»(«nwzData»)«ELSE»null«ENDIF» : new «ref.javaType»(«myName»);'''
                 setter = '''«myName» = _x == null«IF nwz» || _x.isEmpty()«ENDIF» ? null : _x.getBitmap();'''
-            }
-        } else if (ref.javaType.equals("LocalTime") || ref.javaType.equals("LocalDate") || ref.javaType.equals("LocalDateTime")) {
-            if (!useUserTypes) {
-                getter = '''return «myName» == null ? null : «ref.javaType».from«JDBC4TYPE»Fields(«myName»);'''
-                setter = '''«myName» = DayTime.to«JDBC4TYPE»(_x);'''
-            }
-        } else if (ref.javaType.equals("Instant")) {
-            if (!useUserTypes) {
-                getter = '''return «myName» == null ? null : new Instant(«myName»);'''
-                setter = '''«myName» = _x == null ? null ? _x.to«JDBC4TYPE»();'''
             }
         } else if (ref.javaType.equals("ByteArray")) {
             if (!useUserTypes) {
