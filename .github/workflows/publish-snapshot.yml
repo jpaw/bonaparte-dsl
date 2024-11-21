@@ -34,6 +34,11 @@ jobs:
         distribution: ${{ env.JAVA_DISTRI_TO_USE }}
         cache: maven
 
+    - name: Set up Maven
+      uses: stCarolas/setup-maven@v5
+      with:
+        maven-version: ${{ secrets.GH_WORKFLOWS_MAVEN_VERSION }}
+
     - name: Build and Publish
       run: mvn -B -U -P github -DretryFailedDeploymentCount=${{ env.DEPLOY_RETRY }} deploy
       env:
