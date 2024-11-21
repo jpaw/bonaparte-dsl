@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature id="de.jpaw.bonaparte.jpa.dsl.feature"
     label="BDDL Feature "
-    version="6.0.3.qualifier">
+    version="6.1.0.qualifier">
     <plugin
             id="de.jpaw.bonaparte.jpa.dsl"
             download-size="0"
