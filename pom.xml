@@ -34,9 +34,9 @@
     </developers>
 
     <properties>
-        <xtextVersion>2.37.0</xtextVersion>
-        <tycho-version>4.0.10</tycho-version>
-        <mwe-version>2.20.0</mwe-version>
+        <xtextVersion>2.38.0</xtextVersion>
+        <tycho-version>4.0.12</tycho-version>
+        <mwe-version>2.21.0</mwe-version>
         <exec-plugin-version>3.5.0</exec-plugin-version>
         <clean-plugin-version>3.4.0</clean-plugin-version>
         <dependency-plugin-version>3.8.1</dependency-plugin-version>
