@@ -430,7 +430,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             «FOR i : t.index»
                 CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»«vectorIndexType(databaseFlavour, i.vectorIndex)» (
                     «FOR c : i.columns.columnName SEPARATOR ', '»«distanceMetricType(databaseFlavour, i.vectorIndex, writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull))»«ENDFOR»
-                )«writePartialIndexClause(i, databaseFlavour, nmd)»«vectorIndexWithClause(databaseFlavour, i.vectorIndex)»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
+                )«writePartialIndexClause(i, databaseFlavour, nmd)»«vectorIndexWithClause(databaseFlavour, i.vectorIndex)»«IF i.nullsNotDistinct» NULLS NOT DISTINCT«ENDIF»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
         «ENDIF»
         «IF grantGroup !== null && grantGroup.grants !== null && databaseFlavour != DatabaseFlavour.MYSQL»

@@ -261,7 +261,8 @@ IndexDefinition:
     (isUnique ?= 'unique')?
     (vectorIndex = VectorIndexDefinition)?
     columns = ListOfColumns
-    (zeroWhenNull ?= 'zeroWhenNull')?  // builds a function based index if nullable fields are included, mapping nulls to zero (or a blank)
+    (nullsNotDistinct ?= 'nullsNotDistinct')?  // allows unique indexes for POSTGRES with nulls, where null is treated as regular value
+    (zeroWhenNull ?= 'zeroWhenNull')?          // builds a function based index if nullable fields are included, mapping nulls to zero (or a blank)
     (partialIndex ?= 'where' ((condition = STRING)? | (notNull ?= 'notNull')?))?
 ;
 
