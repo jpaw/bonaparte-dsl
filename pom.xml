@@ -34,7 +34,7 @@
     </developers>
 
     <properties>
-        <min-maven.version>3.9.15</min-maven.version>
+        <min-maven.version>3.9.9</min-maven.version>
         <xtextVersion>2.43.0</xtextVersion>
         <tycho-version>5.0.3</tycho-version>
         <mwe-version>2.26.0</mwe-version>
