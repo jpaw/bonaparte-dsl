@@ -67,6 +67,7 @@ class YUtil {
     public static final String PROP_CURRENT_TIMESTAMP   = "currentTimestamp";
     public static final String PROP_UNIFY               = "unify";          // reuse instances for String and Long elementary types
     public static final String PROP_INTERN              = "intern";         // reuse "interned" instances for String elementary types
+    public static final String PROP_SQL_TYPE            = "sqlType";        // specify SQL column data type
 
     def static fieldAnnotations(FieldDefinition f) {
         return '''«IF f.isNotNullField», nullable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOINSERT)», insertable=false«ENDIF»«IF hasProperty(f.properties, PROP_NOUPDATE)», updatable=false«ENDIF»'''

@@ -209,13 +209,13 @@ ClassDefinition:
     (('keyp' keyPFunction = STRING) | ('keyw' keyWFunction = STRING))?
     ('tracking' trackingClass = [ClassDefinition|QualifiedId])? // references tracking columns. Can in some cases be overridden by inherited classes if required.
     (doCacheHash ?= 'cacheHash')?
-    (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?
-    ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]
-        ('adapter' bonaparteAdapterClass = QualifiedId)?    // if not specified, the type is assumed to be its own adapter
+    (noAllFieldsConstructor ?= 'noAllFieldsConstructor')?               // use noAllFieldsConstructor if the class has too many fields
+    ( 'is' externalType = [jvmTypes::JvmGenericType|QualifiedId]        // externalType is the java class of the actual data type we want
+        ('adapter' bonaparteAdapterClass = QualifiedId)?                // if not specified, the type is assumed to be its own adapter
         (needExtraParam ?= 'needExtraParam')?
         (singleField ?= 'singleField')?
-        (useFqn ?= 'useFqn')?                               // do not import type, use fully qualified name due to simpleName clash
-        (exceptionConverter ?= 'withExceptionConverter')?   // unmarshal possibly throws Exceptions for invalid data which should be enriched with the parsing position
+        (useFqn ?= 'useFqn')?                                           // do not import type, use fully qualified name due to simpleName clash
+        (exceptionConverter ?= 'withExceptionConverter')?               // unmarshal possibly throws Exceptions for invalid data which should be enriched with the parsing position
         (useCompareToInsteadOfEquals ?= 'ordered')?
     )?
     '{'

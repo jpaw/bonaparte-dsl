@@ -146,85 +146,103 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                     }
                 «ENDIF»
                 '''
-        } else {
-            // see if we need embeddables expansion, but only if it is either not an aggregate or it has "unroll loops" set. (Otherwise, it will be an ElementCollection!!!)
-            val emb = embeddables.findFirst[field == f]
-            if (emb !== null && (!f.aggregate || f.properties.hasProperty(PROP_UNROLL))) {
-                // expand embeddable, output it instead of the original column
-                val pojo = emb.name.pojoType
-                val isExternalType = pojo.externalType !== null // adapter required?
-                val lvar = if (isExternalType) "_y" else "_x"
-                val objectName = if (isExternalType) pojo.externalName else pojo.name
-                val nameLengthDiff = f.name.length - objectName.length
-                val tryDefaults = emb.prefix === null && emb.suffix === null && nameLengthDiff > 0
-                val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
-                val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
-                val newPrefix = '''«prefix»«finalPrefix»'''
-                val newSuffix = '''«finalSuffix»«suffix»'''
-                val efields = pojo.allFields  // shorthand...: the fields of the embeddable
-                LOGGER.debug('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
-                //System::out.println('''Java: «myName» defts=«tryDefaults»: nldiff=«nameLengthDiff», emb.pre=«emb.prefix», emb.suff=«emb.suffix»!''')
-                //System::out.println('''Java: «myName» defts=«tryDefaults»: has in=(«prefix»,«suffix»), final=(«finalPrefix»,«finalSuffix»), new=(«newPrefix»,«newSuffix»)''')
-
-                val newPojo =
-                    if (pojo.singleField)       // adapter, and special type of it?
-                        '''«myName».get«pojo.firstField.name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
-                    else
-                        '''new «pojo.name»(«efields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
-                val extraExternalArgs = if (isExternalType && emb.field?.datatype !== null) {
-                    if (emb.field.datatype.extraParameterString !== null)
-                        '''«emb.field.datatype.extraParameterString», '''
-                    else if (emb.field.datatype.extraParameter !== null)
-                        '''get«emb.field.datatype.extraParameter.name.toFirstUpper»(), '''
-                }
-                val marshaller = if (pojo.bonaparteAdapterClass !== null) '''«pojo.adapterClassName».marshal(_x)''' else '''_x.marshal()'''
-
+        }
+        // see if we need embeddables expansion, but only if it is either not an aggregate or it has "unroll loops" set. (Otherwise, it will be an ElementCollection!!!)
+        val emb = embeddables.findFirst[field == f]
+        val notAggregate = !f.aggregate || f.properties.hasProperty(PROP_UNROLL);
+        // if this field refers to an adapter class, get its definition
+        val directObject = f.datatype.objectDataType?.classRef
+        if (emb === null && directObject !== null && directObject.externalType !== null) {
+            // adapter data type, but not an embeddable: if we have an SQL type, use it directly
+            val sqlType = directObject.properties?.getProperty(PROP_SQL_TYPE);
+            if (sqlType !== null) {
+                // create code for a custom type
+                val customType = directObject.externalType.qualifiedName;
                 return '''
-                    «IF newPrefix != "" || newSuffix != ""»
-                        @AttributeOverrides({
-                        «pojo.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, nmd, newPrefix, newSuffix, null, false, true, ',\n',
-                            [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql(nmd)»"))'''])].join(',\n')»
-                        })
-                    «ENDIF»
-                    «IF emb.isPk !== null»
-                        @EmbeddedId
-                    «ELSE»
-                        @Embedded
-                    «ENDIF»
-                    private «emb.name.name» «myName»;
-                    public «objectName» get«myName.toFirstUpper()»() {
-                        if («myName» == null)
-                            return null;
-                        «IF isExternalType»
-                            return «pojo.adapterClassName».unmarshal(«extraExternalArgs»«newPojo»«IF pojo.exceptionConverter», RuntimeExceptionConverter.INSTANCE«ENDIF»);
-                        «ELSE»
-                            return «newPojo»;
-                        «ENDIF»
+                    @Column(name="«myName.java2sql(nmd)»", columnDefinition="«sqlType»")
+                    private «directObject.externalType.qualifiedName» «myName»;
+                    public «customType» get«myName.toFirstUpper()»() {
+                        return «myName»;
                     }
-                    public void set«myName.toFirstUpper()»(«objectName» _x) {
-                        if (_x == null) {
-                            «myName» = null;
-                        } else {
-                            «myName» = new «emb.name.name»();
-                            «IF pojo.singleField»
-                                «myName».set«pojo.firstField.name.toFirstUpper»(«marshaller»);
-                            «ELSE»
-                                «IF isExternalType»
-                                    «pojo.name» _y = «marshaller»;
-                                «ENDIF»
-                                «efields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
-                            «ENDIF»
-                        }
+                    public void set«myName.toFirstUpper()»(«customType» _x) {
+                        «myName» = customType;
                     }
                 '''
-            } else if (emb !== null) {
-                // embeddable in a list, not unrolled: this must be an ElementCollection!
-                // TODO: use special data types
-                func.apply(f, myName, currentIndex)
-            } else {
-                // regular field
-                func.apply(f, myName, currentIndex)
             }
+        }
+        if (emb !== null && notAggregate) {
+            // expand embeddable, output it instead of the original column
+            val pojo = emb.name.pojoType
+            val isExternalType = pojo.externalType !== null // adapter required?
+            val lvar = if (isExternalType) "_y" else "_x"
+            val objectName = if (isExternalType) pojo.externalName else pojo.name
+            val nameLengthDiff = f.name.length - objectName.length
+            val tryDefaults = emb.prefix === null && emb.suffix === null && nameLengthDiff > 0
+            val finalPrefix = if (tryDefaults && f.name.endsWith(objectName)) f.name.substring(0, nameLengthDiff) else emb.prefix             // Address homeAddress => prefix home
+            val finalSuffix = if (tryDefaults && f.name.startsWith(objectName.toFirstLower)) f.name.substring(objectName.length) else emb.suffix // Amount amountBc => suffix Bc
+            val newPrefix = '''«prefix»«finalPrefix»'''
+            val newSuffix = '''«finalSuffix»«suffix»'''
+            val efields = pojo.allFields  // shorthand...: the fields of the embeddable
+            LOGGER.debug('''DDL gen: Expanding embeddable «myName» from «objectName», field is «f.name», aggregate is «f.aggregate», has unroll = «f.properties.hasProperty(PROP_UNROLL)», noList=«noListAtThisPoint», «noList2»''')
+
+            val newPojo =
+                if (pojo.singleField)       // adapter, and special type of it?
+                    '''«myName».get«pojo.firstField.name.toFirstUpper»()'''      // do not construct a temporary BonaPortable adapter proxy of the Embeddable
+                else
+                    '''new «pojo.name»(«efields.map['''«myName».get«name.toFirstUpper»()'''].join(', ')»)'''
+            val extraExternalArgs = if (isExternalType && emb.field?.datatype !== null) {
+                if (emb.field.datatype.extraParameterString !== null)
+                    '''«emb.field.datatype.extraParameterString», '''
+                else if (emb.field.datatype.extraParameter !== null)
+                    '''get«emb.field.datatype.extraParameter.name.toFirstUpper»(), '''
+            }
+            val marshaller = if (pojo.bonaparteAdapterClass !== null) '''«pojo.adapterClassName».marshal(_x)''' else '''_x.marshal()'''
+
+            return '''
+                «IF newPrefix != "" || newSuffix != ""»
+                    @AttributeOverrides({
+                    «pojo.allFields.map[writeFieldWithEmbeddedAndListJ(emb.name.embeddables, nmd, newPrefix, newSuffix, null, false, true, ',\n',
+                        [ fld, myName2, ind | '''    @AttributeOverride(name="«fld.name»«ind»", column=@Column(name="«myName2.java2sql(nmd)»"))'''])].join(',\n')»
+                    })
+                «ENDIF»
+                «IF emb.isPk !== null»
+                    @EmbeddedId
+                «ELSE»
+                    @Embedded
+                «ENDIF»
+                private «emb.name.name» «myName»;
+                public «objectName» get«myName.toFirstUpper()»() {
+                    if («myName» == null)
+                        return null;
+                    «IF isExternalType»
+                        return «pojo.adapterClassName».unmarshal(«extraExternalArgs»«newPojo»«IF pojo.exceptionConverter», RuntimeExceptionConverter.INSTANCE«ENDIF»);
+                    «ELSE»
+                        return «newPojo»;
+                    «ENDIF»
+                }
+                public void set«myName.toFirstUpper()»(«objectName» _x) {
+                    if (_x == null) {
+                        «myName» = null;
+                    } else {
+                        «myName» = new «emb.name.name»();
+                        «IF pojo.singleField»
+                            «myName».set«pojo.firstField.name.toFirstUpper»(«marshaller»);
+                        «ELSE»
+                            «IF isExternalType»
+                                «pojo.name» _y = «marshaller»;
+                            «ENDIF»
+                            «efields.map['''«myName».set«name.toFirstUpper»(«lvar».get«name.toFirstUpper»());'''].join('\n')»
+                        «ENDIF»
+                    }
+                }
+            '''
+        } else if (emb !== null) {
+            // embeddable in a list, not unrolled: this must be an ElementCollection!
+            // TODO: use special data types
+            func.apply(f, myName, currentIndex)
+        } else {
+            // regular field
+            func.apply(f, myName, currentIndex)
         }
     }
 

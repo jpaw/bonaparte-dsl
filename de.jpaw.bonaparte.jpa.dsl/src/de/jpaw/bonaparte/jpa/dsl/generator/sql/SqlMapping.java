@@ -275,6 +275,10 @@ public class SqlMapping {
         int columnLength;
         int columnDecimals;
         if (ref.objectDataType != null) {
+            final String sqlType = XUtil.getProperty(ref.objectDataType.getProperties(), YUtil.PROP_SQL_TYPE);
+            if (sqlType != null) {
+                return sqlType;
+            }
             if (XUtil.hasProperty(c.getProperties(), YUtil.PROP_SERIALIZED)) {
                 String value = XUtil.getProperty(c.getProperties(), YUtil.PROP_SERIALIZED);
                 datatype = "object";  // assume artificial ID
