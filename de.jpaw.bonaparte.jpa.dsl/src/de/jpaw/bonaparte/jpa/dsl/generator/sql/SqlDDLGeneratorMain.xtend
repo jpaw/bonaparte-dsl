@@ -428,7 +428,7 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
         «ENDIF»
         «IF !doHistory»
             «FOR i : t.index»
-                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»«vectorIndexType(databaseFlavour, i.vectorIndex)» (
+                CREATE «IF i.isUnique»UNIQUE «ENDIF»INDEX «tablename.indexname(i, indexCounter)» ON «tablename»«indexMethod(i.method)»«vectorIndexType(databaseFlavour, i.vectorIndex)» (
                     «FOR c : i.columns.columnName SEPARATOR ', '»«distanceMetricType(databaseFlavour, i.vectorIndex, writeIndexColumn(c, databaseFlavour, nmd, i.zeroWhenNull))»«ENDFOR»
                 )«writePartialIndexClause(i, databaseFlavour, nmd)»«vectorIndexWithClause(databaseFlavour, i.vectorIndex)»«IF i.nullsNotDistinct» NULLS NOT DISTINCT«ENDIF»«IF tablespaceIndex !== null» TABLESPACE «tablespaceIndex»«ENDIF»;
             «ENDFOR»
@@ -456,6 +456,10 @@ class SqlDDLGeneratorMain extends AbstractGenerator {
             «t.pojoType.recurseComments(stopAt, tablename, theEmbeddables, nmd)»
         «ENDIF»
     '''
+    }
+
+    def CharSequence indexMethod(String method) {
+        return method === null ? "" : " USING " + method;
     }
 
     // writes a definition for a partial index (currently only supported for POSTGRES databases)

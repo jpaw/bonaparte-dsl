@@ -165,7 +165,7 @@ class JavaDDLGeneratorMain extends AbstractGenerator {
                         return «myName»;
                     }
                     public void set«myName.toFirstUpper()»(«customType» _x) {
-                        «myName» = customType;
+                        «myName» = _x;
                     }
                 '''
             }
