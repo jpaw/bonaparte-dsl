@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: de.jpaw.bonaparte.dsl
 Bundle-SymbolicName: de.jpaw.bonaparte.dsl;singleton:=true
-Bundle-Version: 6.5.1
+Bundle-Version: 6.5.2.qualifier
 Bundle-Vendor: Michael Bischoff
 Export-Package: de.jpaw.bonaparte.dsl,
  de.jpaw.bonaparte.dsl.formatting,
