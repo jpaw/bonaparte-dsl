@@ -137,6 +137,15 @@ public class TypeScriptGeneratorTest {
         "}",
         "");
 
+    private static final String POLYMORPHIC_SOURCE = String.join("\n",
+        "package com.acme.auth {",
+        "    abstract class AuthenticationParameters {}",
+        "    final class PasswordAuthentication extends AuthenticationParameters { required unicode(16) userId; required unicode(32) password; }",
+        "    final class JwtAuthentication extends AuthenticationParameters { required unicode(200) encodedJwt; }",
+        "    class AuthenticationRequest { required (AuthenticationParameters...) authenticationParameters; }",
+        "}",
+        "");
+
     @BeforeClass
     public static void setup() {
         injector = new BonScriptStandaloneSetup().createInjectorAndDoEMFRegistration();
@@ -220,6 +229,16 @@ public class TypeScriptGeneratorTest {
         assertTrue(child, child.contains("export const ChildPQON = \"com.acme.auth.Child\" as const;"));
         assertTrue(child, child.contains("export interface Child<T = unknown> extends Omit<Base, '@PQON'> {"));
         assertTrue(child, child.contains("'@PQON': typeof ChildPQON;"));
+    }
+
+    @Test
+    public void abstractObjectFieldsUseConcreteDescendantUnion() throws Exception {
+        Map<String, CharSequence> files = generate(POLYMORPHIC_SOURCE);
+        String request = norm(files.get(ROOT + "com/acme/auth/AuthenticationRequest.ts"));
+
+        assertTrue(request, request.contains("import type { PasswordAuthentication } from \"./PasswordAuthentication\";"));
+        assertTrue(request, request.contains("import type { JwtAuthentication } from \"./JwtAuthentication\";"));
+        assertTrue(request, request.contains("authenticationParameters: PasswordAuthentication | JwtAuthentication;"));
     }
 
     @Test

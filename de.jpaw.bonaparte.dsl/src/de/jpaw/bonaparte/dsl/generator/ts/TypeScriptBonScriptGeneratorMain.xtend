@@ -308,8 +308,13 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
     def private static String tsBaseType(de.jpaw.bonaparte.dsl.bonScript.DataType dt, ClassDefinition owner, Map<String, EObject> refs) {
         val ref = DataTypeExtension.get(dt)
         if (ref.genericsRef !== null)
-            return ref.genericsRef.tsClassRef(owner, refs)
+            return ref.genericsRef.tsFieldClassRef(owner, refs)
         if (ref.objectDataType !== null) {
+            if (ref.objectDataType instanceof ClassDefinition) {
+                val polymorphicType = (ref.objectDataType as ClassDefinition).tsPolymorphicFieldType(refs)
+                if (polymorphicType !== null)
+                    return polymorphicType
+            }
             refs.put(ref.objectDataType.name, ref.objectDataType)
             return ref.objectDataType.name
         }
@@ -356,5 +361,49 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
             default:
                 "BonaPortable"
         }
+    }
+
+    private static def String tsPolymorphicFieldType(ClassDefinition base, Map<String, EObject> refs) {
+        if (!base.isAbstract || base.genericParameters.size > 0 || base.eResource.resourceSet === null)
+            return null
+
+        val descendants = new java.util.LinkedHashSet<ClassDefinition>
+        for (resource : base.eResource.resourceSet.resources.filter[
+            TsModuleResolver.isCurrentModule(it) || TsModuleResolver.isIncludedModule(it)
+        ]) {
+            for (candidate : resource.allContents.toIterable.filter(typeof(ClassDefinition))) {
+                if (!candidate.isAbstract && candidate !== base && candidate.extendsType(base))
+                    descendants.add(candidate)
+            }
+        }
+        if (descendants.empty)
+            return null
+
+        val names = new java.util.LinkedHashSet<String>
+        for (descendant : descendants) {
+            refs.put(descendant.name, descendant)
+            names.add(descendant.name)
+        }
+        return names.join(" | ")
+    }
+
+    private static def boolean extendsType(ClassDefinition candidate, ClassDefinition base) {
+        var ClassDefinition current = candidate
+        while (current.extendsClass !== null && current.extendsClass.classRef !== null) {
+            current = current.extendsClass.classRef
+            if (current === base)
+                return true
+        }
+        return false
+    }
+
+    private static def String tsFieldClassRef(ClassReference ref, EObject from, Map<String, EObject> refs) {
+        val classRef = ref.classRef
+        if (classRef !== null && ref.classRefGenericParms.empty && classRef instanceof ClassDefinition) {
+            val polymorphicType = (classRef as ClassDefinition).tsPolymorphicFieldType(refs)
+            if (polymorphicType !== null)
+                return polymorphicType
+        }
+        return ref.tsClassRef(from, refs)
     }
 }
