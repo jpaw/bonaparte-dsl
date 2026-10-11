@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -13,6 +15,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 
 import de.jpaw.bonaparte.dsl.BonScriptPreferences;
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 
 public final class TsModuleResolver {
     private static final String POM_PROPERTIES = "META-INF/maven/";
@@ -86,6 +89,78 @@ public final class TsModuleResolver {
             throw new IllegalStateException("TypeScript dependency closure for " + currentModule
                     + " does not contain module " + targetModule);
         return importSpecifier(targetModule, modules);
+    }
+
+    public static String importPath(EObject from, String fromTypeName, EObject target, String targetTypeName) {
+        if (from == null || target == null)
+            throw new IllegalArgumentException("Cannot resolve TypeScript import: source and target BON types are required");
+        if (fromTypeName == null || fromTypeName.isBlank() || targetTypeName == null || targetTypeName.isBlank())
+            throw new IllegalArgumentException("Cannot resolve TypeScript import without generated source and target names");
+        String crossModule = crossModuleImport(from, target);
+        if (crossModule != null)
+            return crossModule;
+        return relativeSpecifier(generatedTypePath(from, fromTypeName), generatedTypePath(target, targetTypeName));
+    }
+
+    public static String runtimeSupportImport(EObject from, String fromTypeName, String supportModule) {
+        if (from == null)
+            throw new IllegalArgumentException("Cannot resolve TypeScript runtime import without a source BON type");
+        if (fromTypeName == null || fromTypeName.isBlank() || supportModule == null || supportModule.isBlank())
+            throw new IllegalArgumentException("Cannot resolve TypeScript runtime import without generated source and support names");
+        String npmPackage = BonScriptPreferences.getTsNpmPackage();
+        if (npmPackage != null && !npmPackage.isBlank())
+            return npmPackage;
+        Path source = generatedTypePath(from, fromTypeName);
+        Path target = Paths.get("resources", "ts", "rpc-core", supportModule);
+        return relativeSpecifier(source, target);
+    }
+
+    public static String packagePath(EObject type) {
+        PackageDefinition bonPackage = bonPackage(type);
+        if (bonPackage == null)
+            throw new IllegalArgumentException("Cannot resolve BON package for TypeScript type "
+                    + TsImportCollector.simpleName(type));
+        return packagePath(bonPackage.getName());
+    }
+
+    public static String packagePath(String bonPackageName) {
+        if (bonPackageName == null || bonPackageName.isBlank())
+            throw new IllegalArgumentException("Cannot resolve TypeScript path without a BON package name");
+        return bonPackageName.replace('.', '/');
+    }
+
+    public static String pqon(EObject type) {
+        PackageDefinition bonPackage = bonPackage(type);
+        if (bonPackage == null)
+            throw new IllegalArgumentException("Cannot resolve PQON for TypeScript type "
+                    + TsImportCollector.simpleName(type));
+        return bonPackage.getName() + "." + TsImportCollector.simpleName(type);
+    }
+
+    public static String generatedFile(EObject packageOwner, String generatedName) {
+        if (packageOwner == null || generatedName == null || generatedName.isBlank())
+            throw new IllegalArgumentException("Cannot resolve TypeScript output without a BON type and generated name");
+        return outputFolder(packageOwner.eResource()) + packagePath(packageOwner) + "/" + generatedName + ".ts";
+    }
+
+    private static Path generatedTypePath(EObject type, String typeName) {
+        Resource resource = type.eResource();
+        String folder = resource == null ? outputFolder() : outputFolder(resource);
+        return Paths.get(folder).resolve(packagePath(type)).resolve(typeName).normalize();
+    }
+
+    private static PackageDefinition bonPackage(EObject type) {
+        for (EObject current = type; current != null; current = current.eContainer()) {
+            if (current instanceof PackageDefinition)
+                return (PackageDefinition) current;
+        }
+        return null;
+    }
+
+    private static String relativeSpecifier(Path source, Path target) {
+        Path relative = source.getParent().relativize(target);
+        String specifier = relative.toString().replace('\\', '/');
+        return specifier.startsWith(".") ? specifier : "./" + specifier;
     }
 
     public static String importSpecifier(String artifactId, Properties modules) {

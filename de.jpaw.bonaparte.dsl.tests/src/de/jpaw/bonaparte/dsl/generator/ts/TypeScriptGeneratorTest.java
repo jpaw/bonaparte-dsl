@@ -1,6 +1,7 @@
 package de.jpaw.bonaparte.dsl.generator.ts;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -10,8 +11,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.ecore.EObject;
@@ -20,6 +24,10 @@ import org.eclipse.xtext.generator.GeneratorContext;
 import org.eclipse.xtext.generator.InMemoryFileSystemAccess;
 import org.eclipse.xtext.resource.XtextResource;
 import org.eclipse.xtext.resource.XtextResourceSet;
+import org.eclipse.xtext.util.CancelIndicator;
+import org.eclipse.xtext.validation.CheckMode;
+import org.eclipse.xtext.validation.IResourceValidator;
+import org.eclipse.xtext.validation.Issue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -28,6 +36,7 @@ import com.google.inject.Injector;
 import de.jpaw.bonaparte.dsl.BonScriptStandaloneSetup;
 import de.jpaw.bonaparte.dsl.BonScriptPreferences;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
 
 /** Parses small .bon sources and checks the TypeScript produced by the generator. */
@@ -42,6 +51,7 @@ public class TypeScriptGeneratorTest {
         "    enum Mode { A = \"a\", B = \"b\" }",
         "    xenum TimeUnit is Mode : 1;",
         "    enumset<int> SortOrderSet is SortOrder;",
+        "    enumset<String> StringSortOrderSet is SortOrder;",
         "    xenumset TimeUnitSet is TimeUnit;",
         "    class Base {",
         "        required long objectRef;",
@@ -67,6 +77,7 @@ public class TypeScriptGeneratorTest {
         "        optional (!T) payload;",
         "        optional Json extra;",
         "        required enumset com.acme.base.SortOrderSet modes;",
+        "        required enumset com.acme.base.StringSortOrderSet stringModes;",
         "        required xenumset com.acme.base.TimeUnitSet(10) units;",
         "        optional Object blob;",
         "        @Deprecated",
@@ -187,15 +198,53 @@ public class TypeScriptGeneratorTest {
         throw new IllegalArgumentException("Unknown BON class: " + name);
     }
 
+    private static ClassDefinition findClass(XtextResource resource, String packageName, String name) {
+        TreeIterator<EObject> contents = resource.getAllContents();
+        while (contents.hasNext()) {
+            EObject object = contents.next();
+                if (object instanceof ClassDefinition clazz && name.equals(clazz.getName())
+                    && clazz.eContainer() instanceof PackageDefinition bonPackage
+                    && packageName.equals(bonPackage.getName()))
+                return clazz;
+        }
+        throw new IllegalArgumentException("Unknown BON class: " + packageName + "." + name);
+    }
+
     private static String norm(CharSequence s) {
         assertNotNull(s);
         return s.toString().replace("\r", "");
     }
 
+    private static Path createModuleJar(String artifactId) throws Exception {
+        Path jar = Files.createTempFile(artifactId, ".jar");
+        try (JarOutputStream output = new JarOutputStream(Files.newOutputStream(jar))) {
+            output.putNextEntry(new JarEntry("META-INF/maven/fixture/" + artifactId + "/pom.properties"));
+            output.write(("artifactId=" + artifactId + "\n").getBytes(StandardCharsets.UTF_8));
+            output.closeEntry();
+        }
+        return jar;
+    }
+
+    private XtextResource load(XtextResourceSet resourceSet, String source, URI uri) throws Exception {
+        XtextResource resource = (XtextResource) resourceSet.createResource(uri);
+        resource.load(new ByteArrayInputStream(source.getBytes(StandardCharsets.UTF_8)), Collections.emptyMap());
+        assertTrue("parse errors: " + resource.getErrors(), resource.getErrors().isEmpty());
+        return resource;
+    }
+
+    private static void assertRelativeImportResolves(Map<String, CharSequence> files, String sourcePath,
+            String specifier, String targetPath) {
+        String resolved = Path.of(sourcePath).getParent().resolve(specifier + ".ts").normalize().toString()
+            .replace('\\', '/');
+        assertEquals(targetPath, resolved);
+        assertTrue("missing generated target " + resolved, files.containsKey(resolved));
+    }
+
     @Test
     public void generatesOneFilePerTypeInPackageFolders() throws Exception {
         Map<String, CharSequence> files = generate(BON_SOURCE);
-        for (String f : new String[] { "base/SortOrder", "base/Mode", "base/TimeUnit", "base/Base", "auth/Child" })
+        for (String f : new String[] { "base/SortOrder", "base/Mode", "base/TimeUnit", "base/SortOrderSet",
+            "base/StringSortOrderSet", "base/TimeUnitSet", "base/Base", "auth/Child" })
             assertTrue("missing " + f + " in " + files.keySet(), files.containsKey(ROOT + "com/acme/" + f + ".ts"));
     }
 
@@ -216,6 +265,63 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
+    public void alphaEnumPreservesEmptyTokenAndDeprecatedPackage() throws Exception {
+        String source = String.join("\n",
+            "@Deprecated package com.acme.legacy {",
+            "    enum Status { EMPTY = \"\", READY = \"ready\" }",
+            "}",
+            "");
+        String status = norm(generate(source).get(ROOT + "com/acme/legacy/Status.ts"));
+
+        assertTrue(status, status.contains("/** @deprecated */"));
+        assertTrue(status, status.contains("EMPTY: \"\","));
+        assertTrue(status, status.contains("READY: \"ready\""));
+        assertTrue(status, status.contains("export type Status = (typeof Status)[keyof typeof Status];"));
+    }
+
+    @Test
+    public void xenumInheritanceAndMetadataRemainOpenStringWireTypes() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.xenums {",
+            "    enum RootTokens { ROOT = \"root\", EMPTY = \"\" }",
+            "    xenum RootStatus is RootTokens : 6;",
+            "    enum ChildTokens { CHILD = \"child\" }",
+            "    xenum ChildStatus is ChildTokens extends RootStatus;",
+            "    abstract xenum AbstractStatus is ChildTokens extends RootStatus;",
+            "    final xenum FinalStatus is RootTokens : 6;",
+            "    class StatusHolder { required XEnum RootStatus root; optional XEnum ChildStatus child; }",
+            "}",
+            "");
+        Map<String, CharSequence> files = generate(source);
+
+        for (String name : new String[] { "RootStatus", "ChildStatus", "AbstractStatus", "FinalStatus" }) {
+            String xenum = norm(files.get(ROOT + "com/acme/xenums/" + name + ".ts"));
+            assertTrue(xenum, xenum.contains("export type " + name + " = string;"));
+            assertFalse(xenum, xenum.contains("ROOT") || xenum.contains("CHILD") || xenum.contains("MAX_TOKEN_LENGTH"));
+        }
+        String holder = norm(files.get(ROOT + "com/acme/xenums/StatusHolder.ts"));
+        assertTrue(holder, holder.contains("root: RootStatus;"));
+        assertTrue(holder, holder.contains("child?: ChildStatus | null;"));
+    }
+
+    @Test
+    public void enumValidatorRejectsDuplicateAndOverlongTokens() throws Exception {
+        String overlongToken = "x".repeat(64);
+        String source = String.join("\n",
+            "package com.acme.invalid {",
+            "    enum Duplicate { FIRST = \"same\", SECOND = \"same\" }",
+            "    enum Overlong { VALUE = \"" + overlongToken + "\" }",
+            "}",
+            "");
+        XtextResource resource = parse(source);
+        List<Issue> issues = injector.getInstance(IResourceValidator.class)
+            .validate(resource, CheckMode.ALL, CancelIndicator.NullImpl);
+
+        assertTrue(issues.toString(), issues.stream().anyMatch(issue -> issue.getMessage().contains("duplicate token in enum: same")));
+        assertTrue(issues.toString(), issues.stream().anyMatch(issue -> issue.getMessage().contains("Token is too long (max 63 characters")));
+    }
+
+    @Test
     public void interfaceWithInheritanceAndImports() throws Exception {
         String base = norm(generate(BON_SOURCE).get(ROOT + "com/acme/base/Base.ts"));
         assertTrue(base, base.contains("export const BasePQON = \"com.acme.base.Base\" as const;"));
@@ -226,9 +332,230 @@ public class TypeScriptGeneratorTest {
         assertTrue(child, child.contains("import type { Base } from \"../base/Base\";"));
         assertTrue(child, child.contains("import type { SortOrder } from \"../base/SortOrder\";"));
         assertTrue(child, child.contains("import type { TimeUnit } from \"../base/TimeUnit\";"));
+        assertTrue(child, child.contains("import type { SortOrderSet } from \"../base/SortOrderSet\";"));
+        assertTrue(child, child.contains("import type { StringSortOrderSet } from \"../base/StringSortOrderSet\";"));
+        assertTrue(child, child.contains("import type { TimeUnitSet } from \"../base/TimeUnitSet\";"));
         assertTrue(child, child.contains("export const ChildPQON = \"com.acme.auth.Child\" as const;"));
         assertTrue(child, child.contains("export interface Child<T = unknown> extends Omit<Base, '@PQON'> {"));
         assertTrue(child, child.contains("'@PQON': typeof ChildPQON;"));
+    }
+
+    @Test
+    public void fieldMetadataPreservesDefaultsConstraintsAndProperties() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.metadata {",
+            "    properties displayName;",
+            "    enum Status { ACTIVE = \"active\", INACTIVE = \"inactive\" }",
+            "    class Metadata {",
+            "        required unicode(3..20) regexp \"[A-Z]+\" code default \"ABC\" properties displayName=\"Code\";",
+            "        optional Uppercase(12) normalized;",
+            "        optional decimal(9,2) amount default \"12.50\";",
+            "        required enum Status default status;",
+            "        required Integer required List<1..5> values;",
+            "        optional Integer Map<String, 2..8> entries;",
+            "    }",
+            "}",
+            "");
+        String metadata = norm(generate(source).get(ROOT + "com/acme/metadata/Metadata.ts"));
+
+        assertTrue(metadata, metadata.contains("@bonaparte.default \"ABC\""));
+        assertTrue(metadata, metadata.contains("@bonaparte.minLength 3"));
+        assertTrue(metadata, metadata.contains("@bonaparte.maxLength 20"));
+        assertTrue(metadata, metadata.contains("@bonaparte.pattern \"[A-Z]+\""));
+        assertTrue(metadata, metadata.contains("@bonaparte.property displayName=\"Code\""));
+        assertTrue(metadata, metadata.contains("@bonaparte.case uppercase"));
+        assertTrue(metadata, metadata.contains("@bonaparte.default 12.50"));
+        assertTrue(metadata, metadata.contains("@bonaparte.precision 9"));
+        assertTrue(metadata, metadata.contains("@bonaparte.scale 2"));
+        assertFalse(metadata, metadata.contains("@bonaparte.maxLength 9"));
+        assertTrue(metadata, metadata.contains("@bonaparte.default \"active\""));
+        assertTrue(metadata, metadata.contains("@bonaparte.aggregate list required"));
+        assertTrue(metadata, metadata.contains("@bonaparte.minCount 1"));
+        assertTrue(metadata, metadata.contains("@bonaparte.maxCount 5"));
+        assertTrue(metadata, metadata.contains("@bonaparte.aggregate map optional"));
+        assertTrue(metadata, metadata.contains("@bonaparte.mapKey string"));
+        assertTrue(metadata, metadata.contains("@bonaparte.minCount 2"));
+        assertTrue(metadata, metadata.contains("@bonaparte.maxCount 8"));
+        assertTrue(metadata.indexOf("@bonaparte.default \"ABC\"") < metadata.indexOf("code:"));
+    }
+
+    @Test
+    public void resolvesImportsFromGeneratedPathsInDefaultAndEntrypointLayouts() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.deep {",
+            "    class Same {}",
+            "    class Source {",
+            "        required (Same) same;",
+            "        required (com.acme.deep.branch.Nested) nested;",
+            "        required (com.acme.other.Sibling) sibling;",
+            "    }",
+            "}",
+            "package com.acme.deep.branch { class Nested {} }",
+            "package com.acme.other { class Sibling {} }",
+            "");
+        String previousModule = BonScriptPreferences.currentPrefs.tsModule;
+        String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
+        String previousNpmPackage = BonScriptPreferences.currentPrefs.tsNpmPackage;
+        try {
+            BonScriptPreferences.currentPrefs.tsModule = null;
+            BonScriptPreferences.currentPrefs.tsModulesFile = null;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = null;
+            Map<String, CharSequence> defaultFiles = generate(source);
+            String defaultSourcePath = ROOT + "com/acme/deep/Source.ts";
+            String defaultOutput = norm(defaultFiles.get(defaultSourcePath));
+            assertTrue(defaultOutput, defaultOutput.contains("from \"./Same\";"));
+            assertTrue(defaultOutput, defaultOutput.contains("from \"./branch/Nested\";"));
+            assertTrue(defaultOutput, defaultOutput.contains("from \"../other/Sibling\";"));
+            assertRelativeImportResolves(defaultFiles, defaultSourcePath, "./Same", ROOT + "com/acme/deep/Same.ts");
+            assertRelativeImportResolves(defaultFiles, defaultSourcePath, "./branch/Nested",
+                ROOT + "com/acme/deep/branch/Nested.ts");
+            assertRelativeImportResolves(defaultFiles, defaultSourcePath, "../other/Sibling",
+                ROOT + "com/acme/other/Sibling.ts");
+
+            Path modulesFile = Files.createTempFile("ts-import-modules", ".properties");
+            Files.writeString(modulesFile, "fixture-api=@fixture/package,fixture\n");
+            BonScriptPreferences.currentPrefs.tsModule = "fixture-api";
+            BonScriptPreferences.currentPrefs.tsModulesFile = modulesFile.toString();
+            Map<String, CharSequence> entrypointFiles = generate(source);
+            String entrypointSourcePath = ROOT + "fixture/com/acme/deep/Source.ts";
+            String entrypointOutput = norm(entrypointFiles.get(entrypointSourcePath));
+            assertTrue(entrypointOutput, entrypointOutput.contains("from \"./Same\";"));
+            assertTrue(entrypointOutput, entrypointOutput.contains("from \"./branch/Nested\";"));
+            assertTrue(entrypointOutput, entrypointOutput.contains("from \"../other/Sibling\";"));
+            assertRelativeImportResolves(entrypointFiles, entrypointSourcePath, "./Same",
+                ROOT + "fixture/com/acme/deep/Same.ts");
+            assertRelativeImportResolves(entrypointFiles, entrypointSourcePath, "./branch/Nested",
+                ROOT + "fixture/com/acme/deep/branch/Nested.ts");
+            assertRelativeImportResolves(entrypointFiles, entrypointSourcePath, "../other/Sibling",
+                ROOT + "fixture/com/acme/other/Sibling.ts");
+            Files.deleteIfExists(modulesFile);
+        } finally {
+            BonScriptPreferences.currentPrefs.tsModule = previousModule;
+            BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = previousNpmPackage;
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
+    public void standaloneRuntimeImportsResolveFromGeneratedPaths() throws Exception {
+        String previousModule = BonScriptPreferences.currentPrefs.tsModule;
+        String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
+        String previousNpmPackage = BonScriptPreferences.currentPrefs.tsNpmPackage;
+        try {
+            BonScriptPreferences.currentPrefs.tsModule = null;
+            BonScriptPreferences.currentPrefs.tsModulesFile = null;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = null;
+            XtextResource resource = parse(BON_SOURCE);
+            String expectedModelPath = TsModuleResolver.runtimeSupportImport(findClass(resource, "Base"),
+                "Base", "bona-portable");
+            Map<String, CharSequence> modelFiles = generate(BON_SOURCE);
+            String model = modelFiles.values().stream().map(TypeScriptGeneratorTest::norm)
+                .filter(content -> content.contains("export interface Base {")).findFirst().orElseThrow();
+            assertTrue(model, model.contains("import type { BonaPortable } from \"" + expectedModelPath + "\";"));
+
+            XtextResource apiResource = parse(API_SOURCE);
+            ClassDefinition apiRequest = findClass(apiResource, "ProductSearchRequest");
+            String expectedApiPortable = TsModuleResolver.runtimeSupportImport(apiRequest, "ProductApi", "bona-portable");
+            String expectedApiClient = TsModuleResolver.runtimeSupportImport(apiRequest, "ProductApi", "rpc-client");
+            String expectedApiUnwrap = TsModuleResolver.runtimeSupportImport(apiRequest, "ProductApi", "unwrap");
+            String api = generateApis(API_SOURCE).values().stream().map(TypeScriptGeneratorTest::norm)
+                .filter(content -> content.contains("export class ProductApi")).findFirst().orElseThrow();
+            assertTrue(api, api.contains("from '" + expectedApiPortable + "';"));
+            assertTrue(api, api.contains("from '" + expectedApiClient + "';"));
+            assertTrue(api, api.contains("from '" + expectedApiUnwrap + "';"));
+        } finally {
+            BonScriptPreferences.currentPrefs.tsModule = previousModule;
+            BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = previousNpmPackage;
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
+    public void rejectsAmbiguousSimpleNamesWithCanonicalIdentities() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.one { class Shared {} }",
+            "package com.acme.two { class Shared {} }",
+            "package com.acme.use {",
+            "    class Consumer {",
+            "        required (com.acme.one.Shared) first;",
+            "        required (com.acme.two.Shared) second;",
+            "    }",
+            "}",
+            "");
+        try {
+            XtextResource resource = parse(source);
+            ClassDefinition first = findClass(resource, "com.acme.one", "Shared");
+            ClassDefinition second = findClass(resource, "com.acme.two", "Shared");
+            TsImportCollector imports = new TsImportCollector();
+            assertTrue(imports.add(first));
+            assertEquals("com.acme.one.Shared", TsImportCollector.bonIdentity(imports.getTypes().iterator().next()));
+            try {
+                imports.add(second);
+                throw new AssertionError("Expected an actionable TypeScript name collision");
+            } catch (IllegalStateException e) {
+                assertCanonicalCollision(e);
+            }
+        } catch (IllegalStateException e) {
+            assertCanonicalCollision(e);
+        }
+    }
+
+    @Test
+    public void rejectsAmbiguousNamesInGeneratedModelsModuleIndexesAndApis() throws Exception {
+        String modelSource = String.join("\n",
+            "package com.acme.one { class Shared {} }",
+            "package com.acme.two { class Shared {} }",
+            "package com.acme.use {",
+            "    class Consumer {",
+            "        required (com.acme.one.Shared) first;",
+            "        required (com.acme.two.Shared) second;",
+            "    }",
+            "}",
+            "");
+        try {
+            generate(modelSource);
+            throw new AssertionError("Expected model import collision");
+        } catch (IllegalStateException e) {
+            assertCanonicalCollision(e);
+        }
+
+        String indexSource = String.join("\n",
+            "package com.acme.one { class Shared {} }",
+            "package com.acme.two { class Shared {} }",
+            "");
+        try {
+            generate(indexSource);
+            throw new AssertionError("Expected module index export collision");
+        } catch (IllegalStateException e) {
+            assertCanonicalCollision(e);
+        }
+
+        String apiSource = String.join("\n",
+            "package com.acme.one { class Shared {} }",
+            "package com.acme.two { class Shared {} }",
+            "package com.acme.api {",
+            "    class ServiceResponse {}",
+            "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
+            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<DATA, TRACKING> {}",
+            "    class SearchRequest<DATA, TRACKING> return ReadAllResponse<!DATA, !TRACKING> {}",
+            "    class CollisionSearchRequest extends SearchRequest<com.acme.one.Shared, com.acme.two.Shared> {}",
+            "}",
+            "");
+        try {
+            generateApis(apiSource);
+            throw new AssertionError("Expected API import collision");
+        } catch (IllegalStateException e) {
+            assertCanonicalCollision(e);
+        } finally {
+            DataTypeExtension.clear();
+        }
+    }
+
+    private static void assertCanonicalCollision(IllegalStateException e) {
+        assertTrue(e.getMessage(), e.getMessage().contains("com.acme.one.Shared"));
+        assertTrue(e.getMessage(), e.getMessage().contains("com.acme.two.Shared"));
     }
 
     @Test
@@ -256,8 +583,9 @@ public class TypeScriptGeneratorTest {
         assertField(child, "other?: Base | null;");
         assertField(child, "payload?: T | null;");               // generics parameter
         assertField(child, "extra?: Record<string, unknown> | null;");
-        assertField(child, "modes: number;");                    // numeric enumset -> integer bitmap (required by spec)
-        assertField(child, "units: string;");                    // xenumset -> string (required by spec)
+        assertField(child, "modes: SortOrderSet;");
+        assertField(child, "stringModes: StringSortOrderSet;");
+        assertField(child, "units: TimeUnitSet;");
         assertField(child, "blob?: BonaPortable | null;");       // plain Object
         assertField(child, "oldAge?: number | null;");           // deprecated field still generated
     }
@@ -265,8 +593,22 @@ public class TypeScriptGeneratorTest {
     @Test
     public void everyObjectHasPqonField() throws Exception {
         Map<String, CharSequence> files = generate(BON_SOURCE);
-        for (String f : new String[] { "base/Base", "base/Legacy", "auth/Child" })
-            assertTrue(f, norm(files.get(ROOT + "com/acme/" + f + ".ts")).contains("'@PQON': typeof"));
+        for (String f : new String[] { "base/Base", "base/Legacy", "auth/Child" }) {
+            String generated = norm(files.get(ROOT + "com/acme/" + f + ".ts"));
+            assertTrue(f, generated.contains("'@PQON': typeof"));
+            assertFalse(f, generated.toLowerCase().contains("rtti"));
+        }
+    }
+
+    @Test
+    public void javaPackagePrefixDoesNotAffectTypeScriptPackagePathOrPqon() throws Exception {
+        String source = "package (com.acme.generated) com.acme.base { class Prefixed {} }";
+        Map<String, CharSequence> files = generate(source);
+        String file = norm(files.get(ROOT + "com/acme/base/Prefixed.ts"));
+
+        assertNotNull(file);
+        assertTrue(file, file.contains("export const PrefixedPQON = \"com.acme.base.Prefixed\" as const;"));
+        assertNull(files.get(ROOT + "com/acme/generated/com/acme/base/Prefixed.ts"));
     }
 
     @Test
@@ -297,6 +639,47 @@ public class TypeScriptGeneratorTest {
         assertEquals("@arvato-systems-jacs/t9t-api/base",
             TsModuleResolver.importSpecifier("t9t-base-api", modules));
         assertEquals("base", TsModuleResolver.entryPoint("t9t-base-api", modules));
+    }
+
+    @Test
+    public void crossModuleImportsUseMappedEntrypointsAndRejectMissingClosure() throws Exception {
+        Path sourceJar = createModuleJar("fixture-source");
+        Path targetJar = createModuleJar("fixture-target");
+        Path modulesFile = Files.createTempFile("ts-cross-module", ".properties");
+        String previousModule = BonScriptPreferences.currentPrefs.tsModule;
+        String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
+        try {
+            XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
+            XtextResource source = load(resourceSet,
+                "package com.acme.source { class Source {} }",
+                URI.createURI("jar:" + sourceJar.toUri() + "!/source.bon"));
+            XtextResource target = load(resourceSet,
+                "package com.acme.target { class Target {} }",
+                URI.createURI("jar:" + targetJar.toUri() + "!/target.bon"));
+            ClassDefinition sourceType = findClass(source, "Source");
+            ClassDefinition targetType = findClass(target, "Target");
+            BonScriptPreferences.currentPrefs.tsModule = "fixture-source";
+            BonScriptPreferences.currentPrefs.tsModulesFile = modulesFile.toString();
+
+            Files.writeString(modulesFile, "fixture-target=@fixture/package,target\n");
+            assertEquals("@fixture/package/target",
+                TsModuleResolver.importPath(sourceType, "Source", targetType, "Target"));
+
+            Files.writeString(modulesFile, "fixture-source=@fixture/package,source\n");
+            try {
+                TsModuleResolver.importPath(sourceType, "Source", targetType, "Target");
+                throw new AssertionError("Expected missing dependency-closure mapping to fail");
+            } catch (IllegalStateException e) {
+                assertTrue(e.getMessage(), e.getMessage().contains("does not contain module fixture-target"));
+            }
+        } finally {
+            BonScriptPreferences.currentPrefs.tsModule = previousModule;
+            BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
+            Files.deleteIfExists(sourceJar);
+            Files.deleteIfExists(targetJar);
+            Files.deleteIfExists(modulesFile);
+            DataTypeExtension.clear();
+        }
     }
 
     @Test
@@ -367,6 +750,16 @@ public class TypeScriptGeneratorTest {
             String index = norm(files.get(entryRoot + "index.ts"));
             assertTrue(index, index.contains("export { ChildPQON }"));
             assertTrue(index, index.contains("export type { Child }"));
+            assertTrue(index, index.contains("export type { SortOrderSet }"));
+            assertTrue(index, index.contains("export type { StringSortOrderSet }"));
+            assertTrue(index, index.contains("export type { TimeUnitSet }"));
+            String numericSet = norm(files.get(entryRoot + "com/acme/base/SortOrderSet.ts"));
+            assertTrue(numericSet, numericSet.contains("= number & { readonly [SortOrderSetBrand]"));
+            String xenumSet = norm(files.get(entryRoot + "com/acme/base/TimeUnitSet.ts"));
+            assertTrue(xenumSet, xenumSet.contains("= string & { readonly [TimeUnitSetBrand]"));
+            assertTrue(xenumSet, xenumSet.contains("xenum: \"com.acme.base.TimeUnit\""));
+            String stringSet = norm(files.get(entryRoot + "com/acme/base/StringSortOrderSet.ts"));
+            assertTrue(stringSet, stringSet.contains("= string & { readonly [StringSortOrderSetBrand]"));
 
             InMemoryFileSystemAccess apiFsa = new InMemoryFileSystemAccess();
             injector.getInstance(TsApiClientGenerator.class).doGenerate(parse(API_SOURCE), apiFsa);
@@ -555,6 +948,34 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
+    public void apiParametersPreserveInheritedRequiredFieldsThroughGenericParents() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.api {",
+            "    class ServiceResponse {}",
+            "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
+            "    class SearchCriteria { required int offset; }",
+            "    class PayloadBase<T> extends SearchCriteria { required (!T) payload; required unicode(20) tenant; }",
+            "    class SearchRequest<DATA, TRACKING> extends PayloadBase<!DATA> return SearchResponse<!DATA, !TRACKING> {}",
+            "    class ProductDTO {}",
+            "    class Audit {}",
+            "    class ProductSearchRequest extends SearchRequest<ProductDTO, Audit> {}",
+            "}",
+            "");
+        Map<String, CharSequence> modelFiles = generate(source);
+        String payloadBase = norm(modelFiles.get(ROOT + "com/acme/api/PayloadBase.ts"));
+        String searchRequest = norm(modelFiles.get(ROOT + "com/acme/api/SearchRequest.ts"));
+        String productRequest = norm(modelFiles.get(ROOT + "com/acme/api/ProductSearchRequest.ts"));
+        String api = norm(generateApis(source).get(ROOT + "com/acme/api/ProductApi.ts"));
+
+        assertTrue(payloadBase, payloadBase.contains("export interface PayloadBase<T = unknown> extends Omit<SearchCriteria, '@PQON'> {"));
+        assertTrue(payloadBase, payloadBase.contains("payload: T;"));
+        assertTrue(payloadBase, payloadBase.contains("tenant: string;"));
+        assertTrue(searchRequest, searchRequest.contains("extends Omit<PayloadBase<DATA>, '@PQON'>"));
+        assertTrue(productRequest, productRequest.contains("extends Omit<SearchRequest<ProductDTO, Audit>, '@PQON'>"));
+        assertTrue(api, api.contains("search(params: Omit<ProductSearchRequest, '@PQON' | 'offset'> & { offset?: number }): Observable<ProductDTO[]>"));
+    }
+
+    @Test
     public void appliesApiNamingOverrides() throws Exception {
         Path namingFile = Files.createTempFile("ts-api-naming", ".properties");
         String previousNamingFile = BonScriptPreferences.currentPrefs.tsApiNamingFile;
@@ -581,6 +1002,8 @@ public class TypeScriptGeneratorTest {
         assertTrue(api, api.contains("searchExtended(params: Omit<ProductSearchExtendedRequest, '@PQON' | 'offset'> & { offset?: number }): Observable<ProductDTO[]>"));
         assertTrue(api, api.contains(".pipe(map(unwrapSearch<ProductDTO>))"));
         assertTrue(api, api.contains("const ProductSearchRequestPQON = \"com.acme.api.ProductSearchRequest\";"));
+        assertTrue(api, api.contains("import type { ProductSearchRequest } from \"./ProductSearchRequest\";"));
+        assertTrue(api, api.contains("import type { ProductDTO } from \"./ProductDTO\";"));
         assertTrue(api, api.contains("ProductSearchRequestPQON, { ...params, offset: params.offset ?? 0 }"));
         assertTrue(api, api.contains("const ProductSearchExtendedRequestPQON = \"com.acme.api.ProductSearchExtendedRequest\";"));
         assertTrue(api, api.contains("ProductSearchExtendedRequestPQON, { ...params, offset: params.offset ?? 0 }"));

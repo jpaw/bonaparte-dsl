@@ -20,8 +20,11 @@ import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
+import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.java.JavaEnum
 import java.util.LinkedHashMap
@@ -62,6 +65,10 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                     fsa.generateFile(e.tsFilename(e.name), e.writeEnum)
                 for (e : source.allContents.toIterable.filter(typeof(XEnumDefinition)))
                     fsa.generateFile(e.tsFilename(e.name), e.writeXEnum)
+                for (e : source.allContents.toIterable.filter(typeof(EnumSetDefinition)))
+                    fsa.generateFile(e.tsFilename(e.name), e.writeEnumSet)
+                for (e : source.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
+                    fsa.generateFile(e.tsFilename(e.name), e.writeXEnumSet)
                 for (c : source.allContents.toIterable.filter(typeof(ClassDefinition)))
                     fsa.generateFile(c.tsFilename(c.name), c.writeInterface)
                 val folder = TsModuleResolver.outputFolder(source)
@@ -96,22 +103,32 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
     def private static CharSequence writeModuleIndex(Iterable<Resource> resources, Resource module) {
         val out = new StringBuilder
-        val exportedNames = new java.util.LinkedHashSet<String>
+        val exportedTypes = new TsImportCollector
         out.append(GENERATED_COMMENT).append("\n\n")
         for (source : resources.filter[TsModuleResolver.isSameModule(it, module)]) {
             for (e : source.allContents.toIterable.filter(typeof(EnumDefinition))) {
-                if (exportedNames.add(e.name))
+                if (exportedTypes.add(e))
                     out.append("export { ").append(e.name).append(" } from './")
-                        .append(e.packagePath).append("/").append(e.name).append("';\n")
+                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
             }
             for (e : source.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-                if (exportedNames.add(e.name))
+                if (exportedTypes.add(e))
                     out.append("export type { ").append(e.name).append(" } from './")
-                        .append(e.packagePath).append("/").append(e.name).append("';\n")
+                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
+            }
+            for (e : source.allContents.toIterable.filter(typeof(EnumSetDefinition))) {
+                if (exportedTypes.add(e))
+                    out.append("export type { ").append(e.name).append(" } from './")
+                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
+            }
+            for (e : source.allContents.toIterable.filter(typeof(XEnumSetDefinition))) {
+                if (exportedTypes.add(e))
+                    out.append("export type { ").append(e.name).append(" } from './")
+                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
             }
             for (c : source.allContents.toIterable.filter(typeof(ClassDefinition))) {
-                if (exportedNames.add(c.name)) {
-                    val modulePath = "./" + c.packagePath + "/" + c.name
+                if (exportedTypes.add(c)) {
+                    val modulePath = "./" + TsModuleResolver.packagePath(c) + "/" + c.name
                     out.append("export { ").append(c.name).append("PQON } from '").append(modulePath).append("';\n")
                     out.append("export type { ").append(c.name).append(" } from '").append(modulePath).append("';\n")
                     if (c.extendsClass !== null && c.extendsClass.classRef !== null
@@ -124,53 +141,17 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         out
     }
 
-    def private static String packagePath(EObject d) {
-        d.package.name.replace('.', '/')
-    }
-
-    def private static String bonaPortablePath(String packageName) {
-        val npmPackage = BonScriptPreferences.getTsNpmPackage
-        if (npmPackage !== null && !npmPackage.blank)
-            return npmPackage
-        val path = new StringBuilder
-        for (i : 0 ..< packageName.split("\\.").length)
-            path.append("../")
-        path.append("../rpc-core/bona-portable")
-        path.toString
-    }
-
     def private static String tsFilename(EObject d, String name) {
-        TsModuleResolver.outputFolder(d.eResource) + d.packagePath + "/" + name + ".ts"
+        TsModuleResolver.generatedFile(d, name)
     }
 
-    /** Relative module specifier to import type "name" of the package of "target" into a file of the package of "from". */
-    def private static String importPath(EObject from, EObject target, String name) {
-        val crossModulePath = TsModuleResolver.crossModuleImport(from, target)
-        if (crossModulePath !== null)
-            return crossModulePath
-        val fromParts = from.package.name.split("\\.")
-        val toParts = target.package.name.split("\\.")
-        var common = 0
-        while (common < fromParts.length && common < toParts.length && fromParts.get(common) == toParts.get(common))
-            common++
-        val buff = new StringBuilder
-        if (common == fromParts.length)
-            buff.append("./")
-        else
-            for (i : common ..< fromParts.length)
-                buff.append("../")
-        for (i : common ..< toParts.length)
-            buff.append(toParts.get(i)).append("/")
-        buff.append(name)
-        return buff.toString
-    }
-
-    def private static CharSequence writeImports(EObject from, Map<String, EObject> refs) {
+    def private static CharSequence writeImports(EObject from, String fromTypeName, TsImportCollector refs) {
         val out = new StringBuilder
-        for (r : refs.entrySet) {
-            if (from !== r.value)
-                out.append("import type { ").append(r.key).append(" } from \"")
-                    .append(importPath(from, r.value, r.key)).append("\";\n")
+        for (type : refs.types) {
+            val name = TsImportCollector.simpleName(type)
+            if (from !== type)
+                out.append("import type { ").append(name).append(" } from \"")
+                    .append(TsModuleResolver.importPath(from, fromTypeName, type, name)).append("\";\n")
         }
         out
     }
@@ -192,7 +173,10 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                     else if (d instanceof XEnumDefinition) d.isDeprecated
                     else if (d instanceof FieldDefinition) d.isDeprecated
                     else false
-        if (isDep)
+        val hasBonPackage = d instanceof ClassDefinition || d instanceof EnumDefinition || d instanceof XEnumDefinition
+            || d instanceof EnumSetDefinition || d instanceof XEnumSetDefinition
+        val isPackageDeprecated = hasBonPackage && (d.eContainer as PackageDefinition).isDeprecated
+        if (isDep || isPackageDeprecated)
             return "/** @deprecated */\n"
         return ""
     }
@@ -232,25 +216,52 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
+    def private static CharSequence writeEnumSet(EnumSetDefinition d) {
+        val indexType = d.indexType
+        val bitmapType = if (indexType !== null && indexType.toLowerCase.startsWith("s")) "string" else "number"
+        val brand = d.name + "Brand"
+        '''
+            «GENERATED_COMMENT»
+
+            «d.javadoc.jsdoc»
+            «d.deprecatedMarker»
+            declare const «brand»: unique symbol;
+            export type «d.name» = «bitmapType» & { readonly [«brand»]: "«TsModuleResolver.pqon(d)»" };
+        '''
+    }
+
+    def private static CharSequence writeXEnumSet(XEnumSetDefinition d) {
+        val brand = d.name + "Brand"
+        '''
+            «GENERATED_COMMENT»
+
+            «d.javadoc.jsdoc»
+            «d.deprecatedMarker»
+            declare const «brand»: unique symbol;
+            export type «d.name» = string & { readonly [«brand»]: { set: "«TsModuleResolver.pqon(d)»", xenum: "«TsModuleResolver.pqon(d.myXEnum)»" } };
+        '''
+    }
+
     def private static CharSequence writeInterface(ClassDefinition d) {
-        val refs = new LinkedHashMap<String, EObject>
+        val refs = new TsImportCollector
         val generics = if (!d.genericParameters.empty) '''<«FOR g : d.genericParameters SEPARATOR ", "»«g.name» = unknown«ENDFOR»>'''
         val parent = if (d.extendsClass !== null)
             " extends Omit<" + d.extendsClass.tsClassRef(d, refs) + ", '@PQON'>"
         val guard = d.typeGuard
-        val pqon = d.package.name + "." + d.name
+        val pqon = TsModuleResolver.pqon(d)
         val body = '''
             «FOR f : d.fields»
                 «f.javadoc.jsdoc»
                 «f.deprecatedMarker»
+                «f.tsFieldMetadata»
                 «f.name»«IF !f.cannotBeNull»?«ENDIF»: «f.tsFieldType(d, refs)»;
             «ENDFOR»
             '@PQON': typeof «d.name»PQON;
         '''
         return '''
             «GENERATED_COMMENT»
-            import type { BonaPortable } from "«bonaPortablePath(d.package.name)»";
-            «d.writeImports(refs)»
+            import type { BonaPortable } from "«TsModuleResolver.runtimeSupportImport(d, d.name, "bona-portable")»";
+            «d.writeImports(d.name, refs)»
 
             export const «d.name»PQON = "«pqon»" as const;
             «d.javadoc.jsdoc»
@@ -260,6 +271,81 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
             }
             «guard»
         '''
+    }
+    def private static CharSequence tsFieldMetadata(FieldDefinition f) {
+        val tags = new java.util.ArrayList<String>
+        val ref = DataTypeExtension.get(f.datatype)
+        tags.add("@bonaparte.required " + f.cannotBeNull)
+        if (f.defaultString !== null) {
+            val defaultValue = if (ref.javaType.equals("String")) f.defaultString.tsJSDocString
+                               else f.defaultString.commentSafe
+            tags.add("@bonaparte.default " + defaultValue)
+        }
+        else if (ref.effectiveEnumDefault) {
+            val elem = ref.elementaryDataType
+            val enumType = if (elem.enumType !== null) elem.enumType
+                           else if (elem.xenumType !== null) elem.xenumType.myEnum
+                           else null
+            if (enumType !== null && ref.enumMaxTokenLength == DataTypeExtension.ENUM_NUMERIC)
+                tags.add("@bonaparte.default 0")
+            else if (enumType !== null && !enumType.avalues.empty)
+                tags.add("@bonaparte.default " + enumType.avalues.head.token.tsJSDocString)
+            else
+                tags.add("@bonaparte.default first-defined-enum-value")
+        }
+        if (f.isArray !== null)
+            f.addAggregateMetadata(tags, "array", f.isArray.mincount, f.isArray.maxcount)
+        else if (f.isList !== null)
+            f.addAggregateMetadata(tags, "list", f.isList.mincount, f.isList.maxcount)
+        else if (f.isSet !== null)
+            f.addAggregateMetadata(tags, "set", f.isSet.mincount, f.isSet.maxcount)
+        else if (f.isMap !== null) {
+            f.addAggregateMetadata(tags, "map", f.isMap.mincount, f.isMap.maxcount)
+            tags.add("@bonaparte.mapKey " + f.isMap.indexType.toLowerCase)
+        }
+        val elem = ref.elementaryDataType
+        if (elem !== null) {
+            if (ref.javaType.equals("String")) {
+                if (elem.minLength > 0)
+                    tags.add("@bonaparte.minLength " + elem.minLength)
+                if (elem.length > 0)
+                    tags.add("@bonaparte.maxLength " + elem.length)
+                if (elem.regexp !== null)
+                    tags.add("@bonaparte.pattern " + elem.regexp.tsJSDocString)
+                if (elem.name.equalsIgnoreCase("uppercase"))
+                    tags.add("@bonaparte.case uppercase")
+                else if (elem.name.equalsIgnoreCase("lowercase"))
+                    tags.add("@bonaparte.case lowercase")
+            }
+            if (elem.length > 0 && (ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.NUMERIC
+                    || ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.BASICNUMERIC)) {
+                tags.add("@bonaparte.precision " + elem.length)
+                tags.add("@bonaparte.scale " + elem.decimals)
+            }
+        }
+        for (property : f.properties)
+            tags.add("@bonaparte.property " + property.key.name
+                + (if (property.value === null) "" else "=" + property.value.tsJSDocString))
+        if (tags.empty)
+            return ""
+        return "/**\n * " + tags.join("\n * ") + "\n */\n"
+    }
+
+    private static def void addAggregateMetadata(FieldDefinition f, java.util.List<String> tags,
+            String kind, int minCount, int maxCount) {
+        tags.add("@bonaparte.aggregate " + kind + (if (f.cannotBeNull) " required" else " optional"))
+        if (minCount > 0)
+            tags.add("@bonaparte.minCount " + minCount)
+        if (maxCount > 0)
+            tags.add("@bonaparte.maxCount " + maxCount)
+    }
+
+    private static def String commentSafe(String value) {
+        value.replace("*/", "* /").replace("\r", " ").replace("\n", " ")
+    }
+
+    private static def String tsJSDocString(String value) {
+        "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").commentSafe + "\""
     }
 
     def private static CharSequence typeGuard(ClassDefinition d) {
@@ -271,7 +357,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
     }
 
     /** Type of a field, including aggregate and null handling. */
-    def private static String tsFieldType(FieldDefinition f, ClassDefinition owner, Map<String, EObject> refs) {
+    def private static String tsFieldType(FieldDefinition f, ClassDefinition owner, TsImportCollector refs) {
         val base = f.datatype.tsBaseType(owner, refs)
         val isCollection = f.isArray !== null || f.isList !== null || f.isSet !== null
         // list elements may be null (fixed-size lists contain nulls);
@@ -290,7 +376,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         f.isArray === null && f.isList === null && f.isSet === null && f.isMap === null
     }
 
-    def private static String tsClassRef(ClassReference r, EObject from, Map<String, EObject> refs) {
+    def private static String tsClassRef(ClassReference r, EObject from, TsImportCollector refs) {
         if (r.plainObject)
             return "BonaPortable"
         if (r.genericsParameterRef !== null)
@@ -298,14 +384,14 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         val cls = r.classRef
         if (cls === null)
             return "BonaPortable"
-        refs.put(cls.name, cls)
+        refs.add(cls)
         if (r.classRefGenericParms.empty)
             return cls.name
         return cls.name + "<" + r.classRefGenericParms.map[tsClassRef(from, refs)].join(", ") + ">"
     }
 
     /** Maps the (typedef resolved) data type of a field to a TypeScript type, collecting the types to be imported. */
-    def private static String tsBaseType(de.jpaw.bonaparte.dsl.bonScript.DataType dt, ClassDefinition owner, Map<String, EObject> refs) {
+    def private static String tsBaseType(de.jpaw.bonaparte.dsl.bonScript.DataType dt, ClassDefinition owner, TsImportCollector refs) {
         val ref = DataTypeExtension.get(dt)
         if (ref.genericsRef !== null)
             return ref.genericsRef.tsFieldClassRef(owner, refs)
@@ -315,29 +401,27 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 if (polymorphicType !== null)
                     return polymorphicType
             }
-            refs.put(ref.objectDataType.name, ref.objectDataType)
+            refs.add(ref.objectDataType)
             return ref.objectDataType.name
         }
         val elem = ref.elementaryDataType
         if (elem === null)
             return "BonaPortable"
         if (elem.enumType !== null) {
-            refs.put(elem.enumType.name, elem.enumType)
+            refs.add(elem.enumType)
             return elem.enumType.name
         }
         if (elem.xenumType !== null) {
-            refs.put(elem.xenumType.name, elem.xenumType)
+            refs.add(elem.xenumType)
             return elem.xenumType.name
         }
         if (elem.enumsetType !== null) {
-            // string index type -> string, numeric index type (or default) -> integer bitmap
-            val idx = elem.enumsetType.indexType
-            if (idx !== null && idx.toLowerCase.startsWith("s"))
-                return "string"
-            return "number"
+            refs.add(elem.enumsetType)
+            return elem.enumsetType.name
         }
         if (elem.xenumsetType !== null) {
-            return "string"
+            refs.add(elem.xenumsetType)
+            return elem.xenumsetType.name
         }
         switch (elem.name.toLowerCase) {
             case "boolean":
@@ -363,7 +447,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         }
     }
 
-    private static def String tsPolymorphicFieldType(ClassDefinition base, Map<String, EObject> refs) {
+    private static def String tsPolymorphicFieldType(ClassDefinition base, TsImportCollector refs) {
         if (!base.isAbstract || base.genericParameters.size > 0 || base.eResource.resourceSet === null)
             return null
 
@@ -381,7 +465,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
         val names = new java.util.LinkedHashSet<String>
         for (descendant : descendants) {
-            refs.put(descendant.name, descendant)
+            refs.add(descendant)
             names.add(descendant.name)
         }
         return names.join(" | ")
@@ -397,7 +481,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         return false
     }
 
-    private static def String tsFieldClassRef(ClassReference ref, EObject from, Map<String, EObject> refs) {
+    private static def String tsFieldClassRef(ClassReference ref, EObject from, TsImportCollector refs) {
         val classRef = ref.classRef
         if (classRef !== null && ref.classRefGenericParms.empty && classRef instanceof ClassDefinition) {
             val polymorphicType = (classRef as ClassDefinition).tsPolymorphicFieldType(refs)

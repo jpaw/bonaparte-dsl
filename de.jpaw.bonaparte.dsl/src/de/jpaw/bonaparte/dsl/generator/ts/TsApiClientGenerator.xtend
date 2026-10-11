@@ -1,6 +1,5 @@
 package de.jpaw.bonaparte.dsl.generator.ts
 
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
 import java.util.ArrayList
@@ -42,8 +41,7 @@ class TsApiClientGenerator {
             val first = group.head.request
             val apiClass = TsNaming.apiClassName(first.package.name, group.head.dtoName,
                 group.head.request.name, group.head.pattern, namingOverrides)
-                fsa.generateFile(TsModuleResolver.outputFolder
-                    + first.package.name.replace('.', '/') + "/" + apiClass + ".ts",
+                fsa.generateFile(TsModuleResolver.generatedFile(first, apiClass),
                 writeApi(first.package.name, apiClass, group, namingOverrides))
         }
         if (TsModuleResolver.currentEntryPoint !== null)
@@ -58,7 +56,7 @@ class TsApiClientGenerator {
             val first = group.head.request
             val apiClass = TsNaming.apiClassName(first.package.name, group.head.dtoName,
                 first.name, group.head.pattern, namingOverrides)
-            val modulePath = "./" + first.package.name.replace('.', '/') + "/" + apiClass
+            val modulePath = "./" + TsModuleResolver.packagePath(first) + "/" + apiClass
             val publicApiName = uniqueExportName(apiClass, first.package.name, exports)
             val apiSpecifier = if (publicApiName == apiClass) apiClass else apiClass + " as " + publicApiName
             exports.put(publicApiName, "export { " + apiSpecifier + " } from '" + modulePath + "';")
@@ -95,15 +93,15 @@ class TsApiClientGenerator {
 
     def private static CharSequence writeApi(String packageName, String apiClass,
             List<TsRequestClassifier.RequestInfo> requests, java.util.Properties namingOverrides) {
-        val imports = new LinkedHashMap<String, EObject>
+        val imports = new TsImportCollector
         for (info : requests) {
-            imports.put(info.request.name, info.request)
+            imports.add(info.request)
             if (info.refName !== null) {
                 val refType = findType(info.request, info.refName)
                 if (refType !== null)
-                    imports.put(refType.name, refType)
+                    imports.add(refType)
                 for (subclass : refSubclasses(info))
-                    imports.put(subclass.name, subclass)
+                    imports.add(subclass)
             }
             if (info.responseRef !== null)
                 collectTypeImports(info.responseRef, imports)
@@ -113,8 +111,12 @@ class TsApiClientGenerator {
         out.append(TypeScriptBonScriptGeneratorMain.GENERATED_COMMENT).append("\n\n")
         out.append("import { inject, Injectable } from '@angular/core';\n")
         out.append("import { Observable, map } from 'rxjs';\n")
-        out.append("import type { BonaPortable } from '").append(bonaPortablePath(packageName)).append("';\n")
-        out.append("import { RpcClient } from '").append(rpcClientPath(packageName)).append("';\n")
+        out.append("import type { BonaPortable } from '")
+            .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "bona-portable"))
+            .append("';\n")
+        out.append("import { RpcClient } from '")
+            .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "rpc-client"))
+            .append("';\n")
         val unwraps = new LinkedHashSet<String>
         for (info : requests) {
             unwraps.add(unwrapName(info.responsePattern))
@@ -122,21 +124,25 @@ class TsApiClientGenerator {
                 unwraps.add("unwrapVoid")
         }
         out.append("import { ").append(unwraps.join(", ")).append(" } from '")
-            .append(rpcSupportPath(packageName)).append("';\n")
+            .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "unwrap"))
+            .append("';\n")
         for (info : requests.filter[responsePattern == TsRequestClassifier.ResponsePattern.LEAN_SEARCH]) {
             val description = findDescription(info.request, info.responseRef.classRef.package.name)
             if (description !== null) {
-                imports.put(description.name, description)
+                imports.add(description)
             }
         }
-        for (entry : imports.entrySet)
-            out.append("import type { ").append(entry.key).append(" } from \"")
-                .append(importPath(requests.head.request, packageName, entry.value, entry.key)).append("\";\n")
+        for (type : imports.types) {
+            val name = TsImportCollector.simpleName(type)
+            out.append("import type { ").append(name).append(" } from \"")
+                .append(TsModuleResolver.importPath(requests.head.request, apiClass, type, name))
+                .append("\";\n")
+        }
         for (info : requests.filter[hasNamedExtras(it)])
             out.append("\n").append(writeExtrasInterface(info))
         for (info : requests)
             out.append("\nconst ").append(info.request.name).append("PQON = \"")
-                .append(info.request.package.name).append(".").append(info.request.name).append("\";\n")
+                .append(TsModuleResolver.pqon(info.request)).append("\";\n")
         out.append("\n@Injectable({ providedIn: 'root' })\n")
         out.append("export class ").append(apiClass).append(" {\n")
         out.append("    private readonly rpc = inject(RpcClient);\n")
@@ -274,9 +280,9 @@ class TsApiClientGenerator {
         return false
     }
 
-    def private static void collectTypeImports(ClassReference ref, Map<String, EObject> imports) {
+    def private static void collectTypeImports(ClassReference ref, TsImportCollector imports) {
         if (ref.classRef !== null)
-            imports.put(ref.classRef.name, ref.classRef)
+            imports.add(ref.classRef)
         for (argument : ref.classRefGenericParms)
             collectTypeImports(argument, imports)
     }
@@ -356,54 +362,6 @@ class TsApiClientGenerator {
             case SERVICE: "unwrapService"
             case VOID: "unwrapVoid"
         }
-    }
-
-    def private static String importPath(ClassDefinition from, String fromPackage, EObject target, String name) {
-        val crossModule = if (from.eResource !== null && target.eResource !== null)
-            TsModuleResolver.crossModuleImport(from, target)
-            else null
-        if (crossModule !== null)
-            return crossModule
-        val fromParts = fromPackage.split("\\.")
-        val toParts = target.package.name.split("\\.")
-        var common = 0
-        while (common < fromParts.length && common < toParts.length && fromParts.get(common) == toParts.get(common))
-            common++
-        val path = new StringBuilder
-        if (common == fromParts.length)
-            path.append("./")
-        else
-            for (i : common ..< fromParts.length)
-                path.append("../")
-        for (i : common ..< toParts.length)
-            path.append(toParts.get(i)).append("/")
-        path.append(name)
-        return path.toString
-    }
-
-    def private static String rpcClientPath(String packageName) {
-        val npmPackage = BonScriptPreferences.getTsNpmPackage
-        if (npmPackage !== null && !npmPackage.blank)
-            return npmPackage
-        val depth = packageName.split("\\.").length
-        val path = new StringBuilder
-        for (i : 0 ..< depth)
-            path.append("../")
-        if (TsModuleResolver.currentEntryPoint !== null)
-            path.append("../")
-        path.append("rpc-core/rpc-client")
-        return path.toString
-    }
-
-    def private static String rpcSupportPath(String packageName) {
-        val npmPackage = BonScriptPreferences.getTsNpmPackage
-        if (npmPackage !== null && !npmPackage.blank)
-            return npmPackage
-        rpcClientPath(packageName).replace("rpc-client", "unwrap")
-    }
-
-    def private static String bonaPortablePath(String packageName) {
-        rpcClientPath(packageName).replace("rpc-client", "bona-portable")
     }
 
     def private static String capitalize(String name) {
