@@ -47,6 +47,8 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
  * - `day`, `time`, `timestamp` are serialized as strings
  * - `enumset` (numeric index) is serialized as an integer bitmap
  * - `xenumset` is serialized as a string
+ * - JSON binary fields use Base64 strings; JSON map keys are strings, with integer / long keys prefixed by `_`
+ * - Tokenizable enum and xenum JSON values use tokens; non-tokenizable enums use numeric ordinals by default
  * - Every object carries a `'@PQON'` field with the partially qualified object name
  * - List elements may be null (fixed-size lists contain nulls)
  * - Plain `Object` / `Element` map to `BonaPortable`
@@ -302,9 +304,32 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         else if (f.isMap !== null) {
             f.addAggregateMetadata(tags, "map", f.isMap.mincount, f.isMap.maxcount)
             tags.add("@bonaparte.mapKey " + f.isMap.indexType.toLowerCase)
+            tags.add("@bonaparte.jsonMapKeyFormat "
+                + (if (f.isMap.indexType.equals("String")) "identity" else "underscore-prefixed-decimal"))
         }
         val elem = ref.elementaryDataType
         if (elem !== null) {
+            if (elem.enumType !== null)
+                tags.add("@bonaparte.wireFormat "
+                    + (if (ref.enumMaxTokenLength == DataTypeExtension.ENUM_NUMERIC)
+                        "numeric-enum-ordinal" else "enum-token-string"))
+            if (elem.xenumType !== null)
+                tags.add("@bonaparte.wireFormat enum-token-string")
+            if (elem.enumsetType !== null)
+                tags.add("@bonaparte.wireFormat "
+                    + (if (elem.enumsetType.indexType.equals("String"))
+                        "string-enum-bitmap" else "numeric-enum-bitmap"))
+            if (elem.xenumsetType !== null)
+                tags.add("@bonaparte.wireFormat string-enum-bitmap")
+            switch elem.name.toLowerCase {
+                case "instant": tags.add("@bonaparte.wireFormat epoch-seconds")
+                case "day", case "time", case "timestamp": tags.add("@bonaparte.wireFormat iso-8601-string")
+            }
+            if (ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.BINARY) {
+                tags.add("@bonaparte.encoding base64")
+                if (elem.length > 0)
+                    tags.add("@bonaparte.maxBytes " + elem.length)
+            }
             if (ref.javaType.equals("String")) {
                 if (elem.minLength > 0)
                     tags.add("@bonaparte.minLength " + elem.minLength)

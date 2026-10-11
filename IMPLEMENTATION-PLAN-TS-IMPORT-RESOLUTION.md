@@ -11,7 +11,7 @@
 | 1 Resolver contract | ✅ done | Resolver API, output-path contract, unresolved-input behavior, and fail-fast simple-name collision policy are defined and implemented. |
 | 2 Central path resolution | ✅ done | `TsModuleResolver` derives same-entrypoint and runtime-support specifiers from generated paths; cross-module mapping is preserved. |
 | 3 Generator migration | ✅ done | Model, API-client, module-index, and runtime-support imports use the shared resolver. |
-| 4 Regression coverage | ✅ done | 33 generator tests pass, covering default/entry-point layouts, API imports, runtime support, collisions, inherited generic request fields, and module closure. |
+| 4 Regression coverage | ✅ done | 34 generator tests pass, covering default/entry-point layouts, API imports, runtime support, collisions, inherited generic request fields, wire metadata, and Java-only flags. |
 | 5 Consumer verification | ✅ done | Java 21 generator reactor and install passed; a28/Takko generation checks passed; t9t ng-packagr built all 28 entry points. The consumer script validates generation/module closure, not a28/Takko TypeScript compilation. |
 
 ## Current State
@@ -51,7 +51,7 @@ The Java generator is split into focused helpers while the TypeScript generator 
 - [x] **`JavaMeta`** — keep the Java reflection registry server-only: no client requirement currently calls for runtime metadata, generic UI generation, or schema inspection. TypeScript emits only caller-relevant field JSDoc tags; class revision/parent/bundle, runtime class, factory/class IDs, object bounds, and enum/xenum reflection metadata are not portable runtime exports.
 - [x] **`JavaRtti`** — numeric RTTI is Java runtime/Hazelcast identity, not a serialized wire field. The TypeScript contract uses the serialized `@PQON` discriminator; regression verifies generated object interfaces expose it without leaking RTTI.
 - [x] **`JavaValidate` / `JavaBeanValidation`** — retain compile-time interfaces plus descriptive field metadata; do not generate runtime validators or add a schema-library dependency without a client validation requirement. JSDoc constraints do not claim enforcement.
-- [ ] **`JavaSerialize` / `JavaDeserialize`** — document the exact JSON/RPC wire mapping as the TypeScript contract and add round-trip fixtures against Java output. Cover enum ordinals versus tokens, enum-set bitmaps, xenum tokens, instant units, raw/binary encoding, null collection elements, map key coercion, polymorphic `@PQON`, external/adapted types, and inherited fields.
+- [ ] **`JavaSerialize` / `JavaDeserialize`** — source inspection establishes the default JSON mappings (numeric enum ordinals, token strings, numeric/string enum bitmaps, epoch-second instants, ISO date/time strings, Base64 binary, nullable collection members, object-shaped maps with identity string keys and `_`-prefixed integer/long keys, and `@PQON` for polymorphic records); matching TypeScript types/tags have regression coverage. Keep this item open until Java-produced round-trip fixtures cover these mappings and clarify external/adapted values plus inherited fields. Alternate `JsonComposer` enum modes remain configurable and are not yet negotiated by generated metadata.
 - [x] **`JavaOpenApiOutput`** — TypeScript generation currently emits neither OpenAPI documents nor runtime schemas, so Java annotation generation remains a separate server concern. If TS schema output is introduced later, project it from the same field metadata rather than maintaining independent constraint logic.
 
 #### Optional TypeScript runtime parity
@@ -65,7 +65,7 @@ The Java generator is split into focused helpers while the TypeScript generator 
 - [ ] **`JavaExternalize`** — record Java `Externalizable` binary integration as not applicable to TypeScript; add no port unless browser/Node binary compatibility becomes an explicit requirement.
 - [ ] **`JavaHazelSupport`** — record Hazelcast serialization and factory/class interfaces as server-only; retain IDs only through portable metadata if clients consume them.
 - [ ] **`Jaxb`** — record JAXB annotations, adapters, `jaxb.index`, and `package-info.java` as JVM/XML binding concerns. Treat XML client generation as a separate feature if required.
-- [ ] **`JavaBonScriptGeneratorMain`** — add a documented TypeScript generation policy for Java-only declarations and flags: whether `noJava`, external types/adapters, package deprecation, abstract/final/immutable markers, interfaces, reference/key/tracking classes, custom annotations, and XML/Swagger switches are ignored, mapped, or rejected. Add diagnostics for unsupported constructs that would otherwise be silently weakened.
+- [x] **`JavaBonScriptGeneratorMain`** — document current policy: TypeScript emits declared BON classes even when `nojava` suppresses Java generation; external Java types/adapters and Java-only annotations/flags do not alter the structural BON-field interface; package/type/field deprecation is mapped to JSDoc; abstract types remain usable interfaces and are expanded to concrete descendant unions when polymorphic fields permit; final/immutable/freezable, XML/Swagger/bean-validation, RTTI, reference/key/tracking and custom Java annotation semantics are not represented. A regression covers `nojava`, abstract/final inheritance, immutable, XML, and Swagger modifiers. Unsupported semantics remain intentionally descriptive/erased, not silently promised as TypeScript behavior.
 
 The import-resolution implementation in Phases 1–5 addressed `ImportCollector` and `JavaPackages`. The remaining required items below are the active parity decisions; optional runtime and JVM-specific items remain follow-up scope.
 
@@ -110,7 +110,7 @@ The import-resolution implementation in Phases 1–5 addressed `ImportCollector`
 
 ## Phase 5 — Verification
 
-- [x] With Java 21, run the BON TypeScript generator test reactor: `mvn -pl de.jpaw.bonaparte.dsl.tests -am verify -Dexec.skip=true` (33 tests passed; install the DSL bundle first so Tycho uses the current generator).
+- [x] With Java 21, run the BON TypeScript generator test reactor: `mvn -pl de.jpaw.bonaparte.dsl.tests -am verify -Dexec.skip=true` (34 tests passed; install the DSL bundle first so Tycho uses the current generator).
 - [x] Run a normal generator install to exercise MWE2 and the plugin lifecycle: `mvn -pl de.jpaw.bonaparte.dsl -am install`.
 - [x] Run `bash scripts/verify-ts-consumers.sh` to regenerate representative a28 and Takko consumers with configured module maps (176 and 13 TypeScript files emitted; generation and module closure checks passed).
 - [x] Build the t9t API npm entry points (`mvn -pl t9t-api-ts -am verify` in the t9t repository) to prove ng-packagr resolves generated imports (all 28 entry points built).

@@ -346,13 +346,22 @@ public class TypeScriptGeneratorTest {
             "package com.acme.metadata {",
             "    properties displayName;",
             "    enum Status { ACTIVE = \"active\", INACTIVE = \"inactive\" }",
+            "    enum Rank { LOW, HIGH }",
+            "    enumset<int> RankSet is Rank;",
             "    class Metadata {",
             "        required unicode(3..20) regexp \"[A-Z]+\" code default \"ABC\" properties displayName=\"Code\";",
             "        optional Uppercase(12) normalized;",
             "        optional decimal(9,2) amount default \"12.50\";",
+            "        required instant created;",
+            "        required day businessDay;",
+            "        required raw(16) rawBytes;",
+            "        required binary(24) binaryData;",
             "        required enum Status default status;",
+            "        required enum Rank rank;",
+            "        required enumset RankSet ranks;",
             "        required Integer required List<1..5> values;",
             "        optional Integer Map<String, 2..8> entries;",
+            "        optional Integer Map<Integer, 2..8> numericEntries;",
             "    }",
             "}",
             "");
@@ -368,12 +377,26 @@ public class TypeScriptGeneratorTest {
         assertTrue(metadata, metadata.contains("@bonaparte.precision 9"));
         assertTrue(metadata, metadata.contains("@bonaparte.scale 2"));
         assertFalse(metadata, metadata.contains("@bonaparte.maxLength 9"));
+        assertTrue(metadata, metadata.contains("created: number;"));
+        assertTrue(metadata, metadata.contains("@bonaparte.wireFormat epoch-seconds"));
+        assertTrue(metadata, metadata.contains("businessDay: string;"));
+        assertTrue(metadata, metadata.contains("@bonaparte.wireFormat iso-8601-string"));
+        assertTrue(metadata, metadata.contains("rawBytes: string;"));
+        assertTrue(metadata, metadata.contains("@bonaparte.encoding base64"));
+        assertTrue(metadata, metadata.contains("@bonaparte.maxBytes 16"));
+        assertTrue(metadata, metadata.contains("binaryData: string;"));
         assertTrue(metadata, metadata.contains("@bonaparte.default \"active\""));
+        assertTrue(metadata, metadata.contains("@bonaparte.wireFormat enum-token-string"));
+        assertTrue(metadata, metadata.contains("@bonaparte.wireFormat numeric-enum-ordinal"));
+        assertTrue(metadata, metadata.contains("@bonaparte.wireFormat numeric-enum-bitmap"));
         assertTrue(metadata, metadata.contains("@bonaparte.aggregate list required"));
         assertTrue(metadata, metadata.contains("@bonaparte.minCount 1"));
         assertTrue(metadata, metadata.contains("@bonaparte.maxCount 5"));
         assertTrue(metadata, metadata.contains("@bonaparte.aggregate map optional"));
         assertTrue(metadata, metadata.contains("@bonaparte.mapKey string"));
+        assertTrue(metadata, metadata.contains("@bonaparte.jsonMapKeyFormat identity"));
+        assertTrue(metadata, metadata.contains("@bonaparte.mapKey integer"));
+        assertTrue(metadata, metadata.contains("@bonaparte.jsonMapKeyFormat underscore-prefixed-decimal"));
         assertTrue(metadata, metadata.contains("@bonaparte.minCount 2"));
         assertTrue(metadata, metadata.contains("@bonaparte.maxCount 8"));
         assertTrue(metadata.indexOf("@bonaparte.default \"ABC\"") < metadata.indexOf("code:"));
@@ -598,6 +621,32 @@ public class TypeScriptGeneratorTest {
             assertTrue(f, generated.contains("'@PQON': typeof"));
             assertFalse(f, generated.toLowerCase().contains("rtti"));
         }
+    }
+
+    @Test
+    public void javaOnlyClassAndPackageFlagsDoNotWeakenTypeScriptWireInterfaces() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.flags XML FIELD swagger {",
+            "    abstract class Base { required unicode(20) id; }",
+            "    final class Leaf extends Base { required unicode(30) value; }",
+            "    immutable class Frozen { required int count; }",
+            "    class NoJavaHelper nojava { required boolean enabled; }",
+            "}",
+            "");
+        Map<String, CharSequence> files = generate(source);
+        String base = norm(files.get(ROOT + "com/acme/flags/Base.ts"));
+        String leaf = norm(files.get(ROOT + "com/acme/flags/Leaf.ts"));
+        String frozen = norm(files.get(ROOT + "com/acme/flags/Frozen.ts"));
+        String helper = norm(files.get(ROOT + "com/acme/flags/NoJavaHelper.ts"));
+
+        assertTrue(base, base.contains("export interface Base {"));
+        assertTrue(leaf, leaf.contains("export interface Leaf extends Omit<Base, '@PQON'> {"));
+        assertTrue(leaf, leaf.contains("value: string;"));
+        assertTrue(frozen, frozen.contains("count: number;"));
+        assertFalse(frozen, frozen.contains("readonly"));
+        assertTrue(helper, helper.contains("export interface NoJavaHelper {"));
+        assertTrue(helper, helper.contains("enabled: boolean;"));
+        assertFalse(helper, helper.contains("XML") || helper.contains("swagger"));
     }
 
     @Test
