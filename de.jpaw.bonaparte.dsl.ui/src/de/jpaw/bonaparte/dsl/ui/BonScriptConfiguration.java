@@ -54,6 +54,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         validationGroup.setText("Data types and validation");
         validationGroup.setLayout(new GridLayout(1, false));
         Composite compositeV = new Composite(validationGroup, SWT.NONE);
+        addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeV));
         addField(new BooleanFieldEditor("WarnByte", "Warn if mutable raw type (byte []) is used", compositeV));
         addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used", compositeV));
         validationGroup.pack();
@@ -68,10 +69,10 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         // output
         Group outputGroup = new Group(myParent, SWT.SHADOW_IN);
         outputGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        outputGroup.setText("Code generation");
+        outputGroup.setText("Java Code generation");
         outputGroup.setLayout(new GridLayout(1, false));
         Composite compositeO = new Composite(outputGroup, SWT.NONE);
-        addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeO));
+        addField(new BooleanFieldEditor("JavaDefault", "Generate Java source code", compositeO));
         addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
         addField(new BooleanFieldEditor("Jakarta", "Generate NEW jakarta package prefixes", compositeO));
@@ -151,7 +152,8 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("TypeScript.apiNamingFile", defaults.tsApiNamingFile == null ? "" : defaults.tsApiNamingFile);
         store.setDefault("DebugOut",            defaults.doDebugOut);
         store.setDefault("DateTime",            defaults.doDateTime);
-        store.setDefault("XMLOut",              defaults.noXML);
+        store.setDefault("JavaOut",             defaults.doJava);
+        store.setDefault("XsdOut",              defaults.doXsd);
         store.setDefault("Jakarta",             defaults.jakartaOutput);
         store.setDefault("Externalize",         defaults.defaultExternalize);
         store.setDefault("HazelcastDs",         defaults.defaultHazelcastDs);
@@ -175,7 +177,8 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.tsApiNamingFile             = store.getString("TypeScript.apiNamingFile");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doDateTime                  = store.getBoolean("DateTime");
-        currentSettings.noXML                       = store.getBoolean("XMLOut");
+        currentSettings.doJava                      = store.getBoolean("JavaOut");
+        currentSettings.doXsd                       = store.getBoolean("XsdOut");
         currentSettings.jakartaOutput               = store.getBoolean("Jakarta");
         currentSettings.defaultExternalize          = store.getBoolean("Externalize");
         currentSettings.defaultHazelcastDs          = store.getBoolean("HazelcastDs");
@@ -202,28 +205,31 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       BonScriptPreferences.currentPrefs.doTypeScript        = toBool(event.getNewValue());
                       break;
                   case "typeScriptDefaultApi":
-                      BonScriptPreferences.currentPrefs.doTypeScriptApi      = toBool(event.getNewValue());
+                      BonScriptPreferences.currentPrefs.doTypeScriptApi     = toBool(event.getNewValue());
                       break;
                   case "TypeScript.module":
-                      BonScriptPreferences.currentPrefs.tsModule             = (String) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.tsModule            = (String) event.getNewValue();
                       break;
                   case "TypeScript.modulesFile":
-                      BonScriptPreferences.currentPrefs.tsModulesFile        = (String) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.tsModulesFile       = (String) event.getNewValue();
                       break;
                   case "TypeScript.npmPackage":
-                      BonScriptPreferences.currentPrefs.tsNpmPackage         = (String) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.tsNpmPackage        = (String) event.getNewValue();
                       break;
                   case "TypeScript.bigLongs":
-                      BonScriptPreferences.currentPrefs.tsBigLongs           = (String) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.tsBigLongs          = (String) event.getNewValue();
                       break;
                   case "TypeScript.apiNamingFile":
-                      BonScriptPreferences.currentPrefs.tsApiNamingFile      = (String) event.getNewValue();
+                      BonScriptPreferences.currentPrefs.tsApiNamingFile     = (String) event.getNewValue();
                       break;
                   case "DebugOut":
                       BonScriptPreferences.currentPrefs.doDebugOut          = toBool(event.getNewValue());
                       break;
-                  case "XMLOut":
-                      BonScriptPreferences.currentPrefs.noXML               = toBool(event.getNewValue());
+                  case "JavaOut":
+                      BonScriptPreferences.currentPrefs.doJava              = toBool(event.getNewValue());
+                      break;
+                  case "XsdOut":
+                      BonScriptPreferences.currentPrefs.doXsd               = toBool(event.getNewValue());
                       break;
                   case "Jakarta":
                       BonScriptPreferences.currentPrefs.jakartaOutput       = toBool(event.getNewValue());
@@ -262,5 +268,4 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                 }
               });
     }
-
 }

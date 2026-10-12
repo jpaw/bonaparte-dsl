@@ -53,27 +53,30 @@ class BonScriptGenerator extends AbstractGenerator {
     }
 
     override void doGenerate(Resource resource, IFileSystemAccess2 fsa, IGeneratorContext unused) {
+        val resAsString = resource.URI.toString
 
         try {
             if (BonScriptPreferences.currentPrefs.doDebugOut) {
-                LOGGER.info(filterInfo + "start code output: Debug dump for " + resource.URI.toString);
+                LOGGER.info(filterInfo + "start code output: Debug dump for " + resAsString);
                 generatorDebug.doGenerate(resource, fsa)
             }
 
-            LOGGER.info(filterInfo + "start code output: Java output for " + resource.URI.toString);
-            generatorJava.doGenerate(resource, fsa, unused)
+            if (BonScriptPreferences.getDoJava) {
+	            LOGGER.info(filterInfo + "start code output: Java output for " + resAsString);
+	            generatorJava.doGenerate(resource, fsa, unused)
+            }
 
-            if (!BonScriptPreferences.getNoXML) {
-                LOGGER.info(filterInfo + "start XSD creation for " + resource.URI.toString);
+            if (BonScriptPreferences.getDoXsd) {
+                LOGGER.info(filterInfo + "start XSD creation for " + resAsString);
                 generatorXsd.doGenerate(resource, fsa, unused)
             }
 
             if (BonScriptPreferences.getDoTypeScript) {
-                LOGGER.info(filterInfo + "start TypeScript creation for " + resource.URI.toString);
+                LOGGER.info(filterInfo + "start TypeScript creation for " + resAsString);
                 generatorTs.doGenerate(resource, fsa, unused)
             }
             if (BonScriptPreferences.getDoTypeScriptApi) {
-                LOGGER.info(filterInfo + "start TypeScript API creation for " + resource.URI.toString);
+                LOGGER.info(filterInfo + "start TypeScript API creation for " + resAsString);
                 generatorTsApi.doGenerate(resource, fsa)
             }
 
