@@ -545,15 +545,14 @@ public class TypeScriptGeneratorTest {
         }
 
         String indexSource = String.join("\n",
-            "package com.acme.one { class Shared {} }",
-            "package com.acme.two { class Shared {} }",
+            "package apip { class Ref {} }",
+            "package apiw { class Ref {} }",
             "");
-        try {
-            generate(indexSource);
-            throw new AssertionError("Expected module index export collision");
-        } catch (IllegalStateException e) {
-            assertCanonicalCollision(e);
-        }
+        String index = norm(generate(indexSource).get(ROOT + "index.ts"));
+        assertTrue(index, index.contains("export { RefPQON as ApipRefPQON } from './apip/Ref';"));
+        assertTrue(index, index.contains("export type { Ref as ApipRef } from './apip/Ref';"));
+        assertTrue(index, index.contains("export { RefPQON as ApiwRefPQON } from './apiw/Ref';"));
+        assertTrue(index, index.contains("export type { Ref as ApiwRef } from './apiw/Ref';"));
 
         String apiSource = String.join("\n",
             "package com.acme.one { class Shared {} }",

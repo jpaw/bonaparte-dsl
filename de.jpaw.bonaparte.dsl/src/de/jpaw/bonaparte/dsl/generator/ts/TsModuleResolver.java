@@ -129,6 +129,19 @@ public final class TsModuleResolver {
         return bonPackageName.replace('.', '/');
     }
 
+    public static String qualifiedExportName(EObject type) {
+        PackageDefinition bonPackage = bonPackage(type);
+        if (bonPackage == null)
+            throw new IllegalArgumentException("Cannot qualify TypeScript export name for "
+                    + TsImportCollector.simpleName(type));
+        StringBuilder name = new StringBuilder();
+        for (String segment : bonPackage.getName().split("\\.")) {
+            if (!segment.isEmpty())
+                name.append(Character.toUpperCase(segment.charAt(0))).append(segment.substring(1));
+        }
+        return name.append(TsImportCollector.simpleName(type)).toString();
+    }
+
     public static String pqon(EObject type) {
         PackageDefinition bonPackage = bonPackage(type);
         if (bonPackage == null)

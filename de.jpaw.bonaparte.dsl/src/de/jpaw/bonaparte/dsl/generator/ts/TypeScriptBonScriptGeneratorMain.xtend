@@ -105,37 +105,54 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
     def private static CharSequence writeModuleIndex(Iterable<Resource> resources, Resource module) {
         val out = new StringBuilder
-        val exportedTypes = new TsImportCollector
+        val typesByIdentity = new LinkedHashMap<String, EObject>
         out.append(GENERATED_COMMENT).append("\n\n")
         for (source : resources.filter[TsModuleResolver.isSameModule(it, module)]) {
-            for (e : source.allContents.toIterable.filter(typeof(EnumDefinition))) {
-                if (exportedTypes.add(e))
-                    out.append("export { ").append(e.name).append(" } from './")
-                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
-            }
-            for (e : source.allContents.toIterable.filter(typeof(XEnumDefinition))) {
-                if (exportedTypes.add(e))
-                    out.append("export type { ").append(e.name).append(" } from './")
-                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
-            }
-            for (e : source.allContents.toIterable.filter(typeof(EnumSetDefinition))) {
-                if (exportedTypes.add(e))
-                    out.append("export type { ").append(e.name).append(" } from './")
-                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
-            }
-            for (e : source.allContents.toIterable.filter(typeof(XEnumSetDefinition))) {
-                if (exportedTypes.add(e))
-                    out.append("export type { ").append(e.name).append(" } from './")
-                        .append(TsModuleResolver.packagePath(e)).append("/").append(e.name).append("';\n")
-            }
-            for (c : source.allContents.toIterable.filter(typeof(ClassDefinition))) {
-                if (exportedTypes.add(c)) {
-                    val modulePath = "./" + TsModuleResolver.packagePath(c) + "/" + c.name
-                    out.append("export { ").append(c.name).append("PQON } from '").append(modulePath).append("';\n")
-                    out.append("export type { ").append(c.name).append(" } from '").append(modulePath).append("';\n")
-                    if (c.extendsClass !== null && c.extendsClass.classRef !== null
-                            && !TsModuleResolver.isSameModule(c, c.extendsClass.classRef))
-                        out.append("export { is").append(c.name).append(" } from '").append(modulePath).append("';\n")
+            for (type : source.allContents.toIterable.filter(typeof(EnumDefinition)))
+                typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
+            for (type : source.allContents.toIterable.filter(typeof(XEnumDefinition)))
+                typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
+            for (type : source.allContents.toIterable.filter(typeof(EnumSetDefinition)))
+                typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
+            for (type : source.allContents.toIterable.filter(typeof(XEnumSetDefinition)))
+                typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
+            for (type : source.allContents.toIterable.filter(typeof(ClassDefinition)))
+                typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
+        }
+
+        val types = new java.util.ArrayList<EObject>(typesByIdentity.values)
+        val exportNames = new TsModuleExportNames(types)
+        for (type : types) {
+            val name = TsImportCollector.simpleName(type)
+            val exportName = exportNames.exportName(type)
+            val modulePath = "./" + TsModuleResolver.packagePath(type) + "/" + name
+            if (type instanceof EnumDefinition) {
+                out.append("export { ").append(name)
+                if (exportName != name)
+                    out.append(" as ").append(exportName)
+                out.append(" } from '").append(modulePath).append("';\n")
+            } else if (type instanceof XEnumDefinition || type instanceof EnumSetDefinition
+                    || type instanceof XEnumSetDefinition) {
+                out.append("export type { ").append(name)
+                if (exportName != name)
+                    out.append(" as ").append(exportName)
+                out.append(" } from '").append(modulePath).append("';\n")
+            } else if (type instanceof ClassDefinition) {
+                val c = type as ClassDefinition
+                out.append("export { ").append(name).append("PQON")
+                if (exportName != name)
+                    out.append(" as ").append(exportName).append("PQON")
+                out.append(" } from '").append(modulePath).append("';\n")
+                out.append("export type { ").append(name)
+                if (exportName != name)
+                    out.append(" as ").append(exportName)
+                out.append(" } from '").append(modulePath).append("';\n")
+                if (c.extendsClass !== null && c.extendsClass.classRef !== null
+                        && !TsModuleResolver.isSameModule(c, c.extendsClass.classRef)) {
+                    out.append("export { is").append(name)
+                    if (exportName != name)
+                        out.append(" as is").append(exportName)
+                    out.append(" } from '").append(modulePath).append("';\n")
                 }
             }
         }
