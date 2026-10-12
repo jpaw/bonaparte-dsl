@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant BSG as BonScriptGenerator
+    participant API as TsApiClientGenerator
+    participant CLF as TsRequestClassifier
+    participant NAM as TsNaming
+    participant RES as TsModuleResolver
+    participant FS as IFileSystemAccess2
+
+    BSG->>API: doGenerate(resource, fsa)
+    API->>NAM: loadOverrides(apiNamingFile)
+    loop each ClassDefinition in current module
+        API->>CLF: classify(request)
+        CLF-->>API: RequestInfo (pattern, dto/ref/tracking, response)
+        API->>NAM: apiClassName(pkg, dto, request, pattern, overrides)
+        API->>API: group by package + apiClass
+    end
+    loop each group
+        API->>RES: importPath / runtimeSupportImport per referenced type
+        API->>FS: generateFile(pkg/EntityApi.ts)
+    end
+    API->>FS: generateFile(api-index.ts) for entry points
