@@ -334,7 +334,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 tags.add("@bonaparte.wireFormat enum-token-string")
             if (elem.enumsetType !== null)
                 tags.add("@bonaparte.wireFormat "
-                    + (if (elem.enumsetType.indexType.equals("String"))
+                    + (if ("String".equals(elem.enumsetType.indexType))
                         "string-enum-bitmap" else "numeric-enum-bitmap"))
             if (elem.xenumsetType !== null)
                 tags.add("@bonaparte.wireFormat string-enum-bitmap")

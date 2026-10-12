@@ -52,6 +52,7 @@ public class TypeScriptGeneratorTest {
         "    xenum TimeUnit is Mode : 1;",
         "    enumset<int> SortOrderSet is SortOrder;",
         "    enumset<String> StringSortOrderSet is SortOrder;",
+        "    enumset DefaultSortOrderSet is SortOrder;",
         "    xenumset TimeUnitSet is TimeUnit;",
         "    class Base {",
         "        required long objectRef;",
@@ -78,6 +79,7 @@ public class TypeScriptGeneratorTest {
         "        optional Json extra;",
         "        required enumset com.acme.base.SortOrderSet modes;",
         "        required enumset com.acme.base.StringSortOrderSet stringModes;",
+        "        required enumset com.acme.base.DefaultSortOrderSet defaultModes;",
         "        required xenumset com.acme.base.TimeUnitSet(10) units;",
         "        optional Object blob;",
         "        @Deprecated",
@@ -607,6 +609,7 @@ public class TypeScriptGeneratorTest {
         assertField(child, "extra?: Record<string, unknown> | null;");
         assertField(child, "modes: SortOrderSet;");
         assertField(child, "stringModes: StringSortOrderSet;");
+        assertField(child, "defaultModes: DefaultSortOrderSet;");
         assertField(child, "units: TimeUnitSet;");
         assertField(child, "blob?: BonaPortable | null;");       // plain Object
         assertField(child, "oldAge?: number | null;");           // deprecated field still generated
@@ -803,6 +806,8 @@ public class TypeScriptGeneratorTest {
             assertTrue(index, index.contains("export type { TimeUnitSet }"));
             String numericSet = norm(files.get(entryRoot + "com/acme/base/SortOrderSet.ts"));
             assertTrue(numericSet, numericSet.contains("= number & { readonly [SortOrderSetBrand]"));
+            String defaultNumericSet = norm(files.get(entryRoot + "com/acme/base/DefaultSortOrderSet.ts"));
+            assertTrue(defaultNumericSet, defaultNumericSet.contains("= number & { readonly [DefaultSortOrderSetBrand]"));
             String xenumSet = norm(files.get(entryRoot + "com/acme/base/TimeUnitSet.ts"));
             assertTrue(xenumSet, xenumSet.contains("= string & { readonly [TimeUnitSetBrand]"));
             assertTrue(xenumSet, xenumSet.contains("xenum: \"com.acme.base.TimeUnit\""));
