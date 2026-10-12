@@ -11,6 +11,7 @@ import org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.IntegerFieldEditor;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
 
@@ -115,6 +116,20 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new BooleanFieldEditor("xsdExtensions",        "Add anyType element for future extensions to final classes", compositeXsd));
         xsdGroup.pack();
 
+        // TypeScript support
+        Group tsGroup = new Group(myParent, SWT.SHADOW_IN);
+        tsGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        tsGroup.setText("TypeScript creation settings");
+        tsGroup.setLayout(new GridLayout(1, false));
+        Composite compositeTs = new Composite(tsGroup, SWT.NONE);
+        addField(new BooleanFieldEditor("typeScriptDefault",           "Generate TypeScript files also if no explicit TypeScript directive set", compositeTs));
+        addField(new StringFieldEditor("TypeScript.module", "Module", compositeTs));
+        addField(new StringFieldEditor("TypeScript.modulesFile", "Modules file", compositeTs));
+        addField(new StringFieldEditor("TypeScript.npmPackage", "NPM package", compositeTs));
+        addField(new StringFieldEditor("TypeScript.bigLongs", "Big longs handling", compositeTs));
+        addField(new StringFieldEditor("TypeScript.apiNamingFile", "API naming file", compositeTs));
+        tsGroup.pack();
+
         // blank, to fill the second column
         new Label(myParent, SWT.NONE).setText(" ");
     }
@@ -126,6 +141,12 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         IPreferenceStore store = getPreferenceStore();
         store.setDefault("WarnByte",            defaults.warnByte);
         store.setDefault("WarnFloat",           defaults.warnFloat);
+        store.setDefault("typeScriptDefault",   defaults.doTypeScript);
+        store.setDefault("TypeScript.module",   defaults.tsModule == null ? "" : defaults.tsModule);
+        store.setDefault("TypeScript.modulesFile", defaults.tsModulesFile == null ? "" : defaults.tsModulesFile);
+        store.setDefault("TypeScript.npmPackage", defaults.tsNpmPackage == null ? "" : defaults.tsNpmPackage);
+        store.setDefault("TypeScript.bigLongs",  defaults.tsBigLongs == null ? "" : defaults.tsBigLongs);
+        store.setDefault("TypeScript.apiNamingFile", defaults.tsApiNamingFile == null ? "" : defaults.tsApiNamingFile);
         store.setDefault("DebugOut",            defaults.doDebugOut);
         store.setDefault("DateTime",            defaults.doDateTime);
         store.setDefault("XMLOut",              defaults.noXML);
@@ -143,6 +164,12 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         BonScriptPreferences currentSettings = new BonScriptPreferences();
         currentSettings.warnByte                    = store.getBoolean("WarnByte");
         currentSettings.warnFloat                   = store.getBoolean("WarnFloat");
+        currentSettings.doTypeScript                = store.getBoolean("typeScriptDefault");
+        currentSettings.tsModule                    = store.getString("TypeScript.module");
+        currentSettings.tsModulesFile               = store.getString("TypeScript.modulesFile");
+        currentSettings.tsNpmPackage                = store.getString("TypeScript.npmPackage");
+        currentSettings.tsBigLongs                  = store.getString("TypeScript.bigLongs");
+        currentSettings.tsApiNamingFile             = store.getString("TypeScript.apiNamingFile");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doDateTime                  = store.getBoolean("DateTime");
         currentSettings.noXML                       = store.getBoolean("XMLOut");
@@ -167,6 +194,24 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "WarnFloat":
                       BonScriptPreferences.currentPrefs.warnFloat           = toBool(event.getNewValue());
+                      break;
+                  case "typeScriptDefault":
+                      BonScriptPreferences.currentPrefs.doTypeScript        = toBool(event.getNewValue());
+                      break;
+                  case "TypeScript.module":
+                      BonScriptPreferences.currentPrefs.tsModule             = (String) event.getNewValue();
+                      break;
+                  case "TypeScript.modulesFile":
+                      BonScriptPreferences.currentPrefs.tsModulesFile        = (String) event.getNewValue();
+                      break;
+                  case "TypeScript.npmPackage":
+                      BonScriptPreferences.currentPrefs.tsNpmPackage         = (String) event.getNewValue();
+                      break;
+                  case "TypeScript.bigLongs":
+                      BonScriptPreferences.currentPrefs.tsBigLongs           = (String) event.getNewValue();
+                      break;
+                  case "TypeScript.apiNamingFile":
+                      BonScriptPreferences.currentPrefs.tsApiNamingFile      = (String) event.getNewValue();
                       break;
                   case "DebugOut":
                       BonScriptPreferences.currentPrefs.doDebugOut          = toBool(event.getNewValue());
