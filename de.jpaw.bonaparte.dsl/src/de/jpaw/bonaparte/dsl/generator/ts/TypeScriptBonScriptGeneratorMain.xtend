@@ -168,9 +168,14 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         val out = new StringBuilder
         for (type : refs.types) {
             val name = TsImportCollector.simpleName(type)
-            if (from !== type)
-                out.append("import type { ").append(name).append(" } from \"")
+            if (from !== type) {
+                val importedName = TsModuleResolver.importedTypeName(from, type)
+                out.append("import type { ").append(importedName)
+                if (importedName != name)
+                    out.append(" as ").append(name)
+                out.append(" } from \"")
                     .append(TsModuleResolver.importPath(from, fromTypeName, type, name)).append("\";\n")
+            }
         }
         out
     }

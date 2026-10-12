@@ -102,6 +102,12 @@ public final class TsModuleResolver {
         return relativeSpecifier(generatedTypePath(from, fromTypeName), generatedTypePath(target, targetTypeName));
     }
 
+    public static String importedTypeName(EObject from, EObject target) {
+        if (crossModuleImport(from, target) == null)
+            return TsImportCollector.simpleName(target);
+        return TsModuleExportNames.exportNameInModule(target);
+    }
+
     public static String runtimeSupportImport(EObject from, String fromTypeName, String supportModule) {
         if (from == null)
             throw new IllegalArgumentException("Cannot resolve TypeScript runtime import without a source BON type");

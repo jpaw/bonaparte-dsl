@@ -134,7 +134,11 @@ class TsApiClientGenerator {
         }
         for (type : imports.types) {
             val name = TsImportCollector.simpleName(type)
-            out.append("import type { ").append(name).append(" } from \"")
+            val importedName = TsModuleResolver.importedTypeName(requests.head.request, type)
+            out.append("import type { ").append(importedName)
+            if (importedName != name)
+                out.append(" as ").append(name)
+            out.append(" } from \"")
                 .append(TsModuleResolver.importPath(requests.head.request, apiClass, type, name))
                 .append("\";\n")
         }

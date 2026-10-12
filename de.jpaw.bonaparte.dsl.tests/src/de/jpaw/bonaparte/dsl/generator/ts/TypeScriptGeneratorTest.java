@@ -702,10 +702,12 @@ public class TypeScriptGeneratorTest {
         try {
             XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
             XtextResource source = load(resourceSet,
-                "package com.acme.source { class Source {} }",
+                "package com.acme.source { class Source { required (apiw.Ref) ref; } }",
                 URI.createURI("jar:" + sourceJar.toUri() + "!/source.bon"));
             XtextResource target = load(resourceSet,
-                "package com.acme.target { class Target {} }",
+                "package apip { class Ref {} }\n"
+                    + "package apiw { class Ref {} }\n"
+                    + "package com.acme.target { class Target {} }",
                 URI.createURI("jar:" + targetJar.toUri() + "!/target.bon"));
             ClassDefinition sourceType = findClass(source, "Source");
             ClassDefinition targetType = findClass(target, "Target");
@@ -715,6 +717,17 @@ public class TypeScriptGeneratorTest {
             Files.writeString(modulesFile, "fixture-target=@fixture/package,target\n");
             assertEquals("@fixture/package/target",
                 TsModuleResolver.importPath(sourceType, "Source", targetType, "Target"));
+
+            Files.writeString(modulesFile,
+                "fixture-source=@fixture/package,source\nfixture-target=@fixture/package,target\n");
+            InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+            injector.getInstance(TypeScriptBonScriptGeneratorMain.class)
+                .doGenerate(source, fsa, new GeneratorContext());
+            String generatedSource = norm(fsa.getTextFiles().get(
+                ROOT + "source/com/acme/source/Source.ts"));
+            assertTrue(generatedSource, generatedSource.contains(
+                "import type { ApiwRef as Ref } from \"@fixture/package/target\";"));
+            assertTrue(generatedSource, generatedSource.contains("ref: Ref;"));
 
             Files.writeString(modulesFile, "fixture-source=@fixture/package,source\n");
             try {
