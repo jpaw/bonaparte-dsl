@@ -119,7 +119,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                     // The bonaparte DSL is open source, licensed under Apache License, Version 2.0. It is based on Eclipse Xtext2.
                     // The sources for bonaparte-DSL can be obtained at www.github.com/jpaw/bonaparte-dsl.git
 
-                    «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
+                    «IF d.xmlAccess !== null && BonScriptPreferences.getDoXsd»
                     @XmlSchema(namespace = "«d.effectiveXmlNs»", elementFormDefault = XmlNsForm.«xmlElementFormDefault»«writeAttributeFormDefault(xmlAttributeFormDefault)»«d.writeXmlNs(xmlElementFormDefault)»)
 
                     @XmlJavaTypeAdapters({
@@ -135,7 +135,7 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                     «ENDIF»
                     «d.javadoc»
                     package «getBonPackageName(d)»;
-                    «IF d.xmlAccess !== null && !BonScriptPreferences.getNoXML»
+                    «IF d.xmlAccess !== null && BonScriptPreferences.getDoXsd»
 
                         import «jakartaPrefix».xml.bind.annotation.XmlSchema;
                         import «jakartaPrefix».xml.bind.annotation.XmlNs;
@@ -274,12 +274,12 @@ class JavaBonScriptGeneratorMain extends AbstractGenerator {
                     imports.addImport(gp.^extends)
         // determine XML annotation support
         val XXmlAccess xmlAccess = getRelevantXmlAccess(d)
-        val withXml = xmlAccess !== null && !BonScriptPreferences.getNoXML
+        val withXml = xmlAccess !== null && BonScriptPreferences.getDoXsd
         val autoXmlAdapter = AUTO_XML_ADAPTER_FOR_ABSTRACT_EMPTY_CLASSES && (d.fields.size == 0 && d.isAbstract && d.extendsClass === null)
         val writeXmlAdapter = withXml && (d.isXmlAdapter || autoXmlAdapter)
         val xmlNonAttributeFields = if (withXml) d.fields.filter[!properties.hasProperty(PROP_ATTRIBUTE)].toList
 
-        // val xmlTransient = if (xmlAccess !== null && !BonScriptPreferences.getNoXML) "@XmlTransient"
+        // val xmlTransient = if (xmlAccess !== null && BonScriptPreferences.getDoXsd) "@XmlTransient"
         val doExt       = d.externalizable
         val doHazel     = d.hazelSupport
         val doBeanVal   = d.beanValidation

@@ -120,7 +120,7 @@ class XUtil {
 
     def public static getRelevantXmlAccess(ClassDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
-        return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
+        return if (t == XXmlAccess::NOXML || !BonScriptPreferences.getDoXsd) null else t
     }
 
     /** Reverses the ordering of the simple components of a qualified ID, for example from com.foo.bar.mega to mega.bar.foo.com. */
@@ -142,7 +142,7 @@ class XUtil {
 
     def public static getRelevantXmlAccess(XEnumDefinition d) {
         var XXmlAccess t = d.xmlAccess?.x ?: getPackage(d).xmlAccess?.x ?: null     // default to no XMLAccess annotations
-        return if (t == XXmlAccess::NOXML || BonScriptPreferences.getNoXML) null else t
+        return if (t == XXmlAccess::NOXML || !BonScriptPreferences.getDoXsd) null else t
     }
     def public static needsXmlObjectType(FieldDefinition f) {
         if (f.datatype.objectDataType !== null) {

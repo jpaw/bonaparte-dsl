@@ -5,7 +5,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.xtext.ui.editor.preferences.LanguageRootPreferencePage;
 import org.eclipse.jface.preference.BooleanFieldEditor;
@@ -42,6 +41,16 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         return false;
     }
 
+    private Group createSectionGroup(Composite parent, String title) {
+        Group group = new Group(parent, SWT.SHADOW_IN);
+        GridData layoutData = new GridData(SWT.FILL, SWT.TOP, true, false);
+        layoutData.horizontalSpan = 2;
+        group.setLayoutData(layoutData);
+        group.setText(title);
+        group.setLayout(new GridLayout(1, false));
+        return group;
+    }
+
     @Override
     protected void createFieldEditors() {
         super.createFieldEditors();
@@ -49,79 +58,39 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         Composite myParent = getFieldEditorParent();
 
         // Validation
-        Group validationGroup = new Group(myParent, SWT.SHADOW_IN);
-        validationGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        validationGroup.setText("Data types and validation");
-        validationGroup.setLayout(new GridLayout(1, false));
+        Group validationGroup = createSectionGroup(myParent, "Data types and validation");
         Composite compositeV = new Composite(validationGroup, SWT.NONE);
         addField(new BooleanFieldEditor("DebugOut", "Create debug output (.info) files", compositeV));
         addField(new BooleanFieldEditor("WarnByte", "Warn if mutable raw type (byte []) is used", compositeV));
         addField(new BooleanFieldEditor("WarnFloat", "Warn if floating point types are used", compositeV));
-        validationGroup.pack();
-
-        // blank, to fill the second column
-        new Label(myParent, SWT.NONE).setText(" ");
-
-        // empty line to have some spacing (there may be a better way to do that!)
-        new Label(myParent, SWT.NONE).setText(" ");
-        new Label(myParent, SWT.NONE).setText(" ");
 
         // output
-        Group outputGroup = new Group(myParent, SWT.SHADOW_IN);
-        outputGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        outputGroup.setText("Java Code generation");
-        outputGroup.setLayout(new GridLayout(1, false));
+        Group outputGroup = createSectionGroup(myParent, "Java Code generation");
         Composite compositeO = new Composite(outputGroup, SWT.NONE);
         addField(new BooleanFieldEditor("JavaDefault", "Generate Java source code", compositeO));
         addField(new BooleanFieldEditor("DateTime", "Use JSR310 date / time API instead of joda (requires Java8)", compositeO));
         addField(new BooleanFieldEditor("XMLOut", "Suppress generation of JAXB annotations", compositeO));
         addField(new BooleanFieldEditor("Jakarta", "Generate NEW jakarta package prefixes", compositeO));
-        outputGroup.pack();
-
-        // blank, to fill the second column
-        new Label(myParent, SWT.NONE).setText(" ");
-
-        // empty line to have some spacing (there may be a better way to do that!)
-        new Label(myParent, SWT.NONE).setText(" ");
-        new Label(myParent, SWT.NONE).setText(" ");
 
         // Serialization support
-        Group hazelGroup = new Group(myParent, SWT.SHADOW_IN);
-        hazelGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        hazelGroup.setText("Advanced serialization interfaces");
-        hazelGroup.setLayout(new GridLayout(1, false));
+        Group hazelGroup = createSectionGroup(myParent, "Advanced serialization interfaces");
         Composite compositeH = new Composite(hazelGroup, SWT.NONE);
         addField(new BooleanFieldEditor("Externalize", "Externalizable", compositeH));
         addField(new BooleanFieldEditor("HazelcastDs", "DataSerializable (Hazelcast)", compositeH));
         addField(new BooleanFieldEditor("HazelcastId", "IdentifiedDataSerializable (Hazelcast3)", compositeH));
         addField(new BooleanFieldEditor("HazelcastPo", "Portable (Hazelcast3)", compositeH));
         addField(new IntegerFieldEditor("FactoryId", "Hazelcast3 default factoryId", compositeH, 10));
-        hazelGroup.pack();
-
-        // blank, to fill the second column
-        new Label(myParent, SWT.NONE).setText(" ");
-
-        // empty line to have some spacing (there may be a better way to do that!)
-        new Label(myParent, SWT.NONE).setText(" ");
-        new Label(myParent, SWT.NONE).setText(" ");
 
         // Serialization support
-        Group xsdGroup = new Group(myParent, SWT.SHADOW_IN);
-        xsdGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        xsdGroup.setText("XSD creation settings");
-        xsdGroup.setLayout(new GridLayout(1, false));
+        Group xsdGroup = createSectionGroup(myParent, "XSD creation settings");
         Composite compositeXsd = new Composite(xsdGroup, SWT.NONE);
         addField(new BooleanFieldEditor("xsdDefault",           "Generate XSD files also if no explicit XML directive set", compositeXsd));
         addField(new BooleanFieldEditor("xsdRootSeparateFile",  "Generate separate XSD files for xml root elememts", compositeXsd));
         addField(new BooleanFieldEditor("xsdBundleSubfolders",  "Use separate folders per bundle", compositeXsd));
         addField(new BooleanFieldEditor("xsdExtensions",        "Add anyType element for future extensions to final classes", compositeXsd));
-        xsdGroup.pack();
 
         // TypeScript support
-        Group tsGroup = new Group(myParent, SWT.SHADOW_IN);
-        tsGroup.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
-        tsGroup.setText("TypeScript creation settings");
-        tsGroup.setLayout(new GridLayout(1, false));
+        Group tsGroup = createSectionGroup(myParent, "TypeScript creation settings");
         Composite compositeTs = new Composite(tsGroup, SWT.NONE);
         addField(new BooleanFieldEditor("typeScriptDefault",           "Generate TypeScript files also if no explicit TypeScript directive set", compositeTs));
         addField(new BooleanFieldEditor("typeScriptApiDefault",        "Generate TypeScript API files also if no explicit TypeScriptApi directive set", compositeTs));
@@ -130,10 +99,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new StringFieldEditor("TypeScript.npmPackage", "NPM package", compositeTs));
         addField(new StringFieldEditor("TypeScript.bigLongs", "Big longs handling", compositeTs));
         addField(new StringFieldEditor("TypeScript.apiNamingFile", "API naming file", compositeTs));
-        tsGroup.pack();
-
-        // blank, to fill the second column
-        new Label(myParent, SWT.NONE).setText(" ");
     }
 
     @Override
