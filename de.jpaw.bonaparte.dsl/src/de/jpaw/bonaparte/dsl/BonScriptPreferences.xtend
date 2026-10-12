@@ -44,6 +44,7 @@ public class BonScriptPreferences {
     static private final boolean doDateTimeDefault              = configReader.getProp("DateTime", true);
     static private final boolean noXmlDefault                   = configReader.getProp("noXML", false);
     static private final boolean doTypeScriptDefault            = configReader.getProp("TypeScript", false);
+    static private final boolean doTypeScriptApiDefault         = configReader.getProp("TypeScriptApi", false);
     static private final String tsModuleDefault                 = configReader.getProp("TypeScript.module", null);
     static private final String tsModulesFileDefault            = configReader.getProp("TypeScript.modulesFile", null);
     static private final String tsNpmPackageDefault              = configReader.getProp("TypeScript.npmPackage", null);
@@ -67,6 +68,7 @@ public class BonScriptPreferences {
     public boolean doDateTime               = doDateTimeDefault;
     public boolean noXML                    = noXmlDefault;
     public boolean doTypeScript             = doTypeScriptDefault;
+    public boolean doTypeScriptApi          = doTypeScriptApiDefault;
     public String tsModule                  = tsModuleDefault;
     public String tsModulesFile             = tsModulesFileDefault;
     public String tsNpmPackage              = tsNpmPackageDefault;
@@ -115,6 +117,9 @@ public class BonScriptPreferences {
     }
     def public static getDoTypeScript() {
         return configReader.getProp("TypeScript", currentPrefs.doTypeScript)
+    }
+    def public static getDoTypeScriptApi() {
+        return configReader.getProp("TypeScriptApi", currentPrefs.doTypeScriptApi)
     }
     def public static getTsModule() {
         return configReader.getProp("TypeScript.module", currentPrefs.tsModule)

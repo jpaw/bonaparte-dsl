@@ -71,6 +71,9 @@ class BonScriptGenerator extends AbstractGenerator {
             if (BonScriptPreferences.getDoTypeScript) {
                 LOGGER.info(filterInfo + "start TypeScript creation for " + resource.URI.toString);
                 generatorTs.doGenerate(resource, fsa, unused)
+            }
+            if (BonScriptPreferences.getDoTypeScriptApi) {
+                LOGGER.info(filterInfo + "start TypeScript API creation for " + resource.URI.toString);
                 generatorTsApi.doGenerate(resource, fsa)
             }
 

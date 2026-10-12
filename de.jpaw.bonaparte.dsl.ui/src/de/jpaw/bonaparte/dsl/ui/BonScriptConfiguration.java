@@ -123,6 +123,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         tsGroup.setLayout(new GridLayout(1, false));
         Composite compositeTs = new Composite(tsGroup, SWT.NONE);
         addField(new BooleanFieldEditor("typeScriptDefault",           "Generate TypeScript files also if no explicit TypeScript directive set", compositeTs));
+        addField(new BooleanFieldEditor("typeScriptApiDefault",        "Generate TypeScript API files also if no explicit TypeScriptApi directive set", compositeTs));
         addField(new StringFieldEditor("TypeScript.module", "Module", compositeTs));
         addField(new StringFieldEditor("TypeScript.modulesFile", "Modules file", compositeTs));
         addField(new StringFieldEditor("TypeScript.npmPackage", "NPM package", compositeTs));
@@ -142,6 +143,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("WarnByte",            defaults.warnByte);
         store.setDefault("WarnFloat",           defaults.warnFloat);
         store.setDefault("typeScriptDefault",   defaults.doTypeScript);
+        store.setDefault("typeScriptApiDefault",   defaults.doTypeScriptApi);
         store.setDefault("TypeScript.module",   defaults.tsModule == null ? "" : defaults.tsModule);
         store.setDefault("TypeScript.modulesFile", defaults.tsModulesFile == null ? "" : defaults.tsModulesFile);
         store.setDefault("TypeScript.npmPackage", defaults.tsNpmPackage == null ? "" : defaults.tsNpmPackage);
@@ -165,6 +167,7 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.warnByte                    = store.getBoolean("WarnByte");
         currentSettings.warnFloat                   = store.getBoolean("WarnFloat");
         currentSettings.doTypeScript                = store.getBoolean("typeScriptDefault");
+        currentSettings.doTypeScriptApi             = store.getBoolean("typeScriptApiDefault");
         currentSettings.tsModule                    = store.getString("TypeScript.module");
         currentSettings.tsModulesFile               = store.getString("TypeScript.modulesFile");
         currentSettings.tsNpmPackage                = store.getString("TypeScript.npmPackage");
@@ -197,6 +200,9 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "typeScriptDefault":
                       BonScriptPreferences.currentPrefs.doTypeScript        = toBool(event.getNewValue());
+                      break;
+                  case "typeScriptDefaultApi":
+                      BonScriptPreferences.currentPrefs.doTypeScriptApi      = toBool(event.getNewValue());
                       break;
                   case "TypeScript.module":
                       BonScriptPreferences.currentPrefs.tsModule             = (String) event.getNewValue();

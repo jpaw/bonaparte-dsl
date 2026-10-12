@@ -101,15 +101,15 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
 
-        def private static CharSequence entryPointNgPackageJson() {
-                '''{
-                    "$schema": "../node_modules/ng-package/ng-package.schema.json",
-                    "lib": {
-                        "entryFile": "index.ts"
-                    }
-                }
-                '''
+    def private static CharSequence entryPointNgPackageJson() {
+        '''{
+            "$schema": "../node_modules/ng-package/ng-package.schema.json",
+            "lib": {
+                "entryFile": "index.ts"
+            }
         }
+        '''
+    }
 
     def private static CharSequence writeModuleIndex(Iterable<Resource> resources, Resource module) {
         val out = new StringBuilder
