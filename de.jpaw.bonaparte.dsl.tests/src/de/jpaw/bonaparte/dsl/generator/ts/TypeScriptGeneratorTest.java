@@ -38,6 +38,9 @@ import de.jpaw.bonaparte.dsl.BonScriptPreferences;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.bonaparte.dsl.generator.tsapi.TsApiClientGenerator;
+import de.jpaw.bonaparte.dsl.generator.tsapi.TsRequestClassifier;
+import de.jpaw.bonaparte.dsl.generator.tsapi.TsNaming;
 
 /** Parses small .bon sources and checks the TypeScript produced by the generator. */
 public class TypeScriptGeneratorTest {

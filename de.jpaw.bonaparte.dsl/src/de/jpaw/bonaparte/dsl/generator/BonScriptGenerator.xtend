@@ -19,7 +19,7 @@ package de.jpaw.bonaparte.dsl.generator
 import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.generator.debug.DebugBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.java.JavaBonScriptGeneratorMain
-import de.jpaw.bonaparte.dsl.generator.ts.TsApiClientGenerator
+import de.jpaw.bonaparte.dsl.generator.tsapi.TsApiClientGenerator
 import de.jpaw.bonaparte.dsl.generator.ts.TypeScriptBonScriptGeneratorMain
 import de.jpaw.bonaparte.dsl.generator.xsd.XsdBonScriptGeneratorMain
 import java.util.concurrent.atomic.AtomicInteger

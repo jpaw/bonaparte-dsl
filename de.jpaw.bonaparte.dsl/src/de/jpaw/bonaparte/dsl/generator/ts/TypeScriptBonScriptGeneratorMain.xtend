@@ -16,19 +16,22 @@
 
 package de.jpaw.bonaparte.dsl.generator.ts
 
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition
 import de.jpaw.bonaparte.dsl.bonScript.ClassReference
+import de.jpaw.bonaparte.dsl.bonScript.DataType
 import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
+import de.jpaw.bonaparte.dsl.generator.DataCategory
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension
 import de.jpaw.bonaparte.dsl.generator.java.JavaEnum
+import java.util.ArrayList
 import java.util.LinkedHashMap
-import java.util.Map
+import java.util.LinkedHashSet
+import java.util.List
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.AbstractGenerator
@@ -52,6 +55,11 @@ import static extension de.jpaw.bonaparte.dsl.generator.XUtil.*
  * - Every object carries a `'@PQON'` field with the partially qualified object name
  * - List elements may be null (fixed-size lists contain nulls)
  * - Plain `Object` / `Element` map to `BonaPortable`
+ *
+ * Dependencies:
+ * TypeScriptBonScriptGeneratorMain ..> TsModuleResolver : resolves modules and paths
+ * TypeScriptBonScriptGeneratorMain ..> TsImportCollector : collects type references
+ * TypeScriptBonScriptGeneratorMain ..> TsModuleExportNames : assigns barrel export names
  */
 class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
     public static final String GENERATED_TS_SUBFOLDER = "resources/ts/"
@@ -95,7 +103,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
         def private static CharSequence entryPointNgPackageJson() {
                 '''{
-                    "$schema": "../node_modules/ng-packagr/ng-package.schema.json",
+                    "$schema": "../node_modules/ng-package/ng-package.schema.json",
                     "lib": {
                         "entryFile": "index.ts"
                     }
@@ -120,7 +128,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
         }
 
-        val types = new java.util.ArrayList<EObject>(typesByIdentity.values)
+        val types = new ArrayList<EObject>(typesByIdentity.values)
         val exportNames = new TsModuleExportNames(types)
         for (type : types) {
             val name = TsImportCollector.simpleName(type)
@@ -297,7 +305,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         '''
     }
     def private static CharSequence tsFieldMetadata(FieldDefinition f) {
-        val tags = new java.util.ArrayList<String>
+        val tags = new ArrayList<String>
         val ref = DataTypeExtension.get(f.datatype)
         tags.add("@bonaparte.required " + f.cannotBeNull)
         if (f.defaultString !== null) {
@@ -347,7 +355,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 case "instant": tags.add("@bonaparte.wireFormat epoch-seconds")
                 case "day", case "time", case "timestamp": tags.add("@bonaparte.wireFormat iso-8601-string")
             }
-            if (ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.BINARY) {
+            if (ref.category == DataCategory.BINARY) {
                 tags.add("@bonaparte.encoding base64")
                 if (elem.length > 0)
                     tags.add("@bonaparte.maxBytes " + elem.length)
@@ -364,8 +372,8 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 else if (elem.name.equalsIgnoreCase("lowercase"))
                     tags.add("@bonaparte.case lowercase")
             }
-            if (elem.length > 0 && (ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.NUMERIC
-                    || ref.category == de.jpaw.bonaparte.dsl.generator.DataCategory.BASICNUMERIC)) {
+            if (elem.length > 0 && (ref.category == DataCategory.NUMERIC
+                    || ref.category == DataCategory.BASICNUMERIC)) {
                 tags.add("@bonaparte.precision " + elem.length)
                 tags.add("@bonaparte.scale " + elem.decimals)
             }
@@ -378,7 +386,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         return "/**\n * " + tags.join("\n * ") + "\n */\n"
     }
 
-    private static def void addAggregateMetadata(FieldDefinition f, java.util.List<String> tags,
+    private static def void addAggregateMetadata(FieldDefinition f, List<String> tags,
             String kind, int minCount, int maxCount) {
         tags.add("@bonaparte.aggregate " + kind + (if (f.cannotBeNull) " required" else " optional"))
         if (minCount > 0)
@@ -438,7 +446,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
     }
 
     /** Maps the (typedef resolved) data type of a field to a TypeScript type, collecting the types to be imported. */
-    def private static String tsBaseType(de.jpaw.bonaparte.dsl.bonScript.DataType dt, ClassDefinition owner, TsImportCollector refs) {
+    def private static String tsBaseType(DataType dt, ClassDefinition owner, TsImportCollector refs) {
         val ref = DataTypeExtension.get(dt)
         if (ref.genericsRef !== null)
             return ref.genericsRef.tsFieldClassRef(owner, refs)
@@ -498,7 +506,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         if (!base.isAbstract || base.genericParameters.size > 0 || base.eResource.resourceSet === null)
             return null
 
-        val descendants = new java.util.LinkedHashSet<ClassDefinition>
+        val descendants = new LinkedHashSet<ClassDefinition>
         for (resource : base.eResource.resourceSet.resources.filter[
             TsModuleResolver.isCurrentModule(it) || TsModuleResolver.isIncludedModule(it)
         ]) {
@@ -510,7 +518,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         if (descendants.empty)
             return null
 
-        val names = new java.util.LinkedHashSet<String>
+        val names = new LinkedHashSet<String>
         for (descendant : descendants) {
             refs.add(descendant)
             names.add(descendant.name)
