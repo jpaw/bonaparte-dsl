@@ -19,7 +19,7 @@
 - `TypeScriptBonScriptGeneratorMain.xtend` and `TsApiClientGenerator.xtend` now use `TsModuleResolver` to derive relative imports from generated source and target paths.
 - Runtime-support imports prefer the configured npm package; standalone generation resolves the generated `rpc-core` location through the same path-based resolver.
 - `TsModuleResolver.java` already owns Maven-module identification, generated entry-point output folders, dependency-closure validation, and cross-module package specifiers. Preserve this behavior.
-- Generated TypeScript files are laid out under `resources/ts/<entry-point>/<BON-package-path>/` when entry points are configured, and under `resources/ts/<BON-package-path>/` otherwise.
+- Generated TypeScript files are laid out under `ts/<entry-point>/<BON-package-path>/` when entry points are configured, and under `ts/<BON-package-path>/` otherwise.
 - Generator tests cover same-module imports, cross-module entry-point mappings, runtime-support imports, collision errors, and both generated output layouts.
 
 ## Design

@@ -19,7 +19,7 @@ flowchart TB
         COL[TsImportCollector<br/>PQON-keyed, fail-fast collisions]
     end
 
-    subgraph OUT["Generated output (resources/ts/)"]
+    subgraph OUT["Generated source (ts/)"]
         MODEL["&lt;entry&gt;/&lt;pkg&gt;/&lt;Type&gt;.ts<br/>interfaces, consts, branded aliases"]
         IDX["&lt;entry&gt;/index.ts<br/>module re-exports"]
         APIIDX["&lt;entry&gt;/api-index.ts<br/>API re-exports"]

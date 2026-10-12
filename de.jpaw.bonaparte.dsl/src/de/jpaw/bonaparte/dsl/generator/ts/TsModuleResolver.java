@@ -75,6 +75,13 @@ public final class TsModuleResolver {
         if (currentModule == null || targetModule == null || currentModule.equals(targetModule))
             return null;
 
+        String externalModulesFile = BonScriptPreferences.getTsExternalModulesFile();
+        if (externalModulesFile != null && !externalModulesFile.isBlank()) {
+            Properties externalModules = loadModules(externalModulesFile);
+            if (externalModules.containsKey(targetModule))
+                return importSpecifier(targetModule, externalModules);
+        }
+
         String modulesFile = BonScriptPreferences.getTsModulesFile();
         if (modulesFile == null || modulesFile.isBlank()) {
             String npmPackage = BonScriptPreferences.getTsNpmPackage();
@@ -117,7 +124,7 @@ public final class TsModuleResolver {
         if (npmPackage != null && !npmPackage.isBlank())
             return npmPackage;
         Path source = generatedTypePath(from, fromTypeName);
-        Path target = Paths.get("resources", "ts", "rpc-core", supportModule);
+        Path target = Paths.get("ts", "rpc-core", supportModule);
         return relativeSpecifier(source, target);
     }
 
@@ -199,7 +206,7 @@ public final class TsModuleResolver {
 
     public static String outputFolder() {
         String entryPoint = currentEntryPoint();
-        return entryPoint == null ? "resources/ts/" : "resources/ts/" + entryPoint + "/";
+        return entryPoint == null ? "ts/" : "ts/" + entryPoint + "/";
     }
 
     public static String outputFolder(Resource resource) {
@@ -209,7 +216,7 @@ public final class TsModuleResolver {
         String modulesFile = BonScriptPreferences.getTsModulesFile();
         String entryPoint = modulesFile == null || modulesFile.isBlank()
                 ? artifactId : entryPoint(artifactId, loadModules(modulesFile));
-        return "resources/ts/" + entryPoint + "/";
+        return "ts/" + entryPoint + "/";
     }
 
     public static boolean isModule(Resource resource, String artifactId) {

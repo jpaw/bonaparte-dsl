@@ -34,12 +34,16 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 printf '%s\n' \
+    'bonaparte-core=@arvato-systems-jacs/bonaparte-api,bonaparte-core' \
+    'bonaparte-api=@arvato-systems-jacs/bonaparte-api,bonaparte-api' \
+    'bonaparte-api-auth=@arvato-systems-jacs/bonaparte-api,bonaparte-auth' \
+    'bonaparte-api-media=@arvato-systems-jacs/bonaparte-api,bonaparte-media' \
+    > "$tmp_dir/bonaparte-ts-external-modules.properties"
+
+printf '%s\n' \
     't9t-base-api=@arvato-systems-jacs/t9t-api,base' \
     't9t-annotations-api=@arvato-systems-jacs/t9t-api,annotations' \
     't9t-cfg-api=@arvato-systems-jacs/t9t-api,cfg' \
-    'bonaparte-api=@arvato-systems-jacs/t9t-api,bonaparte-api' \
-    'bonaparte-api-auth=@arvato-systems-jacs/t9t-api,bonaparte-auth' \
-    'bonaparte-api-media=@arvato-systems-jacs/t9t-api,bonaparte-media' \
     'a28-base-api=@arvato-systems-jacs/a28-api,base' \
     'commerce-api=@arvato-systems-jacs/a28-api,commerce' \
     'a28-sku-api=@arvato-systems-jacs/a28-api,sku' \
@@ -52,9 +56,6 @@ printf '%s\n' \
     't9t-io-api=@arvato-systems-jacs/t9t-api,io' \
     't9t-core-api=@arvato-systems-jacs/t9t-api,core' \
     't9t-doc-api=@arvato-systems-jacs/t9t-api,doc' \
-    'bonaparte-api=@arvato-systems-jacs/t9t-api,bonaparte-api' \
-    'bonaparte-api-auth=@arvato-systems-jacs/t9t-api,bonaparte-auth' \
-    'bonaparte-api-media=@arvato-systems-jacs/t9t-api,bonaparte-media' \
     'a28-base-api=@arvato-systems-jacs/a28-api,base' \
     'commerce-api=@arvato-systems-jacs/a28-api,commerce' \
     'a28-pricing-api=@arvato-systems-jacs/a28-api,pricing' \
@@ -71,16 +72,18 @@ printf '%s\n' \
     "-Dbonaparte-plugin.version=$plugin_version" \
     -Dbonaparte.TypeScript=true \
     -Dbonaparte.TypeScript.module=a28-sku-api \
-    "-Dbonaparte.TypeScript.modulesFile=$tmp_dir/a28-ts-modules.properties")
+    "-Dbonaparte.TypeScript.modulesFile=$tmp_dir/a28-ts-modules.properties" \
+    "-Dbonaparte.TypeScript.externalModulesFile=$tmp_dir/bonaparte-ts-external-modules.properties")
 
 (cd "$takko_root" && mvn -q -pl takko-api process-sources -DskipTests \
     "-Dbonaparte-plugin.version=$plugin_version" \
     -Dbonaparte.TypeScript=true \
     -Dbonaparte.TypeScript.module=takko-api \
-    "-Dbonaparte.TypeScript.modulesFile=$tmp_dir/takko-ts-modules.properties")
+    "-Dbonaparte.TypeScript.modulesFile=$tmp_dir/takko-ts-modules.properties" \
+    "-Dbonaparte.TypeScript.externalModulesFile=$tmp_dir/bonaparte-ts-external-modules.properties")
 
-a28_ts_root="$a28_root/a28-sku-api/src/generated/resources/ts/sku"
-takko_ts_root="$takko_root/takko-api/src/generated/resources/ts/takko"
+a28_ts_root="$a28_root/a28-sku-api/src/generated/ts/sku"
+takko_ts_root="$takko_root/takko-api/src/generated/ts/takko"
 a28_api="$a28_ts_root/t9t/a28sku/request/ProductApi.ts"
 a28_mass_api="$a28_ts_root/t9t/a28sku/request/SkuApi.ts"
 takko_request="$takko_ts_root/t9t/a28takko/StockProximitySearchRequest.ts"

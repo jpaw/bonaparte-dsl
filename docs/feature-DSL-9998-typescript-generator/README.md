@@ -55,7 +55,7 @@ All new production code lives in `de.jpaw.bonaparte.dsl/src/de/jpaw/bonaparte/ds
 
 The main Xtext generator (`AbstractGenerator`). For every BON resource in the current
 module (plus included modules) it emits **one `.ts` file per BON type** under
-`resources/ts/<entry-point>/<bon-package-path>/`:
+`ts/<entry-point>/<bon-package-path>/`:
 
 - `EnumDefinition` → `const` object + union type. Numeric enums map to ordinals
   (`ASC: 0`), alpha enums to token strings (`A: "a"`).
@@ -140,7 +140,7 @@ The heart of the import-resolution work. A static utility that owns:
 - **Module identity** — `moduleId(URI)` reads the Maven `artifactId` from
   `META-INF/maven/**/pom.properties` inside the jar a `.bon` resource was loaded from
   (file-based resources belong to the current module).
-- **Output layout** — `outputFolder(Resource)` = `resources/ts/<entry-point>/`, where
+- **Output layout** — `outputFolder(Resource)` = `ts/<entry-point>/`, where
   the entry point comes from the module map (or the module's own artifactId).
 - **Same-entrypoint imports** — `importPath(from, fromName, target, targetName)`
   relativizes the *actual generated file paths* (`Path.relativize`), producing
@@ -151,7 +151,7 @@ The heart of the import-resolution work. A static utility that owns:
   error (dependency-closure check).
 - **Runtime-support imports** — `runtimeSupportImport` for `BonaPortable`,
   `RpcClient`, and the unwrap helpers: uses `bonaparte.TypeScript.npmPackage` when
-  configured, otherwise resolves the generated `resources/ts/rpc-core/<module>` path
+  configured, otherwise resolves the generated `ts/rpc-core/<module>` path
   relatively.
 - **PQON / package path / type guard** helpers shared by both generators.
 
@@ -203,7 +203,7 @@ flowchart TB
         COL[TsImportCollector<br/>PQON-keyed, fail-fast collisions]
     end
 
-    subgraph OUT["Generated output (resources/ts/)"]
+    subgraph OUT["Generated source (ts/)"]
         MODEL["<entry>/<pkg>/<Type>.ts<br/>interfaces, consts, branded aliases"]
         IDX["<entry>/index.ts<br/>module re-exports"]
         APIIDX["<entry>/api-index.ts<br/>API re-exports"]
@@ -254,7 +254,7 @@ flowchart TD
 
 Runtime-support imports (`BonaPortable`, `RpcClient`, `unwrap*`) follow the same
 pattern: configured `npmPackage` wins; otherwise the generated
-`resources/ts/rpc-core/<module>` location is resolved relatively.
+`ts/rpc-core/<module>` location is resolved relatively.
 
 ### 3.3 API client generation flow
 
@@ -285,7 +285,7 @@ sequenceDiagram
 ### 3.4 Generated file layout
 
 ```
-resources/ts/
+ts/
 └── <entry-point>/                  # from module map, e.g. "sku"
     ├── package.json                # ng-packagr entry
     ├── ng-package.json
@@ -299,7 +299,7 @@ resources/ts/
 ```
 
 Without an entry point (no module map / npm package) the layout is
-`resources/ts/<bon-package-path>/` directly.
+`ts/<bon-package-path>/` directly.
 
 ---
 
@@ -334,24 +334,34 @@ mvn -pl a28-sku-api process-sources -DskipTests \
 | `bonaparte.TypeScript` | `false` | Master switch for TypeScript generation |
 | `bonaparte.TypeScript.module` | – | Maven artifactId of the module being generated (the "current" module) |
 | `bonaparte.TypeScript.modulesFile` | – | Path to a properties file mapping `<artifactId>=<npm-package>,<entry-point>` for all modules in the dependency closure |
+| `bonaparte.TypeScript.externalModulesFile` | – | Optional properties file mapping upstream artifacts to separately published npm package entry points |
 | `bonaparte.TypeScript.npmPackage` | – | npm package of the *primary* entry point; used for cross-module imports without a full map and for runtime-support imports |
 | `bonaparte.TypeScript.includedModules` | – | Comma-separated artifactIds of extra modules whose types are generated into the current entry point |
 | `bonaparte.TypeScript.apiNamingFile` | – | Properties file with `<Request>.api=` / `<Request>.method=` naming overrides |
 | `bonaparte.TypeScript.bigLongs` | – | Reserved for long-handling variants |
 
-Example module map (as used by `scripts/verify-ts-consumers.sh`):
+Example dependency-closure map (as used by `scripts/verify-ts-consumers.sh`):
 
 ```properties
 t9t-base-api=@arvato-systems-jacs/t9t-api,base
-bonaparte-api=@arvato-systems-jacs/t9t-api,bonaparte-api
 a28-base-api=@arvato-systems-jacs/a28-api,base
 a28-sku-api=@arvato-systems-jacs/a28-api,sku
+```
+
+Upstream BON artifacts can be routed independently of the consumer's dependency
+closure, for example to the Bonaparte package:
+
+```properties
+bonaparte-core=@arvato-systems-jacs/bonaparte-api,bonaparte-core
+bonaparte-api=@arvato-systems-jacs/bonaparte-api,bonaparte-api
+bonaparte-api-auth=@arvato-systems-jacs/bonaparte-api,bonaparte-auth
+bonaparte-api-media=@arvato-systems-jacs/bonaparte-api,bonaparte-media
 ```
 
 ### 4.4 What you get
 
 1. **Wire-contract types** — one `.ts` file per BON class/enum under
-   `src/generated/resources/ts/<entry-point>/`. Interfaces carry `@bonaparte.*` JSDoc
+  `src/generated/ts/<entry-point>/`. Interfaces carry `@bonaparte.*` JSDoc
    metadata (requiredness, defaults, wire format, constraints) for tooling; they are
    *descriptive*, not runtime validation.
 2. **API clients** — `@Injectable` classes (e.g. `ProductApi`) that depend on
@@ -388,7 +398,7 @@ a28-sku-api=@arvato-systems-jacs/a28-api,sku
   npm entry point (verified: t9t's `t9t-api-ts` builds all 28 entry points).
 - Runtime support (`RpcClient`, `BonaPortable`, `unwrap*`) is expected from the
   configured `npmPackage` (the `rpc-core` modules of the t9t API package) or, in
-  standalone generation, from the generated `resources/ts/rpc-core/` location.
+  standalone generation, from the generated `ts/rpc-core/` location.
 
 ### 4.6 Verifying
 

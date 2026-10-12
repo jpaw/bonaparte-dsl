@@ -48,6 +48,7 @@ public class BonScriptPreferences {
     static private final boolean doTypeScriptApiDefault         = configReader.getProp("TypeScriptApi", false);
     static private final String tsModuleDefault                 = configReader.getProp("TypeScript.module", null);
     static private final String tsModulesFileDefault            = configReader.getProp("TypeScript.modulesFile", null);
+    static private final String tsExternalModulesFileDefault    = configReader.getProp("TypeScript.externalModulesFile", null);
     static private final String tsNpmPackageDefault             = configReader.getProp("TypeScript.npmPackage", null);
     static private final String tsBigLongsDefault               = configReader.getProp("TypeScript.bigLongs", null);
     static private final String tsApiNamingFileDefault          = configReader.getProp("TypeScript.apiNamingFile", null);
@@ -73,6 +74,7 @@ public class BonScriptPreferences {
     public boolean doTypeScriptApi          = doTypeScriptApiDefault;
     public String tsModule                  = tsModuleDefault;
     public String tsModulesFile             = tsModulesFileDefault;
+    public String tsExternalModulesFile     = tsExternalModulesFileDefault;
     public String tsNpmPackage              = tsNpmPackageDefault;
     public String tsBigLongs                = tsBigLongsDefault;
     public String tsApiNamingFile           = tsApiNamingFileDefault;
@@ -131,6 +133,9 @@ public class BonScriptPreferences {
     }
     def public static getTsModulesFile() {
         return configReader.getProp("TypeScript.modulesFile", currentPrefs.tsModulesFile)
+    }
+    def public static getTsExternalModulesFile() {
+        return configReader.getProp("TypeScript.externalModulesFile", currentPrefs.tsExternalModulesFile)
     }
     def public static getTsNpmPackage() {
         return configReader.getProp("TypeScript.npmPackage", currentPrefs.tsNpmPackage)

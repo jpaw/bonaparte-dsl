@@ -700,8 +700,10 @@ public class TypeScriptGeneratorTest {
         Path sourceJar = createModuleJar("fixture-source");
         Path targetJar = createModuleJar("fixture-target");
         Path modulesFile = Files.createTempFile("ts-cross-module", ".properties");
+        Path externalModulesFile = Files.createTempFile("ts-external-modules", ".properties");
         String previousModule = BonScriptPreferences.currentPrefs.tsModule;
         String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
+        String previousExternalModulesFile = BonScriptPreferences.currentPrefs.tsExternalModulesFile;
         try {
             XtextResourceSet resourceSet = injector.getInstance(XtextResourceSet.class);
             XtextResource source = load(resourceSet,
@@ -716,7 +718,15 @@ public class TypeScriptGeneratorTest {
             ClassDefinition targetType = findClass(target, "Target");
             BonScriptPreferences.currentPrefs.tsModule = "fixture-source";
             BonScriptPreferences.currentPrefs.tsModulesFile = modulesFile.toString();
+            BonScriptPreferences.currentPrefs.tsExternalModulesFile = externalModulesFile.toString();
 
+            Files.writeString(externalModulesFile, "fixture-target=@fixture/bonaparte-api,bonaparte-core\n");
+            BonScriptPreferences.currentPrefs.tsModulesFile = null;
+            assertEquals("@fixture/bonaparte-api/bonaparte-core",
+                TsModuleResolver.importPath(sourceType, "Source", targetType, "Target"));
+
+            Files.writeString(externalModulesFile, "");
+            BonScriptPreferences.currentPrefs.tsModulesFile = modulesFile.toString();
             Files.writeString(modulesFile, "fixture-target=@fixture/package,target\n");
             assertEquals("@fixture/package/target",
                 TsModuleResolver.importPath(sourceType, "Source", targetType, "Target"));
@@ -742,9 +752,11 @@ public class TypeScriptGeneratorTest {
         } finally {
             BonScriptPreferences.currentPrefs.tsModule = previousModule;
             BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
+            BonScriptPreferences.currentPrefs.tsExternalModulesFile = previousExternalModulesFile;
             Files.deleteIfExists(sourceJar);
             Files.deleteIfExists(targetJar);
             Files.deleteIfExists(modulesFile);
+            Files.deleteIfExists(externalModulesFile);
             DataTypeExtension.clear();
         }
     }
@@ -1129,13 +1141,20 @@ public class TypeScriptGeneratorTest {
         assertTrue(productApi, productApi.contains("\n    create(data: ProductDTO,"));
         assertTrue(productApi, productApi.contains("\n        return this.rpc.call<"));
         assertTrue(productApi, !productApi.matches("(?s).*\\n[ \\t]+\\n.*"));
-        assertTrue(productApi, productApi.contains("read(key: ProductRef | ProductNaturalRef,"));
-        assertTrue(productApi, productApi.contains("update(key: ProductRef | ProductNaturalRef, data: Partial<ProductDTO>,"));
-        assertTrue(productApi, productApi.contains("delete(key: ProductRef | ProductNaturalRef,"));
+        assertTrue(productApi, productApi.contains("read(key: number,"));
+        assertTrue(productApi, productApi.contains("update(key: number, data: Partial<ProductDTO>,"));
+        assertTrue(productApi, productApi.contains("delete(key: number,"));
+        assertTrue(productApi, productApi.contains("readByNaturalKey(naturalKey: ProductRef | ProductNaturalRef,"));
+        assertTrue(productApi, productApi.contains("updateByNaturalKey(naturalKey: ProductRef | ProductNaturalRef, data: Partial<ProductDTO>,"));
+        assertTrue(productApi, productApi.contains("deleteByNaturalKey(naturalKey: ProductRef | ProductNaturalRef,"));
+        assertTrue(productApi, productApi.contains("readByNaturalKeyViaApi(naturalKey: ProductRef | ProductNaturalRef,"));
         assertTrue(productApi, productApi.contains("crud: 'C', onlyActive: false, data"));
         assertTrue(productApi, productApi.contains("crud: 'R', onlyActive: false, key"));
+        assertTrue(productApi, productApi.contains("crud: 'R', onlyActive: false, naturalKey"));
         assertTrue(productApi, productApi.contains("crud: 'U', onlyActive: false, key, data"));
+        assertTrue(productApi, productApi.contains("crud: 'U', onlyActive: false, naturalKey, data"));
         assertTrue(productApi, productApi.contains("crud: 'D', onlyActive: false, key"));
+        assertTrue(productApi, productApi.contains("crud: 'D', onlyActive: false, naturalKey"));
         assertTrue(productApi, productApi.contains("executeViaApi(params: Omit<ProductCrudViaApiRequest, '@PQON'>)"));
         assertTrue(productApi, productApi.contains("createViaApi(data: ProductDTO,"));
         assertTrue(productApi, productApi.contains("readUser(key: string,"));

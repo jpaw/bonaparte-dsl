@@ -216,8 +216,10 @@ class TsApiClientGenerator {
         val dto = info.dtoName ?: "unknown"
         val ref = switch (info.pattern) {
             case CRUD_STRING: "string"
+            case CRUD_SURROGATE: "number"
             default: refTypeUnion(info)
         }
+        val naturalKeyRef = refTypeUnion(info)
         val suffix = if (executeName.startsWith("execute")) executeName.substring("execute".length) else ""
         val wireType = if (info.responseRef === null) "void" else renderType(info.responseRef)
         val excluded = new ArrayList<String>
@@ -249,7 +251,21 @@ class TsApiClientGenerator {
                 return this.rpc.call<«wireType»>(«info.request.name»PQON, { ...extras, crud: 'D', onlyActive: false, key }).pipe(map(unwrapVoid));
             }
         '''
-        return methods.toString.replaceAll("\\n(?=[ \\t]*\\S)", "\n    ")
+        val naturalKeyMethods = if (info.pattern == TsRequestClassifier.Pattern.CRUD_SURROGATE) '''
+
+            «"readByNaturalKey" + suffix»(naturalKey: «naturalKeyRef», extras: «extrasType»«extrasDefault»): Observable<«dto»> {
+                return this.rpc.call<«wireType»>(«info.request.name»PQON, { ...extras, crud: 'R', onlyActive: false, naturalKey }).pipe(map(unwrapCrud<«dto»>));
+            }
+
+            «"updateByNaturalKey" + suffix»(naturalKey: «naturalKeyRef», data: Partial<«dto»>, extras: «extrasType»«extrasDefault»): Observable<«dto»> {
+                return this.rpc.call<«wireType»>(«info.request.name»PQON, { ...extras, crud: 'U', onlyActive: false, naturalKey, data }).pipe(map(unwrapCrud<«dto»>));
+            }
+
+            «"deleteByNaturalKey" + suffix»(naturalKey: «naturalKeyRef», extras: «extrasType»«extrasDefault»): Observable<void> {
+                return this.rpc.call<«wireType»>(«info.request.name»PQON, { ...extras, crud: 'D', onlyActive: false, naturalKey }).pipe(map(unwrapVoid));
+            }
+        ''' else ""
+        return (methods.toString + naturalKeyMethods.toString).replaceAll("\\n(?=[ \\t]*\\S)", "\n    ")
     }
 
     def private static String refTypeUnion(TsRequestClassifier.RequestInfo info) {
