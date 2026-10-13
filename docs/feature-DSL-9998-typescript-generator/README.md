@@ -13,9 +13,58 @@ format of a live bonaparte server — not a port of the executable Java domain c
 
 ---
 
+## Current implementation status (2026-10-13)
+
+Bonaparte generation now uses the production `bonaparte-typescript-maven-plugin`
+(`de.jpaw.bonaparte-dsl:bonaparte-typescript-maven-plugin:6.6.3-SNAPSHOT`), a normal
+Maven module registered in the DSL reactor and inheriting `pluginparent`. Its
+`generate` Mojo extends `XtextGenerateMojo` and derives immutable ownership/location
+context from the current project and actual compile dependency closure, using reactor
+models or Maven/Aether-resolved POMs for external BON-bearing JARs. The context is
+delivered through `BonScriptMavenSetup` and attached to the resource set at generator
+entry because the standalone Xtext builder may use resource sets outside the language
+provider. `TsModuleResolver` prefers this context for imports, module identity, and
+output folders; API-index paths also use resource context. Unknown BON ownership
+fails, JVM helper `java:/` resources are excluded, and canonical export/alias policy
+is retained. Scoped thread-local bootstrap is restored after use; the injector
+captures immutable context.
+
+The Bonaparte Maven profile uses the new plugin and skips the old Xtext generation
+only when `ts.models=true`, preserving the same BON+JPA language setup. Its POM no
+longer declares the four ownership system properties. The production adapter and
+root profiles are now migrated in t9t and a28 as well; a28's four ownership system
+properties and both mapping files have been removed. Legacy preference fallbacks
+remain for downstream projects and Eclipse.
+
+Verified for this implementation: Java 21 adapter install; all 43
+`TypeScriptGeneratorTest` tests; clean Bonaparte generation; all nine ng-packagr
+entry points; npm `tsc`; focused Maven verify/tarball packaging (typecheck run
+separately); and installed-JAR Auth generation with deliberately invalid legacy
+settings and nonexistent mapping-file paths, producing correct Auth/core imports.
+t9t's current root build passed `mvn -Dts-api=true clean generate-sources` and
+`mvn -Dts-api=true verify -DskipTests` across 32 modules without selectors. All
+24 npm entry points compiled; npm typecheck and 52 runtime tests passed separately.
+Its `@arvato-systems-jacs/t9t@10.0.0-snapshot.20261013155153` package was
+published only to local Verdaccio and passed a fresh strict TypeScript `NodeNext`
+and runtime-import consumer check against the exact Bonaparte snapshot. The DSL's
+43 generator tests pass. a28's root profiles, ownership migration, and assembly
+were verified; all 38 entry points compile and pass strict typechecking. Its
+`@arvato-systems-jacs/a28@10.0.0-snapshot.20261013162307` package was published
+only to local Verdaccio against t9t
+`@arvato-systems-jacs/t9t@10.0.0-snapshot.20261013155153` and Bonaparte
+`@arvato-systems-jacs/bonaparte@7.3.3-snapshot.20261013124124`. A production
+Angular build using these published packages passed. Playwright verified role and
+product requests against mocked `/rpc`, rendered results, error propagation, and
+390px layout without overflow; no live backend was used. Project migration,
+Eclipse fallback removal, writable Maven distribution, and remote publishing
+remain open. No full Bonaparte-to-project chain is claimed.
+
+---
+
 ## 1. What changed
 
-All changes on this branch are additive (3,025 insertions, 0 deletions across 16 files):
+The table below records the original feature-branch snapshot and predates the
+production Maven ownership adapter:
 
 | Area | Files | Purpose |
 |---|---|---|
@@ -129,30 +178,35 @@ Derives stable **API class and method names**:
   the lower-camel request stem; pattern markers (`Search`, `Crud`, `Resolver`,
   `MassResolver`) are stripped from the remainder to form the suffix
   (`ProductSearchRequest` → `search`, `SkuMassResolverRequest` → `resolveMany`).
-- **Naming overrides**: a properties file
-  (`bonaparte.TypeScript.apiNamingFile`) can pin `<Request>.api=...` and
-  `<Request>.method=...` per request class.
+- API names are derived automatically; no naming-override file is required or read.
 
-### `TsModuleResolver.java` (260 lines)
+### `TsModuleResolver.java`
 
 The heart of the import-resolution work. A static utility that owns:
 
-- **Module identity** — `moduleId(URI)` reads the Maven `artifactId` from
-  `META-INF/maven/**/pom.properties` inside the jar a `.bon` resource was loaded from
-  (file-based resources belong to the current module).
-- **Output layout** — `outputFolder(Resource)` = `ts/<entry-point>/`, where
-  the entry point comes from the module map (or the module's own artifactId).
+  - **Module identity** — the production Maven path prefers attached immutable
+  ownership context, which maps BON resources to owners from reactor models or
+  Maven/Aether-resolved dependency models. Standalone and unmigrated project
+  consumers retain the earlier fallback behavior.
+- **Output layout** — `outputFolder(Resource)` = `ts/<entry-point>/`, with the
+  production entry point derived from the owning Maven artifactId and repository
+  package context.
 - **Same-entrypoint imports** — `importPath(from, fromName, target, targetName)`
   relativizes the *actual generated file paths* (`Path.relativize`), producing
   `./Name`, `../sibling/Name`, etc. No counting of BON package segments.
-- **Cross-module imports** — `crossModuleImport` looks the target module up in the
-  module map (`<artifactId>=<npm-package>,<entry-point>`) and emits
-  `@scope/package/entry-point`; a missing mapping fails generation with an actionable
-  error (dependency-closure check).
-- **Runtime-support imports** — `runtimeSupportImport` for `BonaPortable`,
-  `RpcClient`, and the unwrap helpers: uses `bonaparte.TypeScript.npmPackage` when
-  configured, otherwise resolves the generated `ts/rpc-core/<module>` path
-  relatively.
+- **Cross-module imports** — the production Bonaparte and t9t paths use attached Maven
+  ownership context to emit the owning repository package plus exact artifactId
+  entry point. Unknown ownership fails generation. Legacy map-based fallbacks remain
+  only for not-yet-migrated consumers and Eclipse.
+- **Portable type support** — only the `bonaparte-core` entry point generates
+  `bona-portable.ts` and exports `BonaPortable`. Configured non-core model/API
+  modules import `@arvato-systems-jacs/bonaparte/bonaparte-core`; core types use
+  the local generated file. Unconfigured standalone generation emits one local
+  definition. Assembly copies files unchanged; it does not add exports or copies.
+- **RPC runtime imports** — t9t and a28 runtime imports are verified from their
+  locally published packages in a fresh registry consumer and Angular app.
+  Project ownership and the legacy fallback for unmigrated consumers and Eclipse
+  remain to be migrated.
 - **PQON / package path / type guard** helpers shared by both generators.
 
 ### `TsImportCollector.java` (43 lines)
@@ -165,19 +219,29 @@ index, and the API generator so the collision policy is uniform.
 
 ### Supporting changes
 
-- `BonScriptPreferences.xtend` — new settings (see §4).
-- `BonScriptGenerator.xtend` — injects and runs both TS generators after the Java
-  generator, guarded by `bonaparte.TypeScript`.
-- `de.jpaw.bonaparte.dsl.tests/` — new Tycho test module with
-  `TypeScriptGeneratorTest` (34 tests; parses small `.bon` sources in memory and
-  asserts on the generated text, including a jar-based cross-module test).
-- `scripts/verify-ts-consumers.sh` — end-to-end check against real consumers
-  (a28-sku-api, takko-api): builds the DSL, regenerates both consumers with module
-  maps, greps for expected API signatures, and counts emitted files.
+- `BonScriptPreferences.xtend` — TypeScript settings, including legacy fallbacks
+  retained for unmigrated consumers and Eclipse (see §4).
+- `BonScriptGenerator.xtend` — receives context through `BonScriptMavenSetup` and
+  attaches it to the resource set before running the TypeScript generators.
+- `bonaparte-typescript-maven-plugin/` — production Maven adapter; its `generate`
+  Mojo extends `XtextGenerateMojo` and derives the immutable ownership context.
+- `de.jpaw.bonaparte.dsl.tests/` — Tycho tests with 43 current
+  `TypeScriptGeneratorTest` cases, including context setup, actual builder resource
+  sets, cross-repository imports, dependency JAR ownership, ambiguity, and missing
+  owner behavior.
+- `scripts/verify-ts-consumers.sh` — historical map-based check against real
+  consumers (a28-sku-api, takko-api); it is not evidence of their migration to the
+  production Maven ownership adapter.
 
 ---
 
 ## 3. Architecture
+## 3. Architecture
+
+The diagrams in §§3.1–3.3 document the original DSL-only generator wiring and are
+historical for Maven ownership/context flow. The current production path is summarized
+at the top of this README and in the `TsModuleResolver` description above. The
+diagrams are intentionally left unchanged.
 
 ### 3.1 Component overview
 
@@ -286,7 +350,7 @@ sequenceDiagram
 
 ```
 ts/
-└── <entry-point>/                  # from module map, e.g. "sku"
+└── <entry-point>/                  # owning Maven artifactId
     ├── package.json                # ng-packagr entry
     ├── ng-package.json
     ├── index.ts                    # re-exports every type + PQON consts + guards
@@ -298,8 +362,9 @@ ts/
         └── ...
 ```
 
-Without an entry point (no module map / npm package) the layout is
-`ts/<bon-package-path>/` directly.
+With Maven ownership context, the entry point is the owning artifactId. Without that
+context, standalone generation retains its local fallback layout
+`ts/<bon-package-path>/`.
 
 ---
 
@@ -308,55 +373,39 @@ Without an entry point (no module map / npm package) the layout is
 ### 4.1 Prerequisites
 
 - Java 21 and Maven (the DSL reactor is a Tycho build).
-- Install the DSL once so the Maven plugin picks up the new generator:
+- Install the production adapter from the DSL reactor before running the generator or
+  Tycho tests:
 
 ```bash
 cd bonaparte-dsl
-mvn -pl de.jpaw.bonaparte.dsl -am install
+mvn -pl bonaparte-typescript-maven-plugin -am install
 ```
 
 ### 4.2 Enable generation in a consumer project
 
-Add the system properties to the bonaparte plugin execution (or pass them on the
-command line):
+For the Bonaparte root build, activate generation through its Maven profile; no
+module identity or ownership-map arguments are required:
 
 ```bash
-mvn -pl a28-sku-api process-sources -DskipTests \
-    -Dbonaparte.TypeScript=true \
-    -Dbonaparte.TypeScript.module=a28-sku-api \
-    -Dbonaparte.TypeScript.modulesFile=/path/to/ts-modules.properties
+mvn clean generate-sources -Dts-api=true -pl bonaparte-api-ts -am
 ```
 
 ### 4.3 Settings reference
 
-| Property | Default | Meaning |
-|---|---|---|
-| `bonaparte.TypeScript` | `false` | Master switch for TypeScript generation |
-| `bonaparte.TypeScript.module` | – | Maven artifactId of the module being generated (the "current" module) |
-| `bonaparte.TypeScript.modulesFile` | – | Path to a properties file mapping `<artifactId>=<npm-package>,<entry-point>` for all modules in the dependency closure |
-| `bonaparte.TypeScript.externalModulesFile` | – | Optional properties file mapping upstream artifacts to separately published npm package entry points |
-| `bonaparte.TypeScript.npmPackage` | – | npm package of the *primary* entry point; used for cross-module imports without a full map and for runtime-support imports |
-| `bonaparte.TypeScript.includedModules` | – | Comma-separated artifactIds of extra modules whose types are generated into the current entry point |
-| `bonaparte.TypeScript.apiNamingFile` | – | Properties file with `<Request>.api=` / `<Request>.method=` naming overrides |
-| `bonaparte.TypeScript.bigLongs` | – | Reserved for long-handling variants |
+The following existing preferences are legacy fallbacks for project consumers that
+have not migrated to Maven ownership context, and for Eclipse. The Bonaparte Maven profile
+does not use these ownership settings; its POM no longer declares the four ownership
+system properties. Do not remove the preference fallbacks until the remaining
+consumers and Eclipse have migrated.
 
-Example dependency-closure map (as used by `scripts/verify-ts-consumers.sh`):
-
-```properties
-t9t-base-api=@arvato-systems-jacs/t9t-api,base
-a28-base-api=@arvato-systems-jacs/a28-api,base
-a28-sku-api=@arvato-systems-jacs/a28-api,sku
-```
-
-Upstream BON artifacts can be routed independently of the consumer's dependency
-closure, for example to the Bonaparte package:
-
-```properties
-bonaparte-core=@arvato-systems-jacs/bonaparte-api,bonaparte-core
-bonaparte-api=@arvato-systems-jacs/bonaparte-api,bonaparte-api
-bonaparte-api-auth=@arvato-systems-jacs/bonaparte-api,bonaparte-auth
-bonaparte-api-media=@arvato-systems-jacs/bonaparte-api,bonaparte-media
-```
+| Legacy property | Meaning |
+|---|---|
+| `bonaparte.TypeScript` | Legacy Xtext switch for TypeScript generation |
+| `bonaparte.TypeScript.module` | Legacy current-module artifactId |
+| `bonaparte.TypeScript.modulesFile` | Legacy artifact-to-package/entry-point map |
+| `bonaparte.TypeScript.externalModulesFile` | Legacy upstream artifact map |
+| `bonaparte.TypeScript.npmPackage` | Legacy package identity for imports/runtime support |
+| `bonaparte.TypeScript.includedModules` | Legacy list of additional modules to generate |
 
 ### 4.4 What you get
 
@@ -367,8 +416,8 @@ bonaparte-api-media=@arvato-systems-jacs/bonaparte-api,bonaparte-media
 2. **API clients** — `@Injectable` classes (e.g. `ProductApi`) that depend on
    `RpcClient` from the runtime support package and return RxJS `Observable`s:
 
-   ```ts
-   import { ProductApi } from '@arvato-systems-jacs/a28-api/sku';
+  ```ts
+  import { ProductApi } from '@arvato-systems-jacs/a28/commerce-api';
 
    @Component({ ... })
    export class ProductList {
@@ -394,42 +443,48 @@ bonaparte-api-media=@arvato-systems-jacs/bonaparte-api,bonaparte-media
 ### 4.5 Consuming the generated code
 
 - The generated folder is an **ng-packagr library** (`package.json` +
-  `ng-package.json` with `entryFile: index.ts`), so it can be built into a secondary
-  npm entry point (verified: t9t's `t9t-api-ts` builds all 28 entry points).
-- Runtime support (`RpcClient`, `BonaPortable`, `unwrap*`) is expected from the
-  configured `npmPackage` (the `rpc-core` modules of the t9t API package) or, in
-  standalone generation, from the generated `ts/rpc-core/` location.
+  `ng-package.json` with `entryFile: index.ts`), so it can be built into secondary
+  npm entry points. Bonaparte's nine, t9t's 24, and a28's 38 entry points compile;
+  a28 additionally passes strict TypeScript checking and the published-package
+  Angular smoke test.
+- `BonaPortable` ownership is handled through Maven context. t9t and a28 runtime
+  imports are verified from local registry packages; downstream projects and
+  Eclipse fallback behavior remain unmigrated.
 
 ### 4.6 Verifying
 
 ```bash
-# generator unit tests (34 tests)
+# install the production adapter before the Tycho generator tests
+mvn -pl bonaparte-typescript-maven-plugin -am install
+
+# generator tests (43 tests)
 mvn -pl de.jpaw.bonaparte.dsl.tests -am verify -Dexec.skip=true
 
-# end-to-end against real consumers (a28-sku-api + takko-api)
-bash scripts/verify-ts-consumers.sh
+# clean Bonaparte model + API generation
+mvn clean generate-sources -Dts-api=true -pl bonaparte-api-ts -am
 ```
 
-The verification script regenerates both consumers, asserts concrete API signatures
-(`create(data: ProductDTO, ...)`, `resolveMany(params: ...)`, paging `Omit<...> &
-{ offset?: number }`), and reports the number of emitted `.ts` files (176 for a28,
-13 for takko at branch head).
+Current validation also includes all nine Bonaparte ng-packagr entry points, npm
+`tsc`, focused Maven verify/tarball packaging, no-`-am` installed-Auth-JAR generation
+with deliberately invalid legacy settings and nonexistent map-file paths, and the
+a28 root `-Dts-api=true verify -DskipTests` build with all 38 entry points and strict
+typechecking. Focused a28 fixes cover nullable lean-search entries, concrete response
+DTO imports, response-generic result types, direct DTO responses, and detached-copy
+class identity; two focused tests and the `t9t54tests` suite pass. The Angular smoke
+test used the published packages, mocked `/rpc`, verified expected role/product
+PQONs and `limit: 10`/`offset: 0`, rendered `Administrator` and `P-123`, propagated
+return code `180001` as `RpcError`, and had no page errors or 390px overflow. The
+historical `scripts/verify-ts-consumers.sh` map-based run is not evidence of project
+adapter migration or live-backend behavior.
 
 ### 4.7 Test coverage
 
-`TypeScriptGeneratorTest` (34 tests) covers: one-file-per-type layout; enum / xenum /
-enumset / xenumset output; alpha-enum empty tokens and deprecated packages;
-inheritance + imports; field metadata (defaults, constraints, properties); import
-resolution in default and entry-point layouts; standalone runtime imports;
-simple-name collision rejection (models, indexes, APIs); polymorphic descendant
-unions; field types and optionality; `@PQON` on every object; Java-only flags not
-weakening TS interfaces; package prefix independence; deprecation markers; generated
-header; module-map npm entry points; cross-module imports + missing-closure failure;
-dynamic system-property reads; npm-package secondary entry points; ng-packagr files;
-API runtime-support imports; type guards; request classification (direct + inherited,
-abstract skipped, all families, nearest inherited response); API/method naming; A28
-request examples; inherited required fields through generic parents; naming
-overrides; grouped typed search APIs.
+`TypeScriptGeneratorTest` (43 tests) covers: generator output and wire-format types;
+inheritance, imports, collision handling, and canonical identities; API request
+classification and generated signatures; legacy standalone/map fallbacks; Maven
+context setup and actual-builder resource-set attachment; cross-repository imports
+and installed dependency-JAR ownership; API-index context; missing/ambiguous owner,
+dependency-closure, and full-coordinate behavior; and ng-packagr source layout.
 
 ---
 
@@ -472,7 +527,7 @@ while emitting a fundamentally different artifact.
 |---|---|---|
 | Entry point | `JavaBonScriptGeneratorMain` | `TypeScriptBonScriptGeneratorMain` |
 | Import collection | `ImportCollector` (package-name keyed, `Map<String,String>`) | `TsImportCollector` (PQON-keyed, fail-fast on simple-name collisions) |
-| Package/path identity | `JavaPackages` | `TsModuleResolver` (paths, PQON, entry points, module map) |
+| Package/path identity | `JavaPackages` | `TsModuleResolver` (paths, PQON, Maven context, artifactId entry points) |
 | Enum output | `JavaEnum` (real `enum` + token/ordinal accessors) | const object + union type in the main generator |
 | XEnum output | `JavaXEnum` (factory, token validation, XML adapters) | open `string` alias |
 | EnumSet / XEnumSet | `JavaEnumSet` / `JavaXEnumSet` (runtime bit ops) | branded aliases (compile-time identity only) |
@@ -492,8 +547,8 @@ while emitting a fundamentally different artifact.
    behavior to port; the server stays the source of truth.
 2. **Import identity.** Java imports are fully-qualified class names resolved through
    the classpath; TypeScript needs *module specifiers*. `TsModuleResolver` therefore
-   computes relative specifiers from generated file paths and npm entry points from a
-   module map — a problem the Java generator does not have.
+  computes relative specifiers from generated file paths and uses Maven ownership
+  context for external npm entry points — a problem the Java generator does not have.
 3. **Collision policy.** The Java `ImportCollector` silently keeps the first import
    for a duplicate simple name; `TsImportCollector` fails generation with an
    actionable error, because an ambiguous TS import would compile to the wrong type.
@@ -520,9 +575,15 @@ Per the parity audit in the implementation plan: `JavaCompare`, `JavaFrozen`,
 
 ## 7. Status and open items
 
-- All five phases of the import-resolution plan are complete (34 generator tests,
-  MWE2 install, a28/Takko consumer regeneration, t9t ng-packagr build of 28 entry
-  points).
-- Open: Java round-trip fixtures for `JavaSerialize`/`JavaDeserialize` parity;
-  optional runtime parity items (§6.3); consumer-side TypeScript compilation is not
-  yet part of `verify-ts-consumers.sh` (it validates generation + module closure).
+- The original path-based import-resolution plan is complete. The production Maven
+  ownership adapter and Bonaparte integration are implemented and verified (43
+  generator tests, installed-JAR generation, nine Bonaparte entry points, npm
+  typecheck, and focused tarball packaging).
+- Verified: production adapter and root profiles are migrated in Bonaparte, t9t,
+  and a28. t9t's 24 and a28's 38 npm entry points compile; a28 strict typecheck and
+  published-package Angular smoke tests pass. Pending: downstream project migration,
+  Eclipse fallback cleanup, writable Maven distribution, and remote package
+  publishing. The full end-to-end chain is not yet verified.
+- Open: Java round-trip fixtures for `JavaSerialize`/`JavaDeserialize` parity and
+  optional runtime parity items (§6.3). The historical consumer script validates
+  generation + module closure, not consumer-side TypeScript compilation.

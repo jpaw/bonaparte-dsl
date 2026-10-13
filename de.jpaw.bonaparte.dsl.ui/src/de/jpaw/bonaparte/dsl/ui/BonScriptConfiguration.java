@@ -97,8 +97,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         addField(new StringFieldEditor("TypeScript.module", "Module", compositeTs));
         addField(new StringFieldEditor("TypeScript.modulesFile", "Modules file", compositeTs));
         addField(new StringFieldEditor("TypeScript.npmPackage", "NPM package", compositeTs));
-        addField(new StringFieldEditor("TypeScript.bigLongs", "Big longs handling", compositeTs));
-        addField(new StringFieldEditor("TypeScript.apiNamingFile", "API naming file", compositeTs));
     }
 
     @Override
@@ -113,8 +111,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         store.setDefault("TypeScript.module",   defaults.tsModule == null ? "" : defaults.tsModule);
         store.setDefault("TypeScript.modulesFile", defaults.tsModulesFile == null ? "" : defaults.tsModulesFile);
         store.setDefault("TypeScript.npmPackage", defaults.tsNpmPackage == null ? "" : defaults.tsNpmPackage);
-        store.setDefault("TypeScript.bigLongs",  defaults.tsBigLongs == null ? "" : defaults.tsBigLongs);
-        store.setDefault("TypeScript.apiNamingFile", defaults.tsApiNamingFile == null ? "" : defaults.tsApiNamingFile);
         store.setDefault("DebugOut",            defaults.doDebugOut);
         store.setDefault("DateTime",            defaults.doDateTime);
         store.setDefault("JavaOut",             defaults.doJava);
@@ -138,8 +134,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
         currentSettings.tsModule                    = store.getString("TypeScript.module");
         currentSettings.tsModulesFile               = store.getString("TypeScript.modulesFile");
         currentSettings.tsNpmPackage                = store.getString("TypeScript.npmPackage");
-        currentSettings.tsBigLongs                  = store.getString("TypeScript.bigLongs");
-        currentSettings.tsApiNamingFile             = store.getString("TypeScript.apiNamingFile");
         currentSettings.doDebugOut                  = store.getBoolean("DebugOut");
         currentSettings.doDateTime                  = store.getBoolean("DateTime");
         currentSettings.doJava                      = store.getBoolean("JavaOut");
@@ -180,12 +174,6 @@ public class BonScriptConfiguration extends LanguageRootPreferencePage {
                       break;
                   case "TypeScript.npmPackage":
                       BonScriptPreferences.currentPrefs.tsNpmPackage        = (String) event.getNewValue();
-                      break;
-                  case "TypeScript.bigLongs":
-                      BonScriptPreferences.currentPrefs.tsBigLongs          = (String) event.getNewValue();
-                      break;
-                  case "TypeScript.apiNamingFile":
-                      BonScriptPreferences.currentPrefs.tsApiNamingFile     = (String) event.getNewValue();
                       break;
                   case "DebugOut":
                       BonScriptPreferences.currentPrefs.doDebugOut          = toBool(event.getNewValue());

@@ -34,10 +34,12 @@ import org.junit.Test;
 import com.google.inject.Injector;
 
 import de.jpaw.bonaparte.dsl.BonScriptStandaloneSetup;
+import de.jpaw.bonaparte.dsl.BonScriptMavenSetup;
 import de.jpaw.bonaparte.dsl.BonScriptPreferences;
 import de.jpaw.bonaparte.dsl.bonScript.ClassDefinition;
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition;
 import de.jpaw.bonaparte.dsl.generator.DataTypeExtension;
+import de.jpaw.bonaparte.dsl.generator.BonScriptGenerator;
 import de.jpaw.bonaparte.dsl.generator.tsapi.TsApiClientGenerator;
 import de.jpaw.bonaparte.dsl.generator.tsapi.TsRequestClassifier;
 import de.jpaw.bonaparte.dsl.generator.tsapi.TsNaming;
@@ -95,7 +97,7 @@ public class TypeScriptGeneratorTest {
         "package com.acme.api {",
         "    class ServiceResponse {}",
         "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
-        "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<DATA, TRACKING> {}",
+        "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
         "    class LeanSearchResponse extends ServiceResponse {}",
         "    class RefResolverResponse extends ServiceResponse {}",
         "    class MassResolverResponse extends ServiceResponse {}",
@@ -132,7 +134,7 @@ public class TypeScriptGeneratorTest {
         "package com.acme.api {",
         "    class ServiceResponse {}",
         "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
-        "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<DATA, TRACKING> {}",
+        "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
         "    class SearchCriteria { required int limit; required int offset; }",
         "    class SearchRequest<DATA, TRACKING> extends SearchCriteria return ReadAllResponse<!DATA, !TRACKING> {}",
         "    class ProductDTO {}",
@@ -565,7 +567,7 @@ public class TypeScriptGeneratorTest {
             "package com.acme.api {",
             "    class ServiceResponse {}",
             "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
-            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<DATA, TRACKING> {}",
+            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
             "    class SearchRequest<DATA, TRACKING> return ReadAllResponse<!DATA, !TRACKING> {}",
             "    class CollisionSearchRequest extends SearchRequest<com.acme.one.Shared, com.acme.two.Shared> {}",
             "}",
@@ -762,6 +764,148 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
+    public void ownershipContextGeneratesCrossRepositoryImportsWithoutModuleMaps() throws Exception {
+        Path sourceJar = createModuleJar("commerce-api");
+        Path targetJar = createModuleJar("bonaparte-api-auth");
+        try {
+            XtextResourceSet resources = injector.getInstance(XtextResourceSet.class);
+            URI sourceRoot = URI.createURI("jar:" + sourceJar.toUri() + "!/");
+            URI targetRoot = URI.createURI("archive:" + targetJar.toUri() + "!/");
+            var sourceOwner = new TsGenerationContext.Owner("com.arvato-systems.t9t", "commerce-api",
+                "10.0-SNAPSHOT", "@arvato-systems-jacs/a28");
+            var targetOwner = new TsGenerationContext.Owner("de.jpaw", "bonaparte-api-auth",
+                "7.3.3-SNAPSHOT", "@arvato-systems-jacs/bonaparte");
+            TsGenerationContext.attach(resources, new TsGenerationContext(sourceOwner, List.of(
+                new TsGenerationContext.Location(sourceRoot, sourceOwner),
+                new TsGenerationContext.Location(targetRoot, targetOwner))));
+            XtextResource source = load(resources,
+                "package commerce { class Product { required (api.auth.JwtInfo) jwt; } }",
+                sourceRoot.appendSegment("commerce.bon"));
+            XtextResource target = load(resources, "package api.auth { class JwtInfo {} }",
+                targetRoot.appendSegment("auth.bon"));
+            assertEquals("@arvato-systems-jacs/bonaparte/bonaparte-api-auth",
+                TsModuleResolver.importPath(findClass(source, "Product"), "Product", findClass(target, "JwtInfo"), "JwtInfo"));
+            assertTrue(TsModuleResolver.isCurrentModule(source));
+            assertFalse(TsModuleResolver.isCurrentModule(target));
+            var javaResource = new org.eclipse.emf.ecore.resource.impl.ResourceImpl(
+                URI.createURI("java:/Objects/java.lang.Class"));
+            resources.getResources().add(javaResource);
+            assertFalse(TsModuleResolver.isCurrentModule(javaResource));
+            assertFalse(TsModuleResolver.isSameModule(source, javaResource));
+            InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+            injector.getInstance(TypeScriptBonScriptGeneratorMain.class)
+                .doGenerate(source, fsa, new GeneratorContext());
+            String output = norm(fsa.getTextFiles().get(ROOT + "commerce-api/commerce/Product.ts"));
+            assertTrue(output, output.contains("import type { JwtInfo } from \"@arvato-systems-jacs/bonaparte/bonaparte-api-auth\";"));
+            assertNull(fsa.getTextFiles().get(ROOT + "bonaparte-api-auth/api/auth/JwtInfo.ts"));
+            try {
+                TsGenerationContext.from(source).owner(URI.createURI("file:/outside/dependency.bon"));
+                throw new AssertionError("Missing dependency owner must fail");
+            } catch (IllegalStateException expected) {
+                assertTrue(expected.getMessage(), expected.getMessage().contains("dependency closure"));
+            }
+        } finally {
+            Files.deleteIfExists(sourceJar);
+            Files.deleteIfExists(targetJar);
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
+    public void mavenSetupAttachesOwnershipContextAndRestoresScope() throws Exception {
+        var owner = new TsGenerationContext.Owner("fixture", "fixture-api", "1.0", "@fixture/package");
+        var context = new TsGenerationContext(owner,
+            List.of(new TsGenerationContext.Location(URI.createURI("dummy:/"), owner)));
+        TsGenerationContext previous = TsGenerationContext.active();
+        try (var scope = TsGenerationContext.activate(context)) {
+            XtextResourceSet resources = new BonScriptMavenSetup().createInjectorAndDoEMFRegistration()
+                .getInstance(XtextResourceSet.class);
+            XtextResource source = load(resources, "package fixture { class Source {} }", URI.createURI("dummy:/source.bon"));
+            assertEquals(context, TsGenerationContext.from(source));
+            assertEquals("ts/fixture-api/", TsModuleResolver.outputFolder(source));
+            assertTrue(TsModuleResolver.isCurrentModule(source));
+        }
+        assertEquals(previous, TsGenerationContext.active());
+    }
+
+    @Test
+    public void mavenGeneratorAttachesContextToBuilderCreatedResourceSet() throws Exception {
+        var owner = new TsGenerationContext.Owner("fixture", "fixture-api", "1.0", "@fixture/package");
+        var context = new TsGenerationContext(owner,
+            List.of(new TsGenerationContext.Location(URI.createURI("dummy:/"), owner)));
+        Injector mavenInjector;
+        try (var scope = TsGenerationContext.activate(context)) {
+            mavenInjector = new BonScriptMavenSetup().createInjectorAndDoEMFRegistration();
+        }
+        XtextResourceSet builderResources = injector.getInstance(XtextResourceSet.class);
+        XtextResource source = load(builderResources, "package fixture { class Source {} }", URI.createURI("dummy:/source.bon"));
+        assertNull(TsGenerationContext.from(source));
+        boolean previousJava = BonScriptPreferences.currentPrefs.doJava;
+        boolean previousXsd = BonScriptPreferences.currentPrefs.doXsd;
+        boolean previousTypeScript = BonScriptPreferences.currentPrefs.doTypeScript;
+        try {
+            BonScriptPreferences.currentPrefs.doJava = false;
+            BonScriptPreferences.currentPrefs.doXsd = false;
+            BonScriptPreferences.currentPrefs.doTypeScript = true;
+            InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+            mavenInjector.getInstance(BonScriptGenerator.class).doGenerate(source, fsa, new GeneratorContext());
+            assertEquals(context, TsGenerationContext.from(source));
+            assertNotNull(fsa.getTextFiles().get(ROOT + "fixture-api/fixture/Source.ts"));
+        } finally {
+            BonScriptPreferences.currentPrefs.doJava = previousJava;
+            BonScriptPreferences.currentPrefs.doXsd = previousXsd;
+            BonScriptPreferences.currentPrefs.doTypeScript = previousTypeScript;
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
+    public void ownershipContextRejectsAmbiguousRootsAndPreservesFullCoordinates() {
+        var first = new TsGenerationContext.Owner("first.group", "shared-api", "1.0", "@fixture/first");
+        var second = new TsGenerationContext.Owner("second.group", "shared-api", "1.0", "@fixture/second");
+        assertFalse(first.equals(second));
+        URI root = URI.createURI("file:/fixture/");
+        var context = new TsGenerationContext(first, List.of(new TsGenerationContext.Location(root, first),
+            new TsGenerationContext.Location(root, second)));
+        try {
+            context.owner(root.appendSegment("input.bon"));
+            throw new AssertionError("Ambiguous owners must fail even when artifactIds match");
+        } catch (IllegalStateException expected) {
+            assertTrue(expected.getMessage(), expected.getMessage().contains("Ambiguous"));
+        }
+    }
+
+    @Test
+    public void ownershipContextGeneratesApiIndexWithoutLegacySettings() throws Exception {
+        var owner = new TsGenerationContext.Owner("fixture", "fixture-api", "1.0", "@fixture/package");
+        var runtimeOwner = new TsGenerationContext.Owner("com.arvato-systems.t9t", "t9t-base-api", "1.0", "@fixture/t9t");
+        XtextResourceSet resources = injector.getInstance(XtextResourceSet.class);
+        TsGenerationContext.attach(resources, new TsGenerationContext(owner,
+            List.of(new TsGenerationContext.Location(URI.createURI("dummy:/"), owner),
+                new TsGenerationContext.Location(URI.createURI("dummy:/runtime/"), runtimeOwner))));
+        XtextResource source = load(resources, API_SOURCE, URI.createURI("dummy:/api.bon"));
+        String previousModule = System.getProperty("bonaparte.TypeScript.module");
+        String previousMap = System.getProperty("bonaparte.TypeScript.modulesFile");
+        try {
+            System.setProperty("bonaparte.TypeScript.module", "wrong-module");
+            System.setProperty("bonaparte.TypeScript.modulesFile", "nonexistent-module-map.properties");
+            InMemoryFileSystemAccess fsa = new InMemoryFileSystemAccess();
+            injector.getInstance(TsApiClientGenerator.class).doGenerate(source, fsa);
+            String index = norm(fsa.getTextFiles().get(ROOT + "fixture-api/api-index.ts"));
+            assertTrue(index, index.contains("export { ProductApi }"));
+            String api = norm(fsa.getTextFiles().get(ROOT + "fixture-api/com/acme/api/ProductApi.ts"));
+            assertTrue(api, api.contains("import { RpcClient } from '@fixture/t9t';"));
+            assertTrue(api, api.contains("} from '@fixture/t9t';"));
+            assertFalse(api, api.contains("import { RpcClient } from '@fixture/package';"));
+            assertNull(fsa.getTextFiles().get(ROOT + "wrong-module/api-index.ts"));
+        } finally {
+            restoreSystemProperty("bonaparte.TypeScript.module", previousModule);
+            restoreSystemProperty("bonaparte.TypeScript.modulesFile", previousMap);
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
     public void bonScriptTypeScriptSettingsReadSystemPropertiesDynamically() {
         String previousTypeScript = System.getProperty("bonaparte.TypeScript");
         String previousModule = System.getProperty("bonaparte.TypeScript.module");
@@ -827,6 +971,10 @@ public class TypeScriptGeneratorTest {
             assertTrue(norm(files.get(entryRoot + "package.json")).contains("\"entryFile\": \"index.ts\""));
             assertTrue(norm(files.get(entryRoot + "ng-package.json")).contains("\"entryFile\": \"index.ts\""));
             String index = norm(files.get(entryRoot + "index.ts"));
+            assertFalse(index, index.contains("export type { BonaPortable }"));
+            assertNull(files.get(entryRoot + "bona-portable.ts"));
+            String child = norm(files.get(entryRoot + "com/acme/auth/Child.ts"));
+            assertTrue(child, child.contains("import type { BonaPortable } from \"@arvato-systems-jacs/bonaparte/bonaparte-core\";"));
             assertTrue(index, index.contains("export { ChildPQON }"));
             assertTrue(index, index.contains("export type { Child }"));
             assertTrue(index, index.contains("export type { SortOrderSet }"));
@@ -855,7 +1003,7 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
-    public void apiServicesImportRuntimeSupportFromPrimaryPackage() throws Exception {
+    public void apiServicesUseCorePortableTypeAndPrimaryRpcRuntime() throws Exception {
         String previousModule = BonScriptPreferences.currentPrefs.tsModule;
         String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
         String previousNpmPackage = BonScriptPreferences.currentPrefs.tsNpmPackage;
@@ -869,9 +1017,40 @@ public class TypeScriptGeneratorTest {
                 .map(TypeScriptGeneratorTest::norm)
                 .filter(content -> content.contains("export class ProductApi"))
                 .findFirst().orElseThrow();
-            assertTrue(api, api.contains("import type { BonaPortable } from '@fixture/t9t-api';"));
+            assertTrue(api, api.contains("import type { BonaPortable } from '@arvato-systems-jacs/bonaparte/bonaparte-core';"));
             assertTrue(api, api.contains("import { RpcClient } from '@fixture/t9t-api';"));
             assertTrue(api, api.contains("} from '@fixture/t9t-api';"));
+        } finally {
+            BonScriptPreferences.currentPrefs.tsModule = previousModule;
+            BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = previousNpmPackage;
+            DataTypeExtension.clear();
+        }
+    }
+
+    @Test
+    public void onlyCoreGeneratesAndExportsPortableSupport() throws Exception {
+        String previousModule = BonScriptPreferences.currentPrefs.tsModule;
+        String previousModulesFile = BonScriptPreferences.currentPrefs.tsModulesFile;
+        String previousNpmPackage = BonScriptPreferences.currentPrefs.tsNpmPackage;
+        try {
+            BonScriptPreferences.currentPrefs.tsModule = "bonaparte-core";
+            BonScriptPreferences.currentPrefs.tsModulesFile = null;
+            BonScriptPreferences.currentPrefs.tsNpmPackage = "@arvato-systems-jacs/bonaparte";
+            Map<String, CharSequence> coreFiles = generate(BON_SOURCE);
+            String coreRoot = ROOT + "bonaparte-core/";
+            assertTrue(norm(coreFiles.get(coreRoot + "bona-portable.ts")).contains("export interface BonaPortable"));
+            assertTrue(norm(coreFiles.get(coreRoot + "index.ts")).contains("export type { BonaPortable } from './bona-portable';"));
+            assertRelativeImportResolves(coreFiles, coreRoot + "com/acme/base/Base.ts", "../../../bona-portable",
+                coreRoot + "bona-portable.ts");
+
+            BonScriptPreferences.currentPrefs.tsModule = "bonaparte-api-auth";
+            Map<String, CharSequence> authFiles = generate(BON_SOURCE);
+            String authRoot = ROOT + "bonaparte-api-auth/";
+            assertNull(authFiles.get(authRoot + "bona-portable.ts"));
+            assertFalse(norm(authFiles.get(authRoot + "index.ts")).contains("export type { BonaPortable }"));
+            assertTrue(norm(authFiles.get(authRoot + "com/acme/base/Base.ts")).contains(
+                "import type { BonaPortable } from \"@arvato-systems-jacs/bonaparte/bonaparte-core\";"));
         } finally {
             BonScriptPreferences.currentPrefs.tsModule = previousModule;
             BonScriptPreferences.currentPrefs.tsModulesFile = previousModulesFile;
@@ -966,7 +1145,7 @@ public class TypeScriptGeneratorTest {
             "    class ServiceResponse {}",
             "    class SearchCriteria { required int limit; required int offset; }",
             "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
-            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<DATA, TRACKING> {}",
+            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
             "    class SearchRequest<DATA, TRACKING> extends SearchCriteria return ReadAllResponse<!DATA, !TRACKING> {}",
             "    class LeanSearchResponse extends ServiceResponse {}",
             "    class Description {}",
@@ -1057,20 +1236,71 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
-    public void appliesApiNamingOverrides() throws Exception {
-        Path namingFile = Files.createTempFile("ts-api-naming", ".properties");
-        String previousNamingFile = BonScriptPreferences.currentPrefs.tsApiNamingFile;
+    public void apiNamingDoesNotRequireOrReadAnOverrideFile() throws Exception {
+        String previousNamingFile = System.getProperty("bonaparte.TypeScript.apiNamingFile");
         try {
-            Files.writeString(namingFile, "ProductSearchRequest.api=CatalogApi\nProductSearchRequest.method=findProducts\n");
-            BonScriptPreferences.currentPrefs.tsApiNamingFile = namingFile.toString();
+            System.setProperty("bonaparte.TypeScript.apiNamingFile", "nonexistent-api-naming.properties");
             Map<String, CharSequence> files = generateApis(API_SOURCE);
-            String api = norm(files.get(ROOT + "com/acme/api/CatalogApi.ts"));
-            assertTrue(api, api.contains("export class CatalogApi {"));
-            assertTrue(api, api.contains("findProducts(params: Omit<ProductSearchRequest, '@PQON' | 'offset' | 'customScope'>"));
+            String api = norm(files.get(ROOT + "com/acme/api/ProductApi.ts"));
+            assertTrue(api, api.contains("export class ProductApi {"));
+            assertTrue(api, api.contains("search(params: Omit<ProductSearchRequest, '@PQON' | 'offset' | 'customScope'>"));
         } finally {
-            BonScriptPreferences.currentPrefs.tsApiNamingFile = previousNamingFile;
-            Files.deleteIfExists(namingFile);
+            restoreSystemProperty("bonaparte.TypeScript.apiNamingFile", previousNamingFile);
         }
+    }
+
+    @Test
+    public void concreteSearchResponseImportsTheResolvedResultDto() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.api {",
+            "    class ServiceResponse {}",
+            "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
+            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
+            "    class SearchRequest<DATA, TRACKING> return ReadAllResponse<!DATA, !TRACKING> {}",
+            "    class ConcreteDTO {}",
+            "    class Audit {}",
+            "    class ConcreteResponse extends ReadAllResponse<ConcreteDTO, Audit> {}",
+            "    class ConcreteSearchAndEnrichRequest extends SearchRequest<ConcreteDTO, Audit> return ConcreteResponse {}",
+            "}", "");
+        String api = norm(generateApis(source).get(ROOT + "com/acme/api/ConcreteApi.ts"));
+        assertTrue(api, api.contains("import type { ConcreteDTO } from \"./ConcreteDTO\";"));
+        assertTrue(api, api.contains("Observable<ConcreteDTO[]>"));
+        assertTrue(api, api.contains("map(unwrapSearch<ConcreteDTO>)"));
+    }
+
+    @Test
+    public void searchResultUsesOverriddenResponsePayloadInsteadOfRequestDto() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.api {",
+            "    class ServiceResponse {}",
+            "    class SearchResponse<DATA, TRACKING> extends ServiceResponse {}",
+            "    class ReadAllResponse<DATA, TRACKING> extends SearchResponse<!DATA, !TRACKING> {}",
+            "    class SearchRequest<DATA, TRACKING> return ReadAllResponse<!DATA, !TRACKING> {}",
+            "    class DeliveryOrderDTO {}",
+            "    class EnrichedDeliveryDTO {}",
+            "    class Audit {}",
+            "    class EnrichedResponse extends ReadAllResponse<EnrichedDeliveryDTO, Audit> {}",
+            "    class DeliveryOrderSearchWithParcelsRequest extends SearchRequest<DeliveryOrderDTO, Audit> return EnrichedResponse {}",
+            "}", "");
+        String api = norm(generateApis(source).get(ROOT + "com/acme/api/DeliveryOrderApi.ts"));
+        assertTrue(api, api.contains("import type { EnrichedDeliveryDTO } from \"./EnrichedDeliveryDTO\";"));
+        assertTrue(api, api.contains("Observable<EnrichedDeliveryDTO[]>"));
+        assertTrue(api, api.contains("map(unwrapSearch<EnrichedDeliveryDTO>)"));
+        assertFalse(api, api.contains("Observable<DeliveryOrderDTO[]>"));
+    }
+
+    @Test
+    public void plainDtoResponseDoesNotUseServiceResponseUnwrapping() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.request {",
+            "    class RequestParameters {}",
+            "    class CustomerStatusResponse { required boolean changed; }",
+            "    class CustomerStatusRequest extends RequestParameters return CustomerStatusResponse {}",
+            "}", "");
+        String api = norm(generateApis(source).get(ROOT + "com/acme/request/AcmeApi.ts"));
+        assertTrue(api, api.contains("Observable<CustomerStatusResponse>"));
+        assertTrue(api, api.contains("return this.rpc.call<CustomerStatusResponse>(CustomerStatusRequestPQON, params);"));
+        assertFalse(api, api.contains("unwrapService"));
     }
 
     @Test

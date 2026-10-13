@@ -82,12 +82,24 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 for (c : source.allContents.toIterable.filter(typeof(ClassDefinition)))
                     fsa.generateFile(c.tsFilename(c.name), c.writeInterface)
                 val folder = TsModuleResolver.outputFolder(source)
+                if (TsModuleResolver.generatesPortableSupport(source))
+                    fsa.generateFile(folder + "bona-portable.ts", bonaPortableSource)
                 fsa.generateFile(folder + "package.json", entryPointPackageJson)
                 fsa.generateFile(folder + "ng-package.json", entryPointNgPackageJson)
                 fsa.generateFile(folder + "index.ts", writeModuleIndex(modules, source))
                 fsa.generateFile(folder + "api-index.ts", GENERATED_COMMENT + "\nexport {};\n")
             }
         }
+    }
+
+    def private static CharSequence bonaPortableSource() {
+        '''
+        «GENERATED_COMMENT»
+        export interface BonaPortable {
+            '@PQON': string;
+            [key: string]: unknown;
+        }
+        '''
     }
 
     def private static CharSequence entryPointPackageJson() {
@@ -115,6 +127,8 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         val out = new StringBuilder
         val typesByIdentity = new LinkedHashMap<String, EObject>
         out.append(GENERATED_COMMENT).append("\n\n")
+        if (TsModuleResolver.generatesPortableSupport(module))
+            out.append("export type { BonaPortable } from './bona-portable';\n")
         for (source : resources.filter[TsModuleResolver.isSameModule(it, module)]) {
             for (type : source.allContents.toIterable.filter(typeof(EnumDefinition)))
                 typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)

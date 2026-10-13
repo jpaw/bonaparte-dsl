@@ -10,7 +10,6 @@ import java.util.LinkedHashMap
 import java.util.LinkedHashSet
 import java.util.List
 import java.util.Map
-import java.util.Properties
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.xtext.generator.IFileSystemAccess2
 
@@ -21,14 +20,13 @@ class TsApiClientGenerator {
         if (!TsModuleResolver.isCurrentModule(resource))
             return
 
-        val namingOverrides = TsNaming.loadOverrides
         val groups = new LinkedHashMap<String, List<TsRequestClassifier.RequestInfo>>
         for (source : resource.resourceSet.resources.filter[source | TsModuleResolver.isCurrentModule(source)]) {
             for (request : source.allContents.toIterable.filter(typeof(ClassDefinition))) {
                 val info = TsRequestClassifier.classify(request)
                 if (info !== null && info.pattern != TsRequestClassifier.Pattern.UNKNOWN) {
                     val apiClass = TsNaming.apiClassName(request.package.name, info.dtoName, request.name,
-                        info.pattern, namingOverrides)
+                        info.pattern)
                     val groupKey = request.package.name + "|" + apiClass
                     var requests = groups.get(groupKey)
                     if (requests === null) {
@@ -43,22 +41,21 @@ class TsApiClientGenerator {
         for (group : groups.values) {
             val first = group.head.request
             val apiClass = TsNaming.apiClassName(first.package.name, group.head.dtoName,
-                group.head.request.name, group.head.pattern, namingOverrides)
+                group.head.request.name, group.head.pattern)
                 fsa.generateFile(TsModuleResolver.generatedFile(first, apiClass),
-                writeApi(first.package.name, apiClass, group, namingOverrides))
+                writeApi(first.package.name, apiClass, group))
         }
-        if (TsModuleResolver.currentEntryPoint !== null)
-            fsa.generateFile(TsModuleResolver.outputFolder + "api-index.ts",
-                writeApiIndex(groups.values, namingOverrides))
+        if (TsModuleResolver.currentEntryPoint(resource) !== null)
+            fsa.generateFile(TsModuleResolver.outputFolder(resource) + "api-index.ts",
+                writeApiIndex(groups.values))
     }
 
-    def private static CharSequence writeApiIndex(Iterable<List<TsRequestClassifier.RequestInfo>> groups,
-            Properties namingOverrides) {
+    def private static CharSequence writeApiIndex(Iterable<List<TsRequestClassifier.RequestInfo>> groups) {
         val exports = new LinkedHashMap<String, String>
         for (group : groups) {
             val first = group.head.request
             val apiClass = TsNaming.apiClassName(first.package.name, group.head.dtoName,
-                first.name, group.head.pattern, namingOverrides)
+                first.name, group.head.pattern)
             val modulePath = "./" + TsModuleResolver.packagePath(first) + "/" + apiClass
             val publicApiName = uniqueExportName(apiClass, first.package.name, exports)
             val apiSpecifier = if (publicApiName == apiClass) apiClass else apiClass + " as " + publicApiName
@@ -95,10 +92,14 @@ class TsApiClientGenerator {
     }
 
     def private static CharSequence writeApi(String packageName, String apiClass,
-            List<TsRequestClassifier.RequestInfo> requests, Properties namingOverrides) {
+            List<TsRequestClassifier.RequestInfo> requests) {
         val imports = new TsImportCollector
         for (info : requests) {
             imports.add(info.request)
+            if (info.dtoRef !== null)
+                collectTypeImports(info.dtoRef, imports)
+            if (info.responseDtoRef !== null)
+                collectTypeImports(info.responseDtoRef, imports)
             if (info.refName !== null) {
                 val refType = findType(info.request, info.refName)
                 if (refType !== null)
@@ -121,14 +122,15 @@ class TsApiClientGenerator {
             .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "rpc-client"))
             .append("';\n")
         val unwraps = new LinkedHashSet<String>
-        for (info : requests) {
+        for (info : requests.filter[responsePattern != TsRequestClassifier.ResponsePattern.DIRECT]) {
             unwraps.add(unwrapName(info.responsePattern))
             if (isCrud(info.pattern))
                 unwraps.add("unwrapVoid")
         }
-        out.append("import { ").append(unwraps.join(", ")).append(" } from '")
-            .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "unwrap"))
-            .append("';\n")
+        if (!unwraps.empty)
+            out.append("import { ").append(unwraps.join(", ")).append(" } from '")
+                .append(TsModuleResolver.runtimeSupportImport(requests.head.request, apiClass, "unwrap"))
+                .append("';\n")
         for (info : requests.filter[responsePattern == TsRequestClassifier.ResponsePattern.LEAN_SEARCH]) {
             val description = findDescription(info.request, info.responseRef.classRef.package.name)
             if (description !== null) {
@@ -155,7 +157,7 @@ class TsApiClientGenerator {
         out.append("    private readonly rpc = inject(RpcClient);\n")
         val usedMethods = new LinkedHashSet<String>
         for (info : requests) {
-            var methodName = TsNaming.methodName(info.request.name, info.pattern, info.dtoName, namingOverrides)
+            var methodName = TsNaming.methodName(info.request.name, info.pattern, info.dtoName)
             if (isCrud(info.pattern))
                 methodName = "execute" + (if (methodName.startsWith("create")) methodName.substring(6) else "")
             if (!usedMethods.add(methodName)) {
@@ -169,8 +171,10 @@ class TsApiClientGenerator {
             out.append("\n    ").append(methodName).append("(params: ").append(paramsType)
                 .append("): Observable<").append(resultType).append("> {\n")
             out.append("        return this.rpc.call<").append(wireType).append(">(")
-                .append(info.request.name).append("PQON, ").append(paramsValue).append(").pipe(map(")
-                .append(unwrapExpression(info)).append("));\n")
+                .append(info.request.name).append("PQON, ").append(paramsValue).append(")")
+            if (info.responsePattern != TsRequestClassifier.ResponsePattern.DIRECT)
+                out.append(".pipe(map(").append(unwrapExpression(info)).append("))")
+            out.append(";\n")
             out.append("    }\n")
             if (isCrud(info.pattern))
                 out.append(writeCrudMethods(info, methodName))
@@ -324,24 +328,26 @@ class TsApiClientGenerator {
 
     def private static String resultType(TsRequestClassifier.RequestInfo info, String wireType) {
         switch (info.responsePattern) {
-            case SEARCH: if (info.dtoName === null) "unknown[]" else info.dtoName + "[]"
+            case SEARCH: (info.responseDtoName ?: info.dtoName ?: "unknown") + "[]"
             case CRUD: if (info.dtoName === null) "unknown" else info.dtoName
             case RESOLVE: "number"
             case RESOLVE_MANY: "number[]"
             case LEAN_SEARCH: "Description[]"
             case SERVICE: "Omit<" + wireType + ", 'returnCode'>"
+            case DIRECT: wireType
             case VOID: "void"
         }
     }
 
     def private static String unwrapExpression(TsRequestClassifier.RequestInfo info) {
         switch (info.responsePattern) {
-            case SEARCH: "unwrapSearch<" + (info.dtoName ?: "unknown") + ">"
+            case SEARCH: "unwrapSearch<" + (info.responseDtoName ?: info.dtoName ?: "unknown") + ">"
             case CRUD: "unwrapCrud<" + (info.dtoName ?: "unknown") + ">"
             case RESOLVE: "unwrapResolve"
             case RESOLVE_MANY: "unwrapResolveMany"
             case LEAN_SEARCH: "unwrapLean"
             case SERVICE: "unwrapService<" + renderType(info.responseRef) + ">"
+            case DIRECT: null
             case VOID: "unwrapVoid"
         }
     }
@@ -383,6 +389,7 @@ class TsApiClientGenerator {
             case RESOLVE_MANY: "unwrapResolveMany"
             case LEAN_SEARCH: "unwrapLean"
             case SERVICE: "unwrapService"
+            case DIRECT: null
             case VOID: "unwrapVoid"
         }
     }

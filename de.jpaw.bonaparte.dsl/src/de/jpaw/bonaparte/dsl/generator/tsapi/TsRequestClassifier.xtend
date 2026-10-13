@@ -13,13 +13,16 @@ class TsRequestClassifier {
     }
 
     enum ResponsePattern {
-        SEARCH, CRUD, RESOLVE, RESOLVE_MANY, LEAN_SEARCH, SERVICE, VOID
+        SEARCH, CRUD, RESOLVE, RESOLVE_MANY, LEAN_SEARCH, SERVICE, DIRECT, VOID
     }
 
     static class RequestInfo {
         public ClassDefinition request
         public Pattern pattern = Pattern.UNKNOWN
         public String dtoName
+        public ClassReference dtoRef
+        public ClassReference responseDtoRef
+        public String responseDtoName
         public String refName
         public String trackingName
         public ClassReference responseRef
@@ -42,9 +45,18 @@ class TsRequestClassifier {
                 info.pattern = pattern
                 info.responseRef = findResponseRef(request)
                 info.responsePattern = responsePattern(info.responseRef)
+                if (info.responsePattern == ResponsePattern.SEARCH) {
+                    info.responseDtoRef = responsePayload(info.responseRef, "SearchResponse")
+                    info.responseDtoName = referenceName(info.responseDtoRef)
+                }
                 if (isSearchOrCrud(pattern) && info.responseRef !== null
                         && !hasExpectedResponse(info.responseRef, pattern))
                     info.pattern = Pattern.SPECIAL
+                if (isSearchOrCrud(pattern)) {
+                    val dtoIndex = if (pattern == Pattern.CRUD_SURROGATE || pattern == Pattern.CRUD_COMPOSITE) 1 else 0
+                    if (dtoIndex < parentRef.classRefGenericParms.size)
+                        info.dtoRef = resolvedCopy(parentRef.classRefGenericParms.get(dtoIndex), bindings, 0)
+                }
                 switch (pattern) {
                     case SEARCH: {
                         info.dtoName = genericName(parentRef, bindings, 0)
@@ -125,6 +137,7 @@ class TsRequestClassifier {
                 return resolvedCopy(actual, bindings, depth + 1)
         }
         val copy = EcoreUtil.copy(ref)
+        copy.classRef = ref.classRef
         copy.classRefGenericParms.clear
         for (argument : ref.classRefGenericParms)
             copy.classRefGenericParms.add(resolvedCopy(argument, bindings, depth + 1))
@@ -149,7 +162,23 @@ class TsRequestClassifier {
             return ResponsePattern.VOID
         if (hasAncestor(type, "ServiceResponse"))
             return ResponsePattern.SERVICE
-        return ResponsePattern.SERVICE
+        return ResponsePattern.DIRECT
+    }
+
+    def private static ClassReference responsePayload(ClassReference response, String ancestorName) {
+        var ClassReference current = response
+        for (depth : 0 ..< 64) {
+            if (current === null || current.classRef === null)
+                return null
+            val type = current.classRef
+            if (type.name == ancestorName)
+                return if (current.classRefGenericParms.empty) null else current.classRefGenericParms.head
+            val bindings = new LinkedHashMap<String, ClassReference>
+            for (index : 0 ..< Math.min(type.genericParameters.size, current.classRefGenericParms.size))
+                bindings.put(type.genericParameters.get(index).name, current.classRefGenericParms.get(index))
+            current = if (type.extendsClass === null) null else resolvedCopy(type.extendsClass, bindings, 0)
+        }
+        return null
     }
 
     def private static boolean hasExpectedResponse(ClassReference response, Pattern pattern) {
@@ -195,6 +224,12 @@ class TsRequestClassifier {
         if (index >= ref.classRefGenericParms.size)
             return null
         val resolved = resolveReference(ref.classRefGenericParms.get(index), bindings, 0)
+        return referenceName(resolved)
+    }
+
+    def private static String referenceName(ClassReference resolved) {
+        if (resolved === null)
+            return null
         if (resolved.plainObject)
             return "BonaPortable"
         if (resolved.classRef !== null)

@@ -1,26 +1,6 @@
 package de.jpaw.bonaparte.dsl.generator.tsapi
 
-import de.jpaw.bonaparte.dsl.BonScriptPreferences
-import java.io.IOException
-import java.io.StringReader
-import java.nio.file.Files
-import java.nio.file.Path
-import java.util.Properties
-
 class TsNaming {
-    def static Properties loadOverrides() {
-        val properties = new Properties
-        val fileName = BonScriptPreferences.tsApiNamingFile
-        if (fileName === null || fileName.trim.empty)
-            return properties
-        try {
-            properties.load(new StringReader(Files.readString(Path.of(fileName))))
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Unable to load TypeScript API naming overrides from " + fileName, e)
-        }
-        return properties
-    }
-
     def static String apiClassName(String packageName, String dtoName) {
         if (dtoName !== null)
             return stripDto(dtoName) + "Api"
@@ -41,14 +21,6 @@ class TsNaming {
         if (entity.length > 0)
             return entity + "Api"
         return apiClassName(packageName, null)
-    }
-
-    def static String apiClassName(String packageName, String dtoName, String requestName,
-            TsRequestClassifier.Pattern pattern, Properties overrides) {
-        val override = overrides.getProperty(requestName + ".api")
-        if (override !== null && !override.trim.empty)
-            return override.trim
-        return apiClassName(packageName, dtoName, requestName, pattern)
     }
 
     def static String methodName(String requestName, TsRequestClassifier.Pattern pattern, String dtoName) {
@@ -92,14 +64,6 @@ class TsNaming {
             }
         }
         return method
-    }
-
-    def static String methodName(String requestName, TsRequestClassifier.Pattern pattern, String dtoName,
-            Properties overrides) {
-        val override = overrides.getProperty(requestName + ".method")
-        if (override !== null && !override.trim.empty)
-            return override.trim
-        return methodName(requestName, pattern, dtoName)
     }
 
     def private static String stripDto(String name) {
