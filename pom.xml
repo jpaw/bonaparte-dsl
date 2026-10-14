@@ -158,7 +158,7 @@
                         <requireReleaseDeps>
                             <message>No snapshots dependencies allowed for final revisions!</message>
                             <searchTransitive>true</searchTransitive>
-                            <failWhenParentIsSnapshot>true</failWhenParentIsSnapshot> 
+                            <failWhenParentIsSnapshot>true</failWhenParentIsSnapshot>
                             <onlyWhenRelease>true</onlyWhenRelease>
                         </requireReleaseDeps>
                     </rules>
