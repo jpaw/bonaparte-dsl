@@ -67,7 +67,7 @@
 
     <modules>
         <module>de.jpaw.bonaparte.dsl</module>
-        <module>bonaparte-typescript-maven-plugin</module>
+        <module>de.jpaw.bonaparte.dsl.typescript.plugin</module>
         <module>de.jpaw.bonaparte.dsl.ide</module>
         <module>de.jpaw.bonaparte.dsl.tests</module>
         <module>de.jpaw.bonaparte.dsl.ui</module>
