@@ -10,12 +10,8 @@
     <artifactId>bonaparte-typescript-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
 
-    <properties>
-        <maven.compiler.release>21</maven.compiler.release>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    </properties>
-
     <dependencies>
+        <!-- provided dependencies -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
@@ -25,9 +21,10 @@
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
-            <version>${maven-plugin-annotations.version}</version>
+            <version>${annotations-plugin.version}</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.eclipse.xtext</groupId>
             <artifactId>xtext-maven-plugin</artifactId>

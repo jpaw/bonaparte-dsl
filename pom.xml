@@ -42,7 +42,7 @@
         <asm.version>9.10.1</asm.version>
 
         <!-- Plugin versions -->
-        <maven-plugin-annotations.version>3.16.0</maven-plugin-annotations.version>
+        <annotations-plugin.version>3.16.0</annotations-plugin.version>
         <exec-plugin.version>3.6.3</exec-plugin.version>
         <clean-plugin.version>3.5.0</clean-plugin.version>
         <compiler-plugin.version>3.16.0</compiler-plugin.version>
