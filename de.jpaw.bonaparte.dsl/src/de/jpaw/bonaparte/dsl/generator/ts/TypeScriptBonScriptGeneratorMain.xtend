@@ -115,7 +115,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
     def private static CharSequence entryPointNgPackageJson() {
         '''{
-            "$schema": "../node_modules/ng-package/ng-package.schema.json",
+            "$schema": "../node_modules/ng-packagr/ng-package.schema.json",
             "lib": {
                 "entryFile": "index.ts"
             }
