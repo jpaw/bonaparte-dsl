@@ -20,36 +20,37 @@
         </license>
     </licenses>
 
-    <organization>
-        <name>Michael Bischoff</name>
-        <url>http://www.jpaw.de</url>
-    </organization>
-    <developers>
-        <developer>
-            <id>mbi</id>
-            <name>Michael Bischoff</name>
-            <email>jpaw@online.de</email>
-            <url>http://www.jpaw.de</url>
-        </developer>
-    </developers>
-
     <properties>
-        <min-maven.version>3.9.9</min-maven.version>
-        <xtextVersion>2.44.0</xtextVersion>
-        <tycho-version>5.0.3</tycho-version>
-        <mwe-version>2.27.0</mwe-version>
-        <exec-plugin-version>3.6.3</exec-plugin-version>
-        <clean-plugin-version>3.5.0</clean-plugin-version>
-        <enforcer.plugin.version>3.6.3</enforcer.plugin.version>
-        <dependency-plugin-version>3.8.1</dependency-plugin-version>
-        <lsp4j-version>1.0.0</lsp4j-version>
-        <log4j-version>1.2.17</log4j-version>
-        <asm-version>9.10.1</asm-version>
-        <release.plugin.version>3.3.1</release.plugin.version>
-        <scm.plugin.version>2.2.1</scm.plugin.version>
+        <!-- Encoding -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- Java and maven versions -->
+        <maven.compiler.release>21</maven.compiler.release>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <maven.version>3.9.16</maven.version>
+        <min-maven.version>3.9.9</min-maven.version>
+
+        <!-- Xtext versions -->
+        <xtext.version>2.44.0</xtext.version>
+        <mwe.version>2.27.0</mwe.version>
+        <tycho.version>5.0.3</tycho.version>
+
+        <!-- General dependencies -->
+        <lsp4j.version>1.0.0</lsp4j.version>
+        <log4j.version>1.2.17</log4j.version>
+        <asm.version>9.10.1</asm.version>
+
+        <!-- Plugin versions -->
+        <maven-plugin-annotations.version>3.16.0</maven-plugin-annotations.version>
+        <exec-plugin.version>3.6.3</exec-plugin.version>
+        <clean-plugin.version>3.5.0</clean-plugin.version>
+        <compiler-plugin.version>3.16.0</compiler-plugin.version>
+        <plugin-plugin.version>3.16.0</plugin-plugin.version>
+        <enforcer-plugin.version>3.6.3</enforcer-plugin.version>
+        <dependency-plugin.version>3.8.1</dependency-plugin.version>
+        <release-plugin.version>3.3.1</release-plugin.version>
+        <scm-plugin.version>2.2.1</scm-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -57,7 +58,7 @@
             <dependency>
                 <groupId>org.eclipse.xtext</groupId>
                 <artifactId>xtext-dev-bom</artifactId>
-                <version>${xtextVersion}</version>
+                <version>${xtext.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -85,13 +86,13 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-maven-plugin</artifactId>
-                <version>${tycho-version}</version>
+                <version>${tycho.version}</version>
                 <extensions>true</extensions>
             </plugin>
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>target-platform-configuration</artifactId>
-                <version>${tycho-version}</version>
+                <version>${tycho.version}</version>
                 <configuration>
                     <target>
                         <artifact>
@@ -129,7 +130,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>${enforcer.plugin.version}</version>
+                <version>${enforcer-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>enforce-no-snapshots</id>
@@ -170,7 +171,7 @@
             <plugin>
                 <groupId>org.eclipse.tycho</groupId>
                 <artifactId>tycho-packaging-plugin</artifactId>
-                <version>${tycho-version}</version>
+                <version>${tycho.version}</version>
                 <configuration>
                     <skipPomGeneration>true</skipPomGeneration>
                 </configuration>
@@ -180,7 +181,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
-                <version>${release.plugin.version}</version>
+                <version>${release-plugin.version}</version>
                 <configuration>
                     <tagNameFormat>v@{project.version}</tagNameFormat>
                     <preparationGoals>org.eclipse.tycho:tycho-versions-plugin:${tycho-version}:update-eclipse-metadata org.apache.maven.plugins:maven-scm-plugin:add</preparationGoals>
@@ -192,7 +193,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-scm-plugin</artifactId>
-                <version>${scm.plugin.version}</version>
+                <version>${scm-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>default-cli</id>
@@ -212,7 +213,7 @@
                 <plugin>
                     <groupId>org.eclipse.xtext</groupId>
                     <artifactId>xtend-maven-plugin</artifactId>
-                    <version>${xtextVersion}</version>
+                    <version>${xtext.version}</version>
                     <executions>
                         <execution>
                             <goals>
@@ -231,7 +232,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-clean-plugin</artifactId>
-                    <version>${clean-plugin-version}</version>
+                    <version>${clean-plugin.version}</version>
                     <configuration>
                         <filesets>
                             <fileset>
@@ -348,7 +349,7 @@
                     -->
                     <groupId>org.eclipse.tycho</groupId>
                     <artifactId>tycho-compiler-plugin</artifactId>
-                    <version>${tycho-version}</version>
+                    <version>${tycho.version}</version>
                     <configuration>
                         <compilerArgument>-err:-forbidden</compilerArgument>
                         <useProjectSettings>false</useProjectSettings>
