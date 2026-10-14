@@ -139,7 +139,7 @@ public final class TsModuleResolver {
             throw new IllegalArgumentException("Cannot resolve TypeScript runtime import without a source BON type");
         if (fromTypeName == null || fromTypeName.isBlank() || supportModule == null || supportModule.isBlank())
             throw new IllegalArgumentException("Cannot resolve TypeScript runtime import without generated source and support names");
-        if ("bona-portable".equals(supportModule)) {
+        if ("bona-portable".equals(supportModule) || TsMetaRuntimeSource.MODULE_NAME.equals(supportModule)) {
             Resource resource = from.eResource();
             if (!generatesPortableSupport(resource))
                 return PORTABLE_OWNER_IMPORT;

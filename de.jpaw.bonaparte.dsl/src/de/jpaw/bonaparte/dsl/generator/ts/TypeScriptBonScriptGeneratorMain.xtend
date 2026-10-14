@@ -23,6 +23,7 @@ import de.jpaw.bonaparte.dsl.bonScript.EnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.EnumSetDefinition
 import de.jpaw.bonaparte.dsl.bonScript.FieldDefinition
 import de.jpaw.bonaparte.dsl.bonScript.PackageDefinition
+import de.jpaw.bonaparte.dsl.bonScript.PropertyUse
 import de.jpaw.bonaparte.dsl.bonScript.XEnumDefinition
 import de.jpaw.bonaparte.dsl.bonScript.XEnumSetDefinition
 import de.jpaw.bonaparte.dsl.generator.DataCategory
@@ -82,8 +83,11 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 for (c : source.allContents.toIterable.filter(typeof(ClassDefinition)))
                     fsa.generateFile(c.tsFilename(c.name), c.writeInterface)
                 val folder = TsModuleResolver.outputFolder(source)
-                if (TsModuleResolver.generatesPortableSupport(source))
+                if (TsModuleResolver.generatesPortableSupport(source)) {
                     fsa.generateFile(folder + "bona-portable.ts", bonaPortableSource)
+                    fsa.generateFile(folder + TsMetaRuntimeSource.MODULE_NAME + ".ts",
+                        GENERATED_COMMENT + "\n\n" + TsMetaRuntimeSource.source)
+                }
                 fsa.generateFile(folder + "package.json", entryPointPackageJson)
                 fsa.generateFile(folder + "ng-package.json", entryPointNgPackageJson)
                 fsa.generateFile(folder + "index.ts", writeModuleIndex(modules, source))
@@ -127,8 +131,13 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
         val out = new StringBuilder
         val typesByIdentity = new LinkedHashMap<String, EObject>
         out.append(GENERATED_COMMENT).append("\n\n")
-        if (TsModuleResolver.generatesPortableSupport(module))
+        if (TsModuleResolver.generatesPortableSupport(module)) {
             out.append("export type { BonaPortable } from './bona-portable';\n")
+            out.append("export type { BonaProps, TsFieldMeta, TsClassMeta, BonValidationRule, BonValidationIssue }"
+                + " from './" + TsMetaRuntimeSource.MODULE_NAME + "';\n")
+            out.append("export { bonAllFields, bonClassProp, bonValidate } from './"
+                + TsMetaRuntimeSource.MODULE_NAME + "';\n")
+        }
         for (source : resources.filter[TsModuleResolver.isSameModule(it, module)]) {
             for (type : source.allContents.toIterable.filter(typeof(EnumDefinition)))
                 typesByIdentity.putIfAbsent(TsImportCollector.bonIdentity(type), type)
@@ -165,6 +174,10 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 if (exportName != name)
                     out.append(" as ").append(exportName).append("PQON")
                 out.append(" } from '").append(modulePath).append("';\n")
+                out.append("export { ").append(name).append("Meta")
+                if (exportName != name)
+                    out.append(" as ").append(exportName).append("Meta")
+                out.append(" } from '").append(modulePath).append("';\n")
                 out.append("export type { ").append(name)
                 if (exportName != name)
                     out.append(" as ").append(exportName)
@@ -195,6 +208,22 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 out.append("import type { ").append(importedName)
                 if (importedName != name)
                     out.append(" as ").append(name)
+                out.append(" } from \"")
+                    .append(TsModuleResolver.importPath(from, fromTypeName, type, name)).append("\";\n")
+            }
+        }
+        out
+    }
+
+    def private static CharSequence writeMetaImports(EObject from, String fromTypeName, TsImportCollector refs) {
+        val out = new StringBuilder
+        for (type : refs.types) {
+            val name = TsImportCollector.simpleName(type)
+            if (from !== type) {
+                val importedName = TsModuleResolver.importedTypeName(from, type)
+                out.append("import { ").append(importedName).append("Meta")
+                if (importedName != name)
+                    out.append(" as ").append(name).append("Meta")
                 out.append(" } from \"")
                     .append(TsModuleResolver.importPath(from, fromTypeName, type, name)).append("\";\n")
             }
@@ -290,6 +319,7 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
     def private static CharSequence writeInterface(ClassDefinition d) {
         val refs = new TsImportCollector
+        val metaRefs = new TsImportCollector
         val generics = if (!d.genericParameters.empty) '''<«FOR g : d.genericParameters SEPARATOR ", "»«g.name» = unknown«ENDFOR»>'''
         val parent = if (d.extendsClass !== null)
             " extends Omit<" + d.extendsClass.tsClassRef(d, refs) + ", '@PQON'>"
@@ -304,10 +334,13 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
             «ENDFOR»
             '@PQON': typeof «d.name»PQON;
         '''
+        val meta = d.tsClassMeta(metaRefs)
         return '''
             «GENERATED_COMMENT»
             import type { BonaPortable } from "«TsModuleResolver.runtimeSupportImport(d, d.name, "bona-portable")»";
+            import type { TsClassMeta } from "«TsModuleResolver.runtimeSupportImport(d, d.name, TsMetaRuntimeSource.MODULE_NAME)»";
             «d.writeImports(d.name, refs)»
+            «d.writeMetaImports(d.name, metaRefs)»
 
             export const «d.name»PQON = "«pqon»" as const;
             «d.javadoc.jsdoc»
@@ -316,6 +349,8 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
                 «body»
             }
             «guard»
+
+            «meta»
         '''
     }
     def private static CharSequence tsFieldMetadata(FieldDefinition f) {
@@ -415,6 +450,123 @@ class TypeScriptBonScriptGeneratorMain extends AbstractGenerator {
 
     private static def String tsJSDocString(String value) {
         "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").commentSafe + "\""
+    }
+
+    private static def String tsStringLiteral(String value) {
+        "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "\\r") + "\""
+    }
+
+    /** Object literal with all properties; a property without value becomes true. */
+    private static def String tsProps(Iterable<PropertyUse> properties) {
+        val literals = new LinkedHashMap<String, String>
+        for (property : properties)
+            literals.put(property.key.name.tsStringLiteral,
+                if (property.value === null) "true" else property.value.tsStringLiteral)
+        if (literals.empty)
+            return "{}"
+        return "{ " + literals.entrySet.map[key + ": " + value].join(", ") + " }"
+    }
+
+    private static def String metaIdentifier(ClassDefinition target, TsImportCollector metaRefs) {
+        metaRefs.add(target)
+        target.name + "Meta"
+    }
+
+    private static def String tsDefaultValue(FieldDefinition f, DataTypeExtension ref) {
+        if (f.defaultString !== null)
+            return f.defaultString
+        if (ref.effectiveEnumDefault) {
+            val elem = ref.elementaryDataType
+            val enumType = if (elem.enumType !== null) elem.enumType
+                           else if (elem.xenumType !== null) elem.xenumType.myEnum
+                           else null
+            if (enumType !== null && ref.enumMaxTokenLength == DataTypeExtension.ENUM_NUMERIC)
+                return "0"
+            if (enumType !== null && !enumType.avalues.empty)
+                return enumType.avalues.head.token
+        }
+        return null
+    }
+
+    /** Runtime metadata of a class: its own fields, class properties and lazy references to the parent and related classes. */
+    def private static CharSequence tsClassMeta(ClassDefinition d, TsImportCollector metaRefs) {
+        val parentRef = d.extendsClass
+        val parentClass = if (parentRef !== null && !parentRef.plainObject) parentRef.classRef else null
+        val propsInherited = parentClass !== null && (d.inheritProperties || d.package.inheritProperties)
+        return '''
+            export const «d.name»Meta: TsClassMeta = {
+                pqon: «d.name»PQON,
+                «IF parentClass !== null»
+                    parent: () => «parentClass.metaIdentifier(metaRefs)»,
+                «ENDIF»
+                props: «d.properties.tsProps»,
+                propsInherited: «propsInherited»,
+                own: {
+                    «FOR f : d.fields»
+                        «f.name.tsStringLiteral»: «f.tsFieldMeta(metaRefs)»,
+                    «ENDFOR»
+                },
+            };
+        '''
+    }
+
+    private static def String tsFieldMeta(FieldDefinition f, TsImportCollector metaRefs) {
+        val entries = new ArrayList<String>
+        val ref = DataTypeExtension.get(f.datatype)
+        entries.add("required: " + f.cannotBeNull)
+        val defaultValue = f.tsDefaultValue(ref)
+        if (defaultValue !== null)
+            entries.add("default: " + defaultValue.tsStringLiteral)
+        val elem = ref.elementaryDataType
+        if (elem !== null) {
+            if (ref.category == DataCategory.BINARY && elem.length > 0)
+                entries.add("maxBytes: " + elem.length)
+            if (ref.javaType.equals("String")) {
+                if (elem.minLength > 0)
+                    entries.add("minLength: " + elem.minLength)
+                if (elem.length > 0)
+                    entries.add("maxLength: " + elem.length)
+                if (elem.regexp !== null)
+                    entries.add("pattern: " + elem.regexp.tsStringLiteral)
+                if (elem.name.equalsIgnoreCase("uppercase"))
+                    entries.add("case: \"uppercase\"")
+                else if (elem.name.equalsIgnoreCase("lowercase"))
+                    entries.add("case: \"lowercase\"")
+            }
+            if (elem.length > 0 && (ref.category == DataCategory.NUMERIC
+                    || ref.category == DataCategory.BASICNUMERIC)) {
+                entries.add("precision: " + elem.length)
+                entries.add("scale: " + elem.decimals)
+            }
+        }
+        if (f.isArray !== null)
+            entries.addAggregateMeta("array", f.isArray.mincount, f.isArray.maxcount)
+        else if (f.isList !== null)
+            entries.addAggregateMeta("list", f.isList.mincount, f.isList.maxcount)
+        else if (f.isSet !== null)
+            entries.addAggregateMeta("set", f.isSet.mincount, f.isSet.maxcount)
+        else if (f.isMap !== null)
+            entries.addAggregateMeta("map", f.isMap.mincount, f.isMap.maxcount)
+        entries.add("props: " + f.properties.tsProps)
+        // genericsRef holds the declared class reference of every object field, not only of generics
+        val objectRef = ref.genericsRef
+        if (objectRef !== null && !objectRef.plainObject && objectRef.genericsParameterRef === null
+                && objectRef.classRef !== null) {
+            entries.add("objectType: () => " + objectRef.classRef.metaIdentifier(metaRefs))
+            if (f.properties.exists[key.name == "ref"] && ref.secondaryObjectDataType !== null)
+                entries.add("refTarget: () => " + ref.secondaryObjectDataType.metaIdentifier(metaRefs))
+        }
+        return "{ " + entries.join(", ") + " }"
+    }
+
+    private static def void addAggregateMeta(List<String> entries, String kind, int minCount, int maxCount) {
+        val parts = new ArrayList<String>
+        parts.add("kind: \"" + kind + "\"")
+        if (minCount > 0)
+            parts.add("minCount: " + minCount)
+        if (maxCount > 0)
+            parts.add("maxCount: " + maxCount)
+        entries.add("aggregate: { " + parts.join(", ") + " }")
     }
 
     def private static CharSequence typeGuard(ClassDefinition d) {

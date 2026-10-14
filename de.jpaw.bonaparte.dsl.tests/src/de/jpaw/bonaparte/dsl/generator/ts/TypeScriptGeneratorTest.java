@@ -410,6 +410,101 @@ public class TypeScriptGeneratorTest {
     }
 
     @Test
+    public void classMetadataExposesConstraintsPropertiesAndAggregates() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.metadata {",
+            "    properties displayName, tag;",
+            "    enum Status { ACTIVE = \"active\", INACTIVE = \"inactive\" }",
+            "    class Metadata {",
+            "        properties tag=\"a\\\"b\";",
+            "        required unicode(3..20) regexp \"[A-Z]+\" code default \"ABC\" properties displayName=\"Code\", tag;",
+            "        optional Uppercase(12) normalized;",
+            "        optional Decimal(9,2) amount;",
+            "        required binary(24) binaryData;",
+            "        required enum Status status default \"inactive\";",
+            "        required Integer required List<1..5> values;",
+            "        optional Integer Map<String, 2..8> entries;",
+            "    }",
+            "}",
+            "");
+        Map<String, CharSequence> files = generate(source);
+        String metadata = norm(files.get(ROOT + "com/acme/metadata/Metadata.ts"));
+
+        assertTrue(metadata, metadata.contains("import type { TsClassMeta } from \"../../../bona-meta\";"));
+        assertTrue(metadata, metadata.contains("export const MetadataMeta: TsClassMeta = {"));
+        assertTrue(metadata, metadata.contains("pqon: MetadataPQON,"));
+        assertFalse(metadata, metadata.contains("parent:"));
+        assertTrue(metadata, metadata.contains("props: { \"tag\": \"a\\\"b\" },"));
+        assertTrue(metadata, metadata.contains("propsInherited: false,"));
+        assertTrue(metadata, metadata.contains("\"code\": { required: true, default: \"ABC\", minLength: 3, maxLength: 20,"
+            + " pattern: \"[A-Z]+\", props: { \"displayName\": \"Code\", \"tag\": true } },"));
+        assertTrue(metadata, metadata.contains("\"normalized\": { required: false, maxLength: 12, case: \"uppercase\","));
+        assertTrue(metadata, metadata.contains("precision: 9, scale: 2, props: {} },"));
+        assertTrue(metadata, metadata.contains("\"binaryData\": { required: true, maxBytes: 24, props: {} },"));
+        assertTrue(metadata, metadata.contains("\"status\": { required: true, default: \"inactive\", props: {} },"));
+        assertTrue(metadata, metadata.contains("aggregate: { kind: \"list\", minCount: 1, maxCount: 5 },"));
+        assertTrue(metadata, metadata.contains("aggregate: { kind: \"map\", minCount: 2, maxCount: 8 },"));
+
+        String index = norm(files.get(ROOT + "index.ts"));
+        assertTrue(index, index.contains("export { MetadataMeta } from './com/acme/metadata/Metadata';"));
+        assertTrue(index, index.contains("export { bonAllFields, bonClassProp, bonValidate } from './bona-meta';"));
+        String runtime = norm(files.get(ROOT + "bona-meta.ts"));
+        assertTrue(runtime, runtime.contains("export interface TsClassMeta {"));
+        assertTrue(runtime, runtime.contains("export function bonValidate("));
+    }
+
+    @Test
+    public void classMetadataLinksParentObjectTypesAndReferenceTargets() throws Exception {
+        String source = String.join("\n",
+            "package com.acme.refs {",
+            "    properties ref, searchprefix, dropdown, tag;",
+            "    class UserRef {}",
+            "    class UserKey extends UserRef { required long id; }",
+            "    class UserDTO extends UserRef {",
+            "        properties tag=\"user\";",
+            "        required unicode(20) name;",
+            "    }",
+            "    class AdminDTO extends UserDTO {",
+            "        properties inherited;",
+            "        required boolean root;",
+            "    }",
+            "    class Holder {",
+            "        optional (UserRef...,UserDTO) userRef properties ref, searchprefix=\"user\", dropdown=\"userId\";",
+            "        optional (UserRef...,UserKey) keyRef properties ref;",
+            "        optional (UserRef...,UserKey) notARef;",
+            "        optional (UserDTO) plain;",
+            "        optional (Holder) self;",
+            "    }",
+            "}",
+            "");
+        Map<String, CharSequence> files = generate(source);
+
+        String admin = norm(files.get(ROOT + "com/acme/refs/AdminDTO.ts"));
+        assertTrue(admin, admin.contains("import { UserDTOMeta } from \"./UserDTO\";"));
+        assertTrue(admin, admin.contains("parent: () => UserDTOMeta,"));
+        assertTrue(admin, admin.contains("propsInherited: true,"));
+
+        String user = norm(files.get(ROOT + "com/acme/refs/UserDTO.ts"));
+        assertTrue(user, user.contains("parent: () => UserRefMeta,"));
+        assertTrue(user, user.contains("propsInherited: false,"));
+        assertTrue(user, user.contains("props: { \"tag\": \"user\" },"));
+
+        String holder = norm(files.get(ROOT + "com/acme/refs/Holder.ts"));
+        assertTrue(holder, holder.contains("import { UserRefMeta } from \"./UserRef\";"));
+        assertTrue(holder, holder.contains("import { UserDTOMeta } from \"./UserDTO\";"));
+        assertTrue(holder, holder.contains("import { UserKeyMeta } from \"./UserKey\";"));
+        assertFalse(holder, holder.contains("import { HolderMeta }"));
+        assertTrue(holder, holder.contains("\"userRef\": { required: false, props: { \"ref\": true,"
+            + " \"searchprefix\": \"user\", \"dropdown\": \"userId\" }, objectType: () => UserRefMeta,"
+            + " refTarget: () => UserDTOMeta },"));
+        assertTrue(holder, holder.contains("\"keyRef\": { required: false, props: { \"ref\": true },"
+            + " objectType: () => UserRefMeta, refTarget: () => UserKeyMeta },"));
+        assertTrue(holder, holder.contains("\"notARef\": { required: false, props: {}, objectType: () => UserRefMeta },"));
+        assertTrue(holder, holder.contains("\"plain\": { required: false, props: {}, objectType: () => UserDTOMeta },"));
+        assertTrue(holder, holder.contains("\"self\": { required: false, props: {}, objectType: () => HolderMeta },"));
+    }
+
+    @Test
     public void resolvesImportsFromGeneratedPathsInDefaultAndEntrypointLayouts() throws Exception {
         String source = String.join("\n",
             "package com.acme.deep {",
