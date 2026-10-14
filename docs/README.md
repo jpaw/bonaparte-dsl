@@ -50,9 +50,9 @@ bonaparte-dsl/
 ├── de.jpaw.bonaparte.dsl/          # The Xtext DSL: grammar, generators, preferences
 │   └── src/de/jpaw/bonaparte/dsl/
 │       ├── BonScript.xtext          # The grammar
+│       ├── BonScriptPreferences.xtend        # Config system
 │       ├── generator/
 │       │   ├── BonScriptGenerator.xtend          # Orchestrator
-│       │   ├── BonScriptPreferences.xtend        # Config system
 │       │   ├── java/JavaBonScriptGeneratorMain.xtend
 │       │   ├── ts/TypeScriptBonScriptGeneratorMain.xtend
 │       │   ├── tsapi/TsApiClientGenerator.xtend

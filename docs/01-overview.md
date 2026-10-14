@@ -93,8 +93,12 @@ project (group `de.jpaw.bonaparte`). Key runtime types referenced by generated c
 - `de.jpaw.bonaparte.annotation.*` — annotations such as `@RelatedKey`, `@IsRefClass`, `@KeyClass`,
   `@TrackingClass`.
 
-The package that provides these is configurable (see `bonaparteInterfacesPackage` and
-`bonaparteClassDefaultPackagePrefix` in the [Configuration Reference](07-configuration-reference.md)).
+Two package names are fixed constants in the generator (not user-configurable):
+
+- `de.jpaw.bonaparte.core` (`bonaparteInterfacesPackage`) — where the runtime interfaces above live.
+- `de.jpaw.bonaparte.pojos` (`bonaparteClassDefaultPackagePrefix`) — the default Java package prefix
+  used when a `.bon` package has no explicit `(prefix)`. The generated `meta` classes are imported
+  from `<prefix>.meta.*`.
 
 ### TypeScript — `bonaparte-core` and `t9t-base-api`
 
